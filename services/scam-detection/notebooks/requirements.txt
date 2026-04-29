@@ -1,0 +1,6 @@
+# Notebooks (research/exploration) requirements for scam-detection service.
+# Install with: pip install -r notebooks/requirements.txt
+
+pandas>=2.0.0
+deep-translator>=1.11.4
+tqdm>=4.65.0
