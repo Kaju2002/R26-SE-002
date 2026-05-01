@@ -1,1 +1,4 @@
 services/scam-detection/data/
+*.pt
+*.safetensors
+phase2_metrics.json
