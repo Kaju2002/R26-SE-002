@@ -2,6 +2,7 @@ import React from 'react';
 import { Image, StyleSheet, View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
+import DetectNavigator from './DetectNavigator';
 import MyNetworkScreen from '../screens/MyNetworkScreen';
 import PostScreen from '../screens/PostScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
@@ -49,10 +50,10 @@ export default function BottomTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="MyNetwork"
-        component={MyNetworkScreen}
+        name="Detect"
+        component={DetectNavigator}
         options={{
-          tabBarLabel: 'My Network',
+          tabBarLabel: 'Detect',
           tabBarIcon: ({ color }) => (
             <Image
               source={require('../../assets/icons/mynetwork.png')}
