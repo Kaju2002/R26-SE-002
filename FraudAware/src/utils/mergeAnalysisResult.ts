@@ -94,11 +94,15 @@ export function mergeAnalysisFromApi(dummy: AnalysisPayload, api: MergeableApiRe
   const tacticsRaw = api?.tactics ?? api?.Tactics ?? api?.signals;
   const warning = pickStr(api, 'warning', 'Warning', 'advisory', 'risk_summary');
   const reassurance = pickStr(api, 'reassurance', 'Reassurance');
-  const fromApi =
-    pickStr(api, 'original_text', 'originalText', 'text', 'message') ??
-    pastedMessage;
+  const pickedText = pickStr(api, 'original_text', 'originalText', 'text', 'message');
+  const combinedForOriginal =
+    typeof pickedText === 'string' && pickedText.length > 0
+      ? pickedText
+      : typeof pastedMessage === 'string' && pastedMessage.length > 0
+        ? pastedMessage
+        : '';
   const original_text =
-    fromApi.trim().length > 0 ? fromApi : dummy.original_text;
+    combinedForOriginal.trim().length > 0 ? combinedForOriginal.trim() : dummy.original_text;
 
   const tacticsFromApi = coerceTactics(tacticsRaw);
 
