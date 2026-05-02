@@ -10,7 +10,7 @@ import JobsScreen from '../screens/JobsScreen';
 
 const Tab = createBottomTabNavigator();
 
-const NotificationBadge = ({ count }) => {
+const NotificationBadge = ({ count }: { count?: number }) => {
   if (!count || count === 0) return null;
   return (
     <View style={styles.badge}>

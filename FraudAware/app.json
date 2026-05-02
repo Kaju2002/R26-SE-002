@@ -25,6 +25,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow FraudAware to access your photos to upload chat screenshots."
+        }
+      ]
+    ]
   }
 }
