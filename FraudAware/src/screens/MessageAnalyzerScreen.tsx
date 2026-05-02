@@ -34,6 +34,15 @@ const RECENT_SCANS: RecentScanItem[] = [
     title: 'SCAM — tactics',
     preview: 'URGENT: Wire $500 for background check before we can send your offer letter...',
     timeAgo: '2h ago',
+    confidence: 94,
+    tactics: [
+      { name: 'Pressure for upfront payment', example: '...Wire $500 for background check...' },
+      { name: 'Artificial urgency', example: '...URGENT...' },
+    ],
+    warning:
+      'Legitimate employers rarely ask for payments before a verified offer. Do not send money or gift cards.',
+    originalText:
+      'URGENT: Wire $500 for background check before we can send your offer letter. Failure to pay within 24 hours will cancel your application.',
   },
   {
     id: '2',
@@ -41,6 +50,11 @@ const RECENT_SCANS: RecentScanItem[] = [
     title: 'LEGITIMATE',
     preview: 'Hi, thanks for applying. We’d like to schedule a short call next week to discuss…',
     timeAgo: '1d ago',
+    confidence: 87,
+    reassurance:
+      'No strong scam signals detected. Still verify the sender domain and interview details independently.',
+    originalText:
+      'Hi, thanks for applying. We’d like to schedule a short call next week to discuss your background and next steps. You’ll receive a calendar invite from recruiting@company.com.',
   },
   {
     id: '3',
@@ -48,6 +62,11 @@ const RECENT_SCANS: RecentScanItem[] = [
     title: 'SCAM — fake urgency',
     preview: 'Final reminder: pay today or your interview slot will be canceled immediately...',
     timeAgo: '2d ago',
+    confidence: 91,
+    tactics: [{ name: 'Deadline pressure', example: '...pay today or slot canceled...' }],
+    warning: 'Be wary of threats tied to interview slots. Confirm through official company channels only.',
+    originalText:
+      'Final reminder: pay today or your interview slot will be canceled immediately. Other candidates are waiting.',
   },
   {
     id: '4',
@@ -55,6 +74,10 @@ const RECENT_SCANS: RecentScanItem[] = [
     title: 'LEGITIMATE',
     preview: 'Please join the official Zoom panel interview from our company domain email invite.',
     timeAgo: '3d ago',
+    confidence: 82,
+    reassurance: 'Communication references official channels. Continue to validate meeting links before joining.',
+    originalText:
+      'Please join the official Zoom panel interview using the link in the calendar invite from hr@company.com.',
   },
   {
     id: '5',
@@ -62,6 +85,11 @@ const RECENT_SCANS: RecentScanItem[] = [
     title: 'SCAM — advance fee',
     preview: 'Kindly send processing fee through gift cards before onboarding confirmation.',
     timeAgo: '4d ago',
+    confidence: 96,
+    tactics: [{ name: 'Untraceable payment', example: '...gift cards...' }],
+    warning: 'Gift cards are a common scam payment method. Never purchase cards to “secure” a job.',
+    originalText:
+      'Kindly send processing fee through gift cards before onboarding confirmation. Send codes by reply.',
   },
   {
     id: '6',
@@ -69,6 +97,10 @@ const RECENT_SCANS: RecentScanItem[] = [
     title: 'LEGITIMATE',
     preview: 'Our recruiter will contact you from hr@company.com with next interview details.',
     timeAgo: '6d ago',
+    confidence: 85,
+    reassurance: 'Sender aligns with a corporate domain pattern. Still confirm the domain matches the careers site.',
+    originalText:
+      'Our recruiter will contact you from hr@company.com with next interview details and preparation materials.',
   },
 ];
 
