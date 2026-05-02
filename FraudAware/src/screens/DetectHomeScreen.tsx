@@ -63,6 +63,28 @@ export default function DetectHomeScreen({ navigation }) {
               </Text>
             </View>
           </TouchableOpacity>
+
+          {/* Card 3: Employer Legitimacy Check */}
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('EmployerCheckScreen')}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.cardBorder, styles.employerBorder]} />
+            <View style={styles.cardContent}>
+              <View style={styles.iconContainer}>
+                <MaterialCommunityIcons
+                  name="office-building"
+                  size={40}
+                  color="#2E7D32"
+                />
+              </View>
+              <Text style={styles.cardTitle}>Check Employer Legitimacy</Text>
+              <Text style={styles.cardSubtitle}>
+                Verify if a company or recruiter is legitimate using domain, email, and LinkedIn checks
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Info Banner */}
@@ -121,6 +143,9 @@ const styles = StyleSheet.create({
   },
   jobBorder: {
     backgroundColor: '#1565C0',
+  },
+  employerBorder: {
+    backgroundColor: '#2E7D32',
   },
   cardContent: {
     flex: 1,
