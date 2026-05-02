@@ -1,24 +1,14 @@
 # app/main.py
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-
 from app.database import connect_to_mongo, close_mongo, is_connected
+from app.model_loader import load_model, is_model_loaded
 from app.schemas import HealthResponse
 
 app = FastAPI(
     title="FraudAware Scam Detection API",
-    description="Detects psychological manipulation tactics in recruiter messages",
-    version="1.0.0",
-)
-
-# Browsers (Expo Web, /docs from another origin, etc.) require CORS on cross-origin requests.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    description="Detects psychological manipulation in recruiter messages",
+    version="1.0.0"
 )
 
 
@@ -27,6 +17,7 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     connect_to_mongo()
+    load_model()
 
 
 @app.on_event("shutdown")
@@ -40,6 +31,6 @@ def shutdown():
 def health():
     return {
         "status": "ok",
-        "model_loaded": False,   # will be True after model_loader added
+        "model_loaded": is_model_loaded(),
         "database_connected": is_connected()
     }
