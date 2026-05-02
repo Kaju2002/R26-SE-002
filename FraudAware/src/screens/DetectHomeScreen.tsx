@@ -26,18 +26,21 @@ export default function DetectHomeScreen({ navigation }: Props) {
         <View style={styles.cardsContainer}>
           {/* Card 1: Check Message */}
           <TouchableOpacity 
-            style={styles.card}
+            style={[styles.card, styles.messageCardBg]}
             onPress={() => navigation.navigate('MessageAnalyzer')}
             activeOpacity={0.7}
           >
-            <View style={[styles.cardBorder, styles.messageBorder]} />
             <View style={styles.cardContent}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons 
-                  name="message-alert" 
-                  size={40} 
-                  color="#E53935" 
-                />
+              <View style={styles.cardTopRow}>
+                <View style={[styles.iconContainer, styles.messageIconBg]}>
+                  <MaterialCommunityIcons
+                    name="shield-account-outline"
+                    size={26}
+                    color="#C62828"
+                  />
+                </View>
+                <Text style={[styles.cardTag, styles.messageTag]}>Message Safety</Text>
+                <MaterialCommunityIcons name="chevron-right" size={22} color="#9AA7BD" style={styles.cardArrow} />
               </View>
               <Text style={styles.cardTitle}>Check Recruiter Message</Text>
               <Text style={styles.cardSubtitle}>
@@ -48,18 +51,21 @@ export default function DetectHomeScreen({ navigation }: Props) {
 
           {/* Card 2: Check Job Post */}
           <TouchableOpacity 
-            style={styles.card}
+            style={[styles.card, styles.jobCardBg]}
             onPress={() => navigation.navigate('JobPost')}
             activeOpacity={0.7}
           >
-            <View style={[styles.cardBorder, styles.jobBorder]} />
             <View style={styles.cardContent}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons 
-                  name="briefcase-search" 
-                  size={40} 
-                  color="#1565C0" 
-                />
+              <View style={styles.cardTopRow}>
+                <View style={[styles.iconContainer, styles.jobIconBg]}>
+                  <MaterialCommunityIcons
+                    name="clipboard-search-outline"
+                    size={26}
+                    color="#0D47A1"
+                  />
+                </View>
+                <Text style={[styles.cardTag, styles.jobTag]}>Post Verification</Text>
+                <MaterialCommunityIcons name="chevron-right" size={22} color="#9AA7BD" style={styles.cardArrow} />
               </View>
               <Text style={styles.cardTitle}>Check Job Advertisement</Text>
               <Text style={styles.cardSubtitle}>
@@ -70,18 +76,21 @@ export default function DetectHomeScreen({ navigation }: Props) {
 
           {/* Card 3: Employer Legitimacy Check */}
           <TouchableOpacity
-            style={styles.card}
+            style={[styles.card, styles.employerCardBg]}
             onPress={() => navigation.navigate('EmployerCheckScreen')}
             activeOpacity={0.7}
           >
-            <View style={[styles.cardBorder, styles.employerBorder]} />
             <View style={styles.cardContent}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name="office-building"
-                  size={40}
-                  color="#2E7D32"
-                />
+              <View style={styles.cardTopRow}>
+                <View style={[styles.iconContainer, styles.employerIconBg]}>
+                  <MaterialCommunityIcons
+                    name="domain"
+                    size={26}
+                    color="#1B5E20"
+                  />
+                </View>
+                <Text style={[styles.cardTag, styles.employerTag]}>Employer Trust</Text>
+                <MaterialCommunityIcons name="chevron-right" size={22} color="#9AA7BD" style={styles.cardArrow} />
               </View>
               <Text style={styles.cardTitle}>Check Employer Legitimacy</Text>
               <Text style={styles.cardSubtitle}>
@@ -91,10 +100,7 @@ export default function DetectHomeScreen({ navigation }: Props) {
           </TouchableOpacity>
         </View>
 
-        {/* Info Banner */}
-        <View style={styles.infoBanner}>
-          <Text style={styles.bannerText}>🛡️ Powered by AI — Results in under 2 seconds</Text>
-        </View>
+        
       </ScrollView>
     </SafeAreaView>
   );
@@ -129,36 +135,74 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   card: {
-    flexDirection: 'row',
     backgroundColor: '#fff',
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E8EDF3',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  cardBorder: {
-    width: 4,
+  messageCardBg: {
+    backgroundColor: '#FFF6F6',
   },
-  messageBorder: {
-    backgroundColor: '#E53935',
+  jobCardBg: {
+    backgroundColor: '#F5F9FF',
   },
-  jobBorder: {
-    backgroundColor: '#1565C0',
-  },
-  employerBorder: {
-    backgroundColor: '#2E7D32',
+  employerCardBg: {
+    backgroundColor: '#F4FBF5',
   },
   cardContent: {
     flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     alignItems: 'flex-start',
   },
+  cardTopRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   iconContainer: {
-    marginBottom: 12,
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cardTag: {
+    marginLeft: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.2,
+  },
+  messageTag: {
+    color: '#B71C1C',
+    backgroundColor: '#FDECEC',
+  },
+  jobTag: {
+    color: '#0D47A1',
+    backgroundColor: '#EAF2FF',
+  },
+  employerTag: {
+    color: '#1B5E20',
+    backgroundColor: '#EAF6EC',
+  },
+  messageIconBg: {
+    backgroundColor: '#FDECEC',
+  },
+  jobIconBg: {
+    backgroundColor: '#EAF2FF',
+  },
+  employerIconBg: {
+    backgroundColor: '#EAF6EC',
   },
   cardTitle: {
     fontSize: 16,
@@ -171,6 +215,10 @@ const styles = StyleSheet.create({
     color: '#798AA3',
     lineHeight: 18,
     fontWeight: '400',
+    paddingRight: 32,
+  },
+  cardArrow: {
+    marginLeft: 'auto',
   },
   infoBanner: {
     backgroundColor: '#F5F5F5',
