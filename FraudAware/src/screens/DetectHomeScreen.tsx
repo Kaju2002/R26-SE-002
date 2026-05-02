@@ -1,10 +1,14 @@
 import React from 'react';
 import { StyleSheet, ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Header from '../components/Header';
+import type { DetectStackParamList } from '../navigation/detectStackTypes';
 
-export default function DetectHomeScreen({ navigation }) {
+type Props = NativeStackScreenProps<DetectStackParamList, 'DetectHome'>;
+
+export default function DetectHomeScreen({ navigation }: Props) {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header />

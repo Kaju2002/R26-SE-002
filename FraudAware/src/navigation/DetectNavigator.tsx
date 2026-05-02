@@ -4,8 +4,9 @@ import DetectHomeScreen from '../screens/DetectHomeScreen';
 import MessageAnalyzerScreen from '../screens/MessageAnalyzerScreen';
 import JobPostScreen from '../screens/JobPostScreen';
 import EmployerCheckScreen from '../screens/EmployerCheckScreen';
+import type { DetectStackParamList } from './detectStackTypes';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<DetectStackParamList>();
 
 export default function DetectNavigator() {
   return (
