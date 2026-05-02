@@ -131,8 +131,11 @@ def load_model():
         # weights; Colab exports use model_state.pt / tactic_head.pt, not
         # pytorch_model.bin / model.safetensors.
         config = DistilBertConfig.from_pretrained(asset_dir)
+        # SDPA does not support output_attentions; predictor needs per-layer weights.
+        if hasattr(config, "attn_implementation"):
+            config.attn_implementation = "eager"
         base = DistilBertModel(config)
-        print("  DistilBERT backbone built from config.json")
+        print("  DistilBERT backbone built from config.json (attn_implementation=eager)")
 
         # Rebuild TacticClassifier with same architecture as training
         model = TacticClassifier(base, NUM_TACTICS, dropout=0.3)
@@ -186,6 +189,10 @@ def load_model():
 
         model.to(DEVICE)
         model.eval()   # inference mode — no gradient tracking
+
+        bert = getattr(model, "bert", None)
+        if bert is not None and hasattr(bert, "set_attn_implementation"):
+            bert.set_attn_implementation("eager")
 
         model_loaded = weights_ready
         if model_loaded:
