@@ -1,12 +1,16 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import Header from '../components/Header';
 
 export default function NotificationsScreen() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Notifications</Text>
-      <Text style={styles.subtitle}>You have 4 new notifications</Text>
-    </View>
+    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+      <Header />
+      <ScrollView contentContainerStyle={styles.content}>
+        {/* Add your Notifications content here */}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -14,17 +18,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#202871',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#798AA3',
+  content: {
+    paddingVertical: 20,
+    paddingHorizontal: 16,
   },
 });
