@@ -1,0 +1,27 @@
+{
+  "scam_sample": {
+    "is_scam": true,
+    "confidence": 94,
+    "tactics": [
+      {
+        "name": "Urgency Pressure",
+        "example": "...before 5pm today..."
+      },
+      {
+        "name": "FOMO",
+        "example": "...other candidates waiting..."
+      }
+    ],
+    "warning": "Legitimate employers never impose 24-hour payment deadlines or create artificial candidate scarcity. Do not send money or personal information.",
+    "reassurance": "",
+    "original_text": "Pay LKR 5000 to confirm your interview slot before 5pm today. Other candidates are waiting for this position."
+  },
+  "legit_sample": {
+    "is_scam": false,
+    "confidence": 87,
+    "tactics": [],
+    "warning": "",
+    "reassurance": "We did not find strong scam signals in this message. You should still verify the employer independently before sharing sensitive information.",
+    "original_text": "Hi, thanks for applying. We'd like to schedule a short introductory call via our official recruiting calendar."
+  }
+}
