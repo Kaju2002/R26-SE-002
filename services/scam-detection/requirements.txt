@@ -6,3 +6,16 @@ seaborn
 jupyter
 deep-translator
 tqdm
+
+# API, inference, OCR, MongoDB
+fastapi
+uvicorn
+torch
+transformers
+Pillow
+opencv-python
+pytesseract
+python-multipart
+pymongo
+python-dotenv
+motor
