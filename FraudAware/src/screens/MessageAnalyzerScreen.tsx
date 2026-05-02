@@ -95,8 +95,11 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      const data = await response.json();
-      navigation.navigate('ResultScreen', { result: data as Record<string, unknown> });
+      const data = (await response.json()) as Record<string, unknown>;
+      navigation.navigate('ResultScreen', {
+        result: data,
+        pastedMessage: text,
+      });
     } catch {
       Alert.alert('Connection Error', 'Could not reach server');
     } finally {
