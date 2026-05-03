@@ -16,8 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
-import { MESSAGE_CLASSIFY_URL } from '../config/messageAnalyzerApi';
-import RecentScansList, { type RecentScanItem } from '../components/RecentScansList';
+import { getClassifyImageUrl, getClassifyUrl } from '../config/messageAnalyzerApi';
+import { getOrCreateDeviceUserId } from '../lib/deviceUserId';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'MessageAnalyzer'>;
 
@@ -27,82 +27,27 @@ const GREY_TEXT = '#6B7280';
 const GREY_BORDER = '#C8CED6';
 const MAX_CHARS = 2000;
 
-const RECENT_SCANS: RecentScanItem[] = [
-  {
-    id: '1',
-    status: 'scam' as const,
-    title: 'SCAM — tactics',
-    preview: 'URGENT: Wire $500 for background check before we can send your offer letter...',
-    timeAgo: '2h ago',
-    confidence: 94,
-    tactics: [
-      { name: 'Pressure for upfront payment', example: '...Wire $500 for background check...' },
-      { name: 'Artificial urgency', example: '...URGENT...' },
-    ],
-    warning:
-      'Legitimate employers rarely ask for payments before a verified offer. Do not send money or gift cards.',
-    originalText:
-      'URGENT: Wire $500 for background check before we can send your offer letter. Failure to pay within 24 hours will cancel your application.',
-  },
-  {
-    id: '2',
-    status: 'legit' as const,
-    title: 'LEGITIMATE',
-    preview: 'Hi, thanks for applying. We’d like to schedule a short call next week to discuss…',
-    timeAgo: '1d ago',
-    confidence: 87,
-    reassurance:
-      'No strong scam signals detected. Still verify the sender domain and interview details independently.',
-    originalText:
-      'Hi, thanks for applying. We’d like to schedule a short call next week to discuss your background and next steps. You’ll receive a calendar invite from recruiting@company.com.',
-  },
-  {
-    id: '3',
-    status: 'scam' as const,
-    title: 'SCAM — fake urgency',
-    preview: 'Final reminder: pay today or your interview slot will be canceled immediately...',
-    timeAgo: '2d ago',
-    confidence: 91,
-    tactics: [{ name: 'Deadline pressure', example: '...pay today or slot canceled...' }],
-    warning: 'Be wary of threats tied to interview slots. Confirm through official company channels only.',
-    originalText:
-      'Final reminder: pay today or your interview slot will be canceled immediately. Other candidates are waiting.',
-  },
-  {
-    id: '4',
-    status: 'legit' as const,
-    title: 'LEGITIMATE',
-    preview: 'Please join the official Zoom panel interview from our company domain email invite.',
-    timeAgo: '3d ago',
-    confidence: 82,
-    reassurance: 'Communication references official channels. Continue to validate meeting links before joining.',
-    originalText:
-      'Please join the official Zoom panel interview using the link in the calendar invite from hr@company.com.',
-  },
-  {
-    id: '5',
-    status: 'scam' as const,
-    title: 'SCAM — advance fee',
-    preview: 'Kindly send processing fee through gift cards before onboarding confirmation.',
-    timeAgo: '4d ago',
-    confidence: 96,
-    tactics: [{ name: 'Untraceable payment', example: '...gift cards...' }],
-    warning: 'Gift cards are a common scam payment method. Never purchase cards to “secure” a job.',
-    originalText:
-      'Kindly send processing fee through gift cards before onboarding confirmation. Send codes by reply.',
-  },
-  {
-    id: '6',
-    status: 'legit' as const,
-    title: 'LEGITIMATE',
-    preview: 'Our recruiter will contact you from hr@company.com with next interview details.',
-    timeAgo: '6d ago',
-    confidence: 85,
-    reassurance: 'Sender aligns with a corporate domain pattern. Still confirm the domain matches the careers site.',
-    originalText:
-      'Our recruiter will contact you from hr@company.com with next interview details and preparation materials.',
-  },
-];
+async function readClassifyError(response: Response): Promise<string> {
+  const text = await response.text();
+  try {
+    const j = JSON.parse(text) as { detail?: unknown };
+    if (typeof j.detail === 'string') {
+      return j.detail;
+    }
+    if (Array.isArray(j.detail) && j.detail.length > 0) {
+      const first = j.detail[0] as { msg?: string };
+      if (typeof first?.msg === 'string') {
+        return first.msg;
+      }
+    }
+  } catch {
+    /* fall through */
+  }
+  if (text.length > 0 && text.length < 400) {
+    return text;
+  }
+  return `Request failed (${response.status})`;
+}
 
 export default function MessageAnalyzerScreen({ navigation }: Props) {
   const [messageText, setMessageText] = useState('');
@@ -116,16 +61,19 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
     }
     setLoading(true);
     try {
-      const response = await fetch(MESSAGE_CLASSIFY_URL, {
+      const userId = await getOrCreateDeviceUserId();
+      const response = await fetch(getClassifyUrl(), {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ text }),
+        body: JSON.stringify({ text, user_id: userId }),
       });
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+        const errMsg = await readClassifyError(response);
+        Alert.alert('Could not analyze', errMsg);
+        return;
       }
       const data = (await response.json()) as Record<string, unknown>;
       navigation.navigate('ResultScreen', {
@@ -133,7 +81,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         pastedMessage: text,
       });
     } catch {
-      Alert.alert('Connection Error', 'Could not reach server');
+      Alert.alert('Connection Error', 'Could not reach server. Check Wi‑Fi and that the API is running.');
     } finally {
       setLoading(false);
     }
@@ -153,10 +101,51 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
     if (pick.canceled || !pick.assets?.[0]?.uri) {
       return;
     }
-    navigation.navigate('ResultScreen', {
-      imageUri: pick.assets[0].uri,
-      isImage: true,
-    });
+    const asset = pick.assets[0];
+    setLoading(true);
+    try {
+      const userId = await getOrCreateDeviceUserId();
+      const form = new FormData();
+      form.append('user_id', userId);
+      form.append('file', {
+        uri: asset.uri,
+        name: asset.fileName ?? 'screenshot.jpg',
+        type: asset.mimeType ?? 'image/jpeg',
+      } as unknown as Blob);
+
+      const response = await fetch(getClassifyImageUrl(), {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+        },
+        body: form,
+      });
+      if (!response.ok) {
+        const errMsg = await readClassifyError(response);
+        Alert.alert('Could not analyze image', errMsg);
+        return;
+      }
+      const data = (await response.json()) as Record<string, unknown>;
+      const extracted =
+        typeof data.original_text === 'string'
+          ? data.original_text
+          : typeof data.extracted_text === 'string'
+            ? data.extracted_text
+            : '';
+      navigation.navigate('ResultScreen', {
+        result: data,
+        pastedMessage: extracted,
+        imageUri: asset.uri,
+        isImage: true,
+      });
+    } catch {
+      Alert.alert(
+        'Connection Error',
+        'Could not reach server. Check Wi‑Fi and that the API is running.'
+      );
+    } finally {
+      setLoading(false);
+    }
   }, [navigation]);
 
   const onHowThisWorks = useCallback(() => {
@@ -259,9 +248,6 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
             <MaterialCommunityIcons name="image-outline" size={22} color={BUTTON_NAVY} style={styles.btnIcon} />
             <Text style={styles.outlineBtnLabel}>Upload Chat Screenshot</Text>
           </TouchableOpacity>
-
-          <Text style={[styles.sectionLabel, styles.sectionLabelSpaced]}>RECENT SCANS</Text>
-          <RecentScansList scans={RECENT_SCANS} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -356,10 +342,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     color: GREY_TEXT,
     marginBottom: 8,
-  },
-  sectionLabelSpaced: {
-    marginTop: 8,
-    marginBottom: 12,
   },
   inputShell: {
     position: 'relative',
