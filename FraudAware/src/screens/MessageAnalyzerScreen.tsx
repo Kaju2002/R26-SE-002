@@ -12,12 +12,22 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
 import { getClassifyImageUrl, getClassifyUrl } from '../config/messageAnalyzerApi';
 import { getOrCreateDeviceUserId } from '../lib/deviceUserId';
+import {
+  clearAllHistory,
+  deleteHistoryScan,
+  fetchHealth,
+  fetchHistory,
+} from '../api/fraudawareApi';
+import RecentScansList from '../components/RecentScansList';
+import type { RecentScanItem } from '../components/ui_component/recentScanTypes';
+import { historyScanToRecentItem } from '../utils/mapHistoryScan';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'MessageAnalyzer'>;
 
@@ -52,6 +62,117 @@ async function readClassifyError(response: Response): Promise<string> {
 export default function MessageAnalyzerScreen({ navigation }: Props) {
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  /** When true, classify/image routes should not run (health or model). */
+  const [analysisBlocked, setAnalysisBlocked] = useState(false);
+
+  const loadHistory = useCallback(async () => {
+    setHistoryLoading(true);
+    try {
+      const userId = await getOrCreateDeviceUserId();
+      const data = await fetchHistory(userId);
+      setRecentScans(data.scans.map(historyScanToRecentItem));
+    } catch {
+      setRecentScans([]);
+    } finally {
+      setHistoryLoading(false);
+    }
+  }, []);
+
+  const refreshHealthOnly = useCallback(async () => {
+    const h = await fetchHealth();
+    if (!h.ok) {
+      setAnalysisBlocked(true);
+      return;
+    }
+    setAnalysisBlocked(!h.modelLoaded);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      (async () => {
+        await refreshHealthOnly();
+        if (!cancelled) {
+          await loadHistory();
+        }
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }, [loadHistory, refreshHealthOnly])
+  );
+
+  const ensureServerReadyForAnalysis = useCallback(async (): Promise<boolean> => {
+    const h = await fetchHealth();
+    if (!h.ok) {
+      Alert.alert(
+        'Server unavailable',
+        'Could not reach the analysis server. Check your network and that the API is running.'
+      );
+      setAnalysisBlocked(true);
+      return false;
+    }
+    if (!h.modelLoaded) {
+      Alert.alert(
+        'Server unavailable',
+        'The detection model is not loaded on the server yet. Try again in a moment.'
+      );
+      setAnalysisBlocked(true);
+      return false;
+    }
+    setAnalysisBlocked(false);
+    return true;
+  }, []);
+
+  const confirmDeleteScan = useCallback(
+    (scanId: string) => {
+      Alert.alert(
+        'Delete this scan?',
+        'It will be removed from your saved history on the server.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await deleteHistoryScan(scanId);
+                await loadHistory();
+              } catch (e) {
+                Alert.alert('Could not delete', e instanceof Error ? e.message : 'Unknown error');
+              }
+            },
+          },
+        ]
+      );
+    },
+    [loadHistory]
+  );
+
+  const confirmClearAll = useCallback(() => {
+    Alert.alert(
+      'Clear all history?',
+      "This can't be undone. All scans for this device will be removed from the server.",
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear all',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const userId = await getOrCreateDeviceUserId();
+              await clearAllHistory(userId);
+              await loadHistory();
+            } catch (e) {
+              Alert.alert('Could not clear history', e instanceof Error ? e.message : 'Unknown error');
+            }
+          },
+        },
+      ]
+    );
+  }, [loadHistory]);
 
   const onAnalyze = useCallback(async () => {
     const text = messageText.trim();
@@ -61,6 +182,9 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
     }
     setLoading(true);
     try {
+      if (!(await ensureServerReadyForAnalysis())) {
+        return;
+      }
       const userId = await getOrCreateDeviceUserId();
       const response = await fetch(getClassifyUrl(), {
         method: 'POST',
@@ -76,6 +200,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         return;
       }
       const data = (await response.json()) as Record<string, unknown>;
+      await loadHistory();
       navigation.navigate('ResultScreen', {
         result: data,
         pastedMessage: text,
@@ -85,7 +210,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [messageText, navigation]);
+  }, [ensureServerReadyForAnalysis, loadHistory, messageText, navigation]);
 
   const onUploadScreenshot = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -104,6 +229,9 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
     const asset = pick.assets[0];
     setLoading(true);
     try {
+      if (!(await ensureServerReadyForAnalysis())) {
+        return;
+      }
       const userId = await getOrCreateDeviceUserId();
       const form = new FormData();
       form.append('user_id', userId);
@@ -132,6 +260,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
           : typeof data.extracted_text === 'string'
             ? data.extracted_text
             : '';
+      await loadHistory();
       navigation.navigate('ResultScreen', {
         result: data,
         pastedMessage: extracted,
@@ -146,7 +275,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [navigation]);
+  }, [ensureServerReadyForAnalysis, loadHistory, navigation]);
 
   const onHowThisWorks = useCallback(() => {
     Alert.alert(
@@ -200,6 +329,15 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
             </View>
           </View>
 
+          {analysisBlocked ? (
+            <View style={styles.serverBanner}>
+              <MaterialCommunityIcons name="cloud-off-outline" size={22} color="#B71C1C" />
+              <Text style={styles.serverBannerText}>
+                Server unavailable — analysis is disabled until the API is reachable and the model is loaded.
+              </Text>
+            </View>
+          ) : null}
+
           <Text style={styles.sectionLabel}>PASTE MESSAGE</Text>
 
           <View style={styles.inputShell}>
@@ -218,9 +356,9 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={[styles.primaryBtn, loading && styles.primaryBtnDisabled]}
+            style={[styles.primaryBtn, (loading || analysisBlocked) && styles.primaryBtnDisabled]}
             onPress={onAnalyze}
-            disabled={loading}
+            disabled={loading || analysisBlocked}
             activeOpacity={0.85}
           >
             {loading ? (
@@ -240,14 +378,30 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={styles.outlineBtn}
+            style={[styles.outlineBtn, analysisBlocked && styles.outlineBtnDisabled]}
             onPress={onUploadScreenshot}
             activeOpacity={0.85}
-            disabled={loading}
+            disabled={loading || analysisBlocked}
           >
             <MaterialCommunityIcons name="image-outline" size={22} color={BUTTON_NAVY} style={styles.btnIcon} />
             <Text style={styles.outlineBtnLabel}>Upload Chat Screenshot</Text>
           </TouchableOpacity>
+
+          <View style={styles.recentSectionHeader}>
+            <Text style={styles.sectionLabel}>RECENT SCANS</Text>
+            {recentScans.length > 0 ? (
+              <TouchableOpacity onPress={confirmClearAll} hitSlop={8}>
+                <Text style={styles.clearAllText}>Clear all</Text>
+              </TouchableOpacity>
+            ) : null}
+          </View>
+          {historyLoading ? (
+            <View style={styles.historyLoading}>
+              <ActivityIndicator color={BUTTON_NAVY} />
+            </View>
+          ) : (
+            <RecentScansList scans={recentScans} onDeleteItem={confirmDeleteScan} />
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -336,6 +490,40 @@ const styles = StyleSheet.create({
     color: '#B22222',
     textDecorationLine: 'underline',
   },
+  serverBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#FFF8F8',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(183, 28, 28, 0.35)',
+    padding: 12,
+    marginBottom: 18,
+  },
+  serverBannerText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#5C2A2A',
+    fontWeight: '600',
+  },
+  recentSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    marginTop: 8,
+  },
+  clearAllText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#B71C1C',
+  },
+  historyLoading: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
@@ -410,8 +598,11 @@ const styles = StyleSheet.create({
     borderColor: BUTTON_NAVY,
     borderRadius: 10,
     paddingVertical: 13,
-    marginBottom: 24,
+    marginBottom: 20,
     backgroundColor: '#fff',
+  },
+  outlineBtnDisabled: {
+    opacity: 0.45,
   },
   outlineBtnLabel: {
     color: BUTTON_NAVY,
