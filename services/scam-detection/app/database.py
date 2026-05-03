@@ -1,7 +1,7 @@
 # app/database.py
 
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from bson import ObjectId
 from pymongo import MongoClient
@@ -56,6 +56,19 @@ def close_mongo():
         print("MongoDB connection closed")
 
 
+def _iso_utc_z(dt: datetime) -> str:
+    """
+    Serialize a UTC instant for JSON / JavaScript.
+    Naive datetimes are treated as UTC (legacy rows saved with utcnow()).
+    Appends Z so the app parses the same instant on all timezones.
+    """
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt.isoformat().replace("+00:00", "Z")
+
+
 # ─── SAVE SCAN ───────────────────────────────────────────────────
 
 def save_scan(
@@ -88,7 +101,7 @@ def save_scan(
         "what_gave_it_away": what_gave_it_away,
         "source": source,
         "extracted_text": extracted_text,
-        "created_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
     }
 
     result = db["scans"].insert_one(document)
@@ -122,7 +135,7 @@ def get_scan_history(user_id: str, limit: int = 50):
                            if len(scan["original_text"]) > 80
                            else scan["original_text"],
             "source": scan.get("source", "text"),
-            "created_at": scan["created_at"].isoformat(),
+            "created_at": _iso_utc_z(scan["created_at"]),
         })
 
     return result
@@ -139,7 +152,7 @@ def get_scan_by_id(scan_id: str):
         if scan:
             scan["scan_id"] = str(scan["_id"])
             del scan["_id"]
-            scan["created_at"] = scan["created_at"].isoformat()
+            scan["created_at"] = _iso_utc_z(scan["created_at"])
         return scan
     except:
         return None
