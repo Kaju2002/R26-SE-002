@@ -26,11 +26,13 @@ function coerceTactics(raw: unknown): ParsedTactic[] {
     const example =
       typeof item.example === 'string'
         ? item.example
-        : typeof item.snippet === 'string'
-          ? item.snippet
-          : typeof item.quote === 'string'
-            ? item.quote
-            : '';
+        : typeof item.description === 'string'
+          ? item.description
+          : typeof item.snippet === 'string'
+            ? item.snippet
+            : typeof item.quote === 'string'
+              ? item.quote
+              : '';
     return { name, example };
   });
 }
@@ -88,58 +90,65 @@ export function coerceConfidencePct(n: unknown, fallback = 0): number {
   return Math.round(pct * 100) / 100;
 }
 
-export function mergeAnalysisFromApi(dummy: AnalysisPayload, api: MergeableApiResult | undefined, pastedMessage: string): AnalysisPayload {
+const DEFAULT_REASSURANCE =
+  'We did not find strong scam signals in this message. You should still verify the employer independently before sharing sensitive information.';
+
+/**
+ * Maps a `/classify` or `/classify-image` JSON body to UI payload. Returns null if `is_scam` is missing.
+ */
+export function analysisPayloadFromApi(api: MergeableApiResult, pastedMessage: string): AnalysisPayload | null {
   const is_scam = pickBool(api, 'is_scam', 'isScam');
+  if (typeof is_scam !== 'boolean') {
+    return null;
+  }
+
   const confidenceRaw = pickNumber(api, 'confidence', 'Confidence', 'confidence_score');
   const tacticsRaw = api?.tactics ?? api?.Tactics ?? api?.signals;
   const warning = pickStr(api, 'warning', 'Warning', 'advisory', 'risk_summary');
   const reassurance = pickStr(api, 'reassurance', 'Reassurance');
-  const pickedText = pickStr(api, 'original_text', 'originalText', 'text', 'message');
+  const whatGave = pickStr(api, 'what_gave_it_away', 'whatGaveItAway');
+  const pickedText = pickStr(api, 'original_text', 'originalText', 'text', 'message', 'extracted_text');
+
   const combinedForOriginal =
     typeof pickedText === 'string' && pickedText.length > 0
       ? pickedText
       : typeof pastedMessage === 'string' && pastedMessage.length > 0
         ? pastedMessage
         : '';
-  const original_text =
-    combinedForOriginal.trim().length > 0 ? combinedForOriginal.trim() : dummy.original_text;
+  const original_text = combinedForOriginal.trim();
 
   const tacticsFromApi = coerceTactics(tacticsRaw);
 
-  let tactics: ParsedTactic[];
-  if (is_scam === false) {
-    tactics = tacticsFromApi;
-  } else if (is_scam === true) {
-    tactics = tacticsFromApi.length > 0 ? tacticsFromApi : dummy.tactics;
-  } else {
-    tactics = tacticsFromApi.length > 0 ? tacticsFromApi : dummy.tactics;
-  }
+  const apiWarning = typeof warning === 'string' ? warning.trim() : '';
+  let outReassurance = typeof reassurance === 'string' ? reassurance.trim() : '';
 
-  const outIsScam = typeof is_scam === 'boolean' ? is_scam : dummy.is_scam;
-  let outWarning =
-    typeof warning === 'string' && warning.trim().length > 0 ? warning.trim() : dummy.warning;
-  let outReassurance =
-    typeof reassurance === 'string' && reassurance.trim().length > 0 ? reassurance.trim() : dummy.reassurance;
-  if (outIsScam) {
+  let outWarning: string;
+  if (is_scam) {
+    outWarning = apiWarning;
+    if (!outWarning && typeof whatGave === 'string' && whatGave.trim()) {
+      outWarning = whatGave.trim();
+    }
     outReassurance = '';
   } else {
     outWarning = '';
+    if (!outReassurance && typeof whatGave === 'string' && whatGave.trim()) {
+      outReassurance = whatGave.trim();
+    }
+    if (!outReassurance && apiWarning) {
+      outReassurance = apiWarning;
+    }
     if (!outReassurance) {
-      outReassurance =
-        dummy.reassurance ||
-        'We did not find strong scam signals in this message. You should still verify the employer independently before sharing sensitive information.';
+      outReassurance = DEFAULT_REASSURANCE;
     }
   }
 
   return {
-    is_scam: outIsScam,
+    is_scam,
     confidence:
-      typeof confidenceRaw === 'number'
-        ? coerceConfidencePct(confidenceRaw)
-        : coerceConfidencePct(dummy.confidence),
-    tactics,
+      typeof confidenceRaw === 'number' ? coerceConfidencePct(confidenceRaw) : 0,
+    tactics: is_scam ? tacticsFromApi : [],
     warning: outWarning,
     reassurance: outReassurance,
-    original_text: original_text && original_text.length > 0 ? original_text : dummy.original_text,
+    original_text: original_text.length > 0 ? original_text : '(No text)',
   };
 }

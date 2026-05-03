@@ -12,7 +12,7 @@ export type AnalysisPayload = {
   original_text: string;
 };
 
-/** Raw API envelope (temporary); merge with dummy JSON via `mergeAnalysisFromApi`. */
+/** Raw `/classify` or `/classify-image` response; mapped via `analysisPayloadFromApi`. */
 export type MergeableApiResult = Record<string, unknown>;
 
 export type DetectStackParamList = {

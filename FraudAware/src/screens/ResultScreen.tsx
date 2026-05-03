@@ -13,9 +13,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
-import dummyJson from '../../data/messageAnalysisDummy.json';
 import type { AnalysisPayload } from '../navigation/detectStackTypes';
-import { mergeAnalysisFromApi } from '../utils/mergeAnalysisResult';
+import { analysisPayloadFromApi } from '../utils/mergeAnalysisResult';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'ResultScreen'>;
 
@@ -25,9 +24,6 @@ const BUTTON_NAVY = '#202871';
 const GREY_TEXT = '#6B7280';
 const GREY_CARD = '#F3F5F8';
 const STORAGE_KEY = '@fraudaware:message_analysis_snapshots';
-
-const scamDummy = dummyJson.scam_sample as AnalysisPayload;
-const legitDummy = dummyJson.legit_sample as AnalysisPayload;
 
 function tacticGlyph(
   name: string
@@ -52,17 +48,34 @@ export default function ResultScreen({ navigation, route }: Props) {
   const { analysis, result, pastedMessage = '', imageUri, isImage } = route.params;
   const [saving, setSaving] = useState(false);
 
-  const payload = useMemo(() => {
+  const payload = useMemo((): AnalysisPayload | null => {
     if (analysis) {
       return analysis;
     }
     if (result == null || Object.keys(result).length === 0) {
-      return scamDummy;
+      return null;
     }
-    const base =
-      typeof result.is_scam === 'boolean' && result.is_scam === false ? legitDummy : scamDummy;
-    return mergeAnalysisFromApi(base, result, pastedMessage || '');
+    return analysisPayloadFromApi(result, pastedMessage || '');
   }, [analysis, result, pastedMessage]);
+
+  if (payload == null) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        <View style={styles.emptyWrap}>
+          <Text style={styles.emptyTitle}>No analysis</Text>
+          <Text style={styles.emptySub}>
+            Run an analysis from the Message Analyzer to see results here.
+          </Text>
+          <TouchableOpacity
+            style={styles.emptyPrimaryBtn}
+            onPress={() => navigation.navigate('MessageAnalyzer')}
+          >
+            <Text style={styles.btnFilledText}>Go to Message Analyzer</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const isScam = payload.is_scam;
   const accent = isScam ? PRIMARY_RED : SUCCESS_GREEN;
@@ -325,6 +338,33 @@ const styles = StyleSheet.create({
     color: GREY_TEXT,
     fontStyle: 'italic',
     lineHeight: 20,
+  },
+  emptyWrap: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: BUTTON_NAVY,
+    marginBottom: 8,
+  },
+  emptySub: {
+    fontSize: 14,
+    color: GREY_TEXT,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  emptyPrimaryBtn: {
+    marginTop: 20,
+    alignSelf: 'stretch',
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: BUTTON_NAVY,
   },
   footerSpacer: {
     flexGrow: 1,
