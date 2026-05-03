@@ -10,6 +10,8 @@ from dotenv import load_dotenv
 # Tesseract and CPU: very large phone photos are downscaled for speed; small images are upscaled for accuracy.
 _MAX_IMAGE_EDGE = 2000
 _MIN_WIDTH_FOR_OCR = 800
+# If EasyOCR returns less than this (after cleaning), try Tesseract.
+_MIN_CHARS_EASYOCR_OK = 18
 
 load_dotenv()
 
@@ -22,8 +24,72 @@ TESSERACT_PATH = os.getenv(
 if os.path.isfile(TESSERACT_PATH):
     pytesseract.pytesseract.tesseract_cmd = TESSERACT_PATH
 
+# ─── EasyOCR (lazy singleton) ───────────────────────────────────
 
-# ─── IMAGE PREPROCESSING ─────────────────────────────────────────
+_easyocr_reader = None
+_easyocr_init_done = False
+
+
+def _use_gpu() -> bool:
+    return os.getenv("EASYOCR_GPU", "").lower() in ("1", "true", "yes")
+
+
+def get_easyocr_reader():
+    """
+    First call loads models (slow). Returns None if easyocr is missing or init fails.
+    """
+    global _easyocr_reader, _easyocr_init_done
+    if _easyocr_init_done:
+        return _easyocr_reader
+    _easyocr_init_done = True
+    try:
+        import easyocr  # noqa: WPS433 — optional heavy dep, loaded once
+
+        _easyocr_reader = easyocr.Reader(
+            ["en"],
+            gpu=_use_gpu(),
+            verbose=False,
+        )
+    except Exception:
+        _easyocr_reader = None
+    return _easyocr_reader
+
+
+def _resize_bgr_max_edge(image_bgr: np.ndarray, max_edge: int = _MAX_IMAGE_EDGE) -> np.ndarray:
+    h, w = image_bgr.shape[:2]
+    m = max(h, w)
+    if m <= max_edge:
+        return image_bgr
+    scale = max_edge / m
+    return cv2.resize(
+        image_bgr,
+        (int(w * scale), int(h * scale)),
+        interpolation=cv2.INTER_AREA,
+    )
+
+
+def extract_text_easyocr(image_bgr: np.ndarray) -> str:
+    """Run EasyOCR on BGR image; returns raw concatenated text (no cleaning)."""
+    reader = get_easyocr_reader()
+    if reader is None:
+        return ""
+    img = _resize_bgr_max_edge(image_bgr)
+    # readtext: list of (bbox, text, confidence)
+    results = reader.readtext(img)
+    parts = []
+    for item in results:
+        if len(item) >= 3:
+            text = item[1]
+            conf = float(item[2])
+            if text and conf >= 0.12:
+                parts.append(text)
+        elif len(item) >= 2:
+            parts.append(item[1])
+    return "\n".join(parts)
+
+
+# ─── IMAGE PREPROCESSING (Tesseract) ─────────────────────────────
+
 
 def preprocess_image(image: np.ndarray) -> np.ndarray:
     """
@@ -85,10 +151,10 @@ def preprocess_image(image: np.ndarray) -> np.ndarray:
 
 # ─── TEXT CLEANING ────────────────────────────────────────────────
 
+
 def clean_extracted_text(raw_text: str) -> str:
     """
-    Clean up OCR output — Tesseract often includes junk characters,
-    timestamps, and other non-message content from screenshots.
+    Clean up OCR output — noise characters, timestamps, and junk lines.
     """
     if not raw_text:
         return ""
@@ -110,8 +176,11 @@ def clean_extracted_text(raw_text: str) -> str:
         # Skip lines that are just timestamps (e.g. "10:30 AM", "Yesterday")
         if re.match(r"^\d{1,2}:\d{2}\s*(AM|PM)?$", line, re.IGNORECASE):
             continue
-        if re.match(r"^(yesterday|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday)$",
-                    line, re.IGNORECASE):
+        if re.match(
+            r"^(yesterday|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday)$",
+            line,
+            re.IGNORECASE,
+        ):
             continue
 
         # Skip lines with only symbols
@@ -128,14 +197,22 @@ def clean_extracted_text(raw_text: str) -> str:
     return cleaned
 
 
+def extract_text_tesseract(image: np.ndarray) -> str:
+    """Run legacy Tesseract pipeline; returns raw string."""
+    processed = preprocess_image(image)
+    config = "--psm 6 --oem 3"
+    return pytesseract.image_to_string(processed, lang="eng", config=config)
+
+
 # ─── MAIN OCR FUNCTION ────────────────────────────────────────────
+
 
 def extract_text_from_image(image_bytes: bytes) -> dict:
     """
     Extract text from an uploaded image file.
 
-    Args:
-        image_bytes: raw bytes of the uploaded image
+    Uses EasyOCR first (better on chat screenshots), then Tesseract if output is too short
+    or EasyOCR is unavailable.
 
     Returns:
         {
@@ -156,34 +233,73 @@ def extract_text_from_image(image_bytes: bytes) -> dict:
                 "error": "Could not read image. Please upload a valid JPG or PNG file.",
             }
 
-        # Preprocess
-        processed = preprocess_image(image)
+        cleaned_text = ""
+        easy_err = None
+        tess_text = ""
 
-        # Run Tesseract OCR
-        # PSM 6 = assume a block of text (good for chat screenshots)
-        config = "--psm 6 --oem 3"
-        raw_text = pytesseract.image_to_string(
-            processed,
-            lang="eng",
-            config=config
-        )
+        # 1) EasyOCR primary
+        try:
+            raw_easy = extract_text_easyocr(image)
+            cleaned_easy = clean_extracted_text(raw_easy)
+            if len(cleaned_easy) >= _MIN_CHARS_EASYOCR_OK:
+                cleaned_text = cleaned_easy
+            elif cleaned_easy:
+                # Short EasyOCR result — keep for comparison but try Tesseract too
+                cleaned_text = cleaned_easy
+        except Exception as e:
+            easy_err = str(e)
 
-        # Clean up OCR output
-        cleaned_text = clean_extracted_text(raw_text)
+        # 2) Tesseract fallback: empty, short, or no EasyOCR
+        need_tesseract = len(cleaned_text) < _MIN_CHARS_EASYOCR_OK
+        if need_tesseract:
+            try:
+                raw_tess = extract_text_tesseract(image)
+                tess_text = clean_extracted_text(raw_tess)
+            except pytesseract.TesseractNotFoundError:
+                if not cleaned_text:
+                    return {
+                        "success": False,
+                        "extracted_text": "",
+                        "char_count": 0,
+                        "error": "Tesseract OCR is not installed. Install Tesseract or fix TESSERACT_PATH.",
+                    }
+            except Exception as e:
+                if not cleaned_text:
+                    return {
+                        "success": False,
+                        "extracted_text": "",
+                        "char_count": 0,
+                        "error": f"Image processing failed: {str(e)}",
+                    }
+
+            # Prefer longer / richer result when both ran
+            if tess_text:
+                if len(tess_text) > len(cleaned_text):
+                    cleaned_text = tess_text
+                elif not cleaned_text:
+                    cleaned_text = tess_text
+
+        if not cleaned_text and easy_err:
+            return {
+                "success": False,
+                "extracted_text": "",
+                "char_count": 0,
+                "error": f"OCR failed: {easy_err}",
+            }
 
         if not cleaned_text:
             return {
                 "success": False,
                 "extracted_text": "",
                 "char_count": 0,
-                "error": "No text found in the image. Please upload a clear screenshot of the message."
+                "error": "No text found in the image. Please upload a clear screenshot of the message.",
             }
 
         return {
             "success": True,
             "extracted_text": cleaned_text,
             "char_count": len(cleaned_text),
-            "error": None
+            "error": None,
         }
 
     except pytesseract.TesseractNotFoundError:
@@ -191,7 +307,7 @@ def extract_text_from_image(image_bytes: bytes) -> dict:
             "success": False,
             "extracted_text": "",
             "char_count": 0,
-            "error": "Tesseract OCR is not installed. Please install it first."
+            "error": "Tesseract OCR is not installed. Please install it first.",
         }
 
     except Exception as e:
@@ -199,5 +315,5 @@ def extract_text_from_image(image_bytes: bytes) -> dict:
             "success": False,
             "extracted_text": "",
             "char_count": 0,
-            "error": f"Image processing failed: {str(e)}"
+            "error": f"Image processing failed: {str(e)}",
         }
