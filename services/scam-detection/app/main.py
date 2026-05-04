@@ -15,8 +15,9 @@ from app.database import (
     is_connected,
     save_scan,
 )
-from app.model_loader import is_model_loaded, load_model
+from app.model_loader import is_model_loaded, load_model, load_phase1_model
 from app.ocr_pipeline import extract_text_from_image
+
 from app.predictor import predict
 from app.schemas import (
     ClassifyResponse,
@@ -52,6 +53,7 @@ def _require_model_ready() -> None:
 def startup():
     connect_to_mongo()
     load_model()
+    load_phase1_model()
 
 
 @app.on_event("shutdown")
