@@ -404,13 +404,6 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
     }
   }, [ensureServerReadyForAnalysis, loadHistory, navigation]);
 
-  const onHowThisWorks = useCallback(() => {
-    Alert.alert(
-      'How this works',
-      'We look for common scam signals in recruiter messages:\n\n- Urgency pressure\n- Requests for payments\n- Requests for sensitive details\n- Suspicious links or off-platform moves'
-    );
-  }, []);
-
   const len = messageText.length;
 
   return (
@@ -439,21 +432,12 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
           </View>
         </View>
 
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={styles.screenBody}>
+          <View style={styles.fixedTopSection}>
           <View style={styles.infoBanner}>
-            <MaterialIcons name="warning" size={22} color={PRIMARY_RED} style={styles.bannerIcon} />
-            <View style={styles.bannerContent}>
-              <Text style={styles.bannerText}>
-                FraudAware checks recruiter messages for common scam signals so you can respond safely.
-              </Text>
-              <TouchableOpacity onPress={onHowThisWorks} activeOpacity={0.75}>
-                <Text style={styles.bannerLink}>How this works</Text>
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.bannerText}>
+              We scan recruiter messages for common scam signals.
+            </Text>
           </View>
 
           {analysisBlocked ? (
@@ -538,6 +522,14 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
             </View>
           ) : null}
 
+          </View>
+
+          <ScrollView
+            style={styles.recentListScroll}
+            contentContainerStyle={styles.recentListContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
           <View style={styles.recentSectionHeader}>
             <Text style={styles.sectionLabel}>RECENT SCANS</Text>
             {recentScans.length > 0 ? (
@@ -553,7 +545,8 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
           ) : (
             <RecentScansList scans={recentScans} onDeleteItem={confirmDeleteScan} />
           )}
-        </ScrollView>
+          </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -606,40 +599,39 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  screenBody: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  fixedTopSection: {
+    flexShrink: 0,
+  },
+  recentListScroll: {
+    flex: 1,
+  },
+  recentListContent: {
+    paddingBottom: 28,
+  },
   scrollContent: {
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 28,
   },
   infoBanner: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#FDECEC',
+    backgroundColor: '#F5F7FB',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(229, 53, 53, 0.35)',
-    padding: 14,
-    marginBottom: 22,
-    gap: 10,
-  },
-  bannerIcon: {
-    marginTop: 2,
-  },
-  bannerContent: {
-    flex: 1,
+    borderColor: '#E1E6F0',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 14,
   },
   bannerText: {
     fontSize: 13,
     lineHeight: 18,
-    color: '#5C2A2A',
+    color: '#4B5563',
     fontWeight: '500',
-    marginBottom: 6,
-  },
-  bannerLink: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: '#B22222',
-    textDecorationLine: 'underline',
   },
   serverBanner: {
     flexDirection: 'row',

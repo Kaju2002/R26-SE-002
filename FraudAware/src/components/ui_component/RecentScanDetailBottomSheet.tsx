@@ -1,16 +1,20 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
+  Dimensions,
   Modal,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  ScrollView,
   Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
   Platform,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { RecentScanItem } from './recentScanTypes';
+import type { ScanDetailApiResponse } from '../../api/fraudawareApi';
+import { fetchScanDetail } from '../../api/fraudawareApi';
 
 type Props = {
   visible: boolean;
@@ -24,7 +28,42 @@ const GREY_TEXT = '#6B7280';
 const NAVY = '#202871';
 const SHEET_BG = '#fff';
 
+const SCROLL_MAX_H = Math.round(Dimensions.get('window').height * 0.52);
+
 export default function RecentScanDetailBottomSheet({ visible, item, onClose }: Props) {
+  const [detail, setDetail] = useState<ScanDetailApiResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadDetail = useCallback(async (scanId: string) => {
+    setLoading(true);
+    setError(null);
+    setDetail(null);
+    try {
+      const data = await fetchScanDetail(scanId);
+      setDetail(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not load scan details.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!visible || !item?.id) {
+      return;
+    }
+    loadDetail(item.id);
+  }, [visible, item?.id, loadDetail]);
+
+  useEffect(() => {
+    if (!visible) {
+      setDetail(null);
+      setError(null);
+      setLoading(false);
+    }
+  }, [visible]);
+
   if (!item) {
     return null;
   }
@@ -33,9 +72,21 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
   const accent = isScam ? PRIMARY_RED : SUCCESS_GREEN;
   const confidence =
     typeof item.confidence === 'number' ? `${Math.round(item.confidence)}%` : null;
-  const tactics = item.tactics ?? [];
-  const bodyNote = isScam ? item.warning : item.reassurance;
-  const fullText = item.originalText?.trim() || item.preview;
+
+  const tacticsFromDetail = detail?.tactics?.length
+    ? detail.tactics.map((t) => ({
+        name: t.name || t.key,
+        example: t.example || t.description || '',
+      }))
+    : item.tactics ?? [];
+
+  const bodyNote = detail
+    ? isScam
+      ? detail.warning
+      : detail.what_gave_it_away || detail.warning
+    : null;
+
+  const fullMessageText = detail?.original_text?.trim() ?? '';
 
   return (
     <Modal
@@ -46,7 +97,12 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
       statusBarTranslucent
     >
       <View style={styles.overlay}>
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" />
+        <Pressable
+          style={StyleSheet.absoluteFill}
+          onPress={onClose}
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        />
         <View style={styles.sheet} accessibilityViewIsModal>
           <View style={styles.grabberWrap}>
             <View style={styles.grabber} />
@@ -63,7 +119,12 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
                 {isScam ? 'Potential scam' : 'Looks legitimate'}
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close detail">
+            <TouchableOpacity
+              onPress={onClose}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Close detail"
+            >
               <MaterialCommunityIcons name="close" size={22} color={GREY_TEXT} />
             </TouchableOpacity>
           </View>
@@ -83,39 +144,72 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
           </View>
 
           <ScrollView
-            style={styles.scroll}
+            style={[styles.scroll, { maxHeight: SCROLL_MAX_H }]}
             contentContainerStyle={styles.scrollContent}
             showsVerticalScrollIndicator={false}
-            bounces={false}
+            keyboardShouldPersistTaps="handled"
+            nestedScrollEnabled
           >
-            {isScam && tactics.length > 0 ? (
+            {loading ? (
+              <View style={styles.loadingBlock}>
+                <ActivityIndicator color={NAVY} />
+                <Text style={styles.loadingText}>Loading full message…</Text>
+              </View>
+            ) : error ? (
               <>
-                <Text style={styles.sectionLabel}>SIGNALS</Text>
-                {tactics.map((t, i) => (
-                  <View key={`${t.name}-${i}`} style={styles.tacticRow}>
-                    <MaterialCommunityIcons name="alert-circle-outline" size={16} color={PRIMARY_RED} style={styles.tacticIcon} />
-                    <View style={styles.tacticTextWrap}>
-                      <Text style={styles.tacticName}>{t.name}</Text>
-                      {t.example ? <Text style={styles.tacticEx}>{t.example}</Text> : null}
-                    </View>
-                  </View>
-                ))}
-              </>
-            ) : null}
-
-            {bodyNote ? (
-              <>
-                <Text style={styles.sectionLabel}>{isScam ? 'GUIDANCE' : 'SUMMARY'}</Text>
-                <View style={styles.noteCard}>
-                  <Text style={styles.noteText}>{bodyNote}</Text>
+                <View style={styles.errorBlock}>
+                  <MaterialCommunityIcons name="alert-circle-outline" size={22} color="#B71C1C" />
+                  <Text style={styles.errorText}>{error}</Text>
+                  <TouchableOpacity onPress={() => loadDetail(item.id)} hitSlop={8}>
+                    <Text style={styles.retryText}>Retry</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.sectionLabel}>PREVIEW</Text>
+                <View style={styles.messageCard}>
+                  <Text style={styles.messageBody} selectable>
+                    {item.preview || '—'}
+                  </Text>
                 </View>
               </>
-            ) : null}
+            ) : (
+              <>
+                {isScam && tacticsFromDetail.length > 0 ? (
+                  <>
+                    <Text style={styles.sectionLabel}>SIGNALS</Text>
+                    {tacticsFromDetail.map((t, i) => (
+                      <View key={`${t.name}-${i}`} style={styles.tacticRow}>
+                        <MaterialCommunityIcons
+                          name="alert-circle-outline"
+                          size={16}
+                          color={PRIMARY_RED}
+                          style={styles.tacticIcon}
+                        />
+                        <View style={styles.tacticTextWrap}>
+                          <Text style={styles.tacticName}>{t.name}</Text>
+                          {t.example ? <Text style={styles.tacticEx}>{t.example}</Text> : null}
+                        </View>
+                      </View>
+                    ))}
+                  </>
+                ) : null}
 
-            <Text style={styles.sectionLabel}>FULL MESSAGE</Text>
-            <View style={styles.messageCard}>
-              <Text style={styles.messageBody}>{fullText}</Text>
-            </View>
+                {bodyNote ? (
+                  <>
+                    <Text style={styles.sectionLabel}>{isScam ? 'GUIDANCE' : 'SUMMARY'}</Text>
+                    <View style={styles.noteCard}>
+                      <Text style={styles.noteText}>{bodyNote}</Text>
+                    </View>
+                  </>
+                ) : null}
+
+                <Text style={styles.sectionLabel}>FULL MESSAGE</Text>
+                <View style={styles.messageCard}>
+                  <Text style={styles.messageBody} selectable>
+                    {fullMessageText.length > 0 ? fullMessageText : '—'}
+                  </Text>
+                </View>
+              </>
+            )}
           </ScrollView>
 
           <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.85}>
@@ -214,10 +308,45 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   scroll: {
-    maxHeight: 360,
+    minHeight: 120,
   },
   scrollContent: {
     paddingBottom: 12,
+  },
+  loadingBlock: {
+    paddingVertical: 24,
+    alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: GREY_TEXT,
+    fontWeight: '600',
+  },
+  errorBlock: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FFF8F8',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(183, 28, 28, 0.25)',
+    padding: 12,
+    marginBottom: 12,
+  },
+  errorText: {
+    flex: 1,
+    minWidth: 120,
+    fontSize: 13,
+    color: '#5C2A2A',
+    fontWeight: '600',
+  },
+  retryText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: NAVY,
+    textDecorationLine: 'underline',
   },
   sectionLabel: {
     fontSize: 11,
