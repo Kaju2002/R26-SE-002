@@ -92,5 +92,11 @@ risk_data['risk_score'] = (
 print("\n--- Risk Scores (first 10 jobs) ---")
 print(risk_data[['job_id', 'fake_job_num', 'employer_num', 'comm_scam_num', 'risk_score']].head(10))
 
+# Convert risk score to safety score
+# Safety = 1 - Risk (so higher safety = better)
+risk_data['safety_score'] = 1 - risk_data['risk_score']
 
+# Show comparison
+print("\n--- Risk vs Safety Scores (first 10 jobs) ---")
+print(risk_data[['job_id', 'risk_score', 'safety_score']].head(10))
 
