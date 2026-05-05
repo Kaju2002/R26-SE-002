@@ -93,3 +93,8 @@ for rank, (_, row) in enumerate(top_results.iterrows(), start=1):
     print(f"Skill Match Score: {row['skill_match_score']:.4f}")
     print(f"Matched Skills ({row['matched_count']}): {', '.join(row['matched_skills'])}")
     print("-" * 50)
+
+# Save skill match results for use by Module 3
+results.to_csv('data/processed/skill_scores.csv', index=False)
+
+print("\nSkill scores saved to: data/processed/skill_scores.csv")

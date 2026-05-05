@@ -100,3 +100,8 @@ risk_data['safety_score'] = 1 - risk_data['risk_score']
 print("\n--- Risk vs Safety Scores (first 10 jobs) ---")
 print(risk_data[['job_id', 'risk_score', 'safety_score']].head(10))
 
+# Save processed risk data for later use by Module 3
+risk_data.to_csv('data/processed/risk_scores.csv', index=False)
+
+print("\nRisk scores saved to: data/processed/risk_scores.csv")
+print(f"Total jobs scored: {len(risk_data)}")

@@ -1,0 +1,1168 @@
+job_id,fake_job_indicator,employer_indicator,comm_scam_indicator,fake_job_num,employer_num,comm_scam_num,risk_score,safety_score
+1,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+2,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+3,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+4,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+5,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+6,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+7,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+8,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+9,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+10,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+11,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+12,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+13,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+14,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+15,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+16,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+17,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+18,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+19,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+20,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+21,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+22,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+23,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+24,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+25,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+26,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+27,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+28,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+29,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+30,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+31,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+32,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+33,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+34,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+35,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+36,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+37,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+38,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+39,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+40,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+41,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+42,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+43,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+44,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+45,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+46,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+47,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+48,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+49,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+50,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+51,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+52,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+53,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+54,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+55,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+56,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+57,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+58,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+59,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+60,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+61,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+62,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+63,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+64,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+65,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+66,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+67,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+68,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+69,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+70,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+71,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+72,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+73,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+74,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+75,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+76,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+77,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+78,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+79,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+80,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+81,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+82,Not Fake,Fake Company,Scam,0,1,1,0.750102906,0.249897094
+83,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+84,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+85,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+86,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+87,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+88,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+89,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+90,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+91,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+92,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+93,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+94,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+95,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+96,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+97,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+98,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+99,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+100,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+101,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+102,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+103,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+104,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+105,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+106,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+107,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+108,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+109,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+110,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+111,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+112,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+113,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+114,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+115,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+116,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+117,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+118,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+119,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+120,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+121,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+122,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+123,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+124,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+125,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+126,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+127,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
+128,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+129,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+130,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+131,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+132,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+133,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+134,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+135,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+136,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+137,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+138,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+139,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+140,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+141,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+142,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+143,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+144,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+145,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+146,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+147,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+148,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+149,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+150,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+151,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+152,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+153,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+154,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+155,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+156,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+157,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+158,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+159,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+160,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+161,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+162,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+163,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+164,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+165,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+166,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+167,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+168,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+169,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+170,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+171,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+172,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+173,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+174,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+175,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+176,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+177,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+178,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+179,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+180,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+181,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+182,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+183,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+184,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+185,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+186,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+187,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+188,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+189,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+190,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+191,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+192,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+193,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+194,Not Fake,Fake Company,Scam,0,1,1,0.750102906,0.249897094
+195,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+196,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+197,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+198,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+199,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+200,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+201,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+202,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+203,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+204,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+205,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+206,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+207,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+208,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+209,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+210,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+211,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+212,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+213,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+214,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+215,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+216,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+217,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+218,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+219,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+220,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+221,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+222,Not Fake,Fake Company,Scam,0,1,1,0.750102906,0.249897094
+223,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+224,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+225,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+226,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+227,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+228,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+229,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+230,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+231,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+232,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+233,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+234,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+235,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+236,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+237,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+238,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+239,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+240,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+241,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+242,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+243,Fake,Fake Company,Scam,1,1,1,1,0
+244,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+245,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+246,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+247,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+248,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+249,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+250,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+251,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+252,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+253,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+254,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+255,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+256,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+257,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+258,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+259,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+260,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+261,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+262,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+263,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+264,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+265,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+266,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+267,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+268,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+269,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+270,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+271,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+272,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+273,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+274,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+275,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+276,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+277,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+278,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+279,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+280,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+281,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+282,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+283,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+284,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+285,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+286,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+287,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+288,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+289,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+290,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+291,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+292,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+293,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+294,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+295,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+296,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+297,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+298,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+299,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+300,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+301,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+302,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+303,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+304,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+305,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+306,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+307,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+308,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+309,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+310,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+311,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+312,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+313,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+314,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+315,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+316,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+317,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+318,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+319,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+320,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+321,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+322,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+323,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+324,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+325,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+326,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+327,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+328,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+329,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+330,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+331,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+332,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+333,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+334,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+335,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+336,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+337,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+338,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+339,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+340,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+341,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+342,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+343,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+344,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+345,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+346,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+347,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+348,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+349,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+350,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+351,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+352,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+353,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+354,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+355,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+356,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+357,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+358,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+359,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+360,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+361,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+362,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+363,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+364,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+365,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+366,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+367,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+368,Fake,Legitimate Company,Scam,1,0,1,0.701783565,0.298216435
+369,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+370,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+371,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+372,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+373,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+374,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+375,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+376,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+377,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+378,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+379,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+380,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+381,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+382,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+383,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+384,Suspicious,Fake Company,Scam,0.5,1,1,0.875051453,0.124948547
+385,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+386,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+387,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+388,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+389,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+390,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+391,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+392,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+393,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+394,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+395,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+396,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+397,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+398,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+399,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+400,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+401,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+402,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+403,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+404,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+405,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+406,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+407,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+408,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+409,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+410,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+411,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+412,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+413,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+414,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+415,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+416,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+417,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+418,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+419,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+420,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+421,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+422,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+423,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+424,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+425,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+426,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+427,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+428,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+429,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+430,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+431,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+432,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+433,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+434,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+435,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+436,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+437,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+438,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+439,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+440,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+441,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+442,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+443,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+444,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+445,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+446,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+447,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+448,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+449,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+450,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+451,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+452,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+453,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+454,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+455,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+456,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+457,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+458,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+459,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+460,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+461,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+462,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+463,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+464,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+465,Fake,Legitimate Company,Scam,1,0,1,0.701783565,0.298216435
+466,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+467,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+468,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+469,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+470,Fake,Legitimate Company,Scam,1,0,1,0.701783565,0.298216435
+471,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+472,Fake,Fake Company,Scam,1,1,1,1,0
+473,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+474,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+475,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+476,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+477,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+478,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+479,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+480,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+481,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+482,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+483,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+484,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+485,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+486,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+487,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+488,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+489,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+490,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+491,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+492,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+493,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+494,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+495,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+496,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+497,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+498,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+499,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+500,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+501,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+502,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+503,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+504,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+505,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+506,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+507,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+508,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+509,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+510,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+511,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+512,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+513,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+514,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+515,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+516,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+517,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+518,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+519,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+520,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+521,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+522,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+523,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+524,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+525,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+526,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+527,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+528,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+529,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+530,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+531,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+532,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+533,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+534,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+535,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+536,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+537,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+538,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+539,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+540,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+541,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+542,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+543,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+544,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+545,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+546,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+547,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+548,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+549,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+550,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+551,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+552,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+553,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+554,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+555,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+556,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+557,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+558,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+559,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+560,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+561,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+562,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+563,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+564,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+565,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+566,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+567,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+568,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+569,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+570,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+571,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+572,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+573,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+574,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+575,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+576,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+577,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+578,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+579,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+580,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+581,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+582,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+583,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+584,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+585,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+586,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+587,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+588,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+589,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+590,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+591,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+592,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+593,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+594,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+595,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+596,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+597,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+598,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+599,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+600,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+601,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+602,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+603,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+604,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+605,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+606,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+607,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+608,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+609,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+610,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+611,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+612,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+613,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+614,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+615,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+616,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+617,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+618,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+619,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+620,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+621,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+622,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+623,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+624,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+625,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+626,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+627,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+628,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+629,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+630,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+631,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+632,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+633,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+634,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+635,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+636,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+637,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+638,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+639,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+640,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+641,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+642,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+643,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+644,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+645,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+646,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
+647,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+648,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+649,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+650,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+651,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+652,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+653,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+654,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+655,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+656,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+657,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+658,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+659,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+660,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+661,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+662,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+663,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+664,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+665,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+666,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+667,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+668,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+669,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+670,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+671,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+672,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+673,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+674,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+675,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+676,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+677,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+678,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+679,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+680,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+681,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+682,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+683,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+684,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+685,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+686,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+687,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+688,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+689,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+690,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+691,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+692,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+693,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+694,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+695,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+696,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+697,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+698,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+699,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+700,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+701,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+702,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+703,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+704,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+705,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+706,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+707,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+708,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
+709,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+710,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+711,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+712,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+713,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+714,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+715,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+716,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+717,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+718,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+719,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+720,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+721,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+722,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+723,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+724,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+725,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+726,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
+727,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+728,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+729,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+730,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+731,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+732,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+733,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+734,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+735,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+736,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+737,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+738,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+739,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+740,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+741,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+742,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+743,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+744,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+745,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+746,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+747,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+748,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+749,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+750,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+751,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+752,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+753,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+754,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+755,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+756,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+757,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+758,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+759,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+760,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+761,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+762,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+763,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+764,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+765,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+766,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+767,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+768,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+769,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+770,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+771,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+772,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+773,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+774,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+775,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+776,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+777,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+778,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+779,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+780,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+781,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+782,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+783,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+784,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+785,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+786,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+787,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+788,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+789,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+790,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+791,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+792,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+793,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+794,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+795,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+796,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+797,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+798,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+799,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+800,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+801,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+802,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+803,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+804,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+805,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+806,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+807,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+808,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+809,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+810,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+811,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+812,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+813,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+814,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+815,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+816,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+817,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+818,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+819,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+820,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+821,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+822,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+823,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+824,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+825,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+826,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+827,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+828,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+829,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+830,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+831,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+832,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+833,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+834,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+835,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+836,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+837,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+838,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+839,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+840,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+841,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+842,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+843,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+844,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+845,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+846,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+847,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+848,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+849,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+850,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+851,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+852,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+853,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+854,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+855,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+856,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+857,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+858,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+859,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+860,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+861,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+862,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+863,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+864,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+865,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+866,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+867,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+868,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+869,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+870,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+871,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+872,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+873,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+874,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+875,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+876,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+877,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+878,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+879,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+880,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+881,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+882,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+883,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+884,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+885,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+886,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+887,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+888,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+889,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+890,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+891,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+892,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+893,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+894,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+895,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+896,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+897,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+898,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+899,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+900,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+901,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+902,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+903,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+904,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+905,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+906,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+907,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+908,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+909,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+910,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+911,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+912,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+913,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+914,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+915,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+916,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+917,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+918,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+919,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+920,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+921,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+922,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+923,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+924,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+925,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+926,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+927,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+928,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+929,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+930,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+931,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+932,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+933,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+934,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+935,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+936,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+937,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+938,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+939,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+940,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+941,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+942,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+943,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+944,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+945,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+946,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+947,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+948,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+949,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+950,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+951,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+952,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+953,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+954,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+955,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+956,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+957,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+958,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+959,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+960,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+961,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+962,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+963,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+964,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+965,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+966,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+967,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+968,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+969,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+970,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+971,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+972,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+973,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+974,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+975,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+976,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+977,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+978,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+979,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+980,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+981,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+982,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+983,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+984,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+985,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+986,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+987,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+988,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+989,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+990,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+991,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+992,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+993,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+994,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+995,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+996,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+997,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+998,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+999,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+1000,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1001,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1002,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1003,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1004,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1005,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1006,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1007,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1008,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1009,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1010,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1011,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1012,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1013,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1014,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1015,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1016,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1017,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1018,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1019,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+1020,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1021,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1022,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1023,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1024,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1025,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+1026,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1027,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1028,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1029,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1030,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1031,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1032,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1033,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1034,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1035,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1036,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1037,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1038,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1039,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1040,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1041,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1042,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1043,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1044,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1045,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1046,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1047,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1048,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1049,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1050,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1051,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1052,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1053,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1054,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1055,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1056,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1057,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1058,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1059,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1060,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1061,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1062,Fake,Legitimate Company,Scam,1,0,1,0.701783565,0.298216435
+1063,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1064,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1065,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1066,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1067,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1068,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1069,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+1070,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1071,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1072,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1073,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1074,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+1075,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1076,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1077,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1078,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1079,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1080,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1081,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1082,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1083,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1084,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1085,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
+1086,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1087,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1088,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1089,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1090,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1091,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1092,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1093,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1094,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1095,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1096,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1097,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1098,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+1099,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1100,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1101,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1102,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1103,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1104,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1105,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1106,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1107,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1108,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1109,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1110,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+1111,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
+1112,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1113,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1114,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1115,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1116,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1117,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1118,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1119,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1120,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1121,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1122,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
+1123,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1124,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1125,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1126,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1127,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1128,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1129,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1130,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1131,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1132,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1133,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1134,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1135,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1136,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1137,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1138,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1139,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1140,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1141,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1142,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1143,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
+1144,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1145,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1146,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1147,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1148,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1149,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1150,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1151,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1152,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1153,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1154,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
+1155,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1156,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1157,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1158,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1159,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
+1160,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1161,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1162,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1163,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1164,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1165,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
+1166,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+1167,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
