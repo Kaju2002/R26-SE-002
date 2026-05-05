@@ -5,6 +5,8 @@ export type ParsedTactic = {
 
 export type AnalysisPayload = {
   is_scam: boolean;
+  /** API may omit; treated as false when absent. */
+  inconclusive?: boolean;
   confidence: number;
   tactics: ParsedTactic[];
   warning: string;

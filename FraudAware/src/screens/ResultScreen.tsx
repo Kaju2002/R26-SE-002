@@ -9,21 +9,31 @@ import {
   View,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
 import type { AnalysisPayload } from '../navigation/detectStackTypes';
 import { analysisPayloadFromApi } from '../utils/mergeAnalysisResult';
+import { getSignalStrengthHeadline } from '../utils/signalStrengthPresentation';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'ResultScreen'>;
 
 const PRIMARY_RED = '#E53535';
 const SUCCESS_GREEN = '#3B6D11';
+const AMBER_ALERT = '#C27803';
 const BUTTON_NAVY = '#202871';
+
+const MODEL_DISCLAIMER =
+  'Estimates from a model — always verify the employer yourself before sharing personal or financial details.';
 const GREY_TEXT = '#6B7280';
 const GREY_CARD = '#F3F5F8';
 const STORAGE_KEY = '@fraudaware:message_analysis_snapshots';
+/** Base padding below scroll body; tab bar floats with `position: 'absolute'` in BottomTabNavigator. */
+const SCROLL_PADDING_BOTTOM_BASE = 32;
+const TAB_BAR_FALLBACK_HEIGHT = 68;
+const TAB_BAR_GAP = 14;
 
 function tacticGlyph(
   name: string
@@ -44,6 +54,23 @@ function tacticGlyph(
   return 'alert-circle-outline';
 }
 
+function toNonNegativeInt(value: unknown): number | undefined {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return Math.max(0, Math.floor(value));
+  }
+  if (typeof value === 'string') {
+    const t = value.trim();
+    if (t === '') {
+      return undefined;
+    }
+    const n = Number.parseInt(t, 10);
+    if (!Number.isNaN(n)) {
+      return Math.max(0, n);
+    }
+  }
+  return undefined;
+}
+
 export default function ResultScreen({ navigation, route }: Props) {
   const {
     analysis,
@@ -55,6 +82,10 @@ export default function ResultScreen({ navigation, route }: Props) {
     screenshotTotal,
   } = route.params;
   const [saving, setSaving] = useState(false);
+  const tabBarHeight = useBottomTabBarHeight();
+  const overlayTabHeight = tabBarHeight > 0 ? tabBarHeight : TAB_BAR_FALLBACK_HEIGHT;
+  const scrollPaddingBottom =
+    SCROLL_PADDING_BOTTOM_BASE + overlayTabHeight + TAB_BAR_GAP;
 
   const payload = useMemo((): AnalysisPayload | null => {
     if (analysis) {
@@ -85,8 +116,23 @@ export default function ResultScreen({ navigation, route }: Props) {
     );
   }
 
-  const isScam = payload.is_scam;
-  const accent = isScam ? PRIMARY_RED : SUCCESS_GREEN;
+  const isInconclusive = payload.inconclusive === true;
+  const isScam = payload.is_scam && !isInconclusive;
+  const accent = isInconclusive ? AMBER_ALERT : isScam ? PRIMARY_RED : SUCCESS_GREEN;
+  const signalHeadline = getSignalStrengthHeadline({
+    isScam: payload.is_scam,
+    inconclusive: isInconclusive,
+    confidencePct: payload.confidence,
+  });
+
+  const screenshotTotalInt = toNonNegativeInt(screenshotTotal);
+  const screenshotReadInt = toNonNegativeInt(screenshotCount) ?? 0;
+  const showMultiScreenshotSummary =
+    screenshotTotalInt !== undefined && screenshotTotalInt > 0;
+  const screenshotWord = screenshotTotalInt === 1 ? 'screenshot' : 'screenshots';
+  const screenshotSummaryLine = showMultiScreenshotSummary
+    ? `${screenshotReadInt} of ${screenshotTotalInt} ${screenshotWord} read successfully`
+    : '';
 
   const onSave = useCallback(async () => {
     try {
@@ -109,54 +155,62 @@ export default function ResultScreen({ navigation, route }: Props) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        {typeof screenshotTotal === 'number' && screenshotTotal > 0 ? (
+      {showMultiScreenshotSummary ? (
+        <View style={styles.screenshotSummaryStrip} accessibilityLabel={screenshotSummaryLine}>
           <View style={styles.conversationBadge}>
             <MaterialCommunityIcons
               name="image-multiple-outline"
               size={18}
               color="#2D3A85"
             />
-            <Text style={styles.conversationBadgeText}>
-              {(typeof screenshotCount === 'number' ? screenshotCount : 0)} of {screenshotTotal}{' '}
-              screenshots read successfully
-            </Text>
+            <Text style={styles.conversationBadgeText}>{screenshotSummaryLine}</Text>
           </View>
-        ) : null}
-
+        </View>
+      ) : null}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={[styles.scroll, { paddingBottom: scrollPaddingBottom }]}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         {/* Banner */}
         <View style={[styles.banner, { backgroundColor: accent }]}>
           <View style={styles.bannerIconOuter}>
-            <MaterialIcons name="warning" size={40} color="#fff" />
+            <MaterialIcons
+              name={isInconclusive ? 'help-outline' : isScam ? 'warning' : 'verified'}
+              size={40}
+              color="#fff"
+            />
           </View>
           <Text style={styles.bannerTitle}>
-            {isScam ? 'SCAM DETECTED' : 'LEGITIMATE MESSAGE'}
+            {isInconclusive ? 'INCONCLUSIVE' : isScam ? 'SCAM DETECTED' : 'LEGITIMATE MESSAGE'}
           </Text>
           <Text style={styles.bannerSubtitle}>
-            {isScam ? 'This message contains manipulation tactics' : 'Looks consistent with legitimate recruiter outreach'}
+            {isInconclusive
+              ? 'Not enough reliable signal for a definitive safe vs. scam verdict'
+              : isScam
+                ? 'This message contains manipulation tactics'
+                : 'Looks consistent with legitimate recruiter outreach'}
           </Text>
         </View>
         {isImage && imageUri ? (
           <Text style={styles.sourceHint}>Analyzed from uploaded screenshot</Text>
         ) : null}
 
-        {/* Stats */}
+        {/* Stats — categorical signal strength instead of implying precise calibration */}
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={[styles.statValue, { color: accent }]}>
-              {`${Math.round(payload.confidence)}%`}
+            <Text style={[styles.statStrengthHeadline, { color: accent }]} numberOfLines={2}>
+              {signalHeadline}
             </Text>
-            <Text style={styles.statLabel}>Confidence</Text>
+            <Text style={styles.statLabel}>Signal strength</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={[styles.statValue, { color: accent }]}>{payload.tactics.length}</Text>
+            <Text style={[styles.statValueNumeric, { color: accent }]}>{payload.tactics.length}</Text>
             <Text style={styles.statLabel}>Tactics found</Text>
           </View>
         </View>
+        <Text style={styles.modelDisclaimer}>{MODEL_DISCLAIMER}</Text>
 
         {/* Tactics */}
         {isScam ? (
@@ -183,10 +237,12 @@ export default function ResultScreen({ navigation, route }: Props) {
         ) : null}
 
         {/* Warning / reassurance */}
-        <Text style={styles.sectionLabel}>{isScam ? 'WARNING' : 'WHAT THIS MEANS'}</Text>
+        <Text style={styles.sectionLabel}>
+          {isInconclusive ? 'WHAT TO DO' : isScam ? 'WARNING' : 'WHAT THIS MEANS'}
+        </Text>
         <View style={styles.greyBorderCard}>
           <Text style={styles.bodyMuted}>
-            {isScam ? payload.warning : payload.reassurance}
+            {isInconclusive ? payload.reassurance : isScam ? payload.warning : payload.reassurance}
           </Text>
         </View>
 
@@ -227,19 +283,32 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FAFAFB',
   },
+  screenshotSummaryStrip: {
+    flexShrink: 0,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E8EDF5',
+    backgroundColor: '#FAFAFB',
+  },
+  scrollView: {
+    flex: 1,
+  },
   scroll: {
     flexGrow: 1,
-    paddingBottom: 32,
     paddingHorizontal: 16,
+    paddingTop: 4,
   },
   conversationBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#F0F4FF',
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     gap: 8,
+    flexShrink: 0,
   },
   conversationBadgeText: {
     fontSize: 13,
@@ -293,10 +362,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: GREY_CARD,
     borderRadius: 12,
-    paddingVertical: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 96,
   },
-  statValue: {
+  statStrengthHeadline: {
+    fontSize: 17,
+    fontWeight: '800',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 6,
+  },
+  statValueNumeric: {
     fontSize: 28,
     fontWeight: '800',
     marginBottom: 4,
@@ -305,6 +384,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: GREY_TEXT,
     fontWeight: '600',
+    textAlign: 'center',
+  },
+  modelDisclaimer: {
+    fontSize: 12,
+    color: GREY_TEXT,
+    lineHeight: 17,
+    textAlign: 'center',
+    marginTop: -8,
+    marginBottom: 18,
+    paddingHorizontal: 4,
   },
   sectionLabel: {
     fontSize: 11,

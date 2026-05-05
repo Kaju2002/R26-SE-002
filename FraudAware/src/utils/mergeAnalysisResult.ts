@@ -93,6 +93,9 @@ export function coerceConfidencePct(n: unknown, fallback = 0): number {
 const DEFAULT_REASSURANCE =
   'We did not find strong scam signals in this message. You should still verify the employer independently before sharing sensitive information.';
 
+const DEFAULT_INCONCLUSIVE_NOTE =
+  'We could not reach a confident safe vs. scam verdict from this input. Add more recruiter message context and try again.';
+
 /**
  * Maps a `/classify` or `/classify-image` JSON body to UI payload. Returns null if `is_scam` is missing.
  */
@@ -102,6 +105,7 @@ export function analysisPayloadFromApi(api: MergeableApiResult, pastedMessage: s
     return null;
   }
 
+  const inconclusive = pickBool(api, 'inconclusive') === true;
   const confidenceRaw = pickNumber(api, 'confidence', 'Confidence', 'confidence_score');
   const tacticsRaw = api?.tactics ?? api?.Tactics ?? api?.signals;
   const warning = pickStr(api, 'warning', 'Warning', 'advisory', 'risk_summary');
@@ -129,6 +133,12 @@ export function analysisPayloadFromApi(api: MergeableApiResult, pastedMessage: s
       outWarning = whatGave.trim();
     }
     outReassurance = '';
+  } else if (inconclusive) {
+    outWarning = '';
+    outReassurance =
+      (typeof whatGave === 'string' && whatGave.trim()) ||
+      apiWarning ||
+      DEFAULT_INCONCLUSIVE_NOTE;
   } else {
     outWarning = '';
     if (!outReassurance && typeof whatGave === 'string' && whatGave.trim()) {
@@ -144,11 +154,13 @@ export function analysisPayloadFromApi(api: MergeableApiResult, pastedMessage: s
 
   return {
     is_scam,
+    inconclusive: inconclusive || undefined,
     confidence:
       typeof confidenceRaw === 'number' ? coerceConfidencePct(confidenceRaw) : 0,
-    tactics: is_scam ? tacticsFromApi : [],
+    tactics: is_scam && !inconclusive ? tacticsFromApi : [],
     warning: outWarning,
     reassurance: outReassurance,
     original_text: original_text.length > 0 ? original_text : '(No text)',
+    word_importance: [],
   };
 }
