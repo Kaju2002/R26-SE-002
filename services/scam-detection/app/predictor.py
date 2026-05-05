@@ -1,22 +1,5 @@
-# app/predictor.py
-# Ensemble approach: Phase 1 + Phase 2 ALWAYS run together.
-#
-# Decision logic:
-#   Phase 2 is the PRIMARY authority on scam tactics.
-#   Phase 1 provides additional signal for borderline LEGIT cases.
-#
-# Flow:
-#   Step 1: Run Phase 1 (binary scam probability)
-#   Step 2: Run Phase 2 (tactic classification) — ALWAYS
-#   Step 3: Combine:
-#     - Phase 2 found tactics → SCAM (Phase 2 wins)
-#     - Phase 2 no tactics + Phase 1 < 0.40 → LEGIT (both agree)
-#     - Phase 2 no tactics + Phase 1 > 0.40 → LEGIT (low confidence)
-#
-# Why both always run:
-#   Phase 1 alone misses subtle earning scams ("$500/hr easy work")
-#   Phase 2 alone over-flags ambiguous legit ("You have been selected")
-#   Together they complement each other correctly.
+# Phase 1 (binary scam prob) + Phase 2 (multi-label tactics). Scam if any tactic
+# clears its threshold; else legit confidence blends Phase 1 and tactic scores.
 
 import torch
 import numpy as np
@@ -94,7 +77,7 @@ def run_phase1(text: str) -> float | None:
     with torch.no_grad():
         outputs   = p1_model(input_ids=input_ids, attention_mask=attention_mask)
         probs     = torch.softmax(outputs.logits, dim=1)[0]
-        scam_prob = float(probs[1].item())   # index 1 = SCAM
+        scam_prob = float(probs[1].item())
 
     return scam_prob
 
@@ -305,42 +288,7 @@ def combine(p1_prob: float | None, p2: dict) -> dict:
     }
 
 
-# ─── MAIN PREDICT — ENSEMBLE ──────────────────────────────────────
-
 def predict(text: str) -> dict:
-    """
-    Ensemble prediction pipeline.
-    Both Phase 1 and Phase 2 ALWAYS run.
-    Phase 2 is the primary authority on tactic detection.
-    Phase 1 provides additional signal for LEGIT confidence.
-
-    Example outcomes:
-      "Earn $500/hr easy work"
-        Phase 1: 0.35 (thinks legit)
-        Phase 2: social_proof=0.72 (catches earning scam)
-        → Rule 1: SCAM ✅ (Phase 2 wins)
-
-      "Your resume has been shortlisted. HR will contact you."
-        Phase 1: 0.18 (confident legit)
-        Phase 2: no tactics detected
-        → Rule 2: LEGIT (high confidence) ✅
-
-      "Pay LKR 5000 before 5pm to confirm your slot"
-        Phase 1: 0.88 (scam)
-        Phase 2: urgency=0.83
-        → Rule 1: SCAM ✅ (both agree)
-
-      "You have been selected for the next round."
-        Phase 1: 0.22 (legit)
-        Phase 2: no tactics detected
-        → Rule 2: LEGIT ✅ (false positive fixed)
-    """
-
-    # Step 1: Run Phase 1
     p1_prob = run_phase1(text)
-
-    # Step 2: Run Phase 2 — ALWAYS
     p2 = run_phase2(text)
-
-    # Step 3: Combine and return final decision
     return combine(p1_prob, p2)
