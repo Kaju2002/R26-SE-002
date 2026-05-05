@@ -18,7 +18,11 @@ export default function DetectNavigator() {
       }}
     >
       <Stack.Screen name="DetectHome" component={DetectHomeScreen} />
-      <Stack.Screen name="MessageAnalyzer" component={MessageAnalyzerScreen} />
+      <Stack.Screen
+        name="MessageAnalyzer"
+        component={MessageAnalyzerScreen}
+        options={{ gestureEnabled: false }}
+      />
       <Stack.Screen name="JobPost" component={JobPostScreen} />
       <Stack.Screen name="JobPostResult" component={JobPostResultScreen} />
       <Stack.Screen name="EmployerCheckScreen" component={EmployerCheckScreen} />

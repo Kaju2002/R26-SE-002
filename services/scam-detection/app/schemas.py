@@ -84,6 +84,34 @@ class HistoryResponse(BaseModel):
     scans: List[HistoryItem]
 
 
+class ScanDetailTactic(BaseModel):
+    name: str = ""
+    key: str = ""
+    score: float = 0.0
+    description: str = ""
+    example: str = ""
+
+
+class ScanDetailWord(BaseModel):
+    word: str = ""
+    score: float = 0.0
+
+
+class ScanDetailResponse(BaseModel):
+    """Full saved scan for detail view (bottom sheet / drill-in)."""
+    scan_id: str
+    is_scam: bool
+    confidence: int
+    original_text: str
+    source: str = "text"
+    created_at: Optional[str] = None
+    extracted_text: Optional[str] = None
+    tactics: List[ScanDetailTactic] = []
+    word_importance: List[ScanDetailWord] = []
+    warning: str = ""
+    what_gave_it_away: str = ""
+
+
 class HealthResponse(BaseModel):
     """Health check — phone calls this to test connection"""
     status: str

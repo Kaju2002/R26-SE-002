@@ -29,6 +29,10 @@ export function getHistoryUrl(userId: string): string {
   return `${getApiBase()}/history/${encodeURIComponent(userId)}`;
 }
 
+export function getScanDetailUrl(scanId: string): string {
+  return `${getApiBase()}/scan/${encodeURIComponent(scanId)}`;
+}
+
 export function getDeleteScanUrl(scanId: string): string {
   return `${getApiBase()}/history/${encodeURIComponent(scanId)}`;
 }

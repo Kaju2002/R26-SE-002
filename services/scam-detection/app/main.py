@@ -11,6 +11,7 @@ from app.database import (
     connect_to_mongo,
     delete_all_scans,
     delete_scan,
+    get_scan_by_id,
     get_scan_history,
     is_connected,
     save_scan,
@@ -24,6 +25,9 @@ from app.schemas import (
     ClassifyTextRequest,
     HealthResponse,
     HistoryResponse,
+    ScanDetailResponse,
+    ScanDetailTactic,
+    ScanDetailWord,
 )
 
 app = FastAPI(
@@ -200,6 +204,86 @@ async def ocr_only(file: UploadFile = File(...), user_id: str = Form(..., min_le
         "extracted_text": (ocr.get("extracted_text") or "").strip(),
         "error": ocr.get("error"),
     }
+
+
+def _normalize_tactics_for_detail(raw) -> list:
+    out: list = []
+    if not isinstance(raw, list):
+        return out
+    for t in raw:
+        if isinstance(t, str):
+            out.append(
+                {
+                    "name": t,
+                    "key": t,
+                    "score": 0.0,
+                    "description": "",
+                    "example": "",
+                }
+            )
+            continue
+        if not isinstance(t, dict):
+            continue
+        out.append(
+            {
+                "name": str(t.get("name") or t.get("title") or ""),
+                "key": str(t.get("key") or t.get("name") or ""),
+                "score": float(t.get("score") or 0.0),
+                "description": str(t.get("description") or ""),
+                "example": str(
+                    t.get("example")
+                    or t.get("description")
+                    or t.get("snippet")
+                    or ""
+                ),
+            }
+        )
+    return out
+
+
+def _normalize_word_importance_for_detail(raw) -> list:
+    out: list = []
+    if not isinstance(raw, list):
+        return out
+    for w in raw:
+        if not isinstance(w, dict):
+            continue
+        word = w.get("word")
+        score = w.get("score")
+        if isinstance(word, str) and isinstance(score, (int, float)):
+            out.append({"word": word, "score": float(score)})
+    return out
+
+
+@app.get("/scan/{scan_id}", response_model=ScanDetailResponse)
+def get_scan_detail(scan_id: str):
+    """Return one full scan for client detail views (e.g. recent scan bottom sheet)."""
+    if not is_connected():
+        raise HTTPException(
+            status_code=503,
+            detail="History storage unavailable.",
+        )
+    doc = get_scan_by_id(scan_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="Scan not found.")
+
+    tactics = _normalize_tactics_for_detail(doc.get("tactics"))
+    words = _normalize_word_importance_for_detail(doc.get("word_importance"))
+    original_text = str(doc.get("original_text") or "")
+
+    return ScanDetailResponse(
+        scan_id=str(doc.get("scan_id") or scan_id),
+        is_scam=bool(doc.get("is_scam")),
+        confidence=int(doc.get("confidence") or 0),
+        original_text=original_text,
+        source=str(doc.get("source") or "text"),
+        created_at=doc.get("created_at"),
+        extracted_text=doc.get("extracted_text"),
+        tactics=[ScanDetailTactic(**t) for t in tactics],
+        word_importance=[ScanDetailWord(**w) for w in words],
+        warning=str(doc.get("warning") or ""),
+        what_gave_it_away=str(doc.get("what_gave_it_away") or ""),
+    )
 
 
 @app.get("/history/{user_id}", response_model=HistoryResponse)

@@ -3,6 +3,7 @@ import {
   getDeleteScanUrl,
   getHealthUrl,
   getHistoryUrl,
+  getScanDetailUrl,
 } from '../config/messageAnalyzerApi';
 import type { HistoryApiScan } from '../utils/mapHistoryScan';
 
@@ -16,6 +17,33 @@ export type HistoryApiResponse = {
   user_id: string;
   total: number;
   scans: HistoryApiScan[];
+};
+
+export type ScanDetailApiTactic = {
+  name: string;
+  key: string;
+  score: number;
+  description?: string;
+  example?: string;
+};
+
+export type ScanDetailApiWord = {
+  word: string;
+  score: number;
+};
+
+export type ScanDetailApiResponse = {
+  scan_id: string;
+  is_scam: boolean;
+  confidence: number;
+  original_text: string;
+  source?: string;
+  created_at?: string | null;
+  extracted_text?: string | null;
+  tactics: ScanDetailApiTactic[];
+  word_importance?: ScanDetailApiWord[];
+  warning: string;
+  what_gave_it_away: string;
 };
 
 async function readApiError(res: Response): Promise<string> {
@@ -63,6 +91,15 @@ export async function fetchHealth(): Promise<HealthResult> {
     modelLoaded: Boolean(body.model_loaded),
     dbConnected: Boolean(body.database_connected),
   };
+}
+
+export async function fetchScanDetail(scanId: string): Promise<ScanDetailApiResponse> {
+  const url = getScanDetailUrl(scanId);
+  const res = await fetch(url, { method: 'GET' });
+  if (!res.ok) {
+    throw new Error(await readApiError(res));
+  }
+  return (await res.json()) as ScanDetailApiResponse;
 }
 
 export async function fetchHistory(userId: string): Promise<HistoryApiResponse> {
