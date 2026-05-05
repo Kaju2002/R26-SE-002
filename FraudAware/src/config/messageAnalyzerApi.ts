@@ -17,6 +17,10 @@ export function getClassifyImageUrl(): string {
   return `${getApiBase()}/classify-image`;
 }
 
+export function getOcrOnlyUrl(): string {
+  return `${getApiBase()}/ocr-only`;
+}
+
 export function getHealthUrl(): string {
   return `${getApiBase()}/health`;
 }

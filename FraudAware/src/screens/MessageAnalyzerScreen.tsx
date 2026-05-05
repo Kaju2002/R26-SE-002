@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
-import { getClassifyImageUrl, getClassifyUrl } from '../config/messageAnalyzerApi';
+import { getClassifyImageUrl, getClassifyUrl, getOcrOnlyUrl } from '../config/messageAnalyzerApi';
 import { getOrCreateDeviceUserId } from '../lib/deviceUserId';
 import {
   clearAllHistory,
@@ -36,6 +36,8 @@ const BUTTON_NAVY = '#202871';
 const GREY_TEXT = '#6B7280';
 const GREY_BORDER = '#C8CED6';
 const MAX_CHARS = 2000;
+/** Min non-whitespace chars to count multi-screenshot OCR as successful (avoids blurry noise). */
+const OCR_MIN_MEANINGFUL_CHARS = 20;
 
 async function readClassifyError(response: Response): Promise<string> {
   const text = await response.text();
@@ -62,6 +64,7 @@ async function readClassifyError(response: Response): Promise<string> {
 export default function MessageAnalyzerScreen({ navigation }: Props) {
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('');
   const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   /** When true, classify/image routes should not run (health or model). */
@@ -181,6 +184,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       return;
     }
     setLoading(true);
+    setLoadingText('Analyzing message...');
     try {
       if (!(await ensureServerReadyForAnalysis())) {
         return;
@@ -209,6 +213,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       Alert.alert('Connection Error', 'Could not reach server. Check Wi‑Fi and that the API is running.');
     } finally {
       setLoading(false);
+      setLoadingText('');
     }
   }, [ensureServerReadyForAnalysis, loadHistory, messageText, navigation]);
 
@@ -228,6 +233,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
     }
     const asset = pick.assets[0];
     setLoading(true);
+    setLoadingText('Reading screenshot...');
     try {
       if (!(await ensureServerReadyForAnalysis())) {
         return;
@@ -274,6 +280,127 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       );
     } finally {
       setLoading(false);
+      setLoadingText('');
+    }
+  }, [ensureServerReadyForAnalysis, loadHistory, navigation]);
+
+  const onAnalyzeConversationScreenshots = useCallback(async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== 'granted') {
+      Alert.alert('Permission needed', 'Allow photo library access to upload screenshots.');
+      return;
+    }
+
+    const pick = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      quality: 1,
+      allowsEditing: false,
+      allowsMultipleSelection: true,
+      selectionLimit: 5,
+    });
+
+    if (pick.canceled || !pick.assets?.length) {
+      return;
+    }
+
+    const assets = pick.assets.slice(0, 5);
+    setLoading(true);
+    try {
+      if (!(await ensureServerReadyForAnalysis())) {
+        return;
+      }
+
+      const userId = await getOrCreateDeviceUserId();
+      const extractedTexts: string[] = [];
+      const failedIndexes: number[] = [];
+
+      for (let i = 0; i < assets.length; i += 1) {
+        const asset = assets[i];
+        setLoadingText(`Reading screenshot ${i + 1} of ${assets.length}...`);
+        try {
+          const form = new FormData();
+          form.append('user_id', userId);
+          form.append('file', {
+            uri: asset.uri,
+            name: asset.fileName ?? `screenshot-${i + 1}.jpg`,
+            type: asset.mimeType ?? 'image/jpeg',
+          } as unknown as Blob);
+
+          const ocrResponse = await fetch(getOcrOnlyUrl(), {
+            method: 'POST',
+            headers: {
+              Accept: 'application/json',
+            },
+            body: form,
+          });
+
+          if (!ocrResponse.ok) {
+            failedIndexes.push(i + 1);
+            continue;
+          }
+
+          const ocrData = (await ocrResponse.json()) as Record<string, unknown>;
+          const ocrSuccess = ocrData.success === true;
+          const extractedText =
+            typeof ocrData.extracted_text === 'string' ? ocrData.extracted_text.trim() : '';
+          const normalizedLength = extractedText.replace(/\s+/g, ' ').trim().length;
+          if (ocrSuccess && normalizedLength >= OCR_MIN_MEANINGFUL_CHARS) {
+            extractedTexts.push(extractedText);
+          } else {
+            failedIndexes.push(i + 1);
+          }
+        } catch {
+          failedIndexes.push(i + 1);
+        }
+      }
+
+      const combinedText = extractedTexts.join(' ').trim();
+      if (!combinedText.length) {
+        Alert.alert(
+          'Could not read screenshots.',
+          'Could not read text from any screenshot. Please try clearer images.'
+        );
+        return;
+      }
+
+      setLoadingText('Analyzing conversation...');
+      const classifyResponse = await fetch(getClassifyUrl(), {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          text: combinedText,
+          user_id: userId,
+        }),
+      });
+
+      if (!classifyResponse.ok) {
+        Alert.alert('Analysis failed. Please try again.');
+        return;
+      }
+
+      const data = (await classifyResponse.json()) as Record<string, unknown>;
+      await loadHistory();
+      if (failedIndexes.length > 0) {
+        Alert.alert(
+          'Partial OCR completed',
+          `Could not read screenshot(s): ${failedIndexes.join(', ')}. Analysis based on remaining screenshots.`
+        );
+      }
+
+      navigation.navigate('ResultScreen', {
+        result: data,
+        pastedMessage: combinedText,
+        screenshotCount: extractedTexts.length,
+        screenshotTotal: assets.length,
+      });
+    } catch {
+      Alert.alert('Connection failed. Check your connection.');
+    } finally {
+      setLoading(false);
+      setLoadingText('');
     }
   }, [ensureServerReadyForAnalysis, loadHistory, navigation]);
 
@@ -378,7 +505,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={[styles.outlineBtn, analysisBlocked && styles.outlineBtnDisabled]}
+            style={[styles.outlineBtn, (loading || analysisBlocked) && styles.outlineBtnDisabled]}
             onPress={onUploadScreenshot}
             activeOpacity={0.85}
             disabled={loading || analysisBlocked}
@@ -386,6 +513,30 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
             <MaterialCommunityIcons name="image-outline" size={22} color={BUTTON_NAVY} style={styles.btnIcon} />
             <Text style={styles.outlineBtnLabel}>Upload Chat Screenshot</Text>
           </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.secondaryOutlineBtn, (loading || analysisBlocked) && styles.outlineBtnDisabled]}
+            onPress={onAnalyzeConversationScreenshots}
+            activeOpacity={0.85}
+            disabled={loading || analysisBlocked}
+          >
+            <MaterialCommunityIcons
+              name="image-multiple-outline"
+              size={22}
+              color={BUTTON_NAVY}
+              style={styles.btnIcon}
+            />
+            <Text style={styles.secondaryOutlineBtnLabel}>
+              Analyze Conversation (Multiple Screenshots)
+            </Text>
+          </TouchableOpacity>
+
+          {loading && loadingText.length > 0 ? (
+            <View style={styles.progressWrap}>
+              <ActivityIndicator color={BUTTON_NAVY} />
+              <Text style={styles.progressText}>{loadingText}</Text>
+            </View>
+          ) : null}
 
           <View style={styles.recentSectionHeader}>
             <Text style={styles.sectionLabel}>RECENT SCANS</Text>
@@ -608,5 +759,34 @@ const styles = StyleSheet.create({
     color: BUTTON_NAVY,
     fontSize: 16,
     fontWeight: '700',
+  },
+  secondaryOutlineBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#6170B5',
+    borderRadius: 10,
+    paddingVertical: 13,
+    marginBottom: 20,
+    backgroundColor: '#F7F9FF',
+  },
+  secondaryOutlineBtnLabel: {
+    color: '#2D3A85',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  progressWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: -2,
+    marginBottom: 14,
+  },
+  progressText: {
+    marginLeft: 10,
+    fontSize: 13,
+    color: GREY_TEXT,
+    fontWeight: '600',
   },
 });

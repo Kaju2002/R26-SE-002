@@ -45,7 +45,15 @@ function tacticGlyph(
 }
 
 export default function ResultScreen({ navigation, route }: Props) {
-  const { analysis, result, pastedMessage = '', imageUri, isImage } = route.params;
+  const {
+    analysis,
+    result,
+    pastedMessage = '',
+    imageUri,
+    isImage,
+    screenshotCount,
+    screenshotTotal,
+  } = route.params;
   const [saving, setSaving] = useState(false);
 
   const payload = useMemo((): AnalysisPayload | null => {
@@ -106,6 +114,20 @@ export default function ResultScreen({ navigation, route }: Props) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
+        {typeof screenshotTotal === 'number' && screenshotTotal > 0 ? (
+          <View style={styles.conversationBadge}>
+            <MaterialCommunityIcons
+              name="image-multiple-outline"
+              size={18}
+              color="#2D3A85"
+            />
+            <Text style={styles.conversationBadgeText}>
+              {(typeof screenshotCount === 'number' ? screenshotCount : 0)} of {screenshotTotal}{' '}
+              screenshots read successfully
+            </Text>
+          </View>
+        ) : null}
+
         {/* Banner */}
         <View style={[styles.banner, { backgroundColor: accent }]}>
           <View style={styles.bannerIconOuter}>
@@ -209,6 +231,20 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 32,
     paddingHorizontal: 16,
+  },
+  conversationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F0F4FF',
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 16,
+    gap: 8,
+  },
+  conversationBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#2D3A85',
   },
   banner: {
     borderRadius: 14,
