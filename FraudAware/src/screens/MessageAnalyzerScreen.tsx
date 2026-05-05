@@ -39,6 +39,9 @@ const MAX_CHARS = 2000;
 /** Min non-whitespace chars to count multi-screenshot OCR as successful (avoids blurry noise). */
 const OCR_MIN_MEANINGFUL_CHARS = 20;
 
+/** Which flow owns the global loading state — keeps the Analyze button truthful for OCR flows. */
+type AnalysisLoadingSource = null | 'paste' | 'screenshot' | 'conversation';
+
 async function readClassifyError(response: Response): Promise<string> {
   const text = await response.text();
   try {
@@ -64,6 +67,7 @@ async function readClassifyError(response: Response): Promise<string> {
 export default function MessageAnalyzerScreen({ navigation }: Props) {
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingSource, setLoadingSource] = useState<AnalysisLoadingSource>(null);
   const [loadingText, setLoadingText] = useState('');
   const [recentScans, setRecentScans] = useState<RecentScanItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -184,7 +188,8 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       return;
     }
     setLoading(true);
-    setLoadingText('Analyzing message...');
+    setLoadingSource('paste');
+    setLoadingText('Analyzing message…');
     try {
       if (!(await ensureServerReadyForAnalysis())) {
         return;
@@ -204,6 +209,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         return;
       }
       const data = (await response.json()) as Record<string, unknown>;
+      setMessageText('');
       await loadHistory();
       navigation.navigate('ResultScreen', {
         result: data,
@@ -213,6 +219,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       Alert.alert('Connection Error', 'Could not reach server. Check Wi‑Fi and that the API is running.');
     } finally {
       setLoading(false);
+      setLoadingSource(null);
       setLoadingText('');
     }
   }, [ensureServerReadyForAnalysis, loadHistory, messageText, navigation]);
@@ -233,7 +240,8 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
     }
     const asset = pick.assets[0];
     setLoading(true);
-    setLoadingText('Reading screenshot...');
+    setLoadingSource('screenshot');
+    setLoadingText('Reading screenshot…');
     try {
       if (!(await ensureServerReadyForAnalysis())) {
         return;
@@ -280,6 +288,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       );
     } finally {
       setLoading(false);
+      setLoadingSource(null);
       setLoadingText('');
     }
   }, [ensureServerReadyForAnalysis, loadHistory, navigation]);
@@ -305,6 +314,8 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
 
     const assets = pick.assets.slice(0, 5);
     setLoading(true);
+    setLoadingSource('conversation');
+    setLoadingText('Reading screenshots…');
     try {
       if (!(await ensureServerReadyForAnalysis())) {
         return;
@@ -363,7 +374,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         return;
       }
 
-      setLoadingText('Analyzing conversation...');
+      setLoadingText('Analyzing conversation…');
       const classifyResponse = await fetch(getClassifyUrl(), {
         method: 'POST',
         headers: {
@@ -400,11 +411,17 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       Alert.alert('Connection failed. Check your connection.');
     } finally {
       setLoading(false);
+      setLoadingSource(null);
       setLoadingText('');
     }
   }, [ensureServerReadyForAnalysis, loadHistory, navigation]);
 
   const len = messageText.length;
+  const hasAnalyzeText = messageText.trim().length > 0;
+  const analyzeMessageDisabled = loading || analysisBlocked || !hasAnalyzeText;
+  /** Dim primary CTA when input empty or server blocked — keep full contrast while loading. */
+  const primaryAnalyzeMuted = !loading && (!hasAnalyzeText || analysisBlocked);
+  const primaryShowsPasteProgress = loading && loadingSource === 'paste';
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
@@ -467,13 +484,27 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={[styles.primaryBtn, (loading || analysisBlocked) && styles.primaryBtnDisabled]}
+            style={[styles.primaryBtn, primaryAnalyzeMuted && styles.primaryBtnMuted]}
             onPress={onAnalyze}
-            disabled={loading || analysisBlocked}
+            disabled={analyzeMessageDisabled}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={primaryShowsPasteProgress ? 'Analyzing message' : 'Analyze message'}
+            accessibilityHint={
+              hasAnalyzeText ? undefined : 'Paste a message in the text box to enable analysis.'
+            }
+            accessibilityState={{
+              disabled: analyzeMessageDisabled,
+              busy: primaryShowsPasteProgress,
+            }}
           >
-            {loading ? (
-              <ActivityIndicator color={PRIMARY_RED} />
+            {primaryShowsPasteProgress ? (
+              <View style={styles.primaryBtnBusyRow}>
+                <ActivityIndicator color="#fff" size="small" />
+                <Text style={styles.primaryBtnBusyLabel} numberOfLines={2}>
+                  {loadingText || 'Analyzing…'}
+                </Text>
+              </View>
             ) : (
               <>
                 <MaterialIcons name="search" size={20} color="#fff" style={styles.btnIcon} />
@@ -481,6 +512,19 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
               </>
             )}
           </TouchableOpacity>
+
+          {loading && loadingSource !== 'paste' && loadingText.length > 0 ? (
+            <View style={styles.progressUnderPrimary}>
+              <ActivityIndicator color={BUTTON_NAVY} size="small" />
+              <Text style={styles.progressUnderPrimaryText}>{loadingText}</Text>
+            </View>
+          ) : null}
+
+          {primaryShowsPasteProgress ? (
+            <Text style={styles.progressPasteHint}>
+              Checking your text for common scam patterns. You can stay on this screen.
+            </Text>
+          ) : null}
 
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
@@ -514,13 +558,6 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
               Analyze Conversation (Multiple Screenshots)
             </Text>
           </TouchableOpacity>
-
-          {loading && loadingText.length > 0 ? (
-            <View style={styles.progressWrap}>
-              <ActivityIndicator color={BUTTON_NAVY} />
-              <Text style={styles.progressText}>{loadingText}</Text>
-            </View>
-          ) : null}
 
           </View>
 
@@ -706,16 +743,56 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginBottom: 18,
   },
-  primaryBtnDisabled: {
-    opacity: 0.85,
+  /** Empty input or server unreachable — visually disabled. */
+  primaryBtnMuted: {
+    opacity: 0.42,
   },
   primaryBtnLabel: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
   },
+  primaryBtnBusyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 8,
+    maxWidth: '100%',
+  },
+  primaryBtnBusyLabel: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
+    flexShrink: 1,
+    textAlign: 'center',
+  },
   btnIcon: {
     marginRight: 8,
+  },
+  progressUnderPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    marginTop: -6,
+    marginBottom: 14,
+    paddingHorizontal: 8,
+  },
+  progressUnderPrimaryText: {
+    flexShrink: 1,
+    fontSize: 13,
+    color: GREY_TEXT,
+    fontWeight: '600',
+  },
+  progressPasteHint: {
+    fontSize: 12,
+    color: GREY_TEXT,
+    lineHeight: 17,
+    textAlign: 'center',
+    marginTop: -4,
+    marginBottom: 14,
+    paddingHorizontal: 4,
   },
   dividerRow: {
     flexDirection: 'row',
@@ -767,18 +844,5 @@ const styles = StyleSheet.create({
     color: '#2D3A85',
     fontSize: 15,
     fontWeight: '700',
-  },
-  progressWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: -2,
-    marginBottom: 14,
-  },
-  progressText: {
-    marginLeft: 10,
-    fontSize: 13,
-    color: GREY_TEXT,
-    fontWeight: '600',
   },
 });
