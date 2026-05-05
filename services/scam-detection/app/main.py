@@ -170,6 +170,38 @@ async def classify_image(
     )
 
 
+@app.post("/ocr-only")
+async def ocr_only(file: UploadFile = File(...), user_id: str = Form(..., min_length=1)):
+    """
+    OCR endpoint for multi-screenshot flow.
+    Does not run prediction and does not save to MongoDB.
+    """
+    _ = user_id.strip()  # Validate non-empty user id from form.
+
+    ct = file.content_type or ""
+    if ct and not ct.startswith("image/"):
+        return {
+            "success": False,
+            "extracted_text": "",
+            "error": "Uploaded file must be an image (JPG/PNG).",
+        }
+
+    image_bytes = await file.read()
+    if not image_bytes:
+        return {
+            "success": False,
+            "extracted_text": "",
+            "error": "Empty image upload.",
+        }
+
+    ocr = extract_text_from_image(image_bytes)
+    return {
+        "success": bool(ocr.get("success", False)),
+        "extracted_text": (ocr.get("extracted_text") or "").strip(),
+        "error": ocr.get("error"),
+    }
+
+
 @app.get("/history/{user_id}", response_model=HistoryResponse)
 def history(user_id: str):
     if not is_connected():

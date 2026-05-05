@@ -10,6 +10,7 @@ export type AnalysisPayload = {
   warning: string;
   reassurance: string;
   original_text: string;
+  word_importance: { word: string; score: number }[];
 };
 
 /** Raw `/classify` or `/classify-image` response; mapped via `analysisPayloadFromApi`. */
@@ -29,5 +30,9 @@ export type DetectStackParamList = {
     /** Screenshot picker flow */
     imageUri?: string;
     isImage?: boolean;
+    /** Multi-screenshot flow: screenshots with meaningful OCR text */
+    screenshotCount?: number;
+    /** Multi-screenshot flow: total images user selected */
+    screenshotTotal?: number;
   };
 };
