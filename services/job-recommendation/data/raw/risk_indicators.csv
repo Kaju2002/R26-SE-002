@@ -3,45 +3,45 @@ job_id,fake_job_indicator,employer_indicator,comm_scam_indicator
 2,Fake,Legitimate Company,Not Scam
 3,Not Fake,Legitimate Company,Not Scam
 4,Not Fake,Legitimate Company,Not Scam
-5,Not Fake,Legitimate Company,Not Scam
+5,Not Fake,Fake Company,Not Scam
 6,Not Fake,Legitimate Company,Not Scam
-7,Not Fake,Fake Company,Not Scam
+7,Not Fake,Legitimate Company,Not Scam
 8,Suspicious,Legitimate Company,Not Scam
-9,Not Fake,Fake Company,Not Scam
+9,Not Fake,Legitimate Company,Not Scam
 10,Not Fake,Legitimate Company,Not Scam
 11,Not Fake,Legitimate Company,Not Scam
-12,Fake,Legitimate Company,Scam
-13,Suspicious,Fake Company,Not Scam
+12,Fake,Legitimate Company,Not Scam
+13,Suspicious,Legitimate Company,Not Scam
 14,Not Fake,Fake Company,Not Scam
 15,Not Fake,Legitimate Company,Not Scam
 16,Not Fake,Legitimate Company,Not Scam
-17,Not Fake,Legitimate Company,Not Scam
+17,Not Fake,Fake Company,Not Scam
 18,Not Fake,Legitimate Company,Not Scam
 19,Not Fake,Fake Company,Not Scam
 20,Not Fake,Legitimate Company,Not Scam
 21,Not Fake,Legitimate Company,Not Scam
 22,Not Fake,Legitimate Company,Not Scam
-23,Not Fake,Fake Company,Not Scam
-24,Not Fake,Legitimate Company,Scam
+23,Not Fake,Legitimate Company,Not Scam
+24,Not Fake,Legitimate Company,Not Scam
 25,Not Fake,Legitimate Company,Not Scam
 26,Not Fake,Legitimate Company,Not Scam
 27,Not Fake,Legitimate Company,Not Scam
 28,Not Fake,Legitimate Company,Not Scam
-29,Not Fake,Legitimate Company,Not Scam
+29,Not Fake,Fake Company,Not Scam
 30,Not Fake,Fake Company,Not Scam
-31,Not Fake,Legitimate Company,Not Scam
-32,Not Fake,Fake Company,Not Scam
-33,Not Fake,Fake Company,Not Scam
+31,Not Fake,Fake Company,Not Scam
+32,Not Fake,Legitimate Company,Not Scam
+33,Not Fake,Legitimate Company,Not Scam
 34,Fake,Legitimate Company,Not Scam
 35,Fake,Legitimate Company,Not Scam
-36,Suspicious,Fake Company,Not Scam
+36,Suspicious,Legitimate Company,Not Scam
 37,Not Fake,Legitimate Company,Not Scam
 38,Not Fake,Legitimate Company,Not Scam
 39,Not Fake,Legitimate Company,Not Scam
 40,Not Fake,Legitimate Company,Not Scam
-41,Not Fake,Fake Company,Not Scam
+41,Not Fake,Legitimate Company,Not Scam
 42,Not Fake,Legitimate Company,Not Scam
-43,Not Fake,Legitimate Company,Not Scam
+43,Not Fake,Fake Company,Not Scam
 44,Fake,Legitimate Company,Not Scam
 45,Not Fake,Legitimate Company,Not Scam
 46,Not Fake,Legitimate Company,Not Scam
@@ -50,165 +50,165 @@ job_id,fake_job_indicator,employer_indicator,comm_scam_indicator
 49,Not Fake,Legitimate Company,Not Scam
 50,Not Fake,Legitimate Company,Not Scam
 51,Fake,Legitimate Company,Not Scam
-52,Not Fake,Fake Company,Not Scam
+52,Not Fake,Legitimate Company,Not Scam
 53,Fake,Legitimate Company,Not Scam
-54,Suspicious,Legitimate Company,Not Scam
-55,Not Fake,Fake Company,Scam
+54,Suspicious,Fake Company,Not Scam
+55,Not Fake,Legitimate Company,Not Scam
 56,Fake,Legitimate Company,Not Scam
-57,Not Fake,Legitimate Company,Not Scam
+57,Not Fake,Fake Company,Not Scam
 58,Not Fake,Legitimate Company,Not Scam
 59,Not Fake,Legitimate Company,Not Scam
 60,Not Fake,Legitimate Company,Not Scam
 61,Not Fake,Legitimate Company,Not Scam
-62,Not Fake,Legitimate Company,Scam
+62,Not Fake,Fake Company,Not Scam
 63,Suspicious,Legitimate Company,Not Scam
-64,Not Fake,Legitimate Company,Not Scam
+64,Not Fake,Fake Company,Not Scam
 65,Not Fake,Legitimate Company,Not Scam
 66,Not Fake,Legitimate Company,Not Scam
 67,Not Fake,Legitimate Company,Not Scam
 68,Suspicious,Legitimate Company,Not Scam
-69,Not Fake,Fake Company,Not Scam
-70,Fake,Legitimate Company,Not Scam
+69,Not Fake,Legitimate Company,Not Scam
+70,Fake,Fake Company,Not Scam
 71,Not Fake,Legitimate Company,Not Scam
-72,Not Fake,Legitimate Company,Not Scam
+72,Not Fake,Fake Company,Not Scam
 73,Not Fake,Legitimate Company,Not Scam
-74,Suspicious,Legitimate Company,Not Scam
-75,Not Fake,Fake Company,Scam
-76,Not Fake,Fake Company,Not Scam
+74,Suspicious,Fake Company,Not Scam
+75,Not Fake,Legitimate Company,Scam
+76,Not Fake,Legitimate Company,Not Scam
 77,Not Fake,Legitimate Company,Not Scam
-78,Not Fake,Fake Company,Not Scam
+78,Not Fake,Legitimate Company,Not Scam
 79,Not Fake,Legitimate Company,Not Scam
 80,Not Fake,Legitimate Company,Not Scam
 81,Suspicious,Legitimate Company,Not Scam
-82,Not Fake,Fake Company,Not Scam
+82,Not Fake,Fake Company,Scam
 83,Not Fake,Legitimate Company,Not Scam
 84,Not Fake,Legitimate Company,Not Scam
 85,Not Fake,Legitimate Company,Not Scam
 86,Not Fake,Legitimate Company,Not Scam
 87,Not Fake,Legitimate Company,Not Scam
 88,Not Fake,Legitimate Company,Not Scam
-89,Suspicious,Legitimate Company,Scam
+89,Suspicious,Legitimate Company,Not Scam
 90,Not Fake,Legitimate Company,Not Scam
 91,Not Fake,Legitimate Company,Not Scam
 92,Not Fake,Legitimate Company,Not Scam
 93,Not Fake,Legitimate Company,Not Scam
-94,Not Fake,Legitimate Company,Not Scam
-95,Not Fake,Fake Company,Not Scam
+94,Not Fake,Legitimate Company,Scam
+95,Not Fake,Legitimate Company,Not Scam
 96,Not Fake,Legitimate Company,Not Scam
 97,Not Fake,Legitimate Company,Not Scam
 98,Not Fake,Legitimate Company,Not Scam
-99,Not Fake,Legitimate Company,Not Scam
+99,Not Fake,Legitimate Company,Scam
 100,Not Fake,Legitimate Company,Not Scam
-101,Not Fake,Legitimate Company,Not Scam
-102,Not Fake,Legitimate Company,Scam
+101,Not Fake,Legitimate Company,Scam
+102,Not Fake,Legitimate Company,Not Scam
 103,Not Fake,Legitimate Company,Not Scam
 104,Not Fake,Legitimate Company,Not Scam
-105,Fake,Legitimate Company,Scam
+105,Fake,Fake Company,Not Scam
 106,Not Fake,Legitimate Company,Not Scam
 107,Not Fake,Legitimate Company,Not Scam
 108,Not Fake,Legitimate Company,Not Scam
 109,Not Fake,Legitimate Company,Not Scam
 110,Not Fake,Legitimate Company,Not Scam
-111,Not Fake,Legitimate Company,Not Scam
+111,Not Fake,Fake Company,Not Scam
 112,Not Fake,Legitimate Company,Not Scam
 113,Fake,Legitimate Company,Not Scam
 114,Suspicious,Legitimate Company,Not Scam
-115,Not Fake,Fake Company,Not Scam
-116,Suspicious,Fake Company,Not Scam
+115,Not Fake,Legitimate Company,Not Scam
+116,Suspicious,Legitimate Company,Not Scam
 117,Suspicious,Legitimate Company,Not Scam
-118,Not Fake,Legitimate Company,Not Scam
+118,Not Fake,Legitimate Company,Scam
 119,Suspicious,Legitimate Company,Not Scam
 120,Not Fake,Legitimate Company,Not Scam
 121,Suspicious,Legitimate Company,Not Scam
-122,Suspicious,Legitimate Company,Scam
+122,Suspicious,Legitimate Company,Not Scam
 123,Not Fake,Legitimate Company,Not Scam
 124,Not Fake,Legitimate Company,Not Scam
 125,Not Fake,Legitimate Company,Not Scam
 126,Not Fake,Legitimate Company,Not Scam
-127,Suspicious,Legitimate Company,Not Scam
+127,Suspicious,Legitimate Company,Scam
 128,Suspicious,Legitimate Company,Not Scam
 129,Not Fake,Legitimate Company,Not Scam
 130,Not Fake,Legitimate Company,Not Scam
 131,Not Fake,Legitimate Company,Not Scam
-132,Not Fake,Fake Company,Not Scam
+132,Not Fake,Legitimate Company,Not Scam
 133,Not Fake,Legitimate Company,Not Scam
 134,Not Fake,Legitimate Company,Not Scam
-135,Fake,Legitimate Company,Not Scam
+135,Fake,Fake Company,Not Scam
 136,Not Fake,Legitimate Company,Not Scam
 137,Not Fake,Legitimate Company,Not Scam
-138,Not Fake,Legitimate Company,Not Scam
-139,Not Fake,Legitimate Company,Not Scam
+138,Not Fake,Legitimate Company,Scam
+139,Not Fake,Fake Company,Not Scam
 140,Fake,Legitimate Company,Not Scam
 141,Fake,Legitimate Company,Not Scam
 142,Not Fake,Legitimate Company,Not Scam
 143,Not Fake,Legitimate Company,Not Scam
 144,Not Fake,Legitimate Company,Not Scam
-145,Not Fake,Legitimate Company,Not Scam
-146,Not Fake,Fake Company,Not Scam
+145,Not Fake,Fake Company,Not Scam
+146,Not Fake,Legitimate Company,Not Scam
 147,Not Fake,Legitimate Company,Not Scam
 148,Not Fake,Legitimate Company,Not Scam
 149,Not Fake,Legitimate Company,Not Scam
 150,Not Fake,Legitimate Company,Not Scam
 151,Fake,Legitimate Company,Not Scam
-152,Not Fake,Legitimate Company,Not Scam
+152,Not Fake,Legitimate Company,Scam
 153,Not Fake,Legitimate Company,Not Scam
 154,Not Fake,Legitimate Company,Not Scam
 155,Fake,Legitimate Company,Not Scam
-156,Not Fake,Legitimate Company,Not Scam
+156,Not Fake,Fake Company,Not Scam
 157,Not Fake,Legitimate Company,Not Scam
-158,Not Fake,Legitimate Company,Not Scam
+158,Not Fake,Fake Company,Not Scam
 159,Not Fake,Legitimate Company,Not Scam
 160,Not Fake,Legitimate Company,Not Scam
 161,Not Fake,Legitimate Company,Not Scam
-162,Not Fake,Fake Company,Not Scam
+162,Not Fake,Legitimate Company,Not Scam
 163,Not Fake,Legitimate Company,Not Scam
 164,Not Fake,Legitimate Company,Not Scam
-165,Not Fake,Legitimate Company,Not Scam
+165,Not Fake,Legitimate Company,Scam
 166,Suspicious,Legitimate Company,Not Scam
-167,Not Fake,Legitimate Company,Not Scam
-168,Not Fake,Legitimate Company,Not Scam
+167,Not Fake,Fake Company,Not Scam
+168,Not Fake,Fake Company,Not Scam
 169,Not Fake,Legitimate Company,Not Scam
-170,Not Fake,Legitimate Company,Not Scam
+170,Not Fake,Legitimate Company,Scam
 171,Not Fake,Legitimate Company,Not Scam
-172,Not Fake,Fake Company,Scam
+172,Not Fake,Legitimate Company,Not Scam
 173,Not Fake,Legitimate Company,Not Scam
 174,Not Fake,Legitimate Company,Not Scam
 175,Not Fake,Legitimate Company,Not Scam
 176,Not Fake,Fake Company,Not Scam
 177,Not Fake,Legitimate Company,Not Scam
 178,Not Fake,Legitimate Company,Not Scam
-179,Fake,Fake Company,Not Scam
-180,Not Fake,Fake Company,Not Scam
-181,Not Fake,Legitimate Company,Scam
-182,Not Fake,Legitimate Company,Not Scam
+179,Fake,Legitimate Company,Not Scam
+180,Not Fake,Legitimate Company,Not Scam
+181,Not Fake,Legitimate Company,Not Scam
+182,Not Fake,Fake Company,Not Scam
 183,Fake,Legitimate Company,Not Scam
-184,Suspicious,Legitimate Company,Not Scam
-185,Not Fake,Fake Company,Not Scam
+184,Suspicious,Fake Company,Not Scam
+185,Not Fake,Legitimate Company,Not Scam
 186,Not Fake,Legitimate Company,Not Scam
 187,Suspicious,Legitimate Company,Not Scam
 188,Not Fake,Legitimate Company,Not Scam
-189,Not Fake,Legitimate Company,Not Scam
-190,Not Fake,Legitimate Company,Not Scam
+189,Not Fake,Fake Company,Not Scam
+190,Not Fake,Fake Company,Not Scam
 191,Not Fake,Legitimate Company,Not Scam
 192,Suspicious,Legitimate Company,Not Scam
 193,Fake,Legitimate Company,Not Scam
-194,Not Fake,Legitimate Company,Not Scam
+194,Not Fake,Fake Company,Scam
 195,Not Fake,Legitimate Company,Not Scam
-196,Not Fake,Legitimate Company,Not Scam
-197,Not Fake,Legitimate Company,Scam
-198,Suspicious,Legitimate Company,Scam
+196,Not Fake,Legitimate Company,Scam
+197,Not Fake,Legitimate Company,Not Scam
+198,Suspicious,Legitimate Company,Not Scam
 199,Suspicious,Legitimate Company,Not Scam
 200,Not Fake,Legitimate Company,Not Scam
-201,Not Fake,Legitimate Company,Not Scam
+201,Not Fake,Fake Company,Not Scam
 202,Not Fake,Legitimate Company,Not Scam
 203,Not Fake,Legitimate Company,Not Scam
-204,Suspicious,Legitimate Company,Not Scam
+204,Suspicious,Fake Company,Not Scam
 205,Not Fake,Legitimate Company,Not Scam
 206,Not Fake,Fake Company,Not Scam
 207,Not Fake,Legitimate Company,Not Scam
 208,Not Fake,Legitimate Company,Not Scam
-209,Not Fake,Legitimate Company,Not Scam
-210,Not Fake,Legitimate Company,Scam
+209,Not Fake,Fake Company,Not Scam
+210,Not Fake,Legitimate Company,Not Scam
 211,Not Fake,Legitimate Company,Not Scam
 212,Not Fake,Legitimate Company,Not Scam
 213,Not Fake,Legitimate Company,Not Scam
@@ -216,104 +216,104 @@ job_id,fake_job_indicator,employer_indicator,comm_scam_indicator
 215,Not Fake,Legitimate Company,Not Scam
 216,Not Fake,Fake Company,Not Scam
 217,Not Fake,Legitimate Company,Not Scam
-218,Not Fake,Fake Company,Not Scam
+218,Not Fake,Legitimate Company,Not Scam
 219,Not Fake,Legitimate Company,Not Scam
 220,Suspicious,Legitimate Company,Not Scam
-221,Not Fake,Fake Company,Scam
-222,Not Fake,Legitimate Company,Not Scam
+221,Not Fake,Legitimate Company,Not Scam
+222,Not Fake,Fake Company,Scam
 223,Not Fake,Legitimate Company,Not Scam
 224,Not Fake,Legitimate Company,Not Scam
 225,Not Fake,Legitimate Company,Not Scam
 226,Not Fake,Legitimate Company,Not Scam
 227,Fake,Legitimate Company,Not Scam
 228,Not Fake,Legitimate Company,Not Scam
-229,Suspicious,Legitimate Company,Scam
+229,Suspicious,Legitimate Company,Not Scam
 230,Not Fake,Legitimate Company,Not Scam
 231,Not Fake,Legitimate Company,Not Scam
 232,Not Fake,Legitimate Company,Not Scam
 233,Not Fake,Legitimate Company,Not Scam
 234,Not Fake,Legitimate Company,Not Scam
 235,Not Fake,Legitimate Company,Not Scam
-236,Not Fake,Fake Company,Not Scam
+236,Not Fake,Legitimate Company,Not Scam
 237,Not Fake,Legitimate Company,Not Scam
 238,Not Fake,Legitimate Company,Not Scam
-239,Not Fake,Legitimate Company,Scam
+239,Not Fake,Legitimate Company,Not Scam
 240,Not Fake,Legitimate Company,Not Scam
 241,Fake,Legitimate Company,Not Scam
 242,Fake,Legitimate Company,Not Scam
-243,Fake,Legitimate Company,Not Scam
+243,Fake,Fake Company,Scam
 244,Not Fake,Legitimate Company,Not Scam
 245,Not Fake,Legitimate Company,Not Scam
-246,Fake,Fake Company,Not Scam
+246,Fake,Legitimate Company,Not Scam
 247,Not Fake,Legitimate Company,Not Scam
 248,Fake,Legitimate Company,Not Scam
 249,Fake,Fake Company,Not Scam
 250,Suspicious,Legitimate Company,Not Scam
 251,Not Fake,Legitimate Company,Not Scam
-252,Not Fake,Fake Company,Not Scam
-253,Suspicious,Legitimate Company,Not Scam
+252,Not Fake,Legitimate Company,Not Scam
+253,Suspicious,Fake Company,Not Scam
 254,Not Fake,Legitimate Company,Not Scam
 255,Not Fake,Legitimate Company,Not Scam
 256,Not Fake,Legitimate Company,Not Scam
 257,Fake,Legitimate Company,Not Scam
-258,Not Fake,Legitimate Company,Not Scam
+258,Not Fake,Fake Company,Not Scam
 259,Not Fake,Fake Company,Not Scam
 260,Not Fake,Legitimate Company,Not Scam
-261,Not Fake,Legitimate Company,Not Scam
+261,Not Fake,Fake Company,Not Scam
 262,Fake,Legitimate Company,Not Scam
-263,Not Fake,Legitimate Company,Not Scam
+263,Not Fake,Fake Company,Not Scam
 264,Not Fake,Legitimate Company,Not Scam
 265,Suspicious,Legitimate Company,Not Scam
 266,Not Fake,Legitimate Company,Not Scam
 267,Not Fake,Legitimate Company,Not Scam
-268,Not Fake,Fake Company,Not Scam
+268,Not Fake,Legitimate Company,Not Scam
 269,Not Fake,Legitimate Company,Not Scam
 270,Not Fake,Legitimate Company,Not Scam
 271,Suspicious,Legitimate Company,Not Scam
 272,Suspicious,Legitimate Company,Not Scam
 273,Suspicious,Legitimate Company,Not Scam
-274,Fake,Legitimate Company,Not Scam
+274,Fake,Fake Company,Not Scam
 275,Not Fake,Legitimate Company,Not Scam
 276,Not Fake,Legitimate Company,Not Scam
 277,Not Fake,Legitimate Company,Not Scam
-278,Not Fake,Legitimate Company,Scam
+278,Not Fake,Fake Company,Not Scam
 279,Not Fake,Legitimate Company,Not Scam
 280,Not Fake,Legitimate Company,Not Scam
 281,Suspicious,Legitimate Company,Not Scam
-282,Not Fake,Legitimate Company,Not Scam
+282,Not Fake,Fake Company,Not Scam
 283,Not Fake,Legitimate Company,Not Scam
 284,Not Fake,Legitimate Company,Not Scam
 285,Not Fake,Legitimate Company,Not Scam
 286,Not Fake,Fake Company,Not Scam
 287,Not Fake,Legitimate Company,Not Scam
 288,Not Fake,Legitimate Company,Not Scam
-289,Not Fake,Legitimate Company,Not Scam
-290,Not Fake,Fake Company,Not Scam
+289,Not Fake,Fake Company,Not Scam
+290,Not Fake,Legitimate Company,Not Scam
 291,Not Fake,Legitimate Company,Not Scam
-292,Not Fake,Legitimate Company,Not Scam
+292,Not Fake,Legitimate Company,Scam
 293,Suspicious,Legitimate Company,Not Scam
 294,Not Fake,Legitimate Company,Not Scam
 295,Not Fake,Legitimate Company,Not Scam
-296,Not Fake,Fake Company,Not Scam
-297,Not Fake,Fake Company,Not Scam
-298,Not Fake,Legitimate Company,Not Scam
+296,Not Fake,Legitimate Company,Not Scam
+297,Not Fake,Legitimate Company,Not Scam
+298,Not Fake,Fake Company,Not Scam
 299,Not Fake,Legitimate Company,Not Scam
 300,Not Fake,Fake Company,Not Scam
 301,Not Fake,Legitimate Company,Not Scam
-302,Not Fake,Legitimate Company,Not Scam
-303,Not Fake,Legitimate Company,Not Scam
+302,Not Fake,Fake Company,Not Scam
+303,Not Fake,Legitimate Company,Scam
 304,Not Fake,Legitimate Company,Not Scam
-305,Not Fake,Legitimate Company,Not Scam
-306,Fake,Legitimate Company,Not Scam
-307,Not Fake,Fake Company,Not Scam
-308,Not Fake,Fake Company,Not Scam
+305,Not Fake,Legitimate Company,Scam
+306,Fake,Fake Company,Not Scam
+307,Not Fake,Legitimate Company,Not Scam
+308,Not Fake,Legitimate Company,Not Scam
 309,Not Fake,Legitimate Company,Not Scam
 310,Not Fake,Legitimate Company,Not Scam
-311,Not Fake,Fake Company,Not Scam
+311,Not Fake,Legitimate Company,Not Scam
 312,Not Fake,Legitimate Company,Not Scam
-313,Not Fake,Legitimate Company,Not Scam
-314,Fake,Fake Company,Not Scam
-315,Suspicious,Fake Company,Not Scam
+313,Not Fake,Legitimate Company,Scam
+314,Fake,Legitimate Company,Not Scam
+315,Suspicious,Legitimate Company,Not Scam
 316,Not Fake,Legitimate Company,Not Scam
 317,Not Fake,Legitimate Company,Not Scam
 318,Not Fake,Legitimate Company,Not Scam
@@ -323,89 +323,89 @@ job_id,fake_job_indicator,employer_indicator,comm_scam_indicator
 322,Not Fake,Legitimate Company,Not Scam
 323,Not Fake,Legitimate Company,Not Scam
 324,Not Fake,Legitimate Company,Not Scam
-325,Fake,Legitimate Company,Scam
-326,Not Fake,Fake Company,Not Scam
+325,Fake,Legitimate Company,Not Scam
+326,Not Fake,Legitimate Company,Not Scam
 327,Not Fake,Legitimate Company,Not Scam
 328,Not Fake,Legitimate Company,Not Scam
 329,Not Fake,Legitimate Company,Not Scam
 330,Not Fake,Legitimate Company,Not Scam
 331,Not Fake,Legitimate Company,Not Scam
 332,Not Fake,Legitimate Company,Not Scam
-333,Not Fake,Legitimate Company,Not Scam
-334,Not Fake,Legitimate Company,Scam
-335,Not Fake,Legitimate Company,Scam
+333,Not Fake,Fake Company,Not Scam
+334,Not Fake,Legitimate Company,Not Scam
+335,Not Fake,Legitimate Company,Not Scam
 336,Not Fake,Legitimate Company,Not Scam
-337,Suspicious,Fake Company,Not Scam
+337,Suspicious,Legitimate Company,Not Scam
 338,Not Fake,Legitimate Company,Not Scam
 339,Not Fake,Legitimate Company,Not Scam
 340,Not Fake,Legitimate Company,Not Scam
 341,Not Fake,Legitimate Company,Not Scam
 342,Not Fake,Legitimate Company,Not Scam
 343,Not Fake,Legitimate Company,Not Scam
-344,Not Fake,Fake Company,Not Scam
+344,Not Fake,Legitimate Company,Not Scam
 345,Not Fake,Legitimate Company,Not Scam
-346,Not Fake,Legitimate Company,Not Scam
+346,Not Fake,Fake Company,Not Scam
 347,Not Fake,Legitimate Company,Not Scam
-348,Not Fake,Fake Company,Not Scam
-349,Not Fake,Legitimate Company,Scam
+348,Not Fake,Legitimate Company,Not Scam
+349,Not Fake,Legitimate Company,Not Scam
 350,Not Fake,Legitimate Company,Not Scam
-351,Not Fake,Legitimate Company,Not Scam
+351,Not Fake,Fake Company,Not Scam
 352,Suspicious,Legitimate Company,Not Scam
-353,Not Fake,Legitimate Company,Not Scam
-354,Not Fake,Fake Company,Not Scam
-355,Not Fake,Legitimate Company,Not Scam
+353,Not Fake,Fake Company,Not Scam
+354,Not Fake,Legitimate Company,Not Scam
+355,Not Fake,Fake Company,Not Scam
 356,Not Fake,Legitimate Company,Not Scam
 357,Not Fake,Legitimate Company,Not Scam
 358,Not Fake,Legitimate Company,Not Scam
 359,Fake,Legitimate Company,Not Scam
 360,Not Fake,Legitimate Company,Not Scam
-361,Not Fake,Legitimate Company,Not Scam
+361,Not Fake,Legitimate Company,Scam
 362,Not Fake,Legitimate Company,Not Scam
 363,Not Fake,Legitimate Company,Not Scam
 364,Not Fake,Legitimate Company,Not Scam
 365,Fake,Legitimate Company,Not Scam
 366,Not Fake,Legitimate Company,Not Scam
 367,Fake,Legitimate Company,Not Scam
-368,Fake,Legitimate Company,Not Scam
-369,Not Fake,Fake Company,Not Scam
-370,Not Fake,Fake Company,Not Scam
-371,Not Fake,Legitimate Company,Scam
+368,Fake,Legitimate Company,Scam
+369,Not Fake,Legitimate Company,Not Scam
+370,Not Fake,Legitimate Company,Not Scam
+371,Not Fake,Legitimate Company,Not Scam
 372,Not Fake,Legitimate Company,Not Scam
 373,Not Fake,Legitimate Company,Not Scam
 374,Not Fake,Legitimate Company,Not Scam
 375,Not Fake,Legitimate Company,Not Scam
 376,Not Fake,Legitimate Company,Not Scam
 377,Suspicious,Legitimate Company,Not Scam
-378,Not Fake,Legitimate Company,Not Scam
+378,Not Fake,Fake Company,Not Scam
 379,Suspicious,Legitimate Company,Not Scam
 380,Not Fake,Legitimate Company,Not Scam
 381,Not Fake,Legitimate Company,Not Scam
 382,Not Fake,Legitimate Company,Not Scam
-383,Not Fake,Legitimate Company,Scam
-384,Suspicious,Legitimate Company,Not Scam
+383,Not Fake,Legitimate Company,Not Scam
+384,Suspicious,Fake Company,Scam
 385,Not Fake,Legitimate Company,Not Scam
 386,Suspicious,Legitimate Company,Not Scam
-387,Not Fake,Legitimate Company,Not Scam
+387,Not Fake,Fake Company,Not Scam
 388,Not Fake,Legitimate Company,Not Scam
-389,Not Fake,Legitimate Company,Scam
+389,Not Fake,Legitimate Company,Not Scam
 390,Suspicious,Legitimate Company,Not Scam
 391,Fake,Legitimate Company,Not Scam
-392,Not Fake,Fake Company,Not Scam
-393,Not Fake,Legitimate Company,Not Scam
+392,Not Fake,Legitimate Company,Not Scam
+393,Not Fake,Fake Company,Not Scam
 394,Not Fake,Legitimate Company,Not Scam
 395,Not Fake,Legitimate Company,Not Scam
 396,Fake,Legitimate Company,Not Scam
 397,Suspicious,Legitimate Company,Not Scam
-398,Not Fake,Fake Company,Not Scam
+398,Not Fake,Legitimate Company,Not Scam
 399,Not Fake,Legitimate Company,Not Scam
-400,Not Fake,Legitimate Company,Not Scam
+400,Not Fake,Legitimate Company,Scam
 401,Not Fake,Legitimate Company,Not Scam
 402,Fake,Legitimate Company,Not Scam
-403,Not Fake,Legitimate Company,Not Scam
+403,Not Fake,Legitimate Company,Scam
 404,Suspicious,Legitimate Company,Not Scam
-405,Not Fake,Legitimate Company,Not Scam
-406,Suspicious,Fake Company,Not Scam
-407,Not Fake,Legitimate Company,Not Scam
+405,Not Fake,Legitimate Company,Scam
+406,Suspicious,Legitimate Company,Not Scam
+407,Not Fake,Fake Company,Not Scam
 408,Not Fake,Legitimate Company,Not Scam
 409,Fake,Legitimate Company,Not Scam
 410,Not Fake,Legitimate Company,Not Scam
@@ -419,44 +419,44 @@ job_id,fake_job_indicator,employer_indicator,comm_scam_indicator
 418,Not Fake,Fake Company,Not Scam
 419,Not Fake,Legitimate Company,Not Scam
 420,Not Fake,Legitimate Company,Not Scam
-421,Not Fake,Fake Company,Not Scam
+421,Not Fake,Legitimate Company,Not Scam
 422,Not Fake,Legitimate Company,Not Scam
-423,Not Fake,Fake Company,Not Scam
+423,Not Fake,Legitimate Company,Not Scam
 424,Not Fake,Legitimate Company,Not Scam
-425,Not Fake,Legitimate Company,Scam
-426,Not Fake,Legitimate Company,Scam
+425,Not Fake,Fake Company,Not Scam
+426,Not Fake,Legitimate Company,Not Scam
 427,Not Fake,Legitimate Company,Not Scam
-428,Suspicious,Legitimate Company,Scam
+428,Suspicious,Legitimate Company,Not Scam
 429,Not Fake,Legitimate Company,Not Scam
 430,Not Fake,Legitimate Company,Not Scam
 431,Not Fake,Legitimate Company,Not Scam
-432,Not Fake,Legitimate Company,Not Scam
+432,Not Fake,Legitimate Company,Scam
 433,Not Fake,Fake Company,Not Scam
 434,Not Fake,Legitimate Company,Not Scam
 435,Not Fake,Legitimate Company,Not Scam
 436,Not Fake,Legitimate Company,Not Scam
 437,Not Fake,Legitimate Company,Not Scam
-438,Suspicious,Fake Company,Not Scam
+438,Suspicious,Legitimate Company,Not Scam
 439,Not Fake,Legitimate Company,Not Scam
 440,Not Fake,Legitimate Company,Not Scam
-441,Not Fake,Legitimate Company,Scam
+441,Not Fake,Legitimate Company,Not Scam
 442,Fake,Legitimate Company,Not Scam
 443,Not Fake,Legitimate Company,Not Scam
-444,Not Fake,Legitimate Company,Not Scam
+444,Not Fake,Fake Company,Not Scam
 445,Suspicious,Legitimate Company,Not Scam
 446,Fake,Legitimate Company,Not Scam
 447,Fake,Legitimate Company,Not Scam
-448,Not Fake,Fake Company,Not Scam
-449,Not Fake,Fake Company,Not Scam
-450,Not Fake,Legitimate Company,Not Scam
+448,Not Fake,Legitimate Company,Not Scam
+449,Not Fake,Legitimate Company,Scam
+450,Not Fake,Fake Company,Not Scam
 451,Not Fake,Legitimate Company,Not Scam
 452,Not Fake,Legitimate Company,Not Scam
-453,Not Fake,Legitimate Company,Not Scam
-454,Fake,Fake Company,Not Scam
-455,Not Fake,Legitimate Company,Not Scam
-456,Not Fake,Legitimate Company,Not Scam
-457,Not Fake,Legitimate Company,Not Scam
-458,Not Fake,Legitimate Company,Not Scam
+453,Not Fake,Legitimate Company,Scam
+454,Fake,Legitimate Company,Not Scam
+455,Not Fake,Legitimate Company,Scam
+456,Not Fake,Legitimate Company,Scam
+457,Not Fake,Fake Company,Not Scam
+458,Not Fake,Legitimate Company,Scam
 459,Not Fake,Legitimate Company,Not Scam
 460,Not Fake,Legitimate Company,Not Scam
 461,Not Fake,Legitimate Company,Not Scam
@@ -465,13 +465,13 @@ job_id,fake_job_indicator,employer_indicator,comm_scam_indicator
 464,Not Fake,Legitimate Company,Not Scam
 465,Fake,Legitimate Company,Scam
 466,Not Fake,Legitimate Company,Not Scam
-467,Not Fake,Legitimate Company,Scam
-468,Suspicious,Legitimate Company,Not Scam
+467,Not Fake,Legitimate Company,Not Scam
+468,Suspicious,Fake Company,Not Scam
 469,Not Fake,Legitimate Company,Not Scam
-470,Fake,Legitimate Company,Not Scam
+470,Fake,Legitimate Company,Scam
 471,Not Fake,Legitimate Company,Not Scam
-472,Fake,Fake Company,Not Scam
-473,Not Fake,Legitimate Company,Not Scam
+472,Fake,Fake Company,Scam
+473,Not Fake,Fake Company,Not Scam
 474,Suspicious,Legitimate Company,Not Scam
 475,Not Fake,Legitimate Company,Not Scam
 476,Fake,Legitimate Company,Not Scam
@@ -487,15 +487,682 @@ job_id,fake_job_indicator,employer_indicator,comm_scam_indicator
 486,Fake,Legitimate Company,Not Scam
 487,Not Fake,Legitimate Company,Not Scam
 488,Not Fake,Legitimate Company,Not Scam
-489,Fake,Legitimate Company,Not Scam
+489,Fake,Fake Company,Not Scam
 490,Suspicious,Legitimate Company,Not Scam
 491,Not Fake,Legitimate Company,Not Scam
 492,Not Fake,Legitimate Company,Not Scam
 493,Not Fake,Legitimate Company,Not Scam
 494,Not Fake,Legitimate Company,Not Scam
 495,Not Fake,Legitimate Company,Not Scam
-496,Not Fake,Legitimate Company,Not Scam
-497,Not Fake,Fake Company,Not Scam
-498,Not Fake,Legitimate Company,Not Scam
+496,Not Fake,Fake Company,Not Scam
+497,Not Fake,Legitimate Company,Not Scam
+498,Not Fake,Fake Company,Not Scam
 499,Fake,Fake Company,Not Scam
 500,Fake,Legitimate Company,Not Scam
+501,Not Fake,Fake Company,Not Scam
+502,Not Fake,Legitimate Company,Not Scam
+503,Not Fake,Legitimate Company,Scam
+504,Suspicious,Legitimate Company,Not Scam
+505,Not Fake,Fake Company,Not Scam
+506,Not Fake,Fake Company,Not Scam
+507,Fake,Legitimate Company,Not Scam
+508,Suspicious,Legitimate Company,Not Scam
+509,Fake,Legitimate Company,Not Scam
+510,Not Fake,Legitimate Company,Scam
+511,Not Fake,Legitimate Company,Not Scam
+512,Not Fake,Legitimate Company,Not Scam
+513,Fake,Legitimate Company,Not Scam
+514,Suspicious,Legitimate Company,Not Scam
+515,Not Fake,Fake Company,Not Scam
+516,Not Fake,Legitimate Company,Not Scam
+517,Not Fake,Legitimate Company,Not Scam
+518,Suspicious,Legitimate Company,Not Scam
+519,Fake,Fake Company,Not Scam
+520,Not Fake,Fake Company,Not Scam
+521,Not Fake,Legitimate Company,Not Scam
+522,Not Fake,Legitimate Company,Not Scam
+523,Fake,Legitimate Company,Not Scam
+524,Suspicious,Legitimate Company,Not Scam
+525,Suspicious,Legitimate Company,Not Scam
+526,Not Fake,Legitimate Company,Not Scam
+527,Not Fake,Legitimate Company,Not Scam
+528,Not Fake,Legitimate Company,Not Scam
+529,Not Fake,Legitimate Company,Scam
+530,Suspicious,Legitimate Company,Not Scam
+531,Suspicious,Legitimate Company,Not Scam
+532,Fake,Fake Company,Not Scam
+533,Fake,Legitimate Company,Not Scam
+534,Not Fake,Fake Company,Not Scam
+535,Not Fake,Legitimate Company,Not Scam
+536,Fake,Legitimate Company,Not Scam
+537,Suspicious,Legitimate Company,Not Scam
+538,Not Fake,Legitimate Company,Not Scam
+539,Not Fake,Legitimate Company,Not Scam
+540,Not Fake,Legitimate Company,Not Scam
+541,Fake,Legitimate Company,Not Scam
+542,Not Fake,Legitimate Company,Not Scam
+543,Not Fake,Legitimate Company,Not Scam
+544,Not Fake,Legitimate Company,Not Scam
+545,Not Fake,Legitimate Company,Not Scam
+546,Not Fake,Legitimate Company,Not Scam
+547,Not Fake,Legitimate Company,Not Scam
+548,Not Fake,Legitimate Company,Not Scam
+549,Not Fake,Fake Company,Not Scam
+550,Not Fake,Legitimate Company,Not Scam
+551,Not Fake,Legitimate Company,Not Scam
+552,Suspicious,Fake Company,Not Scam
+553,Not Fake,Legitimate Company,Not Scam
+554,Not Fake,Legitimate Company,Not Scam
+555,Suspicious,Legitimate Company,Not Scam
+556,Not Fake,Legitimate Company,Not Scam
+557,Not Fake,Legitimate Company,Not Scam
+558,Not Fake,Legitimate Company,Not Scam
+559,Not Fake,Legitimate Company,Not Scam
+560,Not Fake,Legitimate Company,Not Scam
+561,Not Fake,Fake Company,Not Scam
+562,Not Fake,Legitimate Company,Not Scam
+563,Not Fake,Legitimate Company,Not Scam
+564,Not Fake,Legitimate Company,Not Scam
+565,Not Fake,Legitimate Company,Not Scam
+566,Not Fake,Legitimate Company,Not Scam
+567,Not Fake,Legitimate Company,Not Scam
+568,Not Fake,Legitimate Company,Not Scam
+569,Fake,Fake Company,Not Scam
+570,Not Fake,Legitimate Company,Not Scam
+571,Not Fake,Legitimate Company,Not Scam
+572,Not Fake,Legitimate Company,Not Scam
+573,Not Fake,Legitimate Company,Scam
+574,Not Fake,Legitimate Company,Not Scam
+575,Suspicious,Legitimate Company,Not Scam
+576,Fake,Legitimate Company,Not Scam
+577,Not Fake,Legitimate Company,Not Scam
+578,Fake,Legitimate Company,Not Scam
+579,Not Fake,Legitimate Company,Not Scam
+580,Not Fake,Legitimate Company,Scam
+581,Not Fake,Legitimate Company,Not Scam
+582,Fake,Legitimate Company,Not Scam
+583,Not Fake,Legitimate Company,Not Scam
+584,Not Fake,Legitimate Company,Not Scam
+585,Not Fake,Legitimate Company,Not Scam
+586,Not Fake,Legitimate Company,Not Scam
+587,Not Fake,Legitimate Company,Not Scam
+588,Not Fake,Fake Company,Not Scam
+589,Not Fake,Legitimate Company,Not Scam
+590,Not Fake,Fake Company,Not Scam
+591,Not Fake,Legitimate Company,Not Scam
+592,Not Fake,Legitimate Company,Not Scam
+593,Not Fake,Legitimate Company,Not Scam
+594,Not Fake,Legitimate Company,Scam
+595,Suspicious,Legitimate Company,Not Scam
+596,Not Fake,Legitimate Company,Not Scam
+597,Not Fake,Legitimate Company,Not Scam
+598,Not Fake,Legitimate Company,Not Scam
+599,Not Fake,Legitimate Company,Not Scam
+600,Not Fake,Legitimate Company,Not Scam
+601,Not Fake,Legitimate Company,Not Scam
+602,Not Fake,Legitimate Company,Not Scam
+603,Not Fake,Legitimate Company,Not Scam
+604,Not Fake,Legitimate Company,Not Scam
+605,Not Fake,Legitimate Company,Scam
+606,Not Fake,Fake Company,Not Scam
+607,Not Fake,Fake Company,Not Scam
+608,Not Fake,Legitimate Company,Not Scam
+609,Not Fake,Legitimate Company,Not Scam
+610,Not Fake,Legitimate Company,Not Scam
+611,Not Fake,Legitimate Company,Not Scam
+612,Not Fake,Legitimate Company,Not Scam
+613,Not Fake,Legitimate Company,Not Scam
+614,Not Fake,Legitimate Company,Not Scam
+615,Suspicious,Fake Company,Not Scam
+616,Fake,Legitimate Company,Not Scam
+617,Not Fake,Legitimate Company,Not Scam
+618,Not Fake,Legitimate Company,Not Scam
+619,Suspicious,Fake Company,Not Scam
+620,Not Fake,Legitimate Company,Not Scam
+621,Not Fake,Legitimate Company,Not Scam
+622,Not Fake,Legitimate Company,Not Scam
+623,Not Fake,Legitimate Company,Not Scam
+624,Not Fake,Legitimate Company,Not Scam
+625,Not Fake,Legitimate Company,Not Scam
+626,Not Fake,Legitimate Company,Not Scam
+627,Not Fake,Legitimate Company,Not Scam
+628,Not Fake,Legitimate Company,Not Scam
+629,Not Fake,Legitimate Company,Not Scam
+630,Not Fake,Legitimate Company,Scam
+631,Not Fake,Legitimate Company,Not Scam
+632,Suspicious,Legitimate Company,Not Scam
+633,Not Fake,Legitimate Company,Not Scam
+634,Not Fake,Fake Company,Not Scam
+635,Not Fake,Legitimate Company,Not Scam
+636,Not Fake,Legitimate Company,Not Scam
+637,Not Fake,Legitimate Company,Not Scam
+638,Not Fake,Legitimate Company,Not Scam
+639,Not Fake,Legitimate Company,Not Scam
+640,Not Fake,Legitimate Company,Not Scam
+641,Not Fake,Legitimate Company,Not Scam
+642,Not Fake,Legitimate Company,Not Scam
+643,Not Fake,Legitimate Company,Not Scam
+644,Not Fake,Legitimate Company,Not Scam
+645,Not Fake,Legitimate Company,Not Scam
+646,Suspicious,Legitimate Company,Scam
+647,Not Fake,Legitimate Company,Not Scam
+648,Not Fake,Legitimate Company,Not Scam
+649,Not Fake,Fake Company,Not Scam
+650,Not Fake,Legitimate Company,Not Scam
+651,Not Fake,Legitimate Company,Not Scam
+652,Not Fake,Legitimate Company,Scam
+653,Not Fake,Legitimate Company,Not Scam
+654,Not Fake,Legitimate Company,Not Scam
+655,Not Fake,Legitimate Company,Not Scam
+656,Not Fake,Legitimate Company,Not Scam
+657,Not Fake,Legitimate Company,Not Scam
+658,Not Fake,Legitimate Company,Not Scam
+659,Not Fake,Legitimate Company,Not Scam
+660,Not Fake,Legitimate Company,Not Scam
+661,Not Fake,Fake Company,Not Scam
+662,Fake,Legitimate Company,Not Scam
+663,Not Fake,Legitimate Company,Not Scam
+664,Not Fake,Fake Company,Not Scam
+665,Not Fake,Legitimate Company,Not Scam
+666,Not Fake,Legitimate Company,Not Scam
+667,Not Fake,Legitimate Company,Not Scam
+668,Not Fake,Legitimate Company,Not Scam
+669,Not Fake,Legitimate Company,Not Scam
+670,Not Fake,Legitimate Company,Not Scam
+671,Not Fake,Legitimate Company,Not Scam
+672,Suspicious,Fake Company,Not Scam
+673,Not Fake,Legitimate Company,Not Scam
+674,Not Fake,Legitimate Company,Not Scam
+675,Not Fake,Legitimate Company,Not Scam
+676,Fake,Legitimate Company,Not Scam
+677,Not Fake,Legitimate Company,Not Scam
+678,Not Fake,Fake Company,Not Scam
+679,Fake,Legitimate Company,Not Scam
+680,Suspicious,Legitimate Company,Not Scam
+681,Suspicious,Legitimate Company,Not Scam
+682,Not Fake,Fake Company,Not Scam
+683,Not Fake,Legitimate Company,Not Scam
+684,Not Fake,Legitimate Company,Not Scam
+685,Fake,Legitimate Company,Not Scam
+686,Not Fake,Fake Company,Not Scam
+687,Not Fake,Legitimate Company,Not Scam
+688,Not Fake,Fake Company,Not Scam
+689,Not Fake,Legitimate Company,Not Scam
+690,Not Fake,Legitimate Company,Not Scam
+691,Not Fake,Legitimate Company,Not Scam
+692,Not Fake,Legitimate Company,Not Scam
+693,Not Fake,Legitimate Company,Not Scam
+694,Not Fake,Legitimate Company,Not Scam
+695,Not Fake,Legitimate Company,Not Scam
+696,Not Fake,Legitimate Company,Not Scam
+697,Not Fake,Legitimate Company,Not Scam
+698,Not Fake,Fake Company,Not Scam
+699,Not Fake,Fake Company,Not Scam
+700,Not Fake,Legitimate Company,Not Scam
+701,Not Fake,Legitimate Company,Not Scam
+702,Not Fake,Legitimate Company,Not Scam
+703,Not Fake,Legitimate Company,Not Scam
+704,Not Fake,Legitimate Company,Scam
+705,Not Fake,Legitimate Company,Not Scam
+706,Fake,Legitimate Company,Not Scam
+707,Not Fake,Legitimate Company,Not Scam
+708,Suspicious,Legitimate Company,Scam
+709,Not Fake,Legitimate Company,Not Scam
+710,Not Fake,Legitimate Company,Not Scam
+711,Not Fake,Legitimate Company,Not Scam
+712,Not Fake,Legitimate Company,Not Scam
+713,Not Fake,Legitimate Company,Not Scam
+714,Not Fake,Legitimate Company,Not Scam
+715,Not Fake,Fake Company,Not Scam
+716,Fake,Legitimate Company,Not Scam
+717,Suspicious,Legitimate Company,Not Scam
+718,Fake,Legitimate Company,Not Scam
+719,Not Fake,Legitimate Company,Not Scam
+720,Not Fake,Legitimate Company,Not Scam
+721,Fake,Legitimate Company,Not Scam
+722,Not Fake,Legitimate Company,Scam
+723,Not Fake,Fake Company,Not Scam
+724,Not Fake,Legitimate Company,Not Scam
+725,Not Fake,Legitimate Company,Not Scam
+726,Suspicious,Legitimate Company,Scam
+727,Not Fake,Legitimate Company,Not Scam
+728,Not Fake,Legitimate Company,Not Scam
+729,Not Fake,Legitimate Company,Not Scam
+730,Not Fake,Legitimate Company,Not Scam
+731,Not Fake,Legitimate Company,Not Scam
+732,Suspicious,Legitimate Company,Not Scam
+733,Not Fake,Legitimate Company,Not Scam
+734,Not Fake,Legitimate Company,Scam
+735,Not Fake,Legitimate Company,Not Scam
+736,Suspicious,Legitimate Company,Not Scam
+737,Not Fake,Legitimate Company,Not Scam
+738,Suspicious,Legitimate Company,Not Scam
+739,Not Fake,Legitimate Company,Not Scam
+740,Not Fake,Fake Company,Not Scam
+741,Not Fake,Legitimate Company,Not Scam
+742,Not Fake,Legitimate Company,Not Scam
+743,Not Fake,Legitimate Company,Not Scam
+744,Not Fake,Legitimate Company,Not Scam
+745,Not Fake,Fake Company,Not Scam
+746,Suspicious,Fake Company,Not Scam
+747,Not Fake,Legitimate Company,Not Scam
+748,Not Fake,Legitimate Company,Not Scam
+749,Fake,Legitimate Company,Not Scam
+750,Not Fake,Fake Company,Not Scam
+751,Not Fake,Legitimate Company,Not Scam
+752,Fake,Legitimate Company,Not Scam
+753,Not Fake,Legitimate Company,Not Scam
+754,Not Fake,Legitimate Company,Not Scam
+755,Not Fake,Legitimate Company,Not Scam
+756,Not Fake,Legitimate Company,Not Scam
+757,Not Fake,Legitimate Company,Not Scam
+758,Not Fake,Legitimate Company,Scam
+759,Suspicious,Legitimate Company,Not Scam
+760,Not Fake,Legitimate Company,Not Scam
+761,Not Fake,Legitimate Company,Not Scam
+762,Not Fake,Legitimate Company,Not Scam
+763,Not Fake,Legitimate Company,Scam
+764,Not Fake,Legitimate Company,Not Scam
+765,Not Fake,Legitimate Company,Not Scam
+766,Not Fake,Legitimate Company,Not Scam
+767,Not Fake,Legitimate Company,Not Scam
+768,Suspicious,Legitimate Company,Not Scam
+769,Not Fake,Legitimate Company,Not Scam
+770,Suspicious,Legitimate Company,Not Scam
+771,Not Fake,Legitimate Company,Not Scam
+772,Suspicious,Legitimate Company,Not Scam
+773,Not Fake,Legitimate Company,Not Scam
+774,Not Fake,Legitimate Company,Not Scam
+775,Not Fake,Legitimate Company,Not Scam
+776,Not Fake,Legitimate Company,Not Scam
+777,Not Fake,Legitimate Company,Not Scam
+778,Not Fake,Legitimate Company,Not Scam
+779,Not Fake,Legitimate Company,Not Scam
+780,Not Fake,Legitimate Company,Not Scam
+781,Not Fake,Legitimate Company,Not Scam
+782,Not Fake,Legitimate Company,Not Scam
+783,Not Fake,Legitimate Company,Not Scam
+784,Not Fake,Legitimate Company,Not Scam
+785,Not Fake,Legitimate Company,Not Scam
+786,Fake,Legitimate Company,Not Scam
+787,Not Fake,Legitimate Company,Not Scam
+788,Not Fake,Fake Company,Not Scam
+789,Not Fake,Fake Company,Not Scam
+790,Fake,Legitimate Company,Not Scam
+791,Not Fake,Legitimate Company,Not Scam
+792,Not Fake,Legitimate Company,Not Scam
+793,Not Fake,Legitimate Company,Not Scam
+794,Not Fake,Legitimate Company,Not Scam
+795,Not Fake,Legitimate Company,Scam
+796,Suspicious,Legitimate Company,Not Scam
+797,Fake,Legitimate Company,Not Scam
+798,Not Fake,Legitimate Company,Not Scam
+799,Not Fake,Legitimate Company,Not Scam
+800,Fake,Legitimate Company,Not Scam
+801,Not Fake,Legitimate Company,Not Scam
+802,Not Fake,Legitimate Company,Not Scam
+803,Not Fake,Legitimate Company,Not Scam
+804,Not Fake,Legitimate Company,Not Scam
+805,Not Fake,Legitimate Company,Not Scam
+806,Not Fake,Legitimate Company,Not Scam
+807,Fake,Legitimate Company,Not Scam
+808,Fake,Legitimate Company,Not Scam
+809,Not Fake,Fake Company,Not Scam
+810,Not Fake,Legitimate Company,Not Scam
+811,Fake,Legitimate Company,Not Scam
+812,Suspicious,Fake Company,Not Scam
+813,Not Fake,Legitimate Company,Not Scam
+814,Fake,Legitimate Company,Not Scam
+815,Suspicious,Legitimate Company,Not Scam
+816,Not Fake,Legitimate Company,Not Scam
+817,Not Fake,Legitimate Company,Not Scam
+818,Not Fake,Legitimate Company,Not Scam
+819,Not Fake,Legitimate Company,Not Scam
+820,Not Fake,Legitimate Company,Not Scam
+821,Suspicious,Legitimate Company,Not Scam
+822,Not Fake,Legitimate Company,Not Scam
+823,Not Fake,Legitimate Company,Not Scam
+824,Not Fake,Legitimate Company,Not Scam
+825,Not Fake,Legitimate Company,Not Scam
+826,Fake,Legitimate Company,Not Scam
+827,Not Fake,Legitimate Company,Not Scam
+828,Not Fake,Legitimate Company,Not Scam
+829,Not Fake,Legitimate Company,Not Scam
+830,Not Fake,Fake Company,Not Scam
+831,Not Fake,Legitimate Company,Not Scam
+832,Not Fake,Legitimate Company,Not Scam
+833,Not Fake,Legitimate Company,Not Scam
+834,Not Fake,Legitimate Company,Not Scam
+835,Not Fake,Legitimate Company,Not Scam
+836,Not Fake,Fake Company,Not Scam
+837,Fake,Legitimate Company,Not Scam
+838,Not Fake,Legitimate Company,Not Scam
+839,Not Fake,Legitimate Company,Not Scam
+840,Not Fake,Legitimate Company,Not Scam
+841,Not Fake,Legitimate Company,Not Scam
+842,Not Fake,Legitimate Company,Not Scam
+843,Not Fake,Legitimate Company,Not Scam
+844,Fake,Legitimate Company,Not Scam
+845,Not Fake,Legitimate Company,Not Scam
+846,Not Fake,Fake Company,Not Scam
+847,Not Fake,Legitimate Company,Not Scam
+848,Fake,Legitimate Company,Not Scam
+849,Not Fake,Legitimate Company,Not Scam
+850,Not Fake,Legitimate Company,Not Scam
+851,Not Fake,Fake Company,Not Scam
+852,Not Fake,Legitimate Company,Not Scam
+853,Not Fake,Legitimate Company,Not Scam
+854,Suspicious,Fake Company,Not Scam
+855,Not Fake,Legitimate Company,Not Scam
+856,Not Fake,Fake Company,Not Scam
+857,Not Fake,Legitimate Company,Not Scam
+858,Not Fake,Legitimate Company,Not Scam
+859,Not Fake,Legitimate Company,Scam
+860,Not Fake,Legitimate Company,Not Scam
+861,Not Fake,Fake Company,Not Scam
+862,Not Fake,Legitimate Company,Not Scam
+863,Not Fake,Legitimate Company,Not Scam
+864,Not Fake,Legitimate Company,Not Scam
+865,Not Fake,Legitimate Company,Not Scam
+866,Not Fake,Legitimate Company,Not Scam
+867,Not Fake,Fake Company,Not Scam
+868,Not Fake,Legitimate Company,Not Scam
+869,Suspicious,Legitimate Company,Not Scam
+870,Fake,Legitimate Company,Not Scam
+871,Not Fake,Legitimate Company,Not Scam
+872,Not Fake,Legitimate Company,Not Scam
+873,Not Fake,Legitimate Company,Not Scam
+874,Not Fake,Fake Company,Not Scam
+875,Not Fake,Legitimate Company,Not Scam
+876,Not Fake,Legitimate Company,Not Scam
+877,Not Fake,Legitimate Company,Not Scam
+878,Not Fake,Fake Company,Not Scam
+879,Not Fake,Legitimate Company,Not Scam
+880,Not Fake,Legitimate Company,Not Scam
+881,Not Fake,Legitimate Company,Not Scam
+882,Not Fake,Legitimate Company,Not Scam
+883,Not Fake,Legitimate Company,Not Scam
+884,Not Fake,Legitimate Company,Not Scam
+885,Not Fake,Legitimate Company,Not Scam
+886,Not Fake,Legitimate Company,Not Scam
+887,Not Fake,Fake Company,Not Scam
+888,Not Fake,Legitimate Company,Not Scam
+889,Not Fake,Legitimate Company,Not Scam
+890,Not Fake,Legitimate Company,Not Scam
+891,Not Fake,Legitimate Company,Not Scam
+892,Suspicious,Legitimate Company,Not Scam
+893,Suspicious,Legitimate Company,Not Scam
+894,Not Fake,Legitimate Company,Not Scam
+895,Not Fake,Legitimate Company,Not Scam
+896,Not Fake,Legitimate Company,Not Scam
+897,Not Fake,Legitimate Company,Not Scam
+898,Suspicious,Legitimate Company,Not Scam
+899,Not Fake,Legitimate Company,Not Scam
+900,Not Fake,Legitimate Company,Not Scam
+901,Not Fake,Legitimate Company,Not Scam
+902,Not Fake,Legitimate Company,Not Scam
+903,Not Fake,Legitimate Company,Not Scam
+904,Not Fake,Legitimate Company,Scam
+905,Not Fake,Legitimate Company,Not Scam
+906,Suspicious,Legitimate Company,Not Scam
+907,Suspicious,Fake Company,Not Scam
+908,Not Fake,Fake Company,Not Scam
+909,Not Fake,Fake Company,Not Scam
+910,Not Fake,Legitimate Company,Not Scam
+911,Not Fake,Legitimate Company,Not Scam
+912,Not Fake,Fake Company,Not Scam
+913,Not Fake,Legitimate Company,Not Scam
+914,Not Fake,Legitimate Company,Not Scam
+915,Not Fake,Legitimate Company,Not Scam
+916,Not Fake,Legitimate Company,Not Scam
+917,Not Fake,Fake Company,Not Scam
+918,Fake,Legitimate Company,Not Scam
+919,Not Fake,Legitimate Company,Not Scam
+920,Not Fake,Legitimate Company,Not Scam
+921,Suspicious,Legitimate Company,Not Scam
+922,Not Fake,Legitimate Company,Not Scam
+923,Suspicious,Legitimate Company,Not Scam
+924,Not Fake,Legitimate Company,Not Scam
+925,Not Fake,Fake Company,Not Scam
+926,Not Fake,Legitimate Company,Not Scam
+927,Not Fake,Legitimate Company,Not Scam
+928,Not Fake,Legitimate Company,Not Scam
+929,Not Fake,Legitimate Company,Not Scam
+930,Not Fake,Legitimate Company,Not Scam
+931,Not Fake,Legitimate Company,Not Scam
+932,Suspicious,Legitimate Company,Not Scam
+933,Fake,Legitimate Company,Not Scam
+934,Not Fake,Fake Company,Not Scam
+935,Not Fake,Legitimate Company,Not Scam
+936,Not Fake,Legitimate Company,Not Scam
+937,Not Fake,Legitimate Company,Not Scam
+938,Fake,Legitimate Company,Not Scam
+939,Not Fake,Legitimate Company,Not Scam
+940,Not Fake,Fake Company,Not Scam
+941,Not Fake,Fake Company,Not Scam
+942,Not Fake,Legitimate Company,Not Scam
+943,Not Fake,Fake Company,Not Scam
+944,Suspicious,Legitimate Company,Not Scam
+945,Not Fake,Legitimate Company,Not Scam
+946,Not Fake,Legitimate Company,Not Scam
+947,Not Fake,Fake Company,Not Scam
+948,Fake,Legitimate Company,Not Scam
+949,Suspicious,Legitimate Company,Not Scam
+950,Not Fake,Legitimate Company,Not Scam
+951,Not Fake,Legitimate Company,Not Scam
+952,Not Fake,Legitimate Company,Not Scam
+953,Not Fake,Fake Company,Not Scam
+954,Fake,Legitimate Company,Not Scam
+955,Not Fake,Legitimate Company,Not Scam
+956,Not Fake,Fake Company,Not Scam
+957,Not Fake,Legitimate Company,Not Scam
+958,Not Fake,Fake Company,Not Scam
+959,Not Fake,Legitimate Company,Not Scam
+960,Not Fake,Legitimate Company,Not Scam
+961,Not Fake,Legitimate Company,Scam
+962,Not Fake,Fake Company,Not Scam
+963,Not Fake,Legitimate Company,Not Scam
+964,Not Fake,Legitimate Company,Not Scam
+965,Not Fake,Legitimate Company,Not Scam
+966,Not Fake,Legitimate Company,Not Scam
+967,Not Fake,Legitimate Company,Not Scam
+968,Not Fake,Legitimate Company,Scam
+969,Not Fake,Fake Company,Not Scam
+970,Not Fake,Legitimate Company,Not Scam
+971,Not Fake,Legitimate Company,Not Scam
+972,Fake,Legitimate Company,Not Scam
+973,Not Fake,Fake Company,Not Scam
+974,Not Fake,Legitimate Company,Not Scam
+975,Not Fake,Legitimate Company,Not Scam
+976,Not Fake,Legitimate Company,Not Scam
+977,Not Fake,Legitimate Company,Not Scam
+978,Not Fake,Legitimate Company,Not Scam
+979,Not Fake,Legitimate Company,Not Scam
+980,Not Fake,Legitimate Company,Not Scam
+981,Not Fake,Legitimate Company,Not Scam
+982,Not Fake,Legitimate Company,Not Scam
+983,Not Fake,Legitimate Company,Not Scam
+984,Not Fake,Legitimate Company,Not Scam
+985,Not Fake,Legitimate Company,Not Scam
+986,Not Fake,Legitimate Company,Not Scam
+987,Not Fake,Legitimate Company,Not Scam
+988,Not Fake,Legitimate Company,Not Scam
+989,Not Fake,Legitimate Company,Not Scam
+990,Suspicious,Legitimate Company,Not Scam
+991,Not Fake,Legitimate Company,Not Scam
+992,Not Fake,Legitimate Company,Not Scam
+993,Not Fake,Legitimate Company,Not Scam
+994,Not Fake,Legitimate Company,Not Scam
+995,Not Fake,Legitimate Company,Not Scam
+996,Not Fake,Legitimate Company,Not Scam
+997,Fake,Legitimate Company,Not Scam
+998,Not Fake,Legitimate Company,Not Scam
+999,Fake,Fake Company,Not Scam
+1000,Not Fake,Legitimate Company,Not Scam
+1001,Not Fake,Legitimate Company,Not Scam
+1002,Not Fake,Legitimate Company,Not Scam
+1003,Suspicious,Legitimate Company,Not Scam
+1004,Not Fake,Legitimate Company,Not Scam
+1005,Suspicious,Legitimate Company,Not Scam
+1006,Not Fake,Legitimate Company,Not Scam
+1007,Not Fake,Fake Company,Not Scam
+1008,Suspicious,Legitimate Company,Not Scam
+1009,Not Fake,Legitimate Company,Not Scam
+1010,Not Fake,Legitimate Company,Not Scam
+1011,Not Fake,Legitimate Company,Not Scam
+1012,Fake,Legitimate Company,Not Scam
+1013,Fake,Legitimate Company,Not Scam
+1014,Not Fake,Legitimate Company,Not Scam
+1015,Not Fake,Legitimate Company,Not Scam
+1016,Fake,Legitimate Company,Not Scam
+1017,Not Fake,Legitimate Company,Not Scam
+1018,Not Fake,Legitimate Company,Not Scam
+1019,Fake,Fake Company,Not Scam
+1020,Not Fake,Fake Company,Not Scam
+1021,Not Fake,Legitimate Company,Not Scam
+1022,Not Fake,Legitimate Company,Not Scam
+1023,Fake,Legitimate Company,Not Scam
+1024,Fake,Legitimate Company,Not Scam
+1025,Fake,Fake Company,Not Scam
+1026,Not Fake,Legitimate Company,Not Scam
+1027,Suspicious,Legitimate Company,Not Scam
+1028,Suspicious,Legitimate Company,Not Scam
+1029,Not Fake,Legitimate Company,Not Scam
+1030,Suspicious,Legitimate Company,Not Scam
+1031,Not Fake,Fake Company,Not Scam
+1032,Not Fake,Legitimate Company,Not Scam
+1033,Not Fake,Legitimate Company,Not Scam
+1034,Not Fake,Fake Company,Not Scam
+1035,Not Fake,Legitimate Company,Not Scam
+1036,Not Fake,Legitimate Company,Not Scam
+1037,Not Fake,Legitimate Company,Not Scam
+1038,Not Fake,Legitimate Company,Not Scam
+1039,Not Fake,Fake Company,Not Scam
+1040,Not Fake,Legitimate Company,Not Scam
+1041,Not Fake,Fake Company,Not Scam
+1042,Not Fake,Legitimate Company,Not Scam
+1043,Not Fake,Fake Company,Not Scam
+1044,Not Fake,Legitimate Company,Not Scam
+1045,Suspicious,Legitimate Company,Not Scam
+1046,Not Fake,Legitimate Company,Not Scam
+1047,Not Fake,Fake Company,Not Scam
+1048,Not Fake,Legitimate Company,Not Scam
+1049,Suspicious,Legitimate Company,Not Scam
+1050,Not Fake,Legitimate Company,Not Scam
+1051,Suspicious,Legitimate Company,Not Scam
+1052,Not Fake,Fake Company,Not Scam
+1053,Fake,Legitimate Company,Not Scam
+1054,Not Fake,Legitimate Company,Not Scam
+1055,Fake,Legitimate Company,Not Scam
+1056,Not Fake,Legitimate Company,Not Scam
+1057,Not Fake,Legitimate Company,Not Scam
+1058,Not Fake,Legitimate Company,Not Scam
+1059,Not Fake,Legitimate Company,Not Scam
+1060,Not Fake,Legitimate Company,Not Scam
+1061,Suspicious,Legitimate Company,Not Scam
+1062,Fake,Legitimate Company,Scam
+1063,Not Fake,Legitimate Company,Not Scam
+1064,Not Fake,Legitimate Company,Not Scam
+1065,Not Fake,Legitimate Company,Not Scam
+1066,Not Fake,Fake Company,Not Scam
+1067,Not Fake,Fake Company,Not Scam
+1068,Not Fake,Legitimate Company,Not Scam
+1069,Not Fake,Legitimate Company,Scam
+1070,Not Fake,Fake Company,Not Scam
+1071,Not Fake,Legitimate Company,Not Scam
+1072,Not Fake,Legitimate Company,Not Scam
+1073,Not Fake,Legitimate Company,Not Scam
+1074,Not Fake,Legitimate Company,Scam
+1075,Fake,Legitimate Company,Not Scam
+1076,Not Fake,Legitimate Company,Not Scam
+1077,Not Fake,Fake Company,Not Scam
+1078,Not Fake,Fake Company,Not Scam
+1079,Not Fake,Legitimate Company,Not Scam
+1080,Fake,Legitimate Company,Not Scam
+1081,Not Fake,Legitimate Company,Not Scam
+1082,Not Fake,Legitimate Company,Not Scam
+1083,Not Fake,Legitimate Company,Not Scam
+1084,Suspicious,Legitimate Company,Not Scam
+1085,Fake,Fake Company,Not Scam
+1086,Not Fake,Legitimate Company,Not Scam
+1087,Not Fake,Legitimate Company,Not Scam
+1088,Not Fake,Fake Company,Not Scam
+1089,Fake,Legitimate Company,Not Scam
+1090,Not Fake,Legitimate Company,Not Scam
+1091,Fake,Legitimate Company,Not Scam
+1092,Not Fake,Legitimate Company,Not Scam
+1093,Not Fake,Legitimate Company,Not Scam
+1094,Not Fake,Legitimate Company,Not Scam
+1095,Not Fake,Legitimate Company,Not Scam
+1096,Not Fake,Fake Company,Not Scam
+1097,Not Fake,Legitimate Company,Not Scam
+1098,Not Fake,Legitimate Company,Scam
+1099,Not Fake,Legitimate Company,Not Scam
+1100,Not Fake,Legitimate Company,Not Scam
+1101,Not Fake,Legitimate Company,Not Scam
+1102,Fake,Legitimate Company,Not Scam
+1103,Suspicious,Legitimate Company,Not Scam
+1104,Fake,Legitimate Company,Not Scam
+1105,Fake,Legitimate Company,Not Scam
+1106,Not Fake,Legitimate Company,Not Scam
+1107,Not Fake,Legitimate Company,Not Scam
+1108,Not Fake,Fake Company,Not Scam
+1109,Not Fake,Legitimate Company,Not Scam
+1110,Not Fake,Legitimate Company,Scam
+1111,Suspicious,Legitimate Company,Scam
+1112,Not Fake,Legitimate Company,Not Scam
+1113,Not Fake,Legitimate Company,Not Scam
+1114,Not Fake,Legitimate Company,Not Scam
+1115,Not Fake,Legitimate Company,Not Scam
+1116,Not Fake,Legitimate Company,Not Scam
+1117,Not Fake,Legitimate Company,Not Scam
+1118,Suspicious,Legitimate Company,Not Scam
+1119,Not Fake,Legitimate Company,Not Scam
+1120,Not Fake,Fake Company,Not Scam
+1121,Suspicious,Legitimate Company,Not Scam
+1122,Fake,Legitimate Company,Not Scam
+1123,Suspicious,Legitimate Company,Not Scam
+1124,Suspicious,Legitimate Company,Not Scam
+1125,Not Fake,Legitimate Company,Not Scam
+1126,Not Fake,Legitimate Company,Not Scam
+1127,Not Fake,Legitimate Company,Not Scam
+1128,Not Fake,Legitimate Company,Not Scam
+1129,Not Fake,Legitimate Company,Not Scam
+1130,Not Fake,Legitimate Company,Not Scam
+1131,Not Fake,Legitimate Company,Not Scam
+1132,Not Fake,Legitimate Company,Not Scam
+1133,Not Fake,Legitimate Company,Not Scam
+1134,Not Fake,Legitimate Company,Not Scam
+1135,Not Fake,Legitimate Company,Not Scam
+1136,Not Fake,Legitimate Company,Not Scam
+1137,Suspicious,Legitimate Company,Not Scam
+1138,Not Fake,Fake Company,Not Scam
+1139,Not Fake,Legitimate Company,Not Scam
+1140,Not Fake,Legitimate Company,Not Scam
+1141,Suspicious,Legitimate Company,Not Scam
+1142,Not Fake,Legitimate Company,Not Scam
+1143,Not Fake,Legitimate Company,Scam
+1144,Not Fake,Legitimate Company,Not Scam
+1145,Not Fake,Fake Company,Not Scam
+1146,Suspicious,Legitimate Company,Not Scam
+1147,Not Fake,Legitimate Company,Not Scam
+1148,Not Fake,Fake Company,Not Scam
+1149,Suspicious,Legitimate Company,Not Scam
+1150,Suspicious,Legitimate Company,Not Scam
+1151,Not Fake,Legitimate Company,Not Scam
+1152,Suspicious,Legitimate Company,Not Scam
+1153,Not Fake,Legitimate Company,Not Scam
+1154,Not Fake,Fake Company,Not Scam
+1155,Not Fake,Legitimate Company,Not Scam
+1156,Not Fake,Legitimate Company,Not Scam
+1157,Not Fake,Legitimate Company,Not Scam
+1158,Suspicious,Legitimate Company,Not Scam
+1159,Suspicious,Fake Company,Not Scam
+1160,Not Fake,Legitimate Company,Not Scam
+1161,Suspicious,Legitimate Company,Not Scam
+1162,Not Fake,Legitimate Company,Not Scam
+1163,Not Fake,Legitimate Company,Not Scam
+1164,Not Fake,Legitimate Company,Not Scam
+1165,Not Fake,Legitimate Company,Not Scam
+1166,Suspicious,Legitimate Company,Not Scam
+1167,Suspicious,Legitimate Company,Not Scam

@@ -10,7 +10,7 @@ import numpy as np
 np.random.seed(42)
 
 # Number of rows to generate
-n = 500
+n = 1167
 
 # Create job IDs (simple sequential numbers)
 job_ids = list(range(1, n + 1))
