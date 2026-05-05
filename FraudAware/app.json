@@ -32,7 +32,8 @@
         {
           "photosPermission": "Allow FraudAware to access your photos to upload chat screenshots."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }
