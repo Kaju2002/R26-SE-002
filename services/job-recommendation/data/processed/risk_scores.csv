@@ -1,1168 +1,1168 @@
 job_id,fake_job_indicator,employer_indicator,comm_scam_indicator,fake_job_num,employer_num,comm_scam_num,risk_score,safety_score
-1,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-2,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-3,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-4,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-5,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-6,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-7,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-8,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-9,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-10,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-11,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-12,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-13,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-14,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-15,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-16,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-17,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-18,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-19,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-20,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-21,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-22,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-23,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-24,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-25,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-26,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-27,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-28,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-29,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-30,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-31,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-32,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-33,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-34,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-35,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-36,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-37,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-38,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-39,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-40,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-41,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-42,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-43,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-44,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-45,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-46,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-47,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-48,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-49,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-50,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-51,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-52,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-53,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-54,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-55,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-56,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-57,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-58,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-59,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-60,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-61,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-62,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-63,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-64,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-65,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-66,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-67,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-68,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-69,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-70,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-71,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-72,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-73,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-74,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-75,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-76,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-77,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-78,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-79,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-80,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-81,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-82,Not Fake,Fake Company,Scam,0,1,1,0.750102906,0.249897094
-83,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-84,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-85,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-86,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-87,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-88,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-89,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-90,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-91,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-92,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-93,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-94,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-95,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-96,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-97,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-98,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-99,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-100,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-101,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-102,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-103,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-104,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-105,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-106,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-107,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-108,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-109,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-110,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-111,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-112,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-113,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-114,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-115,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-116,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-117,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-118,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-119,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-120,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-121,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-122,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-123,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-124,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-125,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-126,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-127,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
-128,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-129,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-130,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-131,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-132,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-133,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-134,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-135,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-136,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-137,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-138,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-139,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-140,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-141,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-142,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-143,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-144,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-145,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-146,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-147,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-148,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-149,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-150,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-151,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-152,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-153,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-154,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-155,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-156,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-157,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-158,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-159,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-160,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-161,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-162,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-163,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-164,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-165,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-166,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-167,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-168,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-169,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-170,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-171,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-172,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-173,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-174,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-175,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-176,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-177,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-178,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-179,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-180,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-181,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-182,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-183,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-184,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-185,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-186,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-187,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-188,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-189,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-190,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-191,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-192,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-193,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-194,Not Fake,Fake Company,Scam,0,1,1,0.750102906,0.249897094
-195,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-196,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-197,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-198,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-199,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-200,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-201,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-202,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-203,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-204,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-205,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-206,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-207,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-208,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-209,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-210,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-211,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-212,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-213,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-214,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-215,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-216,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-217,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-218,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-219,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-220,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-221,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-222,Not Fake,Fake Company,Scam,0,1,1,0.750102906,0.249897094
-223,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-224,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-225,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-226,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-227,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-228,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-229,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-230,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-231,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-232,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-233,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-234,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-235,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-236,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-237,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-238,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-239,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-240,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-241,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-242,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-243,Fake,Fake Company,Scam,1,1,1,1,0
-244,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-245,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-246,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-247,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-248,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-249,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-250,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-251,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-252,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-253,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-254,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-255,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-256,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-257,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-258,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-259,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-260,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-261,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-262,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-263,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-264,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-265,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-266,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-267,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-268,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-269,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-270,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-271,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-272,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-273,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-274,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-275,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-276,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-277,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-278,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-279,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-280,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-281,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-282,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-283,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-284,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-285,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-286,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-287,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-288,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-289,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-290,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-291,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-292,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-293,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-294,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-295,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-296,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-297,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-298,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-299,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-300,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-301,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-302,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-303,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-304,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-305,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-306,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-307,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-308,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-309,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-310,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-311,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-312,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-313,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-314,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-315,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-316,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-317,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-318,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-319,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-320,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-321,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-322,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-323,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-324,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-325,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-326,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-327,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-328,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-329,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-330,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-331,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-332,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-333,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-334,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-335,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-336,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-337,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-338,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-339,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-340,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-341,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-342,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-343,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-344,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-345,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-346,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-347,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-348,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-349,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-350,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-351,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-352,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-353,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-354,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-355,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-356,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-357,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-358,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-359,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-360,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-361,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-362,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-363,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-364,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-365,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-366,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-367,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-368,Fake,Legitimate Company,Scam,1,0,1,0.701783565,0.298216435
-369,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-370,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-371,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-372,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-373,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-374,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-375,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-376,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-377,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-378,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-379,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-380,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-381,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-382,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-383,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-384,Suspicious,Fake Company,Scam,0.5,1,1,0.875051453,0.124948547
-385,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-386,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-387,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-388,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-389,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-390,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-391,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-392,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-393,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-394,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-395,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-396,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-397,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-398,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-399,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-400,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-401,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-402,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-403,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-404,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-405,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-406,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-407,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-408,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-409,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-410,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-411,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-412,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-413,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-414,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-415,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-416,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-417,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-418,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-419,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-420,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-421,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-422,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-423,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-424,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-425,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-426,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-427,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-428,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-429,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-430,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-431,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-432,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-433,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-434,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-435,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-436,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-437,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-438,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-439,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-440,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-441,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-442,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-443,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-444,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-445,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-446,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-447,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-448,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-449,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-450,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-451,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-452,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-453,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-454,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-455,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-456,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-457,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-458,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-459,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-460,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-461,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-462,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-463,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-464,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-465,Fake,Legitimate Company,Scam,1,0,1,0.701783565,0.298216435
-466,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-467,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-468,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-469,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-470,Fake,Legitimate Company,Scam,1,0,1,0.701783565,0.298216435
-471,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-472,Fake,Fake Company,Scam,1,1,1,1,0
-473,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-474,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-475,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-476,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-477,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-478,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-479,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-480,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-481,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-482,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-483,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-484,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-485,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-486,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-487,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-488,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-489,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-490,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-491,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-492,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-493,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-494,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-495,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-496,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-497,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-498,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-499,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-500,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-501,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-502,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-503,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-504,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-505,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-506,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-507,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-508,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-509,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-510,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-511,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-512,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-513,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-514,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-515,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-516,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-517,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-518,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-519,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-520,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-521,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-522,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-523,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-524,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-525,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-526,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-527,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-528,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-529,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-530,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-531,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-532,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-533,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-534,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-535,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-536,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-537,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-538,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-539,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-540,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-541,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-542,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-543,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-544,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-545,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-546,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-547,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-548,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-549,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-550,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-551,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-552,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-553,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-554,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-555,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-556,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-557,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-558,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-559,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-560,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-561,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-562,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-563,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-564,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-565,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-566,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-567,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-568,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-569,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-570,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-571,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-572,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-573,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-574,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-575,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-576,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-577,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-578,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-579,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-580,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-581,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-582,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-583,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-584,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-585,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-586,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-587,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-588,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-589,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-590,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-591,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-592,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-593,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-594,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-595,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-596,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-597,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-598,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-599,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-600,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-601,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-602,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-603,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-604,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-605,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-606,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-607,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-608,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-609,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-610,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-611,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-612,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-613,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-614,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-615,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-616,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-617,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-618,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-619,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-620,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-621,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-622,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-623,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-624,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-625,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-626,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-627,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-628,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-629,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-630,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-631,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-632,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-633,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-634,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-635,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-636,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-637,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-638,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-639,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-640,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-641,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-642,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-643,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-644,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-645,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-646,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
-647,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-648,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-649,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-650,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-651,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-652,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-653,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-654,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-655,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-656,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-657,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-658,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-659,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-660,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-661,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-662,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-663,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-664,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-665,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-666,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-667,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-668,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-669,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-670,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-671,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-672,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-673,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-674,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-675,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-676,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-677,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-678,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-679,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-680,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-681,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-682,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-683,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-684,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-685,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-686,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-687,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-688,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-689,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-690,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-691,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-692,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-693,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-694,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-695,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-696,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-697,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-698,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-699,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-700,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-701,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-702,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-703,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-704,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-705,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-706,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-707,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-708,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
-709,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-710,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-711,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-712,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-713,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-714,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-715,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-716,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-717,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-718,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-719,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-720,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-721,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-722,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-723,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-724,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-725,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-726,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
-727,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-728,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-729,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-730,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-731,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-732,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-733,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-734,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-735,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-736,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-737,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-738,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-739,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-740,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-741,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-742,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-743,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-744,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-745,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-746,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-747,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-748,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-749,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-750,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-751,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-752,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-753,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-754,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-755,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-756,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-757,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-758,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-759,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-760,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-761,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-762,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-763,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-764,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-765,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-766,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-767,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-768,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-769,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-770,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-771,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-772,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-773,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-774,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-775,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-776,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-777,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-778,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-779,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-780,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-781,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-782,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-783,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-784,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-785,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-786,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-787,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-788,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-789,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-790,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-791,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-792,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-793,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-794,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-795,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-796,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-797,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-798,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-799,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-800,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-801,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-802,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-803,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-804,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-805,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-806,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-807,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-808,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-809,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-810,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-811,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-812,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-813,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-814,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-815,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-816,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-817,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-818,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-819,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-820,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-821,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-822,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-823,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-824,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-825,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-826,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-827,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-828,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-829,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-830,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-831,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-832,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-833,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-834,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-835,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-836,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-837,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-838,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-839,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-840,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-841,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-842,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-843,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-844,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-845,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-846,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-847,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-848,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-849,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-850,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-851,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-852,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-853,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-854,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-855,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-856,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-857,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-858,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-859,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-860,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-861,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-862,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-863,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-864,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-865,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-866,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-867,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-868,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-869,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-870,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-871,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-872,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-873,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-874,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-875,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-876,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-877,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-878,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-879,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-880,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-881,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-882,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-883,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-884,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-885,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-886,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-887,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-888,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-889,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-890,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-891,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-892,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-893,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-894,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-895,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-896,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-897,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-898,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-899,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-900,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-901,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-902,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-903,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-904,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-905,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-906,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-907,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-908,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-909,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-910,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-911,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-912,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-913,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-914,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-915,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-916,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-917,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-918,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-919,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-920,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-921,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-922,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-923,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-924,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-925,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-926,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-927,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-928,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-929,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-930,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-931,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-932,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-933,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-934,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-935,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-936,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-937,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-938,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-939,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-940,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-941,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-942,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-943,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-944,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-945,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-946,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-947,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-948,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-949,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-950,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-951,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-952,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-953,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-954,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-955,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-956,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-957,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-958,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-959,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-960,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-961,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-962,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-963,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-964,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-965,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-966,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-967,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-968,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-969,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-970,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-971,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-972,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-973,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-974,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-975,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-976,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-977,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-978,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-979,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-980,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-981,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-982,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-983,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-984,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-985,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-986,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-987,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-988,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-989,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-990,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-991,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-992,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-993,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-994,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-995,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-996,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-997,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-998,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-999,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-1000,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1001,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1002,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1003,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1004,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1005,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1006,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1007,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1008,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1009,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1010,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1011,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1012,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1013,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1014,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1015,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1016,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1017,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1018,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1019,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-1020,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1021,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1022,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1023,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1024,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1025,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-1026,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1027,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1028,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1029,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1030,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1031,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1032,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1033,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1034,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1035,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1036,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1037,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1038,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1039,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1040,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1041,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1042,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1043,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1044,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1045,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1046,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1047,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1048,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1049,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1050,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1051,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1052,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1053,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1054,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1055,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1056,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1057,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1058,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1059,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1060,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1061,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1062,Fake,Legitimate Company,Scam,1,0,1,0.701783565,0.298216435
-1063,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1064,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1065,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1066,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1067,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1068,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1069,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-1070,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1071,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1072,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1073,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1074,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-1075,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1076,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1077,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1078,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1079,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1080,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1081,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1082,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1083,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1084,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1085,Fake,Fake Company,Not Scam,1,1,0,0.548113529,0.451886471
-1086,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1087,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1088,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1089,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1090,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1091,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1092,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1093,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1094,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1095,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1096,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1097,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1098,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-1099,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1100,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1101,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1102,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1103,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1104,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1105,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1106,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1107,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1108,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1109,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1110,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-1111,Suspicious,Legitimate Company,Scam,0.5,0,1,0.576835018,0.423164982
-1112,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1113,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1114,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1115,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1116,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1117,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1118,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1119,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1120,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1121,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1122,Fake,Legitimate Company,Not Scam,1,0,0,0.249897094,0.750102906
-1123,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1124,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1125,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1126,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1127,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1128,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1129,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1130,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1131,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1132,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1133,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1134,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1135,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1136,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1137,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1138,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1139,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1140,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1141,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1142,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1143,Not Fake,Legitimate Company,Scam,0,0,1,0.451886471,0.548113529
-1144,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1145,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1146,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1147,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1148,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1149,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1150,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1151,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1152,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1153,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1154,Not Fake,Fake Company,Not Scam,0,1,0,0.298216435,0.701783565
-1155,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1156,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1157,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1158,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1159,Suspicious,Fake Company,Not Scam,0.5,1,0,0.423164982,0.576835018
-1160,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1161,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1162,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1163,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1164,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1165,Not Fake,Legitimate Company,Not Scam,0,0,0,0,1
-1166,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
-1167,Suspicious,Legitimate Company,Not Scam,0.5,0,0,0.124948547,0.875051453
+3902668440,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905823748,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905854799,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905834061,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906250451,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901389277,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902348043,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906258424,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3891070825,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901949090,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903461892,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891073623,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894573937,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901372502,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901176444,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905824247,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905340218,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902344478,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905690261,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900984023,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905835705,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891011926,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903808419,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904415999,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884899919,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901662440,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891070846,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901661179,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901982681,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906086110,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906258049,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884809131,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905239401,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900977307,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3884440664,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905292617,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902339909,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901942387,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884818696,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888951704,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904944888,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905336528,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902830704,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900085113,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899544157,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902806579,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901343703,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899526643,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901650285,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900082118,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894947629,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901939857,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905297142,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902829415,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3894288438,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902880391,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904991969,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3886485488,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902876855,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894278517,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884912913,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902810661,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898137449,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904923783,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3887835929,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902740857,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3715891138,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904406321,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3891014745,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902747307,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3906227054,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905298637,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898176212,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899526653,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3901635742,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3899523473,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903896684,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884432431,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904373238,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900945008,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901983432,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887475102,Not Fake,Fake Company,Scam,0.0,1.0,1.0,0.750102905673708,0.24989709432629204
+3902351802,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905272928,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891077739,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902835237,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884841822,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901936391,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902357327,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902364806,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902828543,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902752787,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901636810,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887474527,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901349998,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904947962,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904086620,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887481930,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891005007,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905882432,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898173889,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901630033,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905304763,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891081144,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902831427,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3890895200,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901483670,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894877672,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889758336,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905288339,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905822969,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905297820,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903477580,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3906230219,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905264431,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904364112,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901635707,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3899539354,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3903451207,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905862468,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894293970,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902834350,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903458736,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904718244,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902805250,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3890898270,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904583492,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3902347377,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3898167129,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901392513,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903839290,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901932974,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905339352,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900066258,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905350403,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3903855227,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904382813,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905381062,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905876643,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905202804,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894550753,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887883158,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903487939,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905240750,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901340617,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3885116060,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901672756,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906221851,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902925156,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884832831,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886896748,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904923211,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3895849293,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905251874,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901167349,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901632117,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904710183,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3862673730,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904084041,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904388397,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904930352,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904967523,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899534687,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894554212,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902845594,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3906223649,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905821383,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905255940,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904576579,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884810573,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905202142,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888028986,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906086601,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906223265,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887485850,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900944058,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904726452,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891805744,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900077027,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902862891,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904923034,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901367788,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895540768,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3898160952,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3901348324,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904574976,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905878233,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901963384,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904085727,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903453711,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906251112,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903813606,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901967275,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3898162673,Not Fake,Fake Company,Scam,0.0,1.0,1.0,0.750102905673708,0.24989709432629204
+3906222901,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895801271,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902933509,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905217845,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3890896173,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902875974,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887107156,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884819780,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901167325,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905878349,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3904986478,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905863460,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905871298,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905247322,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903445892,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905849388,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903846584,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894586785,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891808187,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902315334,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894925340,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902953786,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904973138,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889702368,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901981049,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903867896,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904001514,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902828915,Not Fake,Fake Company,Scam,0.0,1.0,1.0,0.750102905673708,0.24989709432629204
+3902759048,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902843719,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905849817,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889718108,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902329403,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904403623,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894285424,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901351878,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902913489,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898167090,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886447150,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904383649,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900980589,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891069921,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901628270,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900077466,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900964493,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901938160,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891014898,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901346547,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901351909,Fake,Fake Company,Scam,1.0,1.0,1.0,1.0,0.0
+3903442852,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898167161,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902357305,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901662645,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901945176,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3888944107,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3885389087,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903183717,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902948188,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905818819,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3899930726,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901959141,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904980941,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902808076,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905291797,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902931012,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898173401,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891071402,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884438248,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904965070,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884806586,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891072419,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902346349,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905228029,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884440568,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905834461,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905237946,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898161326,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903807715,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894299307,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3890895296,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3904388966,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904511283,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902776458,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905326659,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900962717,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891069919,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889439746,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902828671,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891079268,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901942048,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903453569,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902921025,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900961193,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891252828,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901352795,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905298038,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901981623,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905826143,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3900962646,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903458683,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906074575,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905655160,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905871177,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901979134,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902362545,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905855841,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904722499,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891285058,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902869241,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3895200298,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899521894,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901940098,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3901666087,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902814456,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905376504,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905238300,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905290997,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902801404,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905343965,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904922553,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3900955363,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904098244,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900070536,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901941110,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905329095,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901674413,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902876526,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902861423,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889760181,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884436082,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901398951,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902841731,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894266858,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906252855,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906200108,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901450978,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905345640,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895217783,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884433263,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895543420,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891072477,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884938374,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903819301,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3895207569,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888035176,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902945526,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888027049,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905655083,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889751989,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886898488,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902939001,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901343698,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902343406,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902873026,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899521860,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903806888,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902864826,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891010624,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902324071,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3899540380,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899930721,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3888939626,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884811019,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901937672,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900076153,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899518312,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895514999,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901937254,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887491764,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900960518,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901977680,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3884433564,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904999114,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905331454,Fake,Legitimate Company,Scam,1.0,0.0,1.0,0.7017835652510055,0.2982164347489945
+3902825422,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904729333,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905249935,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901941877,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905255326,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889131111,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891080059,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905867221,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900079841,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3891016039,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905245370,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904357962,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894206026,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903806821,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904992462,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895549181,Suspicious,Fake Company,Scam,0.5,1.0,1.0,0.875051452836854,0.12494854716314596
+3901940057,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901601435,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3889772048,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895210408,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904424969,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904390620,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903452481,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3906222807,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902841871,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906074327,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905219414,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905887086,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889129366,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901377516,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905202045,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899531088,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902934493,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904051866,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904955205,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3898156760,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904724867,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901378554,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3898161973,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901965564,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905201407,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3884811465,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901166220,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904583433,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889755354,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3895201206,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901350702,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901656812,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889487969,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895275234,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884429179,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895274480,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901937694,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891077803,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904502170,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901939506,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903839993,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3885109989,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905850996,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889743825,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884438195,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905256349,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903432676,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901345936,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901979568,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901939618,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905223995,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886831114,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901948361,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901346483,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3900983139,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891808184,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906249673,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903872917,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904368255,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884914341,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903817896,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904395033,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3900951942,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905848083,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902308566,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3890899146,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891073651,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901962110,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904060888,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904946187,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905214623,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3899534445,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3903883762,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895210127,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904922547,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898167038,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884913839,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905304697,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901601893,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904368208,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904578508,Fake,Legitimate Company,Scam,1.0,0.0,1.0,0.7017835652510055,0.2982164347489945
+3898164225,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906077073,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901672668,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3905692248,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889131144,Fake,Legitimate Company,Scam,1.0,0.0,1.0,0.7017835652510055,0.2982164347489945
+3900946947,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902350247,Fake,Fake Company,Scam,1.0,1.0,1.0,1.0,0.0
+3782812525,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901461368,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3906087173,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885104533,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902325188,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901675214,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889719558,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3888956348,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904426903,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886466751,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900938911,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902758415,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894663747,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905869737,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901388329,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887578305,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905692388,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3902806223,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894289485,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888959920,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901952169,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885101181,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903883574,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895210736,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906255645,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888034270,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895531328,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3887577491,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3895595998,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906090796,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900964564,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905239587,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905835001,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3885110319,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906224894,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904990495,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905827774,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899518203,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904363361,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887882751,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904408852,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3895548427,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894207130,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903823749,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899522759,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905296656,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905333045,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3900989031,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3889299604,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905846996,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905285717,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3888484988,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3886835914,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904415979,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905207164,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888481091,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900956231,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3884447063,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3889420923,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902868002,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3887493118,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902964047,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884804979,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902753778,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902740269,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3906257320,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905296768,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905334744,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905370898,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905249530,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902753779,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904938501,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906229779,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901394613,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895234940,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900959341,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891072165,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895598366,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904988667,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901169322,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3900959517,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899537951,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902329031,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3906255426,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904576339,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906254719,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894895288,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904727703,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901354670,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3894982645,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904090053,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895234651,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889170666,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898163419,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889476885,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901943541,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901682279,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3904388105,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902785730,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900982741,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903839780,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902813407,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903898507,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902939942,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894565349,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901957300,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889443479,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894550374,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3885867410,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904428807,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887494112,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904960848,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904721748,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902834363,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887875011,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902735430,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905239527,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894547269,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905833500,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902779776,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904088803,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894619450,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902954784,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3906231285,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895213851,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903444840,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904366782,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898160265,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906225539,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900959791,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904704937,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889705310,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903823981,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901961218,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902863704,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905835040,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888029103,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904362984,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894284827,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901800178,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906232228,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904370034,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886215535,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3905305025,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887947315,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904096330,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895812688,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3900957818,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902922510,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898165307,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888931879,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904925249,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902749520,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884442278,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3890895186,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904392403,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901949867,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905243514,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902358002,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886879562,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904963149,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904367702,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895849271,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906257415,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887910179,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889712511,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887920988,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884986864,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900939460,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900967044,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902758181,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899525451,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905878393,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894219997,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3904391566,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905208764,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884931298,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904716628,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905300238,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902350454,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3906091947,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901990930,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904989422,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905822952,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891016680,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904422569,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902743229,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901975846,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902756343,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906251443,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894554004,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900951582,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903431618,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905291654,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902732613,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902342298,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901479226,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891255882,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905865642,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888033289,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3901391485,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905830996,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885862875,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899525619,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905343222,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889707674,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902758182,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905364482,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3885109688,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884855776,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902819061,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902753788,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901694364,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904099287,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895273377,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904962016,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905874455,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905210089,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906259707,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902778943,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904358856,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884853986,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898174257,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904507634,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889704422,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887713241,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3888407253,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904367619,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905687426,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884940248,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901930289,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904726135,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905843981,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904407460,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887884760,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885814238,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3901484445,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904373035,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901351125,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905841089,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884854736,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902353310,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884929863,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903481821,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899526397,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894553589,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903426697,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906256205,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904393058,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901906635,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904500508,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901948209,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902357065,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902693086,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3886203882,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904992088,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901347353,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895222638,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894893665,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904565981,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904995129,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905864544,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901375658,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903447802,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894980256,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903474308,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884436115,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902756637,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902828623,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905299266,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891251481,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903477702,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904722854,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905207168,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3894996838,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903845850,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887708351,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905290159,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901962677,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888824208,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3900963403,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889114112,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905331438,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903443589,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894542993,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904956273,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3885103686,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904928896,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894279082,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905373046,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889757043,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3888977940,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901392479,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901644764,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886897644,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904068452,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894881149,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905288961,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901943266,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891076739,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904953302,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895490601,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906222531,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886840074,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901979193,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901487216,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902344509,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886444954,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902878449,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905325903,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902929517,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903843298,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903858442,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904361874,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904053353,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891264637,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3894248984,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901990575,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903474194,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901948310,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905329576,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895216787,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899533841,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905350188,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3900955803,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3891074340,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905852501,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904392641,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901389720,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889437728,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900087591,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904925494,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905370101,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903845427,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901933964,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905247377,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902860497,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900070596,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901960753,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904999159,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3886890047,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888479494,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902828660,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904369001,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905841365,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902363249,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904954918,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905867381,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901689184,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3891280305,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904928912,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894894372,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891076667,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903445729,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905256384,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901933967,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895589628,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899528915,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891263924,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895527225,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901998589,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901988304,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889104689,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901392621,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906092428,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887712011,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901363760,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905243380,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905669245,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902864872,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884802331,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895807699,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901693237,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888489415,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902931404,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898166536,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904513245,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885112179,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902361570,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902757207,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906224785,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903491691,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3903475677,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887593436,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901397002,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902954343,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889128152,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3895564523,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903846072,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902760602,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905330622,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894293332,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887908536,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895811492,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891038573,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3889113843,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905293915,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3895806899,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3906093698,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887573476,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904586302,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3651735073,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906256266,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888031588,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903475810,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903494665,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904947096,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905311409,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891255152,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904364464,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900950809,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902821348,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889110089,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905335899,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905294723,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3888961209,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906258100,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901349958,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902364315,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903496525,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904572888,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903846870,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891076400,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887479396,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906095138,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906246896,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904511267,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894617437,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889732648,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887700833,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902368101,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900988113,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905334530,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904432275,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905295420,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3905858338,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900945133,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891842032,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902757119,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902356406,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3887856246,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901672554,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903840909,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906241082,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906230836,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3887909422,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889744181,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901965347,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900956645,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901991230,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898170689,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3899544052,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904375309,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905864665,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904507874,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906255474,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904955829,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904357527,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895204786,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903827844,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3900965147,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903476451,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900077978,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906222550,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904363458,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887855844,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905271422,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3861704803,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902835133,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904950228,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899521967,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904989753,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902351411,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901372756,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902360084,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901349670,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904391045,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902745795,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887486398,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905305873,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886878942,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3899520962,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889721091,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903428762,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901972059,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894212255,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3886884580,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884444347,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887496959,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905825078,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905304339,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887711725,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891254356,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906261531,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906267195,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906094481,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3899524216,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905252432,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905274702,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901618591,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903433539,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3894876772,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900961237,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906237986,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884926253,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904718982,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905363873,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898179502,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903846588,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887472263,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905354176,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906229818,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904941405,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902861623,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903840817,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904416271,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904082300,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906092584,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901625868,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894210676,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902370054,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901941451,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889417407,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884434107,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884932592,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903428571,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902349403,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3901800100,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902326947,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901359222,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905669193,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3899536815,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902321529,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904963200,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894896010,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903480049,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3898167131,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887106121,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901364174,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902753343,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887890716,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901345859,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904517018,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894295243,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901634906,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904087687,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905203756,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3901376470,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900950652,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903432625,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901177503,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904412043,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894559339,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3901947304,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891073377,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3888023916,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884807419,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891297808,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887105208,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901393491,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904396398,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906227812,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902788334,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902928877,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895214241,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904391522,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903870699,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901494331,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904057898,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905365045,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902366590,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3888939786,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903877080,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887478002,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884441796,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902860965,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901354476,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884947180,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902311976,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901803340,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884823083,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905862800,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905220460,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3891266979,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902933182,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902945207,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905824527,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905372456,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901699101,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3898173244,Fake,Legitimate Company,Scam,1.0,0.0,1.0,0.7017835652510055,0.2982164347489945
+3902843957,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904721424,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898159425,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891245999,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898164945,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904503149,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901357508,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904359922,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900077574,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898162140,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885866733,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904422441,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3903472568,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3886450556,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902953318,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905249765,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3887495762,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901378620,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899531572,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905697483,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904926417,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885871087,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901476299,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3884890945,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905886086,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895543706,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902810060,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904972225,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895809035,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3898163080,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891068947,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888483868,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887715249,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904409104,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906095548,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895539234,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904942719,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905859107,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889130753,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885333032,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3891069909,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3895543911,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887489419,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899516898,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899526408,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906071645,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3894606769,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895543404,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905867420,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3886824680,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901351059,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904086122,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901979294,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905857275,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902917331,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884429683,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904704593,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906251327,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900938989,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905866771,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903476020,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884448230,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887576060,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898175049,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884938234,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902355636,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901936301,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905332488,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904973104,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903852274,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888943273,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905336446,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902841514,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902862412,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902903839,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901800114,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3886450064,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905338207,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904395156,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887887820,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901685316,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904432308,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905216454,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901359055,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901379433,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904363879,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898160234,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901644228,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887709924,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903476328,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887726231,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901941411,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891263985,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906258056,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899524220,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904389998,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3885831622,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3902951563,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902925331,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902782563,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905299905,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885829894,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901649881,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904049863,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904084138,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
