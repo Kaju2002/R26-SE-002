@@ -20,18 +20,20 @@ import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import JobsSection from '../components/jobs/JobsSection';
 import { RECENT_JOBS, RECOMMENDED_JOBS } from '../../data/jobs';
+import { useBookmarks } from '../context/BookmarksContext';
 
 const NAVY = '#202871';
 
 type HomeNavParams = {
   Jobs: undefined;
+  Bookmarks: undefined;
   JobDetails: { jobId: string };
 };
 
 export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp<HomeNavParams>>();
   const [query, setQuery] = useState('');
-  const [bookmarked, setBookmarked] = useState<Set<string>>(new Set());
+  const { bookmarkedIds, toggleBookmark } = useBookmarks();
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -47,25 +49,13 @@ export default function HomeScreen() {
     );
   }
 
-  const toggleBookmark = (id: string) => {
-    setBookmarked((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
   const openJobDetails = (jobId: string) => {
     navigation.navigate('JobDetails', { jobId });
   };
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      <Header />
+      <Header onBookmarksPress={() => navigation.navigate('Bookmarks')} />
       <SearchBar value={query} onChangeText={setQuery} />
       <ScrollView
         contentContainerStyle={styles.content}
@@ -75,7 +65,7 @@ export default function HomeScreen() {
           title="Recommended Jobs"
           jobs={RECOMMENDED_JOBS}
           layout="horizontal"
-          bookmarkedIds={bookmarked}
+          bookmarkedIds={bookmarkedIds}
           onBookmarkPress={toggleBookmark}
           onJobPress={openJobDetails}
           onSeeAllPress={() => navigation.navigate('Jobs')}
@@ -84,7 +74,7 @@ export default function HomeScreen() {
           title="Recent Jobs"
           jobs={RECENT_JOBS}
           layout="vertical"
-          bookmarkedIds={bookmarked}
+          bookmarkedIds={bookmarkedIds}
           onBookmarkPress={toggleBookmark}
           onJobPress={openJobDetails}
           onSeeAllPress={() => navigation.navigate('Jobs')}

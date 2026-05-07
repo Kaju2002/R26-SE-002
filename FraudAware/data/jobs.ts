@@ -37,6 +37,8 @@ export type Job = {
   applicants?: number;
 
   description?: string[];
+  requirements?: string[];
+  benefits?: string[];
   jobLevel?: string;
   education?: string;
   experience?: string;
@@ -78,13 +80,17 @@ const DEFAULT_ABOUT =
   'A leading institution in Ghana committed to delivering reliable, customer-first services. We invest in our people, support continuous learning, and build long-term value for the communities we serve.';
 
 function withDefaults(job: Job): Job {
+  const requirements = job.requirements ?? job.skills ?? DEFAULT_SKILLS;
+  const benefits = job.benefits ?? job.perks ?? DEFAULT_PERKS;
   return {
     description: DEFAULT_DESCRIPTION,
+    requirements,
+    benefits,
     jobLevel: 'Mid-Level',
     education: "Bachelor's Degree",
     experience: '2+ Years',
-    skills: DEFAULT_SKILLS,
-    perks: DEFAULT_PERKS,
+    skills: requirements,
+    perks: benefits,
     about: DEFAULT_ABOUT,
     contact: {
       location: job.location,
