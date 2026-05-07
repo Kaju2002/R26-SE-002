@@ -39,6 +39,7 @@ type RootParamList = {
   Onboarding: undefined;
   Login: undefined;
   Register: undefined;
+  Verification: { email?: string } | undefined;
   MainTabs: undefined;
 };
 
@@ -59,7 +60,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const onRegister = () => {
-    navigation.replace('MainTabs');
+    navigation.navigate('Verification', { email });
   };
 
   if (!fontsLoaded) {
