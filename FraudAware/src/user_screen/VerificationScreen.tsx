@@ -41,6 +41,7 @@ type RootParamList = {
   Login: undefined;
   Register: undefined;
   Verification: { email?: string } | undefined;
+  RegistrationSuccess: undefined;
   MainTabs: undefined;
 };
 
@@ -130,7 +131,8 @@ export default function VerificationScreen({ navigation, route }: Props) {
       Alert.alert('Incomplete code', 'Please enter all 6 digits.');
       return;
     }
-    navigation.replace('MainTabs');
+    inputRefs.current.forEach((r) => r?.blur());
+    navigation.replace('RegistrationSuccess');
   };
 
   if (!fontsLoaded) {
