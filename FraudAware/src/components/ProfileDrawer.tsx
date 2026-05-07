@@ -15,7 +15,10 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { PROFILE } from '../../data/profile';
+import type { RootStackParamList } from '../../App';
 
 const NAVY = '#202871';
 const NAVY_DARK = '#0E1140';
@@ -38,8 +41,15 @@ type Props = {
 
 export default function ProfileDrawer({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
+
+  const goToProfile = () => {
+    onClose();
+    navigation.navigate('Profile');
+  };
 
   useEffect(() => {
     if (visible) {
@@ -113,11 +123,18 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
               { paddingLeft: insets.left + 18 },
             ]}
           >
-            <Image
-              source={{ uri: PROFILE.avatar }}
-              style={styles.avatar}
-              accessibilityLabel="Profile photo"
-            />
+            <TouchableOpacity
+              onPress={goToProfile}
+              activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Open profile page"
+            >
+              <Image
+                source={{ uri: PROFILE.avatar }}
+                style={styles.avatar}
+                accessibilityLabel="Profile photo"
+              />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={onClose}
               hitSlop={12}
@@ -136,7 +153,13 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
             ]}
             showsVerticalScrollIndicator={false}
           >
-            <View style={styles.nameRow}>
+            <TouchableOpacity
+              onPress={goToProfile}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Open profile page"
+              style={styles.nameRow}
+            >
               <Text style={styles.name} numberOfLines={1}>
                 {PROFILE.fullName}
               </Text>
@@ -149,7 +172,7 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
                   />
                 </View>
               )}
-            </View>
+            </TouchableOpacity>
 
             <Text style={styles.headline}>{PROFILE.headline}</Text>
             <Text style={styles.location}>{PROFILE.location}</Text>

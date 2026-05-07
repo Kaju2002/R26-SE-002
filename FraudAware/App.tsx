@@ -12,6 +12,8 @@ import ForgotPasswordScreen from './src/user_screen/ForgotPasswordScreen';
 import CodeSentScreen from './src/user_screen/CodeSentScreen';
 import NewPasswordScreen from './src/user_screen/NewPasswordScreen';
 import PasswordUpdatedScreen from './src/user_screen/PasswordUpdatedScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import EditProfileScreen from './src/screens/EditProfileScreen';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -24,6 +26,8 @@ export type RootStackParamList = {
   NewPassword: { email?: string } | undefined;
   PasswordUpdated: undefined;
   MainTabs: undefined;
+  Profile: undefined;
+  EditProfile: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -92,6 +96,8 @@ export default function App() {
             }}
           />
           <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
+          <Stack.Screen name="Profile" component={ProfileScreen} />
+          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>

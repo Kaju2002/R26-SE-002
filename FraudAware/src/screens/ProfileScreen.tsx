@@ -1,30 +1,90 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+} from '@expo-google-fonts/poppins';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { PROFILE } from '../../data/profile';
+import type { RootStackParamList } from '../../App';
+import ProfileTitleBar from '../components/profile/ProfileTitleBar';
+import ProfileUserCard from '../components/profile/ProfileUserCard';
+import SummarySection from '../components/profile/SummarySection';
+import WorkExperienceSection from '../components/profile/WorkExperienceSection';
+import EducationSection from '../components/profile/EducationSection';
+import SkillsSection from '../components/profile/SkillsSection';
+import LanguagesSection from '../components/profile/LanguagesSection';
+import CVSection from '../components/profile/CVSection';
+
+const NAVY = '#202871';
 
 export default function ProfileScreen() {
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+  });
+
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.fontSplash}>
+        <ActivityIndicator color={NAVY} size="large" />
+      </View>
+    );
+  }
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Profile</Text>
-      <Text style={styles.subtitle}>Manage your account</Text>
-    </View>
+    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+      <ProfileTitleBar
+        onBackPress={
+          navigation.canGoBack() ? () => navigation.goBack() : undefined
+        }
+      />
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <ProfileUserCard
+          name={PROFILE.shortName}
+          role={PROFILE.role}
+          avatar={PROFILE.avatar}
+          onEditPress={() => navigation.navigate('EditProfile')}
+        />
+        <SummarySection />
+        <WorkExperienceSection />
+        <EducationSection />
+        <SkillsSection />
+        <LanguagesSection />
+        <CVSection />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  fontSplash: {
     flex: 1,
     backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#202871',
-    marginBottom: 8,
+  safe: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#798AA3',
+  scrollContent: {
+    paddingTop: 4,
+    paddingBottom: 40,
+    backgroundColor: '#FBFBFE',
   },
 });
