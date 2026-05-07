@@ -1,15 +1,50 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+} from '@expo-google-fonts/poppins';
+import { useNavigation } from '@react-navigation/native';
 import ProfileDrawer from './ProfileDrawer';
+import { PROFILE } from '../../data/profile';
+
+const NAVY = '#202871';
+const GREETING_GREY = '#8A93B0';
 
 type HeaderProps = {
   onProfilePress?: () => void;
+  onBookmarksPress?: () => void;
+  onNotificationsPress?: () => void;
 };
 
-export default function Header({ onProfilePress }: HeaderProps) {
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return 'Good Morning,';
+  if (h < 17) return 'Good Afternoon,';
+  return 'Good Evening,';
+}
+
+export default function Header({
+  onProfilePress,
+  onBookmarksPress,
+  onNotificationsPress,
+}: HeaderProps) {
+  const navigation = useNavigation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+  });
 
   const handleProfilePress = () => {
     if (onProfilePress) {
@@ -19,31 +54,93 @@ export default function Header({ onProfilePress }: HeaderProps) {
     setDrawerOpen(true);
   };
 
+  const handleNotificationsPress = () => {
+    if (onNotificationsPress) {
+      onNotificationsPress();
+      return;
+    }
+    navigation.navigate('Notifications' as never);
+  };
+
+  const handleBookmarksPress = () => {
+    if (onBookmarksPress) {
+      onBookmarksPress();
+      return;
+    }
+  };
+
+  const greetingFont = fontsLoaded ? 'Poppins_400Regular' : undefined;
+  const nameFont = fontsLoaded ? 'Poppins_500Medium' : undefined;
+
   return (
     <>
       <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
-        <View style={styles.headerContainer}>
-          <TouchableOpacity
-            style={styles.profileIcon}
+        <View style={styles.row}>
+          <Pressable
             onPress={handleProfilePress}
             accessibilityRole="button"
             accessibilityLabel="Open profile"
+            hitSlop={6}
+            style={({ pressed }) => [
+              styles.avatarRing,
+              pressed && { opacity: 0.85 },
+            ]}
           >
-            <MaterialIcons name="account-circle" size={32} color="#798AA3" />
-          </TouchableOpacity>
-
-          <View style={styles.searchContainer}>
-            <MaterialIcons name="search" size={18} color="#798AA3" />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search"
-              placeholderTextColor="#A0A0A0"
+            <Image
+              source={{ uri: PROFILE.avatar }}
+              style={styles.avatar}
+              resizeMode="cover"
             />
+          </Pressable>
+
+          <View style={styles.greetingCol}>
+            <Text
+              style={[styles.greeting, { fontFamily: greetingFont }]}
+              numberOfLines={1}
+            >
+              {getGreeting()}
+            </Text>
+            <Text
+              style={[styles.userName, { fontFamily: nameFont }]}
+              numberOfLines={1}
+            >
+              {PROFILE.fullName}
+            </Text>
           </View>
 
-          <TouchableOpacity style={styles.messageIcon}>
-            <MaterialIcons name="chat-bubble-outline" size={22} color="#202871" />
-          </TouchableOpacity>
+          <Pressable
+            onPress={handleBookmarksPress}
+            accessibilityRole="button"
+            accessibilityLabel="Saved jobs"
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.iconBtn,
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Image
+              source={require('../../assets/icons/Bookmarks.png')}
+              style={styles.icon}
+              resizeMode="contain"
+            />
+          </Pressable>
+
+          <Pressable
+            onPress={handleNotificationsPress}
+            accessibilityRole="button"
+            accessibilityLabel="Notifications"
+            hitSlop={10}
+            style={({ pressed }) => [
+              styles.iconBtn,
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Image
+              source={require('../../assets/icons/mdi_bell-badge-outline.png')}
+              style={styles.icon}
+              resizeMode="contain"
+            />
+          </Pressable>
         </View>
       </SafeAreaView>
 
@@ -55,46 +152,62 @@ export default function Header({ onProfilePress }: HeaderProps) {
   );
 }
 
+const AVATAR_SIZE = 52;
+
 const styles = StyleSheet.create({
   safeArea: {
-    backgroundColor: '#ffffff',
-    borderBottomColor: '#E8E8E8',
-    borderBottomWidth: 1,
+    backgroundColor: '#FFFFFF',
   },
-  headerContainer: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ffffff',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
     gap: 12,
   },
-  profileIcon: {
-    width: 36,
-    height: 36,
+  avatarRing: {
+    width: AVATAR_SIZE + 4,
+    height: AVATAR_SIZE + 4,
+    borderRadius: (AVATAR_SIZE + 4) / 2,
+    borderWidth: 1.5,
+    borderColor: NAVY,
+    alignItems: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  searchContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F0F0F0',
-    borderRadius: 20,
-    paddingHorizontal: 12,
-    height: 36,
-    gap: 8,
+  avatar: {
+    width: AVATAR_SIZE,
+    height: AVATAR_SIZE,
+    borderRadius: AVATAR_SIZE / 2,
+    backgroundColor: '#EEF0F8',
   },
-  searchInput: {
+  greetingCol: {
     flex: 1,
+    minWidth: 0,
+  },
+  /** "Good Morning," — Poppins Regular 14 · muted */
+  greeting: {
     fontSize: 14,
-    color: '#202871',
-    padding: 0,
+    color: GREETING_GREY,
+    lineHeight: 20,
   },
-  messageIcon: {
+  /** Full name — Poppins Medium 18 · #202871 */
+  userName: {
+    fontSize: 18,
+    color: NAVY,
+    lineHeight: 24,
+    marginTop: 2,
+  },
+  iconBtn: {
     width: 36,
     height: 36,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  icon: {
+    width: 24,
+    height: 24,
+    tintColor: NAVY,
   },
 });
