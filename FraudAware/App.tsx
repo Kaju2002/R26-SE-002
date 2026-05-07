@@ -16,23 +16,11 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import JobDetailsScreen from './src/screens/JobDetailsScreen';
+import ApplyJobScreen from './src/screens/ApplyJobScreen';
 
-export type RootStackParamList = {
-  Onboarding: undefined;
-  Login: undefined;
-  Register: undefined;
-  ForgotPassword: undefined;
-  CodeSent: { email?: string } | undefined;
-  Verification: { email?: string; flow: 'register' | 'reset' } | undefined;
-  RegistrationSuccess: undefined;
-  NewPassword: { email?: string } | undefined;
-  PasswordUpdated: undefined;
-  MainTabs: undefined;
-  Profile: undefined;
-  EditProfile: undefined;
-  Notifications: undefined;
-  JobDetails: { jobId: string };
-};
+import type { RootStackParamList } from './src/navigation/rootStackParams';
+
+export type { RootStackParamList };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -109,6 +97,11 @@ export default function App() {
           <Stack.Screen
             name="JobDetails"
             component={JobDetailsScreen}
+            options={{ animation: 'slide_from_right' }}
+          />
+          <Stack.Screen
+            name="ApplyJob"
+            component={ApplyJobScreen}
             options={{ animation: 'slide_from_right' }}
           />
         </Stack.Navigator>

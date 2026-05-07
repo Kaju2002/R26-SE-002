@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -14,7 +14,13 @@ import {
   Poppins_400Regular,
   Poppins_500Medium,
 } from '@expo-google-fonts/poppins';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
+import type { RootStackParamList } from '../navigation/rootStackParams';
 import NotificationsHeader from '../components/notification/NotificationsHeader';
 import NotificationsTabs, {
   type NotificationTabId,
@@ -41,6 +47,8 @@ const NAVY = '#202871';
 
 export default function NotificationsScreen() {
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<RootStackParamList, 'Notifications'>>();
+
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -52,6 +60,15 @@ export default function NotificationsScreen() {
   );
   const [applicationItems, setApplicationItems] = useState<ApplicationListItem[]>(
     () => [...APPLICATION_NOTIFICATIONS]
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const tab = route.params?.initialTab;
+      if (tab === 'applications' || tab === 'general') {
+        setActiveTab(tab);
+      }
+    }, [route.params?.initialTab])
   );
 
   if (!fontsLoaded) {
