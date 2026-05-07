@@ -6,11 +6,13 @@ import BottomTabNavigator from './src/navigation/BottomTabNavigator';
 import OnboardingScreen from './src/user_screen/OnboardingScreen';
 import LoginScreen from './src/user_screen/LoginScreen';
 import RegisterScreen from './src/user_screen/RegisterScreen';
+import VerificationScreen from './src/user_screen/VerificationScreen';
 
 type RootStackParamList = {
   Onboarding: undefined;
   Login: undefined;
   Register: undefined;
+  Verification: { email?: string } | undefined;
   MainTabs: undefined;
 };
 
@@ -40,6 +42,11 @@ export default function App() {
           <Stack.Screen
             name="Register"
             component={RegisterScreen}
+            options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen
+            name="Verification"
+            component={VerificationScreen}
             options={{ gestureEnabled: false }}
           />
           <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
