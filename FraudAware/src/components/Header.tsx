@@ -1,33 +1,57 @@
-import React from 'react';
-import { StyleSheet, View, TextInput, TouchableOpacity, Image } from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, TextInput, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import ProfileDrawer from './ProfileDrawer';
 
-export default function Header() {
+type HeaderProps = {
+  onProfilePress?: () => void;
+};
+
+export default function Header({ onProfilePress }: HeaderProps) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const handleProfilePress = () => {
+    if (onProfilePress) {
+      onProfilePress();
+      return;
+    }
+    setDrawerOpen(true);
+  };
+
   return (
-    <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
-      <View style={styles.headerContainer}>
-        {/* Profile Icon */}
-        <TouchableOpacity style={styles.profileIcon}>
-          <MaterialIcons name="account-circle" size={32} color="#798AA3" />
-        </TouchableOpacity>
+    <>
+      <SafeAreaView edges={['top', 'left', 'right']} style={styles.safeArea}>
+        <View style={styles.headerContainer}>
+          <TouchableOpacity
+            style={styles.profileIcon}
+            onPress={handleProfilePress}
+            accessibilityRole="button"
+            accessibilityLabel="Open profile"
+          >
+            <MaterialIcons name="account-circle" size={32} color="#798AA3" />
+          </TouchableOpacity>
 
-        {/* Search Bar */}
-        <View style={styles.searchContainer}>
-          <MaterialIcons name="search" size={18} color="#798AA3" />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search"
-            placeholderTextColor="#A0A0A0"
-          />
+          <View style={styles.searchContainer}>
+            <MaterialIcons name="search" size={18} color="#798AA3" />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search"
+              placeholderTextColor="#A0A0A0"
+            />
+          </View>
+
+          <TouchableOpacity style={styles.messageIcon}>
+            <MaterialIcons name="chat-bubble-outline" size={22} color="#202871" />
+          </TouchableOpacity>
         </View>
+      </SafeAreaView>
 
-        {/* Message Icon */}
-        <TouchableOpacity style={styles.messageIcon}>
-          <MaterialIcons name="chat-bubble-outline" size={22} color="#202871" />
-        </TouchableOpacity>
-      </View>
-    </SafeAreaView>
+      <ProfileDrawer
+        visible={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      />
+    </>
   );
 }
 
