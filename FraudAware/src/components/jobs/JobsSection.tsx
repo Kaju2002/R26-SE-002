@@ -1,7 +1,7 @@
 import React from 'react';
 import {
+  FlatList,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -26,6 +26,10 @@ type Props = {
 const CARD_WIDTH = 320;
 const CARD_HEIGHT = 248;
 const CARD_GAP = 14;
+/** Vertical padding inside horizontal row (hContent) — keep in sync with styles.hContent */
+const H_SCROLL_PADDING_V = 4 + 12;
+/** Nested horizontal list must have bounded height or it expands inside parent scroll */
+const HORIZONTAL_SCROLL_HEIGHT = CARD_HEIGHT + H_SCROLL_PADDING_V;
 
 export default function JobsSection({
   title,
@@ -58,25 +62,33 @@ export default function JobsSection({
       </View>
 
       {layout === 'horizontal' ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.hContent}
-          decelerationRate="fast"
-          snapToInterval={CARD_WIDTH + CARD_GAP}
-          snapToAlignment="start"
-        >
-          {jobs.map((job) => (
-            <JobCard
-              key={job.id}
-              job={job}
-              isBookmarked={bookmarkedIds?.has(job.id)}
-              onPress={() => onJobPress?.(job.id)}
-              onBookmarkPress={() => onBookmarkPress?.(job.id)}
-              style={styles.hCard}
-            />
-          ))}
-        </ScrollView>
+        <View style={styles.hScrollClip}>
+          <FlatList
+            data={jobs}
+            horizontal
+            keyExtractor={(job) => job.id}
+            renderItem={({ item: job, index }) => (
+              <JobCard
+                job={job}
+                isBookmarked={bookmarkedIds?.has(job.id)}
+                onPress={() => onJobPress?.(job.id)}
+                onBookmarkPress={() => onBookmarkPress?.(job.id)}
+                style={[
+                  styles.hCard,
+                  index < jobs.length - 1 ? styles.hCardSpacing : null,
+                ]}
+              />
+            )}
+            style={styles.hScroll}
+            contentContainerStyle={styles.hContent}
+            showsHorizontalScrollIndicator={false}
+            decelerationRate="fast"
+            snapToInterval={CARD_WIDTH + CARD_GAP}
+            snapToAlignment="start"
+            nestedScrollEnabled
+            removeClippedSubviews={false}
+          />
+        </View>
       ) : (
         <View style={styles.vList}>
           {jobs.map((job) => (
@@ -123,9 +135,18 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: NAVY,
   },
+  /** Clip so FlatList cannot expand vertically inside parent scroll */
+  hScrollClip: {
+    height: HORIZONTAL_SCROLL_HEIGHT,
+    overflow: 'hidden',
+  },
+  hScroll: {
+    flexGrow: 0,
+    flexShrink: 0,
+    height: HORIZONTAL_SCROLL_HEIGHT,
+  },
   hContent: {
     paddingHorizontal: 16,
-    gap: CARD_GAP,
     paddingRight: 24,
     paddingTop: 4,
     paddingBottom: 12,
@@ -133,6 +154,9 @@ const styles = StyleSheet.create({
   hCard: {
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
+  },
+  hCardSpacing: {
+    marginRight: CARD_GAP,
   },
   vList: {
     paddingHorizontal: 16,

@@ -12,7 +12,8 @@ import { JOB_SEARCH_COLORS } from './jobSearchTheme';
 type Props = {
   query: string;
   onChangeQuery: (value: string) => void;
-  onBackPress: () => void;
+  /** Omit on Jobs tab so search bar uses full width; pass when pushing Jobs from stack */
+  onBackPress?: () => void;
   onFilterPress: () => void;
 };
 
@@ -24,14 +25,16 @@ export default function JobsSearchHeader({
 }: Props) {
   return (
     <View style={styles.wrapper}>
-      <Pressable
-        onPress={onBackPress}
-        style={({ pressed }) => [styles.iconButton, pressed && { opacity: 0.6 }]}
-        accessibilityRole="button"
-        accessibilityLabel="Go back"
-      >
-        <Ionicons name="chevron-back" size={22} color={JOB_SEARCH_COLORS.primaryText} />
-      </Pressable>
+      {onBackPress ? (
+        <Pressable
+          onPress={onBackPress}
+          style={({ pressed }) => [styles.iconButton, pressed && { opacity: 0.6 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
+          <Ionicons name="chevron-back" size={22} color={JOB_SEARCH_COLORS.primaryText} />
+        </Pressable>
+      ) : null}
 
       <View style={styles.searchBox}>
         <Image
