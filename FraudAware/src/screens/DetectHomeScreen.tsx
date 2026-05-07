@@ -49,6 +49,29 @@ export default function DetectHomeScreen({ navigation }: Props) {
             </View>
           </TouchableOpacity>
 
+          {/* Practice recruiter inbox (dummy Linked-style list) */}
+          <TouchableOpacity
+            style={[styles.card, styles.inchatCardBg]}
+            onPress={() =>
+              navigation.getParent()?.navigate('Chat', { screen: 'InchatInbox' })
+            }
+            activeOpacity={0.7}
+          >
+            <View style={styles.cardContent}>
+              <View style={styles.cardTopRow}>
+                <View style={[styles.iconContainer, styles.inchatIconBg]}>
+                  <MaterialCommunityIcons name="forum-outline" size={26} color="#202871" />
+                </View>
+                <Text style={[styles.cardTag, styles.inchatTag]}>Practice chats</Text>
+                <MaterialCommunityIcons name="chevron-right" size={22} color="#9AA7BD" style={styles.cardArrow} />
+              </View>
+              <Text style={styles.cardTitle}>Recruiter inbox (demo)</Text>
+              <Text style={styles.cardSubtitle}>
+                Browse simulated recruiter threads like a messaging app. Same navy styling as FraudAware — data is local only.
+              </Text>
+            </View>
+          </TouchableOpacity>
+
           {/* Card 2: Check Job Post */}
           <TouchableOpacity 
             style={[styles.card, styles.jobCardBg]}
@@ -149,6 +172,9 @@ const styles = StyleSheet.create({
   messageCardBg: {
     backgroundColor: '#FFF6F6',
   },
+  inchatCardBg: {
+    backgroundColor: '#F7F8FE',
+  },
   jobCardBg: {
     backgroundColor: '#F5F9FF',
   },
@@ -187,6 +213,10 @@ const styles = StyleSheet.create({
     color: '#B71C1C',
     backgroundColor: '#FDECEC',
   },
+  inchatTag: {
+    color: '#202871',
+    backgroundColor: '#E8EBFA',
+  },
   jobTag: {
     color: '#0D47A1',
     backgroundColor: '#EAF2FF',
@@ -197,6 +227,9 @@ const styles = StyleSheet.create({
   },
   messageIconBg: {
     backgroundColor: '#FDECEC',
+  },
+  inchatIconBg: {
+    backgroundColor: '#E8EBFA',
   },
   jobIconBg: {
     backgroundColor: '#EAF2FF',

@@ -11,48 +11,21 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
 import type { AnalysisPayload } from '../navigation/detectStackTypes';
 import { analysisPayloadFromApi } from '../utils/mergeAnalysisResult';
-import { getSignalStrengthHeadline } from '../utils/signalStrengthPresentation';
+import { saveAnalysisSnapshot } from '../utils/saveAnalysisSnapshot';
+import AnalysisResultContent from '../components/analysis/AnalysisResultContent';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'ResultScreen'>;
 
-const PRIMARY_RED = '#E53535';
-const SUCCESS_GREEN = '#3B6D11';
-const AMBER_ALERT = '#C27803';
 const BUTTON_NAVY = '#202871';
-
-const MODEL_DISCLAIMER =
-  'Estimates from a model — always verify the employer yourself before sharing personal or financial details.';
 const GREY_TEXT = '#6B7280';
-const GREY_CARD = '#F3F5F8';
-const STORAGE_KEY = '@fraudaware:message_analysis_snapshots';
 /** Base padding below scroll body; tab bar floats with `position: 'absolute'` in BottomTabNavigator. */
 const SCROLL_PADDING_BOTTOM_BASE = 32;
 const TAB_BAR_FALLBACK_HEIGHT = 68;
 const TAB_BAR_GAP = 14;
-
-function tacticGlyph(
-  name: string
-): React.ComponentProps<typeof MaterialCommunityIcons>['name'] {
-  const n = name.toLowerCase();
-  if (n.includes('urgency') || n.includes('deadline')) {
-    return 'clock-outline';
-  }
-  if (n.includes('fomo') || n.includes('scarcity') || n.includes('waiting')) {
-    return 'account-group-outline';
-  }
-  if (n.includes('fee') || n.includes('payment') || n.includes('money') || n.includes('wire')) {
-    return 'cash-remove';
-  }
-  if (n.includes('secret') || n.includes('private') || n.includes('off-platform')) {
-    return 'eye-off-outline';
-  }
-  return 'alert-circle-outline';
-}
 
 function toNonNegativeInt(value: unknown): number | undefined {
   if (typeof value === 'number' && Number.isFinite(value)) {
@@ -97,6 +70,19 @@ export default function ResultScreen({ navigation, route }: Props) {
     return analysisPayloadFromApi(result, pastedMessage || '');
   }, [analysis, result, pastedMessage]);
 
+  const onSave = useCallback(async () => {
+    if (!payload) return;
+    try {
+      setSaving(true);
+      await saveAnalysisSnapshot(payload);
+      Alert.alert('Saved', 'Analysis saved on this device.');
+    } catch {
+      Alert.alert('Save failed', 'Could not write to storage.');
+    } finally {
+      setSaving(false);
+    }
+  }, [payload]);
+
   if (payload == null) {
     return (
       <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -116,15 +102,6 @@ export default function ResultScreen({ navigation, route }: Props) {
     );
   }
 
-  const isInconclusive = payload.inconclusive === true;
-  const isScam = payload.is_scam && !isInconclusive;
-  const accent = isInconclusive ? AMBER_ALERT : isScam ? PRIMARY_RED : SUCCESS_GREEN;
-  const signalHeadline = getSignalStrengthHeadline({
-    isScam: payload.is_scam,
-    inconclusive: isInconclusive,
-    confidencePct: payload.confidence,
-  });
-
   const screenshotTotalInt = toNonNegativeInt(screenshotTotal);
   const screenshotReadInt = toNonNegativeInt(screenshotCount) ?? 0;
   const showMultiScreenshotSummary =
@@ -133,25 +110,6 @@ export default function ResultScreen({ navigation, route }: Props) {
   const screenshotSummaryLine = showMultiScreenshotSummary
     ? `${screenshotReadInt} of ${screenshotTotalInt} ${screenshotWord} read successfully`
     : '';
-
-  const onSave = useCallback(async () => {
-    try {
-      setSaving(true);
-      const entry = {
-        savedAt: new Date().toISOString(),
-        ...payload,
-      };
-      const existing = await AsyncStorage.getItem(STORAGE_KEY);
-      const list: typeof entry[] = existing ? JSON.parse(existing) : [];
-      list.unshift(entry);
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
-      Alert.alert('Saved', 'Analysis saved on this device.');
-    } catch {
-      Alert.alert('Save failed', 'Could not write to storage.');
-    } finally {
-      setSaving(false);
-    }
-  }, [payload]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -173,84 +131,10 @@ export default function ResultScreen({ navigation, route }: Props) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Banner */}
-        <View style={[styles.banner, { backgroundColor: accent }]}>
-          <View style={styles.bannerIconOuter}>
-            <MaterialIcons
-              name={isInconclusive ? 'help-outline' : isScam ? 'warning' : 'verified'}
-              size={40}
-              color="#fff"
-            />
-          </View>
-          <Text style={styles.bannerTitle}>
-            {isInconclusive ? 'INCONCLUSIVE' : isScam ? 'SCAM DETECTED' : 'LEGITIMATE MESSAGE'}
-          </Text>
-          <Text style={styles.bannerSubtitle}>
-            {isInconclusive
-              ? 'Not enough reliable signal for a definitive safe vs. scam verdict'
-              : isScam
-                ? 'This message contains manipulation tactics'
-                : 'Looks consistent with legitimate recruiter outreach'}
-          </Text>
-        </View>
-        {isImage && imageUri ? (
-          <Text style={styles.sourceHint}>Analyzed from uploaded screenshot</Text>
-        ) : null}
-
-        {/* Stats — categorical signal strength instead of implying precise calibration */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={[styles.statStrengthHeadline, { color: accent }]} numberOfLines={2}>
-              {signalHeadline}
-            </Text>
-            <Text style={styles.statLabel}>Signal strength</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statValueNumeric, { color: accent }]}>{payload.tactics.length}</Text>
-            <Text style={styles.statLabel}>Tactics found</Text>
-          </View>
-        </View>
-        <Text style={styles.modelDisclaimer}>{MODEL_DISCLAIMER}</Text>
-
-        {/* Tactics */}
-        {isScam ? (
-          <>
-            <Text style={styles.sectionLabel}>MANIPULATION TACTICS</Text>
-            {payload.tactics.map((t, i) => (
-              <View key={`${t.name}-${i}`} style={styles.tacticCard}>
-                <View style={styles.tacticIconCircle}>
-                  <MaterialCommunityIcons
-                    name={tacticGlyph(t.name)}
-                    size={22}
-                    color={PRIMARY_RED}
-                  />
-                </View>
-                <View style={styles.tacticCopy}>
-                  <Text style={styles.tacticTitle}>{t.name}</Text>
-                  {t.example ? (
-                    <Text style={styles.tacticExample}>{t.example}</Text>
-                  ) : null}
-                </View>
-              </View>
-            ))}
-          </>
-        ) : null}
-
-        {/* Warning / reassurance */}
-        <Text style={styles.sectionLabel}>
-          {isInconclusive ? 'WHAT TO DO' : isScam ? 'WARNING' : 'WHAT THIS MEANS'}
-        </Text>
-        <View style={styles.greyBorderCard}>
-          <Text style={styles.bodyMuted}>
-            {isInconclusive ? payload.reassurance : isScam ? payload.warning : payload.reassurance}
-          </Text>
-        </View>
-
-        {/* Original */}
-        <Text style={styles.sectionLabel}>ANALYZED TEXT</Text>
-        <View style={styles.analyzedWrap}>
-          <Text style={styles.analyzedText}>{payload.original_text}</Text>
-        </View>
+        <AnalysisResultContent
+          payload={payload}
+          showScreenshotSource={Boolean(isImage && imageUri)}
+        />
 
         <View style={styles.footerSpacer} />
 
@@ -314,155 +198,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: '#2D3A85',
-  },
-  banner: {
-    borderRadius: 14,
-    paddingVertical: 24,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    marginBottom: 14,
-  },
-  bannerIconOuter: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.85)',
-  },
-  bannerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#fff',
-    letterSpacing: 0.8,
-    marginBottom: 6,
-  },
-  bannerSubtitle: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.95)',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  sourceHint: {
-    marginTop: -4,
-    marginBottom: 14,
-    textAlign: 'center',
-    fontSize: 12,
-    color: GREY_TEXT,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-  },
-  statCard: {
-    flex: 1,
-    backgroundColor: GREY_CARD,
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 96,
-  },
-  statStrengthHeadline: {
-    fontSize: 17,
-    fontWeight: '800',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 6,
-  },
-  statValueNumeric: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 13,
-    color: GREY_TEXT,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  modelDisclaimer: {
-    fontSize: 12,
-    color: GREY_TEXT,
-    lineHeight: 17,
-    textAlign: 'center',
-    marginTop: -8,
-    marginBottom: 18,
-    paddingHorizontal: 4,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.1,
-    color: GREY_TEXT,
-    marginBottom: 10,
-    marginTop: 4,
-  },
-  tacticCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 14,
-    borderRadius: 12,
-    backgroundColor: 'rgba(229, 53, 53, 0.06)',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(229, 53, 53, 0.35)',
-    marginBottom: 10,
-    gap: 12,
-  },
-  tacticIconCircle: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tacticCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  tacticTitle: {
-    fontSize: 15,
-    fontWeight: '800',
-    color: PRIMARY_RED,
-    marginBottom: 6,
-  },
-  tacticExample: {
-    fontSize: 13,
-    color: PRIMARY_RED,
-    fontStyle: 'italic',
-    lineHeight: 18,
-    opacity: 0.92,
-  },
-  greyBorderCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#D8DCE3',
-    padding: 14,
-    marginBottom: 18,
-  },
-  bodyMuted: {
-    fontSize: 14,
-    color: GREY_TEXT,
-    lineHeight: 20,
-  },
-  analyzedWrap: {
-    backgroundColor: GREY_CARD,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 22,
-  },
-  analyzedText: {
-    fontSize: 14,
-    color: GREY_TEXT,
-    fontStyle: 'italic',
-    lineHeight: 20,
   },
   emptyWrap: {
     flex: 1,
