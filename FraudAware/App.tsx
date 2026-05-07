@@ -7,12 +7,14 @@ import OnboardingScreen from './src/user_screen/OnboardingScreen';
 import LoginScreen from './src/user_screen/LoginScreen';
 import RegisterScreen from './src/user_screen/RegisterScreen';
 import VerificationScreen from './src/user_screen/VerificationScreen';
+import RegistrationSuccessScreen from './src/user_screen/RegistrationSuccessScreen';
 
 type RootStackParamList = {
   Onboarding: undefined;
   Login: undefined;
   Register: undefined;
   Verification: { email?: string } | undefined;
+  RegistrationSuccess: undefined;
   MainTabs: undefined;
 };
 
@@ -48,6 +50,15 @@ export default function App() {
             name="Verification"
             component={VerificationScreen}
             options={{ gestureEnabled: false }}
+          />
+          <Stack.Screen
+            name="RegistrationSuccess"
+            component={RegistrationSuccessScreen}
+            options={{
+              gestureEnabled: false,
+              animation: 'fade',
+              contentStyle: { backgroundColor: '#FFFFFF' },
+            }}
           />
           <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
         </Stack.Navigator>
