@@ -18,7 +18,12 @@ import {
   Poppins_500Medium,
   Poppins_600SemiBold,
 } from '@expo-google-fonts/poppins';
-import { useNavigation, useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type NavigationProp,
+  type RouteProp,
+} from '@react-navigation/native';
 import LogoFallback from '../components/profile/LogoFallback';
 import JobTagChip from '../components/jobs/JobTagChip';
 import {
@@ -38,10 +43,11 @@ const CARD_BG = '#F7F8FE';
 const PAGE_BG = '#FFFFFF';
 
 type RouteParams = { JobDetails: { jobId: string } };
+type DetailNavParams = { ApplyJob: { jobId: string } };
 type Tab = 'overview' | 'company';
 
 export default function JobDetailsScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<DetailNavParams>>();
   const route = useRoute<RouteProp<RouteParams, 'JobDetails'>>();
   const jobId = route.params?.jobId;
   const job = jobId ? findJobById(jobId) : undefined;
@@ -79,14 +85,7 @@ export default function JobDetailsScreen() {
   }
 
   const handleApply = () => {
-    Alert.alert(
-      'Apply to this job?',
-      `${job.title} at ${job.companyName}`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Apply', onPress: () => Alert.alert('Application sent.') },
-      ]
-    );
+    navigation.navigate('ApplyJob', { jobId: job.id });
   };
 
   return (
