@@ -27,8 +27,13 @@ export type Profile = {
   premiumLabel: string;
 };
 
-export const PROFILE: Profile = {
+export const PROFILE: Profile & {
+  shortName: string;
+  role: string;
+} = {
   fullName: 'Kajanthan U',
+  shortName: 'Kajanthan',
+  role: 'Frontend Developer',
   headline: 'Frontend Developer Intern | Next.js & TypeScript Enthusiast | Cloud of Goods (iLabs)',
   location: 'Malabe, Western Province, Sri Lanka',
   avatar: 'https://i.pravatar.cc/300?img=12',
