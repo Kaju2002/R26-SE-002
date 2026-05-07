@@ -14,6 +14,8 @@ import NewPasswordScreen from './src/user_screen/NewPasswordScreen';
 import PasswordUpdatedScreen from './src/user_screen/PasswordUpdatedScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
+import NotificationsScreen from './src/screens/NotificationsScreen';
+import JobDetailsScreen from './src/screens/JobDetailsScreen';
 
 export type RootStackParamList = {
   Onboarding: undefined;
@@ -28,6 +30,8 @@ export type RootStackParamList = {
   MainTabs: undefined;
   Profile: undefined;
   EditProfile: undefined;
+  Notifications: undefined;
+  JobDetails: { jobId: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -98,6 +102,15 @@ export default function App() {
           <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+          <Stack.Screen
+            name="Notifications"
+            component={NotificationsScreen}
+          />
+          <Stack.Screen
+            name="JobDetails"
+            component={JobDetailsScreen}
+            options={{ animation: 'slide_from_right' }}
+          />
         </Stack.Navigator>
         <StatusBar style="auto" />
       </NavigationContainer>

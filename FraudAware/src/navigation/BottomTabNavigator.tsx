@@ -5,8 +5,9 @@ import HomeScreen from '../screens/HomeScreen';
 import DetectNavigator from './DetectNavigator';
 import MyNetworkScreen from '../screens/MyNetworkScreen';
 import PostScreen from '../screens/PostScreen';
-import NotificationsScreen from '../screens/NotificationsScreen';
+import ChatScreen from '../screens/ChatScreen';
 import JobsScreen from '../screens/JobsScreen';
+import ChatIcon from '../components/icons/ChatIcon';
 
 const Tab = createBottomTabNavigator();
 
@@ -20,7 +21,7 @@ const NotificationBadge = ({ count }: { count?: number }) => {
 };
 
 export default function BottomTabNavigator() {
-  const notificationCount = 4;
+  const unreadChatCount = 4;
 
   return (
     <Tab.Navigator
@@ -82,20 +83,14 @@ export default function BottomTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Notifications"
-        component={NotificationsScreen}
+        name="Chat"
+        component={ChatScreen}
         options={{
-          tabBarLabel: 'Notification',
+          tabBarLabel: 'Chat',
           tabBarIcon: ({ color }) => (
             <View style={styles.iconContainer}>
-              <Image
-                source={require('../../assets/icons/noti.png')}
-                style={[
-                  styles.icon,
-                  { tintColor: color },
-                ]}
-              />
-              <NotificationBadge count={notificationCount} />
+              <ChatIcon size={24} color={color} />
+              <NotificationBadge count={unreadChatCount} />
             </View>
           ),
         }}
