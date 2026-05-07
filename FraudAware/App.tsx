@@ -17,6 +17,8 @@ import EditProfileScreen from './src/screens/EditProfileScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import JobDetailsScreen from './src/screens/JobDetailsScreen';
 import ApplyJobScreen from './src/screens/ApplyJobScreen';
+import BookmarksScreen from './src/screens/BookmarksScreen';
+import { BookmarksProvider } from './src/context/BookmarksContext';
 
 import type { RootStackParamList } from './src/navigation/rootStackParams';
 
@@ -27,11 +29,12 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
   return (
     <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator
-          initialRouteName="Onboarding"
-          screenOptions={{ headerShown: false }}
-        >
+      <BookmarksProvider>
+        <NavigationContainer>
+          <Stack.Navigator
+            initialRouteName="Onboarding"
+            screenOptions={{ headerShown: false }}
+          >
           <Stack.Screen
             name="Onboarding"
             options={{ gestureEnabled: false }}
@@ -90,23 +93,29 @@ export default function App() {
           <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
           <Stack.Screen name="Profile" component={ProfileScreen} />
           <Stack.Screen name="EditProfile" component={EditProfileScreen} />
-          <Stack.Screen
-            name="Notifications"
-            component={NotificationsScreen}
-          />
-          <Stack.Screen
-            name="JobDetails"
-            component={JobDetailsScreen}
-            options={{ animation: 'slide_from_right' }}
-          />
-          <Stack.Screen
-            name="ApplyJob"
-            component={ApplyJobScreen}
-            options={{ animation: 'slide_from_right' }}
-          />
-        </Stack.Navigator>
-        <StatusBar style="auto" />
-      </NavigationContainer>
+            <Stack.Screen
+              name="Notifications"
+              component={NotificationsScreen}
+            />
+            <Stack.Screen
+              name="Bookmarks"
+              component={BookmarksScreen}
+              options={{ animation: 'slide_from_right' }}
+            />
+            <Stack.Screen
+              name="JobDetails"
+              component={JobDetailsScreen}
+              options={{ animation: 'slide_from_right', gestureEnabled: false }}
+            />
+            <Stack.Screen
+              name="ApplyJob"
+              component={ApplyJobScreen}
+              options={{ animation: 'slide_from_right' }}
+            />
+          </Stack.Navigator>
+          <StatusBar style="auto" />
+        </NavigationContainer>
+      </BookmarksProvider>
     </SafeAreaProvider>
   );
 }

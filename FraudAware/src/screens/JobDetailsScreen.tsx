@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Linking,
   Pressable,
@@ -32,8 +31,8 @@ import {
   formatShortDate,
   formatSalary,
   type Job,
-  type JobContact,
 } from '../../data/jobs';
+import { useBookmarks } from '../context/BookmarksContext';
 
 const NAVY = '#202871';
 const DEEP = '#42498A';
@@ -53,7 +52,7 @@ export default function JobDetailsScreen() {
   const job = jobId ? findJobById(jobId) : undefined;
 
   const [tab, setTab] = useState<Tab>('overview');
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  const { isBookmarked, toggleBookmark } = useBookmarks();
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -92,35 +91,52 @@ export default function JobDetailsScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <DetailHeader
         onBack={() => navigation.goBack()}
-        isBookmarked={isBookmarked}
-        onBookmark={() => setIsBookmarked((v) => !v)}
+        isBookmarked={job ? isBookmarked(job.id) : false}
+        onBookmark={() => {
+          if (job) toggleBookmark(job.id);
+        }}
       />
-
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        showsVerticalScrollIndicator={false}
-      >
+      <View style={styles.fixedTop}>
         <HeroCard job={job} />
         <Tabs active={tab} onChange={setTab} />
-        {tab === 'overview' ? (
-          <OverviewSection job={job} />
-        ) : (
-          <CompanySection job={job} />
-        )}
+      </View>
+      <ScrollView
+        style={styles.contentScroll}
+        contentContainerStyle={styles.contentScrollInner}
+        showsVerticalScrollIndicator={false}
+      >
+        {tab === 'overview' ? <OverviewSection job={job} /> : <CompanySection job={job} />}
       </ScrollView>
 
       <View style={styles.footer}>
-        <Pressable
-          onPress={handleApply}
-          accessibilityRole="button"
-          accessibilityLabel="Apply to this job"
-          style={({ pressed }) => [
-            styles.applyBtn,
-            pressed && { opacity: 0.85 },
-          ]}
-        >
-          <Text style={styles.applyText}>Apply</Text>
-        </Pressable>
+        <View style={styles.footerRow}>
+          <Pressable
+            onPress={() => toggleBookmark(job.id)}
+            accessibilityRole="button"
+            accessibilityLabel={
+              isBookmarked(job.id) ? 'Unsave this job' : 'Save this job'
+            }
+            style={({ pressed }) => [
+              styles.saveBtn,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={styles.saveText}>
+              {isBookmarked(job.id) ? 'Saved' : 'Save'}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleApply}
+            accessibilityRole="button"
+            accessibilityLabel="Apply to this job"
+            style={({ pressed }) => [
+              styles.applyBtn,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={styles.applyText}>Apply</Text>
+          </Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -193,6 +209,12 @@ function HeroCard({ job }: { job: Job }) {
       <Text style={styles.heroCompany} numberOfLines={1}>
         {job.companyName}
       </Text>
+      {job.isVerified && (
+        <View style={styles.verifiedRow}>
+          <Ionicons name="checkmark-circle" size={14} color="#2E7DEB" />
+          <Text style={styles.verifiedText}>Verified Employer</Text>
+        </View>
+      )}
 
       <View style={styles.heroDivider} />
 
@@ -294,21 +316,22 @@ function OverviewSection({ job }: { job: Job }) {
         </View>
       )}
 
-      {job.skills && job.skills.length > 0 && (
+      {(job.requirements ?? job.skills) &&
+        (job.requirements ?? job.skills)?.length > 0 && (
         <View style={styles.block}>
-          <Text style={styles.sectionTitle}>Required Skills</Text>
+          <Text style={styles.sectionTitle}>Requirements</Text>
           <View style={styles.skillsWrap}>
-            {job.skills.map((s) => (
+            {(job.requirements ?? job.skills)?.map((s) => (
               <JobTagChip key={s} label={s} />
             ))}
           </View>
         </View>
-      )}
+        )}
 
-      {job.perks && job.perks.length > 0 && (
+      {(job.benefits ?? job.perks) && (job.benefits ?? job.perks)?.length > 0 && (
         <View style={styles.block}>
-          <Text style={styles.sectionTitle}>Perks &amp; Benefits</Text>
-          <BulletList items={job.perks} />
+          <Text style={styles.sectionTitle}>Benefits</Text>
+          <BulletList items={(job.benefits ?? job.perks) as string[]} />
         </View>
       )}
     </View>
@@ -478,9 +501,15 @@ const styles = StyleSheet.create({
     height: 22,
     tintColor: NAVY,
   },
-  scroll: {
+  fixedTop: {
     paddingHorizontal: 16,
-    paddingBottom: 32,
+  },
+  contentScroll: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  contentScrollInner: {
+    paddingBottom: 24,
   },
   /** ----- HERO CARD ----- */
   heroCard: {
@@ -509,6 +538,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: MUTED,
     textAlign: 'center',
+  },
+  verifiedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  verifiedText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 12,
+    color: '#2E7DEB',
   },
   heroDivider: {
     alignSelf: 'stretch',
@@ -681,7 +721,28 @@ const styles = StyleSheet.create({
     borderTopColor: BORDER,
     backgroundColor: PAGE_BG,
   },
+  footerRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  saveBtn: {
+    flex: 0.42,
+    borderWidth: 1,
+    borderColor: NAVY,
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  saveText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 16,
+    color: NAVY,
+    letterSpacing: 0.2,
+  },
   applyBtn: {
+    flex: 0.58,
     backgroundColor: NAVY,
     height: 52,
     borderRadius: 12,

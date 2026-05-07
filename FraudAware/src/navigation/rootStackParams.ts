@@ -11,6 +11,7 @@ export type RootStackParamList = {
   MainTabs: undefined;
   Profile: undefined;
   EditProfile: undefined;
+  Bookmarks: undefined;
   Notifications: { initialTab?: 'general' | 'applications' };
   JobDetails: { jobId: string };
   ApplyJob: { jobId: string };
