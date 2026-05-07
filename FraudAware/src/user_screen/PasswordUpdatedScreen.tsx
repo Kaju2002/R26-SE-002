@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useFonts,
@@ -35,17 +36,13 @@ const ANIM_IN_MS = 320;
 const ANIM_OUT_MS = 220;
 
 type RootParamList = {
-  Onboarding: undefined;
+  PasswordUpdated: undefined;
   Login: undefined;
-  Register: undefined;
-  Verification: { email?: string; flow: 'register' | 'reset' } | undefined;
-  RegistrationSuccess: undefined;
-  MainTabs: undefined;
 };
 
-type Props = NativeStackScreenProps<RootParamList, 'RegistrationSuccess'>;
+type Props = NativeStackScreenProps<RootParamList, 'PasswordUpdated'>;
 
-export default function RegistrationSuccessScreen({ navigation }: Props) {
+export default function PasswordUpdatedScreen({ navigation }: Props) {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -91,7 +88,12 @@ export default function RegistrationSuccessScreen({ navigation }: Props) {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      navigation.replace('MainTabs');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: 'Login' as const }],
+        })
+      );
     });
   };
 
@@ -109,12 +111,10 @@ export default function RegistrationSuccessScreen({ navigation }: Props) {
         pointerEvents="auto"
         style={[styles.backdrop, { opacity: backdropOpacity }]}
       >
-        <Pressable style={StyleSheet.absoluteFill} onPress={() => { /* tap-outside disabled — must press Continue */ }} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={() => {}} />
       </Animated.View>
 
-      <Animated.View
-        style={[styles.sheet, { transform: [{ translateY }] }]}
-      >
+      <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
         <SafeAreaView edges={['bottom']} style={styles.sheetSafe}>
           <View style={styles.handle} />
 
@@ -135,9 +135,9 @@ export default function RegistrationSuccessScreen({ navigation }: Props) {
             </View>
           </View>
 
-          <Text style={styles.title}>Registration Successful</Text>
+          <Text style={styles.title}>Password Updated</Text>
           <Text style={styles.subtitle}>
-            Your account has been created successfully.
+            Your password has been reset.{'\n'}You can sign in with your new password.
           </Text>
 
           <TouchableOpacity
@@ -203,7 +203,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 22,
   },
-  /** Outermost light-lime ring */
   ringOuter: {
     width: RING_OUTER_SIZE,
     height: RING_OUTER_SIZE,
@@ -212,7 +211,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  /** Mid lime ring */
   ringMid: {
     width: RING_MID_SIZE,
     height: RING_MID_SIZE,
@@ -221,7 +219,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  /** Inner solid green disc */
   discInner: {
     width: DISC_INNER_SIZE,
     height: DISC_INNER_SIZE,
@@ -230,7 +227,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  /** Center white bubble holding the check */
   checkBubble: {
     width: CHECK_BUBBLE_SIZE,
     height: CHECK_BUBBLE_SIZE,
@@ -244,7 +240,6 @@ const styles = StyleSheet.create({
     height: 24,
     tintColor: DISC_GREEN,
   },
-  /** Registration Successful — Poppins Medium 20 · #235C04 */
   title: {
     fontFamily: FONT.poppinsMed,
     fontSize: 20,
@@ -253,7 +248,6 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     letterSpacing: -0.2,
   },
-  /** Subtitle — Poppins Regular 14 · #449C0A */
   subtitle: {
     fontFamily: FONT.poppinsReg,
     fontSize: 14,
@@ -270,7 +264,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
-  /** Continue — Poppins Medium 16 · white */
   continueBtnText: {
     fontFamily: FONT.poppinsMed,
     fontSize: 16,
