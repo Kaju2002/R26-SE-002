@@ -6,10 +6,13 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  Pressable,
   ActivityIndicator,
   Alert,
   Platform,
   KeyboardAvoidingView,
+  Keyboard,
+  InteractionManager,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useFocusEffect } from '@react-navigation/native';
@@ -28,6 +31,8 @@ import {
 import RecentScansList from '../components/RecentScansList';
 import type { RecentScanItem } from '../components/ui_component/recentScanTypes';
 import { historyScanToRecentItem } from '../utils/mapHistoryScan';
+import { readClassifyError } from '../utils/readClassifyError';
+import { promptAnalysisServerReady } from '../utils/analysisServerGate';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'MessageAnalyzer'>;
 
@@ -41,28 +46,6 @@ const OCR_MIN_MEANINGFUL_CHARS = 20;
 
 /** Which flow owns the global loading state — keeps the Analyze button truthful for OCR flows. */
 type AnalysisLoadingSource = null | 'paste' | 'screenshot' | 'conversation';
-
-async function readClassifyError(response: Response): Promise<string> {
-  const text = await response.text();
-  try {
-    const j = JSON.parse(text) as { detail?: unknown };
-    if (typeof j.detail === 'string') {
-      return j.detail;
-    }
-    if (Array.isArray(j.detail) && j.detail.length > 0) {
-      const first = j.detail[0] as { msg?: string };
-      if (typeof first?.msg === 'string') {
-        return first.msg;
-      }
-    }
-  } catch {
-    /* fall through */
-  }
-  if (text.length > 0 && text.length < 400) {
-    return text;
-  }
-  return `Request failed (${response.status})`;
-}
 
 export default function MessageAnalyzerScreen({ navigation }: Props) {
   const [messageText, setMessageText] = useState('');
@@ -99,6 +82,12 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       let cancelled = false;
+      /** Avoid keyboard opening on navigation — user taps the field when ready (keeps Recent scans visible). */
+      const interactionHandle = InteractionManager.runAfterInteractions(() => {
+        if (!cancelled) {
+          Keyboard.dismiss();
+        }
+      });
       (async () => {
         await refreshHealthOnly();
         if (!cancelled) {
@@ -107,30 +96,15 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       })();
       return () => {
         cancelled = true;
+        interactionHandle.cancel();
       };
     }, [loadHistory, refreshHealthOnly])
   );
 
   const ensureServerReadyForAnalysis = useCallback(async (): Promise<boolean> => {
-    const h = await fetchHealth();
-    if (!h.ok) {
-      Alert.alert(
-        'Server unavailable',
-        'Could not reach the analysis server. Check your network and that the API is running.'
-      );
-      setAnalysisBlocked(true);
-      return false;
-    }
-    if (!h.modelLoaded) {
-      Alert.alert(
-        'Server unavailable',
-        'The detection model is not loaded on the server yet. Try again in a moment.'
-      );
-      setAnalysisBlocked(true);
-      return false;
-    }
-    setAnalysisBlocked(false);
-    return true;
+    const ok = await promptAnalysisServerReady();
+    setAnalysisBlocked(!ok);
+    return ok;
   }, []);
 
   const confirmDeleteScan = useCallback(
@@ -449,7 +423,11 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
           </View>
         </View>
 
-        <View style={styles.screenBody}>
+        <Pressable
+          style={styles.screenBody}
+          onPress={Keyboard.dismiss}
+          accessible={false}
+        >
           <View style={styles.fixedTopSection}>
           <View style={styles.infoBanner}>
             <Text style={styles.bannerText}>
@@ -472,6 +450,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
             <TextInput
               style={styles.textInput}
               multiline
+              autoFocus={false}
               placeholder="Paste your WhatsApp, Telegram, or SMS message here…"
               placeholderTextColor={GREY_TEXT}
               value={messageText}
@@ -565,6 +544,8 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
             style={styles.recentListScroll}
             contentContainerStyle={styles.recentListContent}
             keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+            onScrollBeginDrag={Keyboard.dismiss}
             showsVerticalScrollIndicator={false}
           >
           <View style={styles.recentSectionHeader}>
@@ -583,7 +564,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
             <RecentScansList scans={recentScans} onDeleteItem={confirmDeleteScan} />
           )}
           </ScrollView>
-        </View>
+        </Pressable>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

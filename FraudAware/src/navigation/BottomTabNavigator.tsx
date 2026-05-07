@@ -1,15 +1,20 @@
 import React from 'react';
 import { Image, StyleSheet, View, Text } from 'react-native';
+import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import DetectNavigator from './DetectNavigator';
 import MyNetworkScreen from '../screens/MyNetworkScreen';
 import PostScreen from '../screens/PostScreen';
-import ChatScreen from '../screens/ChatScreen';
+import ChatNavigator from './ChatNavigator';
 import JobsScreen from '../screens/JobsScreen';
 import ChatIcon from '../components/icons/ChatIcon';
+import { InchatProvider } from '../context/InchatContext';
 
 const Tab = createBottomTabNavigator();
+
+/** Full-screen chat thread — hide tab bar like WhatsApp/iMessage. */
+const HIDDEN_TAB_BAR = { display: 'none' as const, height: 0 };
 
 const NotificationBadge = ({ count }: { count?: number }) => {
   if (!count || count === 0) return null;
@@ -24,16 +29,17 @@ export default function BottomTabNavigator() {
   const unreadChatCount = 4;
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: styles.tabBar,
-        tabBarActiveTintColor: '#202871',
-        tabBarInactiveTintColor: '#798AA3',
-        tabBarLabelStyle: styles.tabBarLabel,
-        tabBarIconStyle: styles.tabBarIcon,
-      }}
-    >
+    <InchatProvider>
+      <Tab.Navigator
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: styles.tabBar,
+          tabBarActiveTintColor: '#202871',
+          tabBarInactiveTintColor: '#798AA3',
+          tabBarLabelStyle: styles.tabBarLabel,
+          tabBarIconStyle: styles.tabBarIcon,
+        }}
+      >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
@@ -84,15 +90,20 @@ export default function BottomTabNavigator() {
       />
       <Tab.Screen
         name="Chat"
-        component={ChatScreen}
-        options={{
-          tabBarLabel: 'Chat',
-          tabBarIcon: ({ color }) => (
-            <View style={styles.iconContainer}>
-              <ChatIcon size={24} color={color} />
-              <NotificationBadge count={unreadChatCount} />
-            </View>
-          ),
+        component={ChatNavigator}
+        options={({ route }) => {
+          const nested = getFocusedRouteNameFromRoute(route) ?? 'InchatInbox';
+          const hideTabBar = nested === 'InchatThread';
+          return {
+            tabBarLabel: 'Chat',
+            tabBarIcon: ({ color }) => (
+              <View style={styles.iconContainer}>
+                <ChatIcon size={24} color={color} />
+                <NotificationBadge count={unreadChatCount} />
+              </View>
+            ),
+            tabBarStyle: hideTabBar ? HIDDEN_TAB_BAR : styles.tabBar,
+          };
         }}
       />
       <Tab.Screen
@@ -111,7 +122,8 @@ export default function BottomTabNavigator() {
           ),
         }}
       />
-    </Tab.Navigator>
+      </Tab.Navigator>
+    </InchatProvider>
   );
 }
 

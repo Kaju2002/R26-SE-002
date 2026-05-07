@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Dimensions,
   Modal,
   Pressable,
   ScrollView,
@@ -10,6 +9,7 @@ import {
   TouchableOpacity,
   View,
   Platform,
+  useWindowDimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { RecentScanItem } from './recentScanTypes';
@@ -28,9 +28,16 @@ const GREY_TEXT = '#6B7280';
 const NAVY = '#202871';
 const SHEET_BG = '#fff';
 
-const SCROLL_MAX_H = Math.round(Dimensions.get('window').height * 0.52);
+/** Share of screen reserved for scroll body — fixed height avoids sheet jumping after load */
+const SCROLL_VIEWPORT_RATIO = 0.48;
+/** Minimum sheet height so grabber + header + scroll + close stay stable while loading */
+const SHEET_MIN_RATIO = 0.56;
 
 export default function RecentScanDetailBottomSheet({ visible, item, onClose }: Props) {
+  const { height: windowHeight } = useWindowDimensions();
+  const scrollViewportH = Math.round(windowHeight * SCROLL_VIEWPORT_RATIO);
+  const sheetMinHeight = Math.round(windowHeight * SHEET_MIN_RATIO);
+
   const [detail, setDetail] = useState<ScanDetailApiResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -103,7 +110,10 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
           accessibilityRole="button"
           accessibilityLabel="Close"
         />
-        <View style={styles.sheet} accessibilityViewIsModal>
+        <View
+          style={[styles.sheet, { minHeight: sheetMinHeight }]}
+          accessibilityViewIsModal
+        >
           <View style={styles.grabberWrap}>
             <View style={styles.grabber} />
           </View>
@@ -144,8 +154,19 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
           </View>
 
           <ScrollView
-            style={[styles.scroll, { maxHeight: SCROLL_MAX_H }]}
-            contentContainerStyle={styles.scrollContent}
+            style={[styles.scroll, { height: scrollViewportH }]}
+            contentContainerStyle={
+              loading
+                ? [
+                    styles.scrollContent,
+                    {
+                      flexGrow: 1,
+                      justifyContent: 'center',
+                      minHeight: scrollViewportH,
+                    },
+                  ]
+                : styles.scrollContent
+            }
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             nestedScrollEnabled
@@ -308,7 +329,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   scroll: {
-    minHeight: 120,
+    flexGrow: 0,
   },
   scrollContent: {
     paddingBottom: 12,
