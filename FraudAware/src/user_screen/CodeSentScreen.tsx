@@ -38,18 +38,22 @@ type RootParamList = {
   Onboarding: undefined;
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined;
+  CodeSent: { email?: string } | undefined;
   Verification: { email?: string; flow: 'register' | 'reset' } | undefined;
   RegistrationSuccess: undefined;
   MainTabs: undefined;
 };
 
-type Props = NativeStackScreenProps<RootParamList, 'RegistrationSuccess'>;
+type Props = NativeStackScreenProps<RootParamList, 'CodeSent'>;
 
-export default function RegistrationSuccessScreen({ navigation }: Props) {
+export default function CodeSentScreen({ navigation, route }: Props) {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
   });
+
+  const email = route?.params?.email;
 
   const translateY = useRef(new Animated.Value(600)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
@@ -91,7 +95,7 @@ export default function RegistrationSuccessScreen({ navigation }: Props) {
         useNativeDriver: true,
       }),
     ]).start(() => {
-      navigation.replace('MainTabs');
+      navigation.replace('Verification', { email, flow: 'reset' });
     });
   };
 
@@ -109,12 +113,10 @@ export default function RegistrationSuccessScreen({ navigation }: Props) {
         pointerEvents="auto"
         style={[styles.backdrop, { opacity: backdropOpacity }]}
       >
-        <Pressable style={StyleSheet.absoluteFill} onPress={() => { /* tap-outside disabled — must press Continue */ }} />
+        <Pressable style={StyleSheet.absoluteFill} onPress={() => { /* tap-outside disabled */ }} />
       </Animated.View>
 
-      <Animated.View
-        style={[styles.sheet, { transform: [{ translateY }] }]}
-      >
+      <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
         <SafeAreaView edges={['bottom']} style={styles.sheetSafe}>
           <View style={styles.handle} />
 
@@ -135,9 +137,9 @@ export default function RegistrationSuccessScreen({ navigation }: Props) {
             </View>
           </View>
 
-          <Text style={styles.title}>Registration Successful</Text>
+          <Text style={styles.title}>Code Sent</Text>
           <Text style={styles.subtitle}>
-            Your account has been created successfully.
+            A code has been sent to the email you entered.
           </Text>
 
           <TouchableOpacity
@@ -203,7 +205,6 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 22,
   },
-  /** Outermost light-lime ring */
   ringOuter: {
     width: RING_OUTER_SIZE,
     height: RING_OUTER_SIZE,
@@ -212,7 +213,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  /** Mid lime ring */
   ringMid: {
     width: RING_MID_SIZE,
     height: RING_MID_SIZE,
@@ -221,7 +221,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  /** Inner solid green disc */
   discInner: {
     width: DISC_INNER_SIZE,
     height: DISC_INNER_SIZE,
@@ -230,7 +229,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  /** Center white bubble holding the check */
   checkBubble: {
     width: CHECK_BUBBLE_SIZE,
     height: CHECK_BUBBLE_SIZE,
@@ -244,7 +242,7 @@ const styles = StyleSheet.create({
     height: 24,
     tintColor: DISC_GREEN,
   },
-  /** Registration Successful — Poppins Medium 20 · #235C04 */
+  /** Code Sent — Poppins Medium 20 · #235C04 */
   title: {
     fontFamily: FONT.poppinsMed,
     fontSize: 20,

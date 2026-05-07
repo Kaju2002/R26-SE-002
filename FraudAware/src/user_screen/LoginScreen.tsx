@@ -36,7 +36,12 @@ const FONT = {
 } as const;
 
 type Props = NativeStackScreenProps<
-  { Login: undefined; Register: undefined; MainTabs: undefined },
+  {
+    Login: undefined;
+    Register: undefined;
+    ForgotPassword: undefined;
+    MainTabs: undefined;
+  },
   'Login'
 >;
 
@@ -129,7 +134,7 @@ export default function LoginScreen({ navigation }: Props) {
 
           <TouchableOpacity
             style={styles.forgotWrap}
-            onPress={() => Alert.alert('Forgot password', 'Reset link flow can be added here.')}
+            onPress={() => navigation.navigate('ForgotPassword')}
             accessibilityRole="button"
           >
             <Text style={styles.forgotText}>Forgot your password?</Text>

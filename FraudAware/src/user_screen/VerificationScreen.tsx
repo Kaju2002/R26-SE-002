@@ -40,8 +40,10 @@ type RootParamList = {
   Onboarding: undefined;
   Login: undefined;
   Register: undefined;
-  Verification: { email?: string } | undefined;
+  Verification: { email?: string; flow: 'register' | 'reset' } | undefined;
   RegistrationSuccess: undefined;
+  NewPassword: { email?: string } | undefined;
+  PasswordUpdated: undefined;
   MainTabs: undefined;
 };
 
@@ -61,6 +63,12 @@ export default function VerificationScreen({ navigation, route }: Props) {
   });
 
   const email = route?.params?.email;
+  const flow = route?.params?.flow ?? 'register';
+
+  const subtitleText =
+    flow === 'reset'
+      ? 'Enter the code we sent to your email to reset your password.'
+      : 'A verification code has been sent to your email.';
 
   const [digits, setDigits] = useState<string[]>(() =>
     Array(OTP_LENGTH).fill('')
@@ -132,7 +140,11 @@ export default function VerificationScreen({ navigation, route }: Props) {
       return;
     }
     inputRefs.current.forEach((r) => r?.blur());
-    navigation.replace('RegistrationSuccess');
+    if (flow === 'reset') {
+      navigation.replace('NewPassword', { email });
+    } else {
+      navigation.replace('RegistrationSuccess');
+    }
   };
 
   if (!fontsLoaded) {
@@ -163,9 +175,7 @@ export default function VerificationScreen({ navigation, route }: Props) {
 
         <View style={styles.body}>
           <Text style={styles.title}>Verification Code</Text>
-          <Text style={styles.subtitle}>
-            A verification code has been sent to{'\n'}your email.
-          </Text>
+          <Text style={styles.subtitle}>{subtitleText}</Text>
 
           <View style={styles.otpRow}>
             {digits.map((d, i) => {

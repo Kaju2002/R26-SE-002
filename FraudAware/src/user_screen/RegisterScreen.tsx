@@ -39,7 +39,7 @@ type RootParamList = {
   Onboarding: undefined;
   Login: undefined;
   Register: undefined;
-  Verification: { email?: string } | undefined;
+  Verification: { email?: string; flow: 'register' | 'reset' } | undefined;
   MainTabs: undefined;
 };
 
@@ -60,7 +60,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const onRegister = () => {
-    navigation.navigate('Verification', { email });
+    navigation.navigate('Verification', { email, flow: 'register' });
   };
 
   if (!fontsLoaded) {
