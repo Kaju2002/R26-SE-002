@@ -4,3 +4,29 @@ services/scam-detection/data/
 phase2_metrics.json
 services/scam-detection/.env
 services/scam-detection/models/
+
+# Ignore Python virtual environments
+.venv/
+env/
+
+# Ignore all data and model folders in any service
+**/data/
+**/models/
+
+# Ignore all CSV, pickle, and joblib files anywhere
+*.csv
+*.pkl
+*.joblib
+*.h5
+
+# Ignore Python cache and OS files
+__pycache__/
+*.pyc
+.DS_Store
+Thumbs.db
+
+# Ignore environment files
+*.env
+
+# Ignore Jupyter notebook checkpoints
+.ipynb_checkpoints/
