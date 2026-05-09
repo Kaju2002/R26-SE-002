@@ -1,4 +1,13 @@
+import logging
+import sys
 import requests
+from app.employer_verification_model.scoring_layer import calculate_final_score
+
+# Configure root logger to stdout at DEBUG level so prints/logging show in terminal
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(name)s: %(message)s')
+logger = logging.getLogger(__name__)
+
 def search_company_website(company_name: str) -> str:
     """
     Search for company website with Sri Lanka (.lk) preference using duckduckgo_search.
@@ -71,13 +80,15 @@ SUSPICIOUS_TLDS = [".xyz", ".club", ".biz", ".online", ".site", ".info", ".io"]
 def extract_features_from_input(input: CompanyInput):
     features = {col: 0 for col in feature_cols}
     info_available = []
+
+    # Normal path: all companies go through the same extraction flow.
     # Registration & professional presence
     reg_signals = {"is_cse_listed": 0, "is_boi_registered": 0, "is_cbsl_licensed": 0}
     prof_signals = {"has_linkedin": 0, "has_topjobs": 0, "has_glassdoor": 0, "has_indeed": 0, "has_ftlk": 0, "has_adaderana": 0, "has_scam_report": 0}
     if input.company_name:
         from app.employer_verification_model.registration_utils import check_registration_status, check_professional_presence
-        reg_signals = check_registration_status(input.company_name)
-        prof_signals = check_professional_presence(input.company_name)
+        reg_signals = check_registration_status(input.company_name, input.website_url)
+        prof_signals = check_professional_presence(input.company_name, input.website_url)
         features.update(reg_signals)
         features.update(prof_signals)
         info_available.append('company_name')
@@ -172,82 +183,21 @@ def predict_company(input: CompanyInput):
     pred = model.predict(X)[0]
     proba = model.predict_proba(X)[0][int(pred)]
 
-    # --- Risk scoring logic ---
-    # Simple weighted sum for demonstration; adjust as needed
-    score = 0
-    evidence = []
-    # Registration signals (strongest)
-    if features.get('is_cse_listed', 0):
-        score -= 30
-        evidence.append('Listed on Colombo Stock Exchange')
-    if features.get('is_boi_registered', 0):
-        score -= 20
-        evidence.append('Registered with Board of Investment')
-    if features.get('is_cbsl_licensed', 0):
-        score -= 20
-        evidence.append('Licensed by Central Bank of Sri Lanka')
-    # Professional presence
-    if features.get('has_linkedin', 0):
-        score -= 10
-        evidence.append('Has LinkedIn company page')
-    if features.get('has_topjobs', 0):
-        score -= 8
-        evidence.append('Listed on topjobs.lk')
-    if features.get('has_glassdoor', 0):
-        score -= 6
-        evidence.append('Has Glassdoor reviews')
-    if features.get('has_indeed', 0):
-        score -= 6
-        evidence.append('Has Indeed reviews')
-    if features.get('has_ftlk', 0):
-        score -= 5
-        evidence.append('Mentioned in FT.lk business news')
-    if features.get('has_adaderana', 0):
-        score -= 5
-        evidence.append('Mentioned in AdaDerana business news')
-    # Scam signals
-    if features.get('has_scam_report', 0):
-        score += 40
-        evidence.append('Scam report found on ikman/reddit/facebook/scamadviser')
-    if features.get('has_payment_risk', 0):
-        score += 20
-        evidence.append('Payment risk detected (advance fee, crypto, etc.)')
-    if features.get('has_urgency_language', 0):
-        score += 10
-        evidence.append('Urgency language detected')
-    if features.get('scam_score', 0) > 0:
-        score += 10
-        evidence.append('Scam keywords detected on website')
-    # Digital presence
-    if features.get('has_https', 0):
-        score -= 2
-        evidence.append('Website uses HTTPS')
-    if features.get('has_privacy_policy', 0):
-        score -= 2
-        evidence.append('Website has privacy policy')
-    if features.get('has_terms', 0):
-        score -= 2
-        evidence.append('Website has terms and conditions')
-    if features.get('has_about', 0):
-        score -= 2
-        evidence.append('Website has About page')
-    if features.get('has_contact', 0):
-        score -= 2
-        evidence.append('Website has Contact page')
-    # Clamp score to 0-100
-    risk_score = max(0, min(100, 50 + score))
-    # Risk level
-    if risk_score <= 30:
-        risk_level = 'Low'
-        recommendation = 'Company shows strong legitimacy signals. Safe to apply.'
-    elif risk_score <= 60:
-        risk_level = 'Medium'
-        recommendation = 'Could not fully verify. Proceed with caution.'
+    # --- NEW: Rule-based scoring layer with registration + reputation checks ---
+    if not input.company_name:
+        company_name = "Unknown"
     else:
-        risk_level = 'High'
-        recommendation = 'Multiple fraud indicators detected. Avoid or verify further.'
-    # Also include original prediction/probability/confidence/warning/features_used
-    # Confidence logic (copied from previous logic)
+        company_name = input.company_name
+
+    # Use the new scoring layer
+    score_result = calculate_final_score(
+        ml_probability=float(proba),
+        company_name=company_name,
+        website=input.website_url,
+        features=features,
+    )
+
+    # Confidence logic (unchanged)
     content_signals = [
         features.get("content_length", 0) < 100,
         features.get("has_about", 0) in [0, -1],
@@ -264,7 +214,7 @@ def predict_company(input: CompanyInput):
         prediction = "Unknown"
         probability = 0.0
         confidence = "low"
-        warning = "Not enough information provided. Please provide at least a website or email for a meaningful prediction."
+        warning = "Not enough information provided. Please provide at least a company name and website for a meaningful prediction."
     elif len(info_available) == 1 or low_confidence:
         prediction = "Legit" if pred == 1 else "Fake"
         probability = min(float(proba), 0.65)
@@ -282,10 +232,13 @@ def predict_company(input: CompanyInput):
         "confidence": confidence,
         "warning": warning,
         "features_used": features,
-        "risk_score": risk_score,
-        "risk_level": risk_level,
-        "evidence": evidence,
-        "recommendation": recommendation
+        "risk_score": score_result["legitimacy_score"],
+        "risk_level": score_result["risk_level"],
+        "verdict": score_result["verdict"],
+        "color": score_result["color"],
+        "evidence": score_result["evidence"],
+        "recommendation": score_result["recommendation"],
+        "score_breakdown": score_result["score_breakdown"]
     }
 
 @app.get("/")
