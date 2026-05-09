@@ -5,11 +5,11 @@ import {
   FlatList,
   KeyboardAvoidingView,
   ListRenderItem,
+  Modal,
   Platform,
   Pressable,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -32,6 +32,9 @@ import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from '../components/inchat/i
 import type { MergeableApiResult } from '../navigation/detectStackTypes';
 
 type Props = NativeStackScreenProps<ChatStackParamList, 'InchatThread'>;
+type ThreadRow =
+  | { type: 'date'; id: string; label: string }
+  | { type: 'message'; id: string; message: InchatMessage };
 
 function transcriptFromMessages(messages: InchatMessage[]): string {
   return messages
@@ -39,12 +42,27 @@ function transcriptFromMessages(messages: InchatMessage[]): string {
     .join('\n\n');
 }
 
+function dateLabelForMessage(message: InchatMessage): string {
+  if (message.createdAtIso) {
+    const d = new Date(message.createdAtIso);
+    const today = new Date();
+    const isSameDate =
+      d.getFullYear() === today.getFullYear() &&
+      d.getMonth() === today.getMonth() &&
+      d.getDate() === today.getDate();
+    return isSameDate
+      ? 'Today'
+      : d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+  return /\d{1,2}:\d{2}/.test(message.timeLabel) ? 'Today' : message.timeLabel;
+}
+
 export default function InchatThreadScreen({ navigation, route }: Props) {
   const { threadId } = route.params;
   const thread = getInchatThreadById(threadId);
-  const { getCombinedMessages, appendUserMessage } = useInchat();
+  const { getCombinedMessages, appendUserMessage, editUserMessageState } = useInchat();
   const insets = useSafeAreaInsets();
-  const listRef = useRef<FlatList<InchatMessage>>(null);
+  const listRef = useRef<FlatList<ThreadRow>>(null);
 
   const [draft, setDraft] = useState('');
   const [sendBusy, setSendBusy] = useState(false);
@@ -55,10 +73,25 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     pastedMessage: string;
   }>({ visible: false, result: null, pastedMessage: '' });
 
+  const [threadMenuVisible, setThreadMenuVisible] = useState(false);
+
   const messages = useMemo(() => getCombinedMessages(threadId), [getCombinedMessages, threadId]);
 
   const transcript = useMemo(() => transcriptFromMessages(messages), [messages]);
   const hasTranscript = transcript.trim().length > 0;
+  const rows = useMemo<ThreadRow[]>(() => {
+    const out: ThreadRow[] = [];
+    let prevDate = '';
+    for (const m of messages) {
+      const d = dateLabelForMessage(m);
+      if (d !== prevDate) {
+        out.push({ type: 'date', id: `date-${d}-${m.id}`, label: d });
+        prevDate = d;
+      }
+      out.push({ type: 'message', id: m.id, message: m });
+    }
+    return out;
+  }, [messages]);
 
   useEffect(() => {
     requestAnimationFrame(() => {
@@ -66,12 +99,53 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     });
   }, [messages.length]);
 
-  const renderItem: ListRenderItem<InchatMessage> = useCallback(
-    ({ item }) => <InchatMessageBubble message={item} />,
-    []
+  const onMessageLongPress = useCallback(
+    (message: InchatMessage) => {
+      const isLocalUser = message.role === 'user' && message.id.startsWith('local-');
+      if (!isLocalUser) return;
+      Alert.alert('Message options', 'Choose an action for your message.', [
+        {
+          text: 'Delete for me',
+          style: 'destructive',
+          onPress: () => {
+            void editUserMessageState(threadId, message.id, 'delete');
+          },
+        },
+        {
+          text: 'Unsend',
+          onPress: () => {
+            void editUserMessageState(threadId, message.id, 'unsend');
+          },
+        },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    },
+    [editUserMessageState, threadId]
   );
 
-  const keyExtractor = useCallback((m: InchatMessage) => m.id, []);
+  const renderItem: ListRenderItem<ThreadRow> = useCallback(
+    ({ item }) => {
+      if (item.type === 'date') {
+        return (
+          <View style={styles.dateRow}>
+            <Text style={styles.datePill}>{item.label}</Text>
+          </View>
+        );
+      }
+      const canOpenMenu = item.message.role === 'user' && item.message.id.startsWith('local-');
+      if (!canOpenMenu) {
+        return <InchatMessageBubble message={item.message} />;
+      }
+      return (
+        <Pressable onLongPress={() => onMessageLongPress(item.message)} delayLongPress={260}>
+          <InchatMessageBubble message={item.message} />
+        </Pressable>
+      );
+    },
+    [onMessageLongPress]
+  );
+
+  const keyExtractor = useCallback((r: ThreadRow) => r.id, []);
 
   const onSend = useCallback(async () => {
     const text = draft.trim();
@@ -169,6 +243,20 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     setAnalysisSheet((s) => ({ ...s, visible: false }));
   }, []);
 
+  const closeThreadMenu = useCallback(() => setThreadMenuVisible(false), []);
+
+  const openThreadMenu = useCallback(() => setThreadMenuVisible(true), []);
+
+  const onMenuCheckConversation = useCallback(() => {
+    closeThreadMenu();
+    void onAnalyzeConversation();
+  }, [closeThreadMenu, onAnalyzeConversation]);
+
+  const onMenuMessageAnalyzer = useCallback(() => {
+    closeThreadMenu();
+    navigateToMessageAnalyzer(navigation);
+  }, [closeThreadMenu, navigation]);
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
@@ -190,14 +278,32 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             </Text>
           ) : null}
         </View>
-        <Pressable
-          style={styles.analyzeBtn}
-          onPress={() => navigateToMessageAnalyzer(navigation)}
-          accessibilityRole="button"
-          accessibilityLabel="Open message analyzer"
-        >
-          <MaterialCommunityIcons name="shield-search" size={22} color={INCHAT_NAVY} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            style={[
+              styles.headerIconBtn,
+              (!hasTranscript || analyzeBusy) && styles.headerIconBtnMuted,
+            ]}
+            onPress={() => void onAnalyzeConversation()}
+            disabled={analyzeBusy}
+            accessibilityRole="button"
+            accessibilityLabel="Check conversation for scams"
+          >
+            {analyzeBusy ? (
+              <ActivityIndicator color={INCHAT_NAVY} size="small" />
+            ) : (
+              <MaterialCommunityIcons name="shield-check-outline" size={24} color={INCHAT_NAVY} />
+            )}
+          </Pressable>
+          <Pressable
+            style={styles.headerIconBtn}
+            onPress={openThreadMenu}
+            accessibilityRole="button"
+            accessibilityLabel="More tools"
+          >
+            <MaterialCommunityIcons name="dots-vertical" size={24} color={INCHAT_NAVY} />
+          </Pressable>
+        </View>
       </View>
 
       <KeyboardAvoidingView
@@ -207,7 +313,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
       >
         <FlatList
           ref={listRef}
-          data={messages}
+          data={rows}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           contentContainerStyle={styles.listPad}
@@ -223,19 +329,6 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         />
 
         <View style={[styles.footerCol, { paddingBottom: Math.max(insets.bottom, 10) }]}>
-          <TouchableOpacity
-            style={[styles.analyzeStrip, (!hasTranscript || analyzeBusy) && styles.analyzeStripDisabled]}
-            onPress={onAnalyzeConversation}
-            disabled={!hasTranscript || analyzeBusy}
-            accessibilityRole="button"
-            accessibilityLabel="Analyze full conversation"
-          >
-            {analyzeBusy ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.analyzeStripLabel}>Analyze conversation</Text>
-            )}
-          </TouchableOpacity>
           <InchatComposer
             value={draft}
             onChangeText={setDraft}
@@ -252,6 +345,49 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         result={analysisSheet.result}
         pastedMessage={analysisSheet.pastedMessage}
       />
+      <Modal
+        visible={threadMenuVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={closeThreadMenu}
+        statusBarTranslucent
+      >
+        <View style={styles.menuOverlay}>
+          <Pressable
+            style={styles.menuBackdrop}
+            onPress={closeThreadMenu}
+            accessibilityLabel="Dismiss menu"
+          />
+          <View
+            style={[
+              styles.menuPanel,
+              {
+                top: insets.top + 52,
+              },
+            ]}
+          >
+            <Pressable
+              style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
+              onPress={onMenuCheckConversation}
+              accessibilityRole="button"
+              accessibilityLabel="Check conversation"
+            >
+              <MaterialCommunityIcons name="shield-check-outline" size={22} color={INCHAT_NAVY} />
+              <Text style={styles.menuRowLabel}>Check conversation</Text>
+            </Pressable>
+            <View style={styles.menuDivider} />
+            <Pressable
+              style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
+              onPress={onMenuMessageAnalyzer}
+              accessibilityRole="button"
+              accessibilityLabel="Open Message Analyzer"
+            >
+              <MaterialCommunityIcons name="shield-search" size={22} color={INCHAT_NAVY} />
+              <Text style={styles.menuRowLabel}>Message Analyzer</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -294,11 +430,19 @@ const styles = StyleSheet.create({
     color: INCHAT_MUTED,
     marginTop: 2,
   },
-  analyzeBtn: {
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  headerIconBtn: {
     width: 44,
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerIconBtnMuted: {
+    opacity: 0.38,
   },
   listPad: {
     paddingHorizontal: 14,
@@ -315,25 +459,62 @@ const styles = StyleSheet.create({
     color: INCHAT_MUTED,
     fontWeight: '600',
   },
+  dateRow: {
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  datePill: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6B7280',
+    backgroundColor: '#ECEFF4',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 999,
+  },
   footerCol: {
     backgroundColor: '#fff',
   },
-  analyzeStrip: {
-    marginHorizontal: 14,
-    marginBottom: 6,
-    paddingVertical: 12,
+  menuOverlay: {
+    flex: 1,
+  },
+  menuBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+  },
+  menuPanel: {
+    position: 'absolute',
+    right: 8,
+    minWidth: 216,
+    backgroundColor: '#fff',
     borderRadius: 12,
-    backgroundColor: INCHAT_NAVY,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: INCHAT_BORDER,
+    paddingVertical: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  menuRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 44,
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
-  analyzeStripDisabled: {
-    opacity: 0.45,
+  menuRowPressed: {
+    backgroundColor: '#F3F5F9',
   },
-  analyzeStripLabel: {
-    color: '#fff',
+  menuRowLabel: {
     fontSize: 15,
-    fontWeight: '800',
+    fontWeight: '600',
+    color: INCHAT_NAVY,
+  },
+  menuDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: INCHAT_BORDER,
+    marginHorizontal: 10,
   },
 });

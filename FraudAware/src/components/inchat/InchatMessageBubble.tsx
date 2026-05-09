@@ -9,10 +9,19 @@ type Props = {
 
 export default function InchatMessageBubble({ message }: Props) {
   const mine = message.role === 'user';
+  const isUnsent = message.unsent === true;
   return (
     <View style={[styles.wrap, mine ? styles.wrapMine : styles.wrapTheirs]}>
       <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
-        <Text style={[styles.body, mine ? styles.bodyMine : styles.bodyTheirs]}>{message.body}</Text>
+        <Text
+          style={[
+            styles.body,
+            mine ? styles.bodyMine : styles.bodyTheirs,
+            isUnsent && styles.bodyUnsent,
+          ]}
+        >
+          {message.body}
+        </Text>
         <Text style={[styles.time, mine ? styles.timeMine : styles.timeTheirs]}>{message.timeLabel}</Text>
       </View>
     </View>
@@ -54,6 +63,10 @@ const styles = StyleSheet.create({
   },
   bodyTheirs: {
     color: '#1F2937',
+  },
+  bodyUnsent: {
+    fontStyle: 'italic',
+    opacity: 0.8,
   },
   time: {
     fontSize: 11,

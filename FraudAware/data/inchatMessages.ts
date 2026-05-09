@@ -11,6 +11,10 @@ export type InchatMessage = {
   body: string;
   /** Short clock label for demo */
   timeLabel: string;
+  /** Optional machine timestamp for grouping and sorting local messages. */
+  createdAtIso?: string;
+  /** True when sender unsent the message in this demo UI. */
+  unsent?: boolean;
 };
 
 export const INCHAT_MESSAGES_BY_THREAD: Record<string, InchatMessage[]> = {

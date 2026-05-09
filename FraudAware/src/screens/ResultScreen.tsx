@@ -16,7 +16,9 @@ import type { DetectStackParamList } from '../navigation/detectStackTypes';
 import type { AnalysisPayload } from '../navigation/detectStackTypes';
 import { analysisPayloadFromApi } from '../utils/mergeAnalysisResult';
 import { saveAnalysisSnapshot } from '../utils/saveAnalysisSnapshot';
-import AnalysisResultContent from '../components/analysis/AnalysisResultContent';
+import AnalysisResultContent, {
+  AnalysisVerdictBanner,
+} from '../components/analysis/AnalysisResultContent';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'ResultScreen'>;
 
@@ -125,39 +127,45 @@ export default function ResultScreen({ navigation, route }: Props) {
           </View>
         </View>
       ) : null}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={[styles.scroll, { paddingBottom: scrollPaddingBottom }]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
-        <AnalysisResultContent
-          payload={payload}
-          showScreenshotSource={Boolean(isImage && imageUri)}
-        />
-
-        <View style={styles.footerSpacer} />
-
-        <View style={styles.footerRow}>
-          <TouchableOpacity
-            style={[styles.btnOutline, { borderColor: BUTTON_NAVY }]}
-            onPress={onSave}
-            disabled={saving}
-          >
-            {saving ? (
-              <ActivityIndicator color={BUTTON_NAVY} />
-            ) : (
-              <Text style={[styles.btnOutlineText, { color: BUTTON_NAVY }]}>Save</Text>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.btnFilled, { backgroundColor: BUTTON_NAVY }]}
-            onPress={() => navigation.navigate('MessageAnalyzer')}
-          >
-            <Text style={styles.btnFilledText}>Analyze Another</Text>
-          </TouchableOpacity>
+      <View style={styles.bodyColumn}>
+        <View style={styles.verdictSticky}>
+          <AnalysisVerdictBanner payload={payload} style={styles.verdictBannerFlush} />
         </View>
-      </ScrollView>
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={[styles.scroll, { paddingBottom: scrollPaddingBottom }]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <AnalysisResultContent
+            payload={payload}
+            showScreenshotSource={Boolean(isImage && imageUri)}
+            omitVerdictBanner
+          />
+
+          <View style={styles.footerSpacer} />
+
+          <View style={styles.footerRow}>
+            <TouchableOpacity
+              style={[styles.btnOutline, { borderColor: BUTTON_NAVY }]}
+              onPress={onSave}
+              disabled={saving}
+            >
+              {saving ? (
+                <ActivityIndicator color={BUTTON_NAVY} />
+              ) : (
+                <Text style={[styles.btnOutlineText, { color: BUTTON_NAVY }]}>Save</Text>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.btnFilled, { backgroundColor: BUTTON_NAVY }]}
+              onPress={() => navigation.navigate('MessageAnalyzer')}
+            >
+              <Text style={styles.btnFilledText}>Analyze Another</Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -176,13 +184,28 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E8EDF5',
     backgroundColor: '#FAFAFB',
   },
+  bodyColumn: {
+    flex: 1,
+  },
+  verdictSticky: {
+    flexShrink: 0,
+    paddingHorizontal: 16,
+    paddingTop: 8,
+    paddingBottom: 12,
+    backgroundColor: '#FAFAFB',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#E8EDF5',
+  },
+  verdictBannerFlush: {
+    marginBottom: 0,
+  },
   scrollView: {
     flex: 1,
   },
   scroll: {
     flexGrow: 1,
     paddingHorizontal: 16,
-    paddingTop: 4,
+    paddingTop: 12,
   },
   conversationBadge: {
     flexDirection: 'row',
