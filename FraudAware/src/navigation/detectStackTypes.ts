@@ -34,6 +34,9 @@ export type DetectStackParamList = {
   JobPost: undefined;
   JobPostResult: JobPostResultParams;
   EmployerCheckScreen: undefined;
+  EmployerResult: {
+    result?: MergeableApiResult;
+  };
   ResultScreen: {
     /** When omitted, scam sample JSON is shown */
     analysis?: AnalysisPayload;
