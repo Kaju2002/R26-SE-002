@@ -71,6 +71,16 @@ SUSPICIOUS_TLDS = [".xyz", ".club", ".biz", ".online", ".site", ".info", ".io"]
 def extract_features_from_input(input: CompanyInput):
     features = {col: 0 for col in feature_cols}
     info_available = []
+    # Registration & professional presence
+    reg_signals = {"is_cse_listed": 0, "is_boi_registered": 0, "is_cbsl_licensed": 0}
+    prof_signals = {"has_linkedin": 0, "has_topjobs": 0, "has_glassdoor": 0, "has_indeed": 0, "has_ftlk": 0, "has_adaderana": 0, "has_scam_report": 0}
+    if input.company_name:
+        from app.employer_verification_model.registration_utils import check_registration_status, check_professional_presence
+        reg_signals = check_registration_status(input.company_name)
+        prof_signals = check_professional_presence(input.company_name)
+        features.update(reg_signals)
+        features.update(prof_signals)
+        info_available.append('company_name')
     # Website features
     url = input.website_url
     auto_searched = False
@@ -115,9 +125,11 @@ def extract_features_from_input(input: CompanyInput):
                 "urgent", "apply now", "limited time", "registration fee", "payment required",
                 "bitcoin", "crypto", "wire transfer", "guaranteed job", "no experience needed",
                 "earn money fast", "work from home easily"
-            ] if word in web_text)
-            features['has_privacy_policy'] = int("privacy policy" in web_text)
-            features['has_terms'] = int(any(t in web_text for t in ["terms and conditions", "terms of service", "terms of use"]))
+            ] if word in web_text.lower())
+            # Broaden detection for privacy policy and terms
+            web_text_lower = web_text.lower()
+            features['has_privacy_policy'] = int(any(t in web_text_lower for t in ["privacy policy", "privacy", "policy"]))
+            features['has_terms'] = int(any(t in web_text_lower for t in ["terms", "conditions", "terms and conditions", "terms of service", "terms of use", "t&c"]))
             features['has_payment_risk'] = int(any(k in web_text for k in [
                 "cryptocurrency", "bitcoin", "btc", "usdt", "wire transfer",
                 "western union", "moneygram", "cash app", "send money first",
@@ -153,7 +165,6 @@ def extract_features_from_input(input: CompanyInput):
 @app.post("/predict")
 def predict_company(input: CompanyInput):
     features, info_available = extract_features_from_input(input)
-    # Debug printout of features
     print("\n[DEBUG] Features sent to model:")
     for k, v in features.items():
         print(f"  {k}: {v}")
@@ -161,7 +172,82 @@ def predict_company(input: CompanyInput):
     pred = model.predict(X)[0]
     proba = model.predict_proba(X)[0][int(pred)]
 
-    # Confidence logic
+    # --- Risk scoring logic ---
+    # Simple weighted sum for demonstration; adjust as needed
+    score = 0
+    evidence = []
+    # Registration signals (strongest)
+    if features.get('is_cse_listed', 0):
+        score -= 30
+        evidence.append('Listed on Colombo Stock Exchange')
+    if features.get('is_boi_registered', 0):
+        score -= 20
+        evidence.append('Registered with Board of Investment')
+    if features.get('is_cbsl_licensed', 0):
+        score -= 20
+        evidence.append('Licensed by Central Bank of Sri Lanka')
+    # Professional presence
+    if features.get('has_linkedin', 0):
+        score -= 10
+        evidence.append('Has LinkedIn company page')
+    if features.get('has_topjobs', 0):
+        score -= 8
+        evidence.append('Listed on topjobs.lk')
+    if features.get('has_glassdoor', 0):
+        score -= 6
+        evidence.append('Has Glassdoor reviews')
+    if features.get('has_indeed', 0):
+        score -= 6
+        evidence.append('Has Indeed reviews')
+    if features.get('has_ftlk', 0):
+        score -= 5
+        evidence.append('Mentioned in FT.lk business news')
+    if features.get('has_adaderana', 0):
+        score -= 5
+        evidence.append('Mentioned in AdaDerana business news')
+    # Scam signals
+    if features.get('has_scam_report', 0):
+        score += 40
+        evidence.append('Scam report found on ikman/reddit/facebook/scamadviser')
+    if features.get('has_payment_risk', 0):
+        score += 20
+        evidence.append('Payment risk detected (advance fee, crypto, etc.)')
+    if features.get('has_urgency_language', 0):
+        score += 10
+        evidence.append('Urgency language detected')
+    if features.get('scam_score', 0) > 0:
+        score += 10
+        evidence.append('Scam keywords detected on website')
+    # Digital presence
+    if features.get('has_https', 0):
+        score -= 2
+        evidence.append('Website uses HTTPS')
+    if features.get('has_privacy_policy', 0):
+        score -= 2
+        evidence.append('Website has privacy policy')
+    if features.get('has_terms', 0):
+        score -= 2
+        evidence.append('Website has terms and conditions')
+    if features.get('has_about', 0):
+        score -= 2
+        evidence.append('Website has About page')
+    if features.get('has_contact', 0):
+        score -= 2
+        evidence.append('Website has Contact page')
+    # Clamp score to 0-100
+    risk_score = max(0, min(100, 50 + score))
+    # Risk level
+    if risk_score <= 30:
+        risk_level = 'Low'
+        recommendation = 'Company shows strong legitimacy signals. Safe to apply.'
+    elif risk_score <= 60:
+        risk_level = 'Medium'
+        recommendation = 'Could not fully verify. Proceed with caution.'
+    else:
+        risk_level = 'High'
+        recommendation = 'Multiple fraud indicators detected. Avoid or verify further.'
+    # Also include original prediction/probability/confidence/warning/features_used
+    # Confidence logic (copied from previous logic)
     content_signals = [
         features.get("content_length", 0) < 100,
         features.get("has_about", 0) in [0, -1],
@@ -174,34 +260,33 @@ def predict_company(input: CompanyInput):
     missing_signals = sum(content_signals)
     low_confidence = scrape_failed or missing_signals >= 4
 
-    # Confidence warning if minimal info
     if not info_available:
-        return {
-            "prediction": "Unknown",
-            "probability": 0.0,
-            "confidence": "low",
-            "warning": "Not enough information provided. Please provide at least a website or email for a meaningful prediction.",
-            "features_used": features
-        }
+        prediction = "Unknown"
+        probability = 0.0
+        confidence = "low"
+        warning = "Not enough information provided. Please provide at least a website or email for a meaningful prediction."
     elif len(info_available) == 1 or low_confidence:
-        capped_proba = min(float(proba), 0.65)
-        resp = {
-            "prediction": "Legit" if pred == 1 else "Fake",
-            "probability": capped_proba,
-            "confidence": "low",
-            "warning": "Low confidence — website could not be fully scanned or too little information. More information (website and email) will improve accuracy.",
-            "features_used": features
-        }
-        if features.get('auto_searched_website'):
-            resp["auto_searched_website"] = True
-        return resp
+        prediction = "Legit" if pred == 1 else "Fake"
+        probability = min(float(proba), 0.65)
+        confidence = "low"
+        warning = "Low confidence — website could not be fully scanned or too little information. More information (website and email) will improve accuracy."
     else:
-        return {
-            "prediction": "Legit" if pred == 1 else "Fake",
-            "probability": float(proba),
-            "confidence": "high",
-            "features_used": features
-        }
+        prediction = "Legit" if pred == 1 else "Fake"
+        probability = float(proba)
+        confidence = "high"
+        warning = None
+
+    return {
+        "prediction": prediction,
+        "probability": probability,
+        "confidence": confidence,
+        "warning": warning,
+        "features_used": features,
+        "risk_score": risk_score,
+        "risk_level": risk_level,
+        "evidence": evidence,
+        "recommendation": recommendation
+    }
 
 @app.get("/")
 def root():
