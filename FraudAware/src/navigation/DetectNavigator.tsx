@@ -6,6 +6,7 @@ import JobPostScreen from '../screens/JobPostScreen';
 import JobPostResultScreen from '../screens/JobPostResultScreen';
 import EmployerCheckScreen from '../screens/EmployerCheckScreen';
 import ResultScreen from '../screens/ResultScreen';
+import EmployerResultScreen from '../screens/EmployerResultScreen';
 import type { DetectStackParamList } from './detectStackTypes';
 
 const Stack = createNativeStackNavigator<DetectStackParamList>();
@@ -26,6 +27,7 @@ export default function DetectNavigator() {
       <Stack.Screen name="JobPost" component={JobPostScreen} />
       <Stack.Screen name="JobPostResult" component={JobPostResultScreen} />
       <Stack.Screen name="EmployerCheckScreen" component={EmployerCheckScreen} />
+      <Stack.Screen name="EmployerResult" component={EmployerResultScreen} />
       <Stack.Screen name="ResultScreen" component={ResultScreen} />
     </Stack.Navigator>
   );
