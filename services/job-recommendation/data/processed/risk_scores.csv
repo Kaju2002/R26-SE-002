@@ -1,0 +1,1168 @@
+job_id,fake_job_indicator,employer_indicator,comm_scam_indicator,fake_job_num,employer_num,comm_scam_num,risk_score,safety_score
+3902668440,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905823748,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905854799,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905834061,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906250451,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901389277,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902348043,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906258424,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3891070825,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901949090,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903461892,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891073623,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894573937,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901372502,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901176444,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905824247,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905340218,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902344478,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905690261,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900984023,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905835705,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891011926,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903808419,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904415999,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884899919,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901662440,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891070846,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901661179,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901982681,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906086110,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906258049,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884809131,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905239401,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900977307,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3884440664,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905292617,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902339909,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901942387,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884818696,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888951704,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904944888,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905336528,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902830704,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900085113,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899544157,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902806579,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901343703,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899526643,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901650285,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900082118,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894947629,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901939857,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905297142,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902829415,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3894288438,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902880391,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904991969,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3886485488,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902876855,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894278517,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884912913,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902810661,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898137449,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904923783,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3887835929,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902740857,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3715891138,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904406321,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3891014745,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902747307,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3906227054,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905298637,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898176212,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899526653,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3901635742,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3899523473,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903896684,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884432431,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904373238,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900945008,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901983432,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887475102,Not Fake,Fake Company,Scam,0.0,1.0,1.0,0.750102905673708,0.24989709432629204
+3902351802,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905272928,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891077739,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902835237,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884841822,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901936391,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902357327,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902364806,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902828543,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902752787,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901636810,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887474527,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901349998,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904947962,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904086620,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887481930,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891005007,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905882432,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898173889,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901630033,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905304763,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891081144,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902831427,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3890895200,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901483670,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894877672,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889758336,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905288339,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905822969,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905297820,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903477580,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3906230219,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905264431,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904364112,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901635707,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3899539354,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3903451207,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905862468,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894293970,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902834350,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903458736,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904718244,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902805250,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3890898270,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904583492,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3902347377,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3898167129,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901392513,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903839290,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901932974,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905339352,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900066258,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905350403,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3903855227,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904382813,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905381062,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905876643,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905202804,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894550753,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887883158,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903487939,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905240750,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901340617,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3885116060,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901672756,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906221851,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902925156,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884832831,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886896748,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904923211,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3895849293,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905251874,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901167349,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901632117,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904710183,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3862673730,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904084041,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904388397,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904930352,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904967523,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899534687,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894554212,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902845594,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3906223649,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905821383,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905255940,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904576579,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884810573,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905202142,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888028986,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906086601,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906223265,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887485850,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900944058,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904726452,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891805744,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900077027,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902862891,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904923034,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901367788,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895540768,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3898160952,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3901348324,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904574976,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905878233,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901963384,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904085727,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903453711,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906251112,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903813606,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901967275,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3898162673,Not Fake,Fake Company,Scam,0.0,1.0,1.0,0.750102905673708,0.24989709432629204
+3906222901,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895801271,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902933509,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905217845,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3890896173,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902875974,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887107156,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884819780,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901167325,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905878349,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3904986478,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905863460,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905871298,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905247322,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903445892,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905849388,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903846584,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894586785,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891808187,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902315334,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894925340,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902953786,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904973138,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889702368,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901981049,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903867896,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904001514,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902828915,Not Fake,Fake Company,Scam,0.0,1.0,1.0,0.750102905673708,0.24989709432629204
+3902759048,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902843719,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905849817,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889718108,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902329403,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904403623,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894285424,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901351878,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902913489,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898167090,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886447150,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904383649,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900980589,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891069921,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901628270,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900077466,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900964493,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901938160,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891014898,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901346547,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901351909,Fake,Fake Company,Scam,1.0,1.0,1.0,1.0,0.0
+3903442852,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898167161,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902357305,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901662645,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901945176,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3888944107,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3885389087,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903183717,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902948188,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905818819,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3899930726,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901959141,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904980941,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902808076,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905291797,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902931012,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898173401,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891071402,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884438248,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904965070,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884806586,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891072419,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902346349,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905228029,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884440568,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905834461,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905237946,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898161326,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903807715,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894299307,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3890895296,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3904388966,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904511283,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902776458,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905326659,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900962717,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891069919,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889439746,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902828671,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891079268,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901942048,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903453569,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902921025,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900961193,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891252828,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901352795,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905298038,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901981623,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905826143,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3900962646,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903458683,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906074575,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905655160,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905871177,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901979134,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902362545,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905855841,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904722499,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891285058,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902869241,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3895200298,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899521894,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901940098,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3901666087,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902814456,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905376504,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905238300,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905290997,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902801404,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905343965,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904922553,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3900955363,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904098244,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900070536,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901941110,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905329095,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901674413,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902876526,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902861423,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889760181,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884436082,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901398951,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902841731,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894266858,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906252855,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906200108,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901450978,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905345640,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895217783,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884433263,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895543420,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891072477,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884938374,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903819301,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3895207569,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888035176,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902945526,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888027049,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905655083,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889751989,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886898488,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902939001,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901343698,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902343406,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902873026,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899521860,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903806888,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902864826,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891010624,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902324071,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3899540380,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899930721,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3888939626,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884811019,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901937672,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900076153,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899518312,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895514999,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901937254,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887491764,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900960518,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901977680,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3884433564,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904999114,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905331454,Fake,Legitimate Company,Scam,1.0,0.0,1.0,0.7017835652510055,0.2982164347489945
+3902825422,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904729333,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905249935,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901941877,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905255326,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889131111,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891080059,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905867221,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900079841,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3891016039,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905245370,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904357962,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894206026,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903806821,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904992462,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895549181,Suspicious,Fake Company,Scam,0.5,1.0,1.0,0.875051452836854,0.12494854716314596
+3901940057,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901601435,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3889772048,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895210408,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904424969,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904390620,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903452481,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3906222807,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902841871,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906074327,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905219414,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905887086,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889129366,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901377516,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905202045,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899531088,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902934493,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904051866,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904955205,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3898156760,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904724867,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901378554,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3898161973,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901965564,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905201407,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3884811465,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901166220,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904583433,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889755354,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3895201206,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901350702,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901656812,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889487969,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895275234,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884429179,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895274480,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901937694,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891077803,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904502170,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901939506,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903839993,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3885109989,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905850996,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889743825,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884438195,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905256349,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903432676,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901345936,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901979568,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901939618,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905223995,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886831114,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901948361,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901346483,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3900983139,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891808184,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906249673,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903872917,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904368255,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884914341,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903817896,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904395033,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3900951942,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905848083,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902308566,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3890899146,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891073651,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901962110,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904060888,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904946187,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905214623,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3899534445,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3903883762,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895210127,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904922547,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898167038,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884913839,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905304697,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901601893,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904368208,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904578508,Fake,Legitimate Company,Scam,1.0,0.0,1.0,0.7017835652510055,0.2982164347489945
+3898164225,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906077073,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901672668,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3905692248,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889131144,Fake,Legitimate Company,Scam,1.0,0.0,1.0,0.7017835652510055,0.2982164347489945
+3900946947,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902350247,Fake,Fake Company,Scam,1.0,1.0,1.0,1.0,0.0
+3782812525,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901461368,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3906087173,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885104533,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902325188,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901675214,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889719558,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3888956348,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904426903,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886466751,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900938911,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902758415,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894663747,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905869737,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901388329,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887578305,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905692388,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3902806223,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894289485,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888959920,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901952169,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885101181,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903883574,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895210736,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906255645,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888034270,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895531328,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3887577491,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3895595998,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906090796,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900964564,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905239587,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905835001,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3885110319,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906224894,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904990495,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905827774,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899518203,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904363361,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887882751,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904408852,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3895548427,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894207130,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903823749,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899522759,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905296656,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905333045,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3900989031,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3889299604,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905846996,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905285717,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3888484988,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3886835914,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904415979,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905207164,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888481091,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900956231,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3884447063,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3889420923,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902868002,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3887493118,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902964047,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884804979,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902753778,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902740269,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3906257320,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905296768,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905334744,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905370898,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905249530,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902753779,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904938501,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906229779,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901394613,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895234940,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900959341,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891072165,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895598366,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904988667,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901169322,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3900959517,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899537951,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902329031,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3906255426,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904576339,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906254719,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894895288,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904727703,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901354670,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3894982645,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904090053,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895234651,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889170666,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898163419,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889476885,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901943541,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901682279,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3904388105,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902785730,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900982741,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903839780,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902813407,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903898507,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902939942,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894565349,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901957300,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889443479,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894550374,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3885867410,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904428807,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887494112,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904960848,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904721748,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902834363,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887875011,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902735430,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905239527,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894547269,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905833500,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902779776,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904088803,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894619450,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902954784,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3906231285,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895213851,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903444840,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904366782,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898160265,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906225539,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900959791,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904704937,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889705310,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903823981,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901961218,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902863704,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905835040,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888029103,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904362984,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894284827,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901800178,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906232228,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904370034,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886215535,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3905305025,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887947315,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904096330,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895812688,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3900957818,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902922510,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898165307,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888931879,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904925249,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902749520,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884442278,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3890895186,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904392403,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901949867,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905243514,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3902358002,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886879562,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904963149,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904367702,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895849271,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906257415,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887910179,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889712511,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887920988,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884986864,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900939460,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900967044,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902758181,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899525451,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905878393,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894219997,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3904391566,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905208764,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884931298,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904716628,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905300238,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902350454,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3906091947,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901990930,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904989422,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905822952,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891016680,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904422569,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902743229,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901975846,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902756343,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906251443,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894554004,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900951582,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903431618,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905291654,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902732613,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902342298,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901479226,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891255882,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905865642,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888033289,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3901391485,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905830996,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885862875,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899525619,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905343222,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889707674,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902758182,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905364482,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3885109688,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884855776,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902819061,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902753788,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901694364,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904099287,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3895273377,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904962016,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905874455,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905210089,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906259707,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902778943,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904358856,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884853986,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898174257,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904507634,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889704422,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887713241,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3888407253,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904367619,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905687426,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884940248,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901930289,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904726135,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905843981,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904407460,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887884760,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885814238,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3901484445,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904373035,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901351125,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905841089,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884854736,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902353310,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884929863,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903481821,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899526397,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894553589,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903426697,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906256205,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904393058,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901906635,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904500508,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901948209,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902357065,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902693086,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3886203882,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904992088,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901347353,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895222638,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894893665,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904565981,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904995129,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905864544,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3901375658,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903447802,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894980256,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903474308,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884436115,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902756637,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902828623,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905299266,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891251481,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903477702,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904722854,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905207168,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3894996838,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903845850,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887708351,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905290159,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901962677,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888824208,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3900963403,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889114112,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905331438,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903443589,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894542993,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904956273,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3885103686,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904928896,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894279082,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905373046,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889757043,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3888977940,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901392479,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901644764,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886897644,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904068452,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3894881149,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905288961,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901943266,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891076739,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904953302,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895490601,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906222531,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886840074,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901979193,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901487216,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902344509,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886444954,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902878449,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905325903,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902929517,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903843298,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903858442,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904361874,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904053353,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891264637,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3894248984,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901990575,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903474194,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901948310,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905329576,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895216787,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899533841,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905350188,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3900955803,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3891074340,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905852501,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904392641,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901389720,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889437728,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900087591,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904925494,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905370101,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903845427,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901933964,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905247377,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902860497,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900070596,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901960753,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904999159,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3886890047,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888479494,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3902828660,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904369001,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905841365,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902363249,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904954918,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905867381,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901689184,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3891280305,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904928912,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894894372,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891076667,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903445729,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905256384,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901933967,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895589628,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899528915,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891263924,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895527225,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901998589,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901988304,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889104689,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901392621,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906092428,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887712011,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901363760,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905243380,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905669245,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902864872,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884802331,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895807699,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901693237,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888489415,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902931404,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898166536,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904513245,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885112179,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902361570,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902757207,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906224785,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903491691,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3903475677,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887593436,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901397002,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902954343,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889128152,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3895564523,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903846072,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902760602,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905330622,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894293332,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887908536,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895811492,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891038573,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3889113843,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905293915,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3895806899,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3906093698,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887573476,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904586302,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3651735073,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906256266,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888031588,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903475810,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903494665,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904947096,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905311409,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891255152,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904364464,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900950809,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902821348,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889110089,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905335899,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905294723,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3888961209,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906258100,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901349958,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902364315,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903496525,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904572888,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3903846870,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891076400,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887479396,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906095138,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906246896,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904511267,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894617437,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889732648,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887700833,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902368101,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900988113,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905334530,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904432275,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905295420,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3905858338,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900945133,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891842032,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902757119,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902356406,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3887856246,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901672554,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903840909,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906241082,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906230836,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3887909422,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889744181,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901965347,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900956645,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901991230,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898170689,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3899544052,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904375309,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905864665,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904507874,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906255474,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904955829,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904357527,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895204786,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903827844,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3900965147,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903476451,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900077978,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906222550,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904363458,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887855844,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905271422,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3861704803,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902835133,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904950228,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899521967,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904989753,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902351411,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901372756,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902360084,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901349670,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904391045,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902745795,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887486398,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905305873,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3886878942,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3899520962,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3889721091,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903428762,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901972059,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894212255,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3886884580,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884444347,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887496959,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905825078,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905304339,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887711725,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891254356,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906261531,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906267195,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906094481,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3899524216,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905252432,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905274702,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901618591,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903433539,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3894876772,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3900961237,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906237986,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884926253,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904718982,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905363873,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898179502,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903846588,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887472263,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905354176,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906229818,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904941405,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902861623,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903840817,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904416271,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904082300,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906092584,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901625868,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894210676,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902370054,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901941451,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889417407,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884434107,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884932592,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903428571,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902349403,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3901800100,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902326947,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901359222,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905669193,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3899536815,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902321529,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904963200,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894896010,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3903480049,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3898167131,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887106121,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901364174,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902753343,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887890716,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901345859,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904517018,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3894295243,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3901634906,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904087687,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905203756,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3901376470,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900950652,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903432625,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901177503,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904412043,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3894559339,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3901947304,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891073377,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3888023916,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884807419,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891297808,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887105208,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901393491,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904396398,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906227812,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902788334,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902928877,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895214241,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904391522,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903870699,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901494331,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904057898,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905365045,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902366590,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3888939786,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903877080,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887478002,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884441796,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902860965,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901354476,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884947180,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902311976,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901803340,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3884823083,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3905862800,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905220460,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3891266979,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902933182,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902945207,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905824527,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905372456,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901699101,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3898173244,Fake,Legitimate Company,Scam,1.0,0.0,1.0,0.7017835652510055,0.2982164347489945
+3902843957,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904721424,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898159425,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891245999,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898164945,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3904503149,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901357508,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904359922,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900077574,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898162140,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885866733,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904422441,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3903472568,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3886450556,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902953318,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3905249765,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3887495762,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901378620,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899531572,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905697483,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904926417,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885871087,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901476299,Fake,Fake Company,Not Scam,1.0,1.0,0.0,0.5481135290752865,0.45188647092471346
+3884890945,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905886086,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895543706,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3902810060,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3904972225,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895809035,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3898163080,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3891068947,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888483868,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3887715249,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904409104,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3906095548,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895539234,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904942719,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905859107,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3889130753,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885333032,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3891069909,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3895543911,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3887489419,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3899516898,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899526408,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906071645,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3894606769,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3895543404,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3905867420,Suspicious,Legitimate Company,Scam,0.5,0.0,1.0,0.5768350180878594,0.4231649819121406
+3886824680,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901351059,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904086122,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901979294,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905857275,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902917331,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884429683,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904704593,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906251327,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3900938989,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3905866771,Fake,Legitimate Company,Not Scam,1.0,0.0,0.0,0.24989709432629204,0.750102905673708
+3903476020,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3884448230,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887576060,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3898175049,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3884938234,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902355636,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901936301,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905332488,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904973104,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903852274,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3888943273,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905336446,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902841514,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902862412,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902903839,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901800114,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3886450064,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905338207,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904395156,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887887820,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901685316,Not Fake,Legitimate Company,Scam,0.0,0.0,1.0,0.45188647092471346,0.5481135290752865
+3904432308,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905216454,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3901359055,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901379433,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904363879,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3898160234,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3901644228,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887709924,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3903476328,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3887726231,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901941411,Not Fake,Fake Company,Not Scam,0.0,1.0,0.0,0.2982164347489945,0.7017835652510055
+3891263985,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3906258056,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3899524220,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904389998,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3885831622,Suspicious,Fake Company,Not Scam,0.5,1.0,0.0,0.4231649819121405,0.5768350180878594
+3902951563,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3902925331,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3902782563,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3905299905,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3885829894,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3901649881,Not Fake,Legitimate Company,Not Scam,0.0,0.0,0.0,0.0,1.0
+3904049863,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
+3904084138,Suspicious,Legitimate Company,Not Scam,0.5,0.0,0.0,0.12494854716314602,0.875051452836854
