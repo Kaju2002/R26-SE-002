@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { AnalysisPayload } from '../../navigation/detectStackTypes';
 import { getSignalStrengthHeadline } from '../../utils/signalStrengthPresentation';
@@ -32,16 +32,62 @@ function tacticGlyph(
   return 'alert-circle-outline';
 }
 
+function verdictVisuals(payload: AnalysisPayload) {
+  const isInconclusive = payload.inconclusive === true;
+  const isScam = payload.is_scam && !isInconclusive;
+  const accent = isInconclusive ? AMBER_ALERT : isScam ? PRIMARY_RED : SUCCESS_GREEN;
+  return { isInconclusive, isScam, accent };
+}
+
+type VerdictBannerProps = {
+  payload: AnalysisPayload;
+  style?: ViewStyle;
+};
+
+/** Legitimate / scam / inconclusive hero card — can be pinned above scroll on ResultScreen */
+export function AnalysisVerdictBanner({ payload, style }: VerdictBannerProps) {
+  const { isInconclusive, isScam, accent } = verdictVisuals(payload);
+  return (
+    <View style={[styles.banner, { backgroundColor: accent }, style]}>
+      <View style={styles.bannerIconOuter}>
+        <MaterialIcons
+          name={isInconclusive ? 'help-outline' : isScam ? 'warning' : 'verified'}
+          size={40}
+          color="#fff"
+        />
+      </View>
+      <Text style={styles.bannerTitle}>
+        {isInconclusive ? 'INCONCLUSIVE' : isScam ? 'SCAM DETECTED' : 'LEGITIMATE MESSAGE'}
+      </Text>
+      <Text style={styles.bannerSubtitle}>
+        {isInconclusive
+          ? 'Not enough reliable signal for a definitive safe vs. scam verdict'
+          : isScam
+            ? 'This message shows patterns often used in scam outreach'
+            : 'We did not flag common manipulation tactics in this text'}
+      </Text>
+    </View>
+  );
+}
+
 type Props = {
   payload: AnalysisPayload;
   /** When the analyzer ran on an uploaded screenshot */
   showScreenshotSource?: boolean;
+  /** Omit the colored verdict card (e.g. when ResultScreen renders it fixed above scroll) */
+  omitVerdictBanner?: boolean;
 };
 
 /** Shared verdict/tactics/analyzed-text UI used by ResultScreen and conversation sheet */
-export default function AnalysisResultContent({ payload, showScreenshotSource }: Props) {
+export default function AnalysisResultContent({
+  payload,
+  showScreenshotSource,
+  omitVerdictBanner = false,
+}: Props) {
   const isInconclusive = payload.inconclusive === true;
   const isScam = payload.is_scam && !isInconclusive;
+  const isLegitimate = !isScam && !isInconclusive;
+  const tacticCount = payload.tactics.length;
   const accent = isInconclusive ? AMBER_ALERT : isScam ? PRIMARY_RED : SUCCESS_GREEN;
   const signalHeadline = getSignalStrengthHeadline({
     isScam: payload.is_scam,
@@ -49,43 +95,55 @@ export default function AnalysisResultContent({ payload, showScreenshotSource }:
     confidencePct: payload.confidence,
   });
 
+  const showTacticsCounter = isScam || (isInconclusive && tacticCount > 0);
+
   return (
     <>
-      <View style={[styles.banner, { backgroundColor: accent }]}>
-        <View style={styles.bannerIconOuter}>
-          <MaterialIcons
-            name={isInconclusive ? 'help-outline' : isScam ? 'warning' : 'verified'}
-            size={40}
-            color="#fff"
-          />
-        </View>
-        <Text style={styles.bannerTitle}>
-          {isInconclusive ? 'INCONCLUSIVE' : isScam ? 'SCAM DETECTED' : 'LEGITIMATE MESSAGE'}
-        </Text>
-        <Text style={styles.bannerSubtitle}>
-          {isInconclusive
-            ? 'Not enough reliable signal for a definitive safe vs. scam verdict'
-            : isScam
-              ? 'This message contains manipulation tactics'
-              : 'Looks consistent with legitimate recruiter outreach'}
-        </Text>
-      </View>
+      {omitVerdictBanner ? null : <AnalysisVerdictBanner payload={payload} />}
       {showScreenshotSource ? (
-        <Text style={styles.sourceHint}>Analyzed from uploaded screenshot</Text>
+        <Text
+          style={[styles.sourceHint, omitVerdictBanner ? styles.sourceHintBelowFixedBanner : null]}
+        >
+          Analyzed from uploaded screenshot
+        </Text>
       ) : null}
 
-      <View style={styles.statsRow}>
-        <View style={styles.statCard}>
-          <Text style={[styles.statStrengthHeadline, { color: accent }]} numberOfLines={2}>
-            {signalHeadline}
-          </Text>
-          <Text style={styles.statLabel}>Signal strength</Text>
+      {showTacticsCounter ? (
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={[styles.statStrengthHeadline, { color: accent }]} numberOfLines={2}>
+              {signalHeadline}
+            </Text>
+            <Text style={styles.statLabel}>Signal strength</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={[styles.statValueNumeric, { color: accent }]}>{tacticCount}</Text>
+            <Text style={styles.statLabel}>{isScam ? 'Patterns flagged' : 'Possible patterns'}</Text>
+          </View>
         </View>
-        <View style={styles.statCard}>
-          <Text style={[styles.statValueNumeric, { color: accent }]}>{payload.tactics.length}</Text>
-          <Text style={styles.statLabel}>Tactics found</Text>
+      ) : (
+        <View style={styles.statsRow}>
+          <View style={[styles.statCard, styles.statCardFull]}>
+            <Text style={[styles.statStrengthHeadline, { color: accent }]} numberOfLines={2}>
+              {signalHeadline}
+            </Text>
+            <Text style={styles.statLabel}>Signal strength</Text>
+            {isLegitimate ? (
+              <View style={styles.verdictFootnote}>
+                <MaterialCommunityIcons name="shield-check-outline" size={18} color={SUCCESS_GREEN} />
+                <Text style={styles.verdictFootnoteText}>No manipulation tactics detected</Text>
+              </View>
+            ) : (
+              <View style={styles.verdictFootnote}>
+                <MaterialCommunityIcons name="information-outline" size={18} color={AMBER_ALERT} />
+                <Text style={[styles.verdictFootnoteText, styles.verdictFootnoteTextInconclusive]}>
+                  No specific patterns listed — follow the guidance below
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
-      </View>
+      )}
       <Text style={styles.modelDisclaimer}>{MODEL_DISCLAIMER}</Text>
 
       {isScam ? (
@@ -106,7 +164,7 @@ export default function AnalysisResultContent({ payload, showScreenshotSource }:
       ) : null}
 
       <Text style={styles.sectionLabel}>
-        {isInconclusive ? 'WHAT TO DO' : isScam ? 'WARNING' : 'WHAT THIS MEANS'}
+        {isInconclusive ? 'WHAT TO DO' : isScam ? 'STAY SAFE' : 'WHAT THIS MEANS'}
       </Text>
       <View style={styles.greyBorderCard}>
         <Text style={styles.bodyMuted}>
@@ -161,6 +219,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: GREY_TEXT,
   },
+  sourceHintBelowFixedBanner: {
+    marginTop: 0,
+  },
   statsRow: {
     flexDirection: 'row',
     gap: 12,
@@ -175,6 +236,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 96,
+  },
+  statCardFull: {
+    flex: 1,
+    minHeight: 112,
+    paddingHorizontal: 14,
+  },
+  verdictFootnote: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#D8DCE3',
+    alignSelf: 'stretch',
+    justifyContent: 'center',
+  },
+  verdictFootnoteText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: SUCCESS_GREEN,
+    lineHeight: 18,
+  },
+  verdictFootnoteTextInconclusive: {
+    color: GREY_TEXT,
+    fontWeight: '600',
   },
   statStrengthHeadline: {
     fontSize: 17,

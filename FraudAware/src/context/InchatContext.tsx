@@ -22,6 +22,11 @@ type InchatContextValue = {
   loaded: boolean;
   threadsForList: InchatThread[];
   appendUserMessage: (threadId: string, body: string) => Promise<void>;
+  editUserMessageState: (
+    threadId: string,
+    messageId: string,
+    mode: 'delete' | 'unsend'
+  ) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
 };
 
@@ -80,6 +85,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
         hour: 'numeric',
         minute: '2-digit',
       }),
+      createdAtIso: new Date().toISOString(),
     };
 
     setExtrasByThread((prev) => ({
@@ -87,6 +93,34 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       [threadId]: [...(prev[threadId] ?? []), msg],
     }));
   }, []);
+
+  const editUserMessageState = useCallback(
+    async (threadId: string, messageId: string, mode: 'delete' | 'unsend') => {
+      setExtrasByThread((prev) => {
+        const existing = prev[threadId] ?? [];
+        if (!existing.some((m) => m.id === messageId && m.role === 'user')) {
+          return prev;
+        }
+        const updated =
+          mode === 'delete'
+            ? existing.filter((m) => m.id !== messageId)
+            : existing.map((m) =>
+                m.id === messageId
+                  ? {
+                      ...m,
+                      body: 'You unsent a message',
+                      unsent: true,
+                    }
+                  : m
+              );
+        return {
+          ...prev,
+          [threadId]: updated,
+        };
+      });
+    },
+    []
+  );
 
   const getCombinedMessages = useCallback(
     (threadId: string) => [...getMessagesForThread(threadId), ...(extrasByThread[threadId] ?? [])],
@@ -100,9 +134,10 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       loaded,
       threadsForList,
       appendUserMessage,
+      editUserMessageState,
       getCombinedMessages,
     }),
-    [loaded, threadsForList, appendUserMessage, getCombinedMessages]
+    [loaded, threadsForList, appendUserMessage, editUserMessageState, getCombinedMessages]
   );
 
   return <InchatContext.Provider value={value}>{children}</InchatContext.Provider>;

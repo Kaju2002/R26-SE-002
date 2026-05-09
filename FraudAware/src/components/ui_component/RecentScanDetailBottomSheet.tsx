@@ -77,8 +77,6 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
 
   const isScam = item.status === 'scam';
   const accent = isScam ? PRIMARY_RED : SUCCESS_GREEN;
-  const confidence =
-    typeof item.confidence === 'number' ? `${Math.round(item.confidence)}%` : null;
 
   const tacticsFromDetail = detail?.tactics?.length
     ? detail.tactics.map((t) => ({
@@ -145,12 +143,6 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
           <View style={styles.metaRow}>
             <MaterialCommunityIcons name="clock-time-four-outline" size={14} color={GREY_TEXT} />
             <Text style={styles.metaText}>{item.timeAgo}</Text>
-            {confidence ? (
-              <>
-                <Text style={styles.metaDot}>·</Text>
-                <Text style={[styles.metaStrong, { color: accent }]}>{confidence} confidence</Text>
-              </>
-            ) : null}
           </View>
 
           <ScrollView
@@ -318,15 +310,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: GREY_TEXT,
     fontWeight: '600',
-  },
-  metaDot: {
-    color: GREY_TEXT,
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  metaStrong: {
-    fontSize: 12,
-    fontWeight: '800',
   },
   scroll: {
     flexGrow: 0,

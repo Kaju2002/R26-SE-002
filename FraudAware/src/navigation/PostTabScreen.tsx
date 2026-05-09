@@ -3,7 +3,8 @@ import { StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../components/Header';
 
-export default function PostScreen() {
+/** Middle tab (+) placeholder. */
+export default function PostTabScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
       <Header />
