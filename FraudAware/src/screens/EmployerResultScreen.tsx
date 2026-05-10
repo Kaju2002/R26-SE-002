@@ -6,8 +6,61 @@ import type { DetectStackParamList } from '../navigation/detectStackTypes';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'EmployerResult'>;
 
+type TraceStep = {
+  source?: string;
+  status?: string;
+  detail?: string;
+};
+
+const toArray = (value: unknown): string[] => {
+  if (!Array.isArray(value)) return [];
+  return value.map((item) => String(item ?? '').trim()).filter(Boolean);
+};
+
+const titleize = (value: string): string => {
+  if (!value) return value;
+  return value
+    .split(' ')
+    .map((part) => (part ? `${part[0].toUpperCase()}${part.slice(1).toLowerCase()}` : part))
+    .join(' ');
+};
+
+const readableMethod = (method: string): string => {
+  const normalized = method.toLowerCase();
+  if (normalized === 'cse_api') return 'Colombo Stock Exchange API';
+  if (normalized === 'cse_selenium') return 'Colombo Stock Exchange Directory';
+  if (normalized === 'eroc') return 'eROC (Registrar of Companies)';
+  if (normalized === 'opencorporates') return 'OpenCorporates Registry Data';
+  if (normalized === 'website_heuristics') return 'Website Registration Signals';
+  if (normalized === 'ddgs_fallback') return 'Open Web Registry Search';
+  return method.replace(/_/g, ' ');
+};
+
+const statusHeadline = (risk: string, registrationStatus: string): string => {
+  if (risk === 'low' && registrationStatus === 'registered') {
+    return 'This employer looks trustworthy based on current checks.';
+  }
+  if (risk === 'high') {
+    return 'This employer has multiple warning signals. Please be careful.';
+  }
+  return 'Some checks passed, but you should verify key details before applying.';
+};
+
+const statusDescription = (risk: string, registrationStatus: string): string => {
+  if (risk === 'low' && registrationStatus === 'registered') {
+    return 'Official registration signals and online checks align with a legitimate employer profile.';
+  }
+  if (registrationStatus === 'unverified') {
+    return 'A registration hint was found, but there is no official confirmation yet.';
+  }
+  if (risk === 'high') {
+    return 'No reliable registration proof and risk indicators were found during the scan.';
+  }
+  return 'Use caution and confirm registration and contacts through trusted sources.';
+};
+
 export default function EmployerResultScreen({ route, navigation }: Props) {
-  const resultData = (route.params?.result ?? null) as any;
+  const resultData = (route.params?.result ?? null) as Record<string, unknown> | null;
 
   if (!resultData) {
     return (
@@ -23,16 +76,57 @@ export default function EmployerResultScreen({ route, navigation }: Props) {
     );
   }
 
-  const evidence = (resultData.evidence ?? {}) as any;
-  const registration = Array.isArray(evidence.registration) ? evidence.registration : [];
-  const confidenceReasons = Array.isArray(evidence.confidence_reasons)
-    ? evidence.confidence_reasons
-    : Array.isArray(resultData.confidence_reasons)
-      ? resultData.confidence_reasons
+  const evidence = (resultData.evidence ?? {}) as Record<string, unknown>;
+  const registration = toArray(evidence.registration);
+  const registrationNotes = toArray(evidence.registration_notes);
+  const registrationStatus = String(
+    resultData.registration_status ?? evidence.registration_status ?? 'not_found',
+  ).toLowerCase();
+  const registrationStatusLabel =
+    resultData.registration_status_label ??
+    evidence.registration_status_label ??
+    (registrationStatus === 'registered'
+      ? 'Officially registered'
+      : registrationStatus === 'unverified'
+        ? 'Unverified registration hint'
+        : 'Not confirmed');
+  const registrationSummary =
+    resultData.registration_summary ??
+    evidence.registration_summary ??
+    (registrationStatus === 'registered'
+      ? resultData.government_registration_source ?? evidence.government_registration_source ?? 'Official Sri Lanka registration confirmed'
+      : registrationStatus === 'unverified'
+        ? 'Sri Lanka registration hint found, but official confirmation was not available'
+        : 'No official Sri Lanka registration found');
+  const registrationTraceRaw = Array.isArray(resultData.registration_trace)
+    ? resultData.registration_trace
+    : Array.isArray(evidence.registration_trace)
+      ? evidence.registration_trace
       : [];
+  const registrationTrace = registrationTraceRaw as TraceStep[];
+  const confidenceReasons = toArray(evidence.confidence_reasons).length
+    ? toArray(evidence.confidence_reasons)
+    : toArray(resultData.confidence_reasons);
 
   const risk = String(resultData.risk_level ?? '').toLowerCase();
   const score = resultData.legitimacy_score ?? resultData.risk_score ?? resultData.score ?? null;
+  const confidenceLevel = String(resultData.confidence ?? '').toLowerCase();
+  const registrationMethod = String(resultData.registration_method ?? '').trim();
+  const registrationSource = String(resultData.government_registration_source ?? resultData.reg_source ?? '').trim();
+  const cseSymbol = String(resultData.cse_symbol ?? '').trim();
+  const cseRegisteredName = String(resultData.cse_registered_name ?? '').trim();
+  const scoreBreakdown = (resultData.score_breakdown ?? {}) as Record<string, unknown>;
+  const scoreRows = [
+    { label: 'Model score', value: Number(scoreBreakdown.ml_score ?? 0), max: 40 },
+    { label: 'Registration score', value: Number(scoreBreakdown.registration_score ?? 0), max: 30 },
+    { label: 'Reputation score', value: Number(scoreBreakdown.reputation_score ?? 0), max: 20 },
+    { label: 'Website score', value: Number(scoreBreakdown.website_score ?? 0), max: 10 },
+  ];
+
+  const verdictText = String(resultData.verdict ?? '').trim() || 'Result unavailable';
+  const riskLabel = risk ? titleize(risk) : 'Unknown';
+  const confidenceLabel = confidenceLevel ? titleize(confidenceLevel) : 'N/A';
+
   const badgeColor = risk === 'high' ? '#FDECEA' : risk === 'medium' ? '#FFF7E0' : '#E8F5E9';
   const badgeTextColor = risk === 'high' ? '#C62828' : risk === 'medium' ? '#FF8A00' : '#1B5E20';
 
@@ -77,6 +171,18 @@ export default function EmployerResultScreen({ route, navigation }: Props) {
 
     if (value === 0 && rule.positiveWhenZero) friendlyPos.push(rule.positiveWhenZero);
     if (value === 0 && rule.negativeWhenZero && risk !== 'low') friendlyNeg.push(rule.negativeWhenZero);
+    // Handle unknown / could-not-scan states (represented as -1)
+    if (value === -1) {
+      if (rule.negativeWhenOne) {
+        // prefer existing negative phrasing when unknown
+        friendlyNeg.push(`Unable to determine: ${rule.negativeWhenOne}`);
+      } else if (rule.positiveWhenOne) {
+        friendlyNeg.push(`Unable to determine: ${rule.positiveWhenOne}`);
+      } else {
+        const label = rule.positiveWhenOne || rule.negativeWhenZero || key;
+        friendlyNeg.push(`Unable to determine: ${titleize(String(label))}`);
+      }
+    }
   });
 
   (evidence.reputation ?? []).forEach((item: string) => {
@@ -85,16 +191,32 @@ export default function EmployerResultScreen({ route, navigation }: Props) {
     else friendlyPos.push(item);
   });
 
-  if (registration.length > 0) {
-    friendlyPos.unshift(`Official registration found: ${registration.join('; ')}`);
+  if (registrationStatus === 'registered') {
+    friendlyPos.unshift(`Official registration found: ${registrationSummary}`);
+  } else if (registrationStatus === 'unverified') {
+    friendlyNeg.unshift(`Registration hint only: ${registrationSummary}`);
   } else if (risk !== 'low') {
-    friendlyNeg.unshift('No official Sri Lanka registration found');
+    friendlyNeg.unshift(registrationSummary);
   }
 
   const positiveItems = Array.from(new Set(friendlyPos)).slice(0, 10);
   const negativeItems = Array.from(new Set(friendlyNeg)).slice(0, 10);
   const topPos = positiveItems.slice(0, 5);
   const topNeg = negativeItems.slice(0, 5);
+
+  const actionableSteps: string[] = [];
+  if (risk === 'low') {
+    actionableSteps.push('Proceed, but continue communication through official company channels.');
+  } else {
+    actionableSteps.push('Verify the company through an official registry before sharing personal details.');
+    actionableSteps.push('Confirm recruiter identity using a verified company website or LinkedIn page.');
+  }
+  if (risk !== 'low') {
+    actionableSteps.push('Do not pay upfront fees or share financial account details.');
+  }
+  if (registrationStatus !== 'registered') {
+    actionableSteps.push('Ask for a registration number and validate it independently.');
+  }
 
   const renderRows = (items: string[], variant: 'positive' | 'negative') =>
     items.map((item, index) => (
@@ -138,7 +260,7 @@ export default function EmployerResultScreen({ route, navigation }: Props) {
     );
   }
 
-  const badgeLabel = `${String(resultData.risk_level ?? '').toUpperCase()}${score ? ` — ${score}%` : ''}`;
+  const badgeLabel = `${riskLabel.toUpperCase()}${score ? ` - ${score}%` : ''}`;
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -149,15 +271,33 @@ export default function EmployerResultScreen({ route, navigation }: Props) {
             <View style={[styles.badge, { backgroundColor: badgeColor }]}>
               <Text style={[styles.badgeText, { color: badgeTextColor }]}>{badgeLabel}</Text>
             </View>
-            <Text style={styles.sub}>{resultData.verdict}</Text>
+            <Text style={styles.sub}>{verdictText}</Text>
           </View>
         </View>
 
-        <View style={[styles.resultCard, { borderColor: badgeTextColor }]}> 
-          <Text style={styles.resultTitle}>Verification Result</Text>
-          <Text style={styles.resultVerdict}>{resultData.verdict}</Text>
+        <View style={[styles.resultCard, { borderColor: badgeTextColor }]}>
+          <Text style={styles.resultTitle}>Quick Summary</Text>
+          <Text style={styles.resultVerdict}>{statusHeadline(risk, registrationStatus)}</Text>
+          <Text style={styles.resultBody}>{statusDescription(risk, registrationStatus)}</Text>
           {score !== null && score !== undefined ? <Text style={styles.resultPercent}>{score}% confidence</Text> : null}
-          <Text style={styles.confidenceLevel}>Confidence Level: <Text style={[styles.confidenceValue, { color: badgeTextColor }]}>{String(resultData.risk_level ?? '').toUpperCase()}</Text></Text>
+          <Text style={styles.confidenceLevel}>
+            Risk level: <Text style={[styles.confidenceValue, { color: badgeTextColor }]}>{riskLabel.toUpperCase()}</Text>
+          </Text>
+          <Text style={styles.confidenceLevel}>Data confidence: <Text style={styles.confidenceValue}>{confidenceLabel}</Text></Text>
+        </View>
+
+        <View style={styles.statusCard}>
+          <Text style={styles.sectionTitle}>Official registration check</Text>
+          <View style={[styles.statusPill, registrationStatus === 'registered' ? styles.statusPillGreen : registrationStatus === 'unverified' ? styles.statusPillAmber : styles.statusPillRed]}>
+            <Text style={[styles.statusPillText, registrationStatus === 'registered' ? styles.statusPillTextGreen : registrationStatus === 'unverified' ? styles.statusPillTextAmber : styles.statusPillTextRed]}>
+              {registrationStatusLabel.toUpperCase()}
+            </Text>
+          </View>
+          <Text style={styles.statusSummary}>{registrationSummary}</Text>
+          {registrationSource ? <Text style={styles.statusSource}>Registry source: {registrationSource}</Text> : null}
+          {registrationMethod ? <Text style={styles.statusSource}>Verification method: {readableMethod(registrationMethod)}</Text> : null}
+          {cseSymbol ? <Text style={styles.statusSource}>CSE symbol: {cseSymbol}</Text> : null}
+          {cseRegisteredName ? <Text style={styles.statusSource}>Registered name: {cseRegisteredName}</Text> : null}
         </View>
 
         {resultData.recommendation ? (
@@ -168,32 +308,96 @@ export default function EmployerResultScreen({ route, navigation }: Props) {
         ) : null}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Top reasons</Text>
+          <Text style={styles.sectionTitle}>Top reasons behind this result</Text>
           {topReasons}
+          {confidenceReasons.length > 0 ? (
+            <View style={styles.reasonBlock}>
+              <Text style={styles.smallTitle}>Model explanation</Text>
+              {confidenceReasons.slice(0, 3).map((item, index) => (
+                <Text key={`${item}-${index}`} style={styles.reasonText}>• {item}</Text>
+              ))}
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>How the score was calculated</Text>
+          {scoreRows.map((row) => (
+            <View key={row.label} style={styles.scoreRow}>
+              <View style={styles.scoreRowTop}>
+                <Text style={styles.scoreLabel}>{row.label}</Text>
+                <Text style={styles.scoreValue}>{row.value.toFixed(1)} / {row.max}</Text>
+              </View>
+              <View style={styles.scoreTrack}>
+                <View
+                  style={[
+                    styles.scoreFill,
+                    {
+                      width: `${Math.max(0, Math.min(100, (row.value / row.max) * 100))}%`,
+                      backgroundColor: badgeTextColor,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          ))}
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Evidence collected</Text>
-          {positiveItems.length || negativeItems.length ? (
+          {positiveItems.length ? (
             <View>
+              <Text style={styles.smallTitle}>Positive signals</Text>
               {renderRows(positiveItems, 'positive')}
-              {negativeItems.length ? <View style={{ marginTop: 6 }}>{renderRows(negativeItems, 'negative')}</View> : null}
             </View>
-          ) : (
+          ) : null}
+          {negativeItems.length ? (
+            <View style={{ marginTop: 6 }}>
+              <Text style={styles.smallTitle}>Risk signals</Text>
+              {renderRows(negativeItems, 'negative')}
+            </View>
+          ) : null}
+          {!positiveItems.length && !negativeItems.length ? (
             <Text style={styles.muted}>No evidence items collected.</Text>
-          )}
+          ) : null}
 
           <View style={{ height: 8 }} />
-          <Text style={styles.sectionTitle}>Registration</Text>
-          {registration.length > 0 ? (
-            <View style={styles.regBox}>
-              {registration.map((item: string, index: number) => (
-                <Text key={index} style={styles.regBoxText}>• {item}</Text>
-              ))}
-            </View>
-          ) : (
-            <Text style={styles.muted}>No official registration found</Text>
-          )}
+          <Text style={styles.sectionTitle}>Registration details</Text>
+          <View style={styles.regBox}>
+            <Text style={styles.regBoxTitle}>{registrationStatusLabel}</Text>
+            <Text style={styles.regBoxText}>{registrationSummary}</Text>
+            {registrationNotes.length > 0 ? (
+              <View style={{ marginTop: 8 }}>
+                {registrationNotes.map((item, index) => (
+                  <Text key={index} style={styles.regNoteText}>• {item}</Text>
+                ))}
+              </View>
+            ) : null}
+            {registration.length > 0 ? (
+              <View style={{ marginTop: 8 }}>
+                {registration.map((item, index) => (
+                  <Text key={index} style={styles.regTraceText}>• {item}</Text>
+                ))}
+              </View>
+            ) : null}
+            {registrationTrace.length > 0 ? (
+              <View style={{ marginTop: 10 }}>
+                <Text style={styles.regTraceTitle}>Verification trace</Text>
+                {registrationTrace.map((step, index) => (
+                  <Text key={index} style={styles.regTraceText}>
+                    • {String(step.source ?? 'step')} - {String(step.status ?? 'unknown')}: {String(step.detail ?? '')}
+                  </Text>
+                ))}
+              </View>
+            ) : null}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>What to do next</Text>
+          {actionableSteps.map((step, index) => (
+            <Text key={`${step}-${index}`} style={styles.nextStepText}>• {step}</Text>
+          ))}
         </View>
 
         <View style={{ height: 80 }} />
@@ -213,7 +417,8 @@ const styles = StyleSheet.create({
   badgeText: { fontWeight: '800' },
   resultCard: { backgroundColor: '#F7FBF8', borderRadius: 12, padding: 18, marginBottom: 12, borderWidth: 2 },
   resultTitle: { color: '#202871', fontWeight: '800', marginBottom: 6 },
-  resultVerdict: { fontSize: 26, fontWeight: '900', color: '#202871', marginBottom: 6 },
+  resultVerdict: { fontSize: 20, fontWeight: '900', color: '#202871', marginBottom: 6, lineHeight: 28 },
+  resultBody: { color: '#202871', opacity: 0.85, marginBottom: 6 },
   resultPercent: { fontSize: 16, color: '#202871', marginBottom: 6 },
   confidenceLevel: { color: '#6B7280', marginTop: 2 },
   confidenceValue: { fontWeight: '800' },
@@ -223,6 +428,17 @@ const styles = StyleSheet.create({
   section: { backgroundColor: '#fff', borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E6EAF4' },
   sectionTitle: { fontSize: 13, fontWeight: '800', color: '#202871', marginBottom: 8 },
   muted: { color: '#6B7280' },
+  statusCard: { backgroundColor: '#F7FBF8', borderRadius: 12, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E6EAF4' },
+  statusPill: { alignSelf: 'flex-start', paddingVertical: 8, paddingHorizontal: 10, borderRadius: 999, marginBottom: 8 },
+  statusPillGreen: { backgroundColor: '#E8F5E9' },
+  statusPillAmber: { backgroundColor: '#FFF3E0' },
+  statusPillRed: { backgroundColor: '#FDECEA' },
+  statusPillText: { fontSize: 12, fontWeight: '800' },
+  statusPillTextGreen: { color: '#1B5E20' },
+  statusPillTextAmber: { color: '#FF8A00' },
+  statusPillTextRed: { color: '#C62828' },
+  statusSummary: { color: '#202871', fontWeight: '700', marginBottom: 4 },
+  statusSource: { color: '#6B7280', fontSize: 12 },
   checkRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   checkIcon: { color: '#1B5E20', fontWeight: '800', marginRight: 8 },
   checkIconRed: { color: '#C62828', fontWeight: '800', marginRight: 8 },
@@ -230,9 +446,22 @@ const styles = StyleSheet.create({
   negativeMain: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF3F2', padding: 12, borderRadius: 8 },
   negativeIcon: { color: '#C62828', fontSize: 18, fontWeight: '900', marginRight: 8 },
   negativeMainText: { color: '#C62828', fontWeight: '800', flex: 1 },
+  reasonBlock: { marginTop: 10, backgroundColor: '#F7F9FF', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#E6EAF4' },
+  reasonText: { color: '#202871', marginTop: 4 },
+  scoreRow: { marginTop: 10 },
+  scoreRowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },
+  scoreLabel: { color: '#202871', fontWeight: '700' },
+  scoreValue: { color: '#6B7280', fontWeight: '700' },
+  scoreTrack: { height: 8, backgroundColor: '#E6EAF4', borderRadius: 999, overflow: 'hidden' },
+  scoreFill: { height: '100%', borderRadius: 999 },
   smallTitle: { fontSize: 12, fontWeight: '800', color: '#202871', marginBottom: 6 },
   regBox: { backgroundColor: '#E8F5E9', borderRadius: 10, padding: 10, borderWidth: 1, borderColor: '#C8E6C9' },
+  regBoxTitle: { color: '#1B5E20', fontWeight: '900', marginBottom: 4 },
   regBoxText: { color: '#1B5E20', fontWeight: '700' },
+  regNoteText: { color: '#6B7280', marginTop: 4 },
+  regTraceTitle: { color: '#202871', fontWeight: '800', marginBottom: 4 },
+  regTraceText: { color: '#1B5E20', marginTop: 4 },
+  nextStepText: { color: '#202871', marginTop: 6 },
   emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   emptyTitle: { fontSize: 18, fontWeight: '800', color: '#202871' },
   emptySub: { color: '#6B7280', marginTop: 8 },
