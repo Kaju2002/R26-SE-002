@@ -4,6 +4,7 @@ import {
   ScrollView,
   StyleSheet,
   View,
+  Button,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -66,6 +67,11 @@ export default function ProfileScreen() {
         <SkillsSection />
         <LanguagesSection />
         <CVSection />
+
+        <Button
+          title="View AI Recommendations"
+          onPress={() => navigation.navigate('SafeJobRecommendations')}
+        />
       </ScrollView>
     </SafeAreaView>
   );

@@ -8,7 +8,8 @@ export interface Recommendation {
   skills_to_develop: string[];
 }
 
-const API_URL = 'http://172.20.10.2:8000/recommend';
+//const API_URL = 'http://172.20.10.2:8000/recommend';
+const API_URL = 'http://localhost:8000/recommend';
 
 export async function fetchRecommendations(
   skills: string[]
