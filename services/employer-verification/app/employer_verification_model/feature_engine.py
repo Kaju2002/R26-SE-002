@@ -24,26 +24,48 @@ def get_website_text(url):
         return ""
     
 def check_page_exists(url, keyword):
+    print(f"[DEBUG] Checking for page '{keyword}' in {url}")
+    headers = {"User-Agent": "Mozilla/5.0"}
     try:
-        print(f"[DEBUG] Checking for page '{keyword}' in {url}")
-        headers = {"User-Agent": "Mozilla/5.0"}
         r = requests.get(url, timeout=6, headers=headers)
-        print(f"[DEBUG] HTTP status: {r.status_code}, Content-Type: {r.headers.get('content-type')}")
-        soup = BeautifulSoup(r.text, "html.parser")
+    except Exception as e:
+        # Raise so callers can treat this as unknown (-1) if desired
+        print(f"[ERROR] Network error when fetching {url}: {e}")
+        raise
 
-        links = soup.find_all("a")
+    print(f"[DEBUG] HTTP status: {r.status_code}, Content-Type: {r.headers.get('content-type')}")
+    soup = BeautifulSoup(r.text, "html.parser")
 
-        for link in links:
-            href = link.get("href", "")
-            if keyword in href.lower():
-                print(f"[DEBUG] Found '{keyword}' in link: {href}")
+    # Check common href patterns first
+    links = soup.find_all("a")
+    keyword_lower = keyword.lower()
+    common_variants = [keyword_lower, f"{keyword_lower}-us", f"{keyword_lower}s", f"/{keyword_lower}", f"/{keyword_lower}-us"]
+
+    for link in links:
+        href = (link.get("href", "") or "").lower()
+        # mailto or direct contact links match contact keyword
+        if keyword_lower == 'contact' and href.startswith('mailto:'):
+            print(f"[DEBUG] Found mailto contact link: {href}")
+            return 1
+        for variant in common_variants:
+            if variant in href:
+                print(f"[DEBUG] Found '{keyword}' variant in link: {href}")
                 return 1
 
-        print(f"[DEBUG] '{keyword}' not found in any link.")
-        return 0
-    except Exception as e:
-        print(f"[ERROR] Failed to check page '{keyword}' in {url}: {e}")
-        return 0
+    # Check headings and visible text for phrases like 'about', 'about us', 'contact', 'contact us'
+    text = soup.get_text(separator=' ').lower()
+    if keyword_lower == 'about':
+        if 'about us' in text or 'about' in text.split()[:200]:
+            print("[DEBUG] Found 'about' in page text")
+            return 1
+    if keyword_lower == 'contact':
+        if 'contact us' in text or 'contact' in text:
+            print("[DEBUG] Found 'contact' in page text")
+            return 1
+
+    # No clear signal found
+    print(f"[DEBUG] '{keyword}' not found in links or text on {url}.")
+    return 0
     
 def extract_features(df):
 
