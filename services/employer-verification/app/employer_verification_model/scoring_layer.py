@@ -17,6 +17,30 @@ from app.employer_verification_model.registration_utils import check_registratio
 logger = logging.getLogger(__name__)
 
 
+def _normalize_url(url: str) -> str:
+    """Normalize URL to handle common malformations.
+    
+    Examples:
+    - 'https;//example.com' -> 'https://example.com'
+    - 'http;example.com' -> 'http://example.com'
+    - 'example.com' -> 'http://example.com'
+    """
+    if not url:
+        return url
+    
+    url = url.strip()
+    
+    # Fix semicolons in scheme (e.g., https;// -> https://, http;// -> http://)
+    # Handle both https;// and http; patterns
+    url = re.sub(r'^([a-z]+);/?/?', r'\1://', url, flags=re.IGNORECASE)
+    
+    # Ensure URL has a scheme
+    if not re.match(r'^[a-z]+://', url, re.IGNORECASE):
+        url = 'http://' + url
+    
+    return url
+
+
 def _normalize_company_tokens(company_name: str) -> List[str]:
     cleaned = re.sub(r"[^a-z0-9 ]+", " ", (company_name or "").lower())
     tokens = [t for t in cleaned.split() if len(t) >= 3]
@@ -71,8 +95,11 @@ def _website_reputation_signals(website: str) -> Dict[str, int]:
     if not website:
         return signals
 
+    # Normalize URL to handle common malformations (e.g., https;// -> https://)
+    normalized_url = _normalize_url(website)
+    
     try:
-        response = requests.get(website, timeout=6, headers={"User-Agent": "Mozilla/5.0"})
+        response = requests.get(normalized_url, timeout=6, headers={"User-Agent": "Mozilla/5.0"})
         response.raise_for_status()
         html = response.text.lower()
     except Exception as exc:
@@ -190,6 +217,9 @@ def check_reputation(company_name: str, website: str = None) -> Dict[str, int]:
         result["has_ft_lk"],
         result.get("has_trustpilot", 0),
         result.get("has_sitejabber", 0),
+        result.get("has_social_facebook", 0),
+        result.get("has_social_instagram", 0),
+        result.get("has_social_x", 0),
         result.get("has_social_youtube", 0),
         result.get("has_social_reddit", 0),
         result.get("has_website_reviews", 0),
@@ -220,6 +250,15 @@ def calculate_final_score(
     reg = check_lk_registration(company_name, website)
     reg_score = 0
     reg_evidence: List[str] = []
+    reg_notes: List[str] = []
+
+    registration_status = reg.get("government_registration_status", "not_found")
+    if registration_status == "registered":
+        registration_status_label = "Officially registered"
+    elif registration_status == "unverified":
+        registration_status_label = "Unverified registration hint"
+    else:
+        registration_status_label = "Not confirmed"
 
     if reg.get("is_cse_listed"):
         reg_score += 30
@@ -227,14 +266,32 @@ def calculate_final_score(
     elif reg.get("is_boi_registered"):
         reg_score += 25
         reg_evidence.append("Registered with Board of Investment (BOI)")
-    elif reg.get("is_cbsl_licensed"):
+    elif reg.get("is_cbsl_licensed") or reg.get("is_ircsl_registered") or reg.get("is_slaasmb_registered"):
         reg_score += 25
-        reg_evidence.append("Licensed by Central Bank of Sri Lanka (CBSL)")
+        if reg.get("is_cbsl_licensed"):
+            reg_evidence.append("Licensed by Central Bank of Sri Lanka (CBSL)")
+        elif reg.get("is_ircsl_registered"):
+            reg_evidence.append("Registered with Insurance Regulatory Commission of Sri Lanka (IRCSL)")
+        else:
+            reg_evidence.append("Registered with Sri Lanka Accounting and Auditing Standards Monitoring Board (SLAASMB)")
     elif reg.get("is_drc_registered"):
         reg_score += 20
         reg_evidence.append("Registered under Companies Act Sri Lanka (DRC)")
+    elif reg.get("is_government_registered"):
+        reg_score += 15
+        reg_evidence.append("Registered with a Sri Lankan government authority")
     else:
-        reg_evidence.append("No official Sri Lanka registration found")
+        if reg.get("government_registration_status") == "unverified":
+            reg_notes.append("Sri Lanka registration hint found, but official registration was not confirmed")
+        else:
+            reg_evidence.append("No official Sri Lanka registration found")
+
+    if registration_status == "registered":
+        registration_summary = reg.get("government_registration_source") or reg.get("reg_source") or "Official Sri Lanka registration confirmed"
+    elif registration_status == "unverified":
+        registration_summary = "Sri Lanka registration hint found, but official confirmation was not available"
+    else:
+        registration_summary = "No official Sri Lanka registration found"
 
     logger.debug("[SCORING] registration_score=%.1f/30", reg_score)
 
@@ -403,6 +460,12 @@ def calculate_final_score(
         "color": color,
         "evidence": {
             "registration": reg_evidence,
+            "registration_notes": reg_notes,
+            "registration_status": registration_status,
+            "registration_status_label": registration_status_label,
+            "registration_summary": registration_summary,
+            "registration_trace": reg.get("registration_trace", []),
+            "government_registration_source": reg.get("government_registration_source"),
             "reputation": rep_evidence,
             "website": web_evidence,
             "features": features_evidence,
@@ -413,6 +476,10 @@ def calculate_final_score(
         "confidence_reasons": confidence_reasons,
         "contribution_details": {
             "registration": reg_evidence,
+            "registration_notes": reg_notes,
+            "registration_status": registration_status,
+            "registration_status_label": registration_status_label,
+            "registration_summary": registration_summary,
             "reputation": rep_evidence,
             "website": web_evidence,
             "features_positive": positive_features,
