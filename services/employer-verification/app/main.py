@@ -149,7 +149,10 @@ def extract_features_from_input(input: CompanyInput):
                 "act now", "limited time", "urgent", "hurry", "expires soon",
                 "don't miss", "apply immediately", "today only", "last chance",
                 "seats are limited", "only a few spots"]))
-        features['is_registered'] = 1  # Assume registered if URL is provided
+        # Do not assume registration solely from having a website URL.
+        # `check_registration_status` was already called earlier and populated
+        # government registration signals (e.g., is_cse_listed, is_drc_registered).
+        # Preserve those values and avoid overwriting here.
         features['has_suspicious_tld'] = int(any(t in str(url).lower() for t in SUSPICIOUS_TLDS))
         features['is_http_only'] = int(not features['has_https'])
     # Email features
@@ -237,6 +240,11 @@ def predict_company(input: CompanyInput):
         "verdict": score_result["verdict"],
         "color": score_result["color"],
         "evidence": score_result["evidence"],
+        "registration_status": score_result["evidence"].get("registration_status"),
+        "registration_status_label": score_result["evidence"].get("registration_status_label"),
+        "registration_summary": score_result["evidence"].get("registration_summary"),
+        "registration_trace": score_result["evidence"].get("registration_trace", []),
+        "government_registration_source": score_result["evidence"].get("government_registration_source"),
         "recommendation": score_result["recommendation"],
         "score_breakdown": score_result["score_breakdown"]
     }
