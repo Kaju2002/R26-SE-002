@@ -22,6 +22,8 @@ import { BookmarksProvider } from './src/context/BookmarksContext';
 
 import type { RootStackParamList } from './src/navigation/rootStackParams';
 
+import SafeJobRecommendationsScreen from './src/screens/screens/SafeJobRecommendationsScreen';
+
 export type { RootStackParamList };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -35,84 +37,123 @@ export default function App() {
             initialRouteName="Onboarding"
             screenOptions={{ headerShown: false }}
           >
-          <Stack.Screen
-            name="Onboarding"
-            options={{ gestureEnabled: false }}
-          >
-            {({ navigation }) => (
-              <OnboardingScreen onContinue={() => navigation.replace('Login')} />
-            )}
-          </Stack.Screen>
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ gestureEnabled: false }}
-          />
-          <Stack.Screen
-            name="Register"
-            component={RegisterScreen}
-            options={{ gestureEnabled: false }}
-          />
-          <Stack.Screen
-            name="ForgotPassword"
-            component={ForgotPasswordScreen}
-          />
-          <Stack.Screen
-            name="CodeSent"
-            component={CodeSentScreen}
-            options={{
-              gestureEnabled: false,
-              animation: 'fade',
-              contentStyle: { backgroundColor: '#FFFFFF' },
-            }}
-          />
-          <Stack.Screen
-            name="Verification"
-            component={VerificationScreen}
-            options={{ gestureEnabled: false }}
-          />
-          <Stack.Screen
-            name="RegistrationSuccess"
-            component={RegistrationSuccessScreen}
-            options={{
-              gestureEnabled: false,
-              animation: 'fade',
-              contentStyle: { backgroundColor: '#FFFFFF' },
-            }}
-          />
-          <Stack.Screen name="NewPassword" component={NewPasswordScreen} />
-          <Stack.Screen
-            name="PasswordUpdated"
-            component={PasswordUpdatedScreen}
-            options={{
-              gestureEnabled: false,
-              animation: 'fade',
-              contentStyle: { backgroundColor: '#FFFFFF' },
-            }}
-          />
-          <Stack.Screen name="MainTabs" component={BottomTabNavigator} />
-          <Stack.Screen name="Profile" component={ProfileScreen} />
-          <Stack.Screen name="EditProfile" component={EditProfileScreen} />
+            <Stack.Screen
+              name="Onboarding"
+              options={{ gestureEnabled: false }}
+            >
+              {({ navigation }) => (
+                <OnboardingScreen
+                  onContinue={() => navigation.replace('Login')}
+                />
+              )}
+            </Stack.Screen>
+
+            <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{ gestureEnabled: false }}
+            />
+
+            <Stack.Screen
+              name="Register"
+              component={RegisterScreen}
+              options={{ gestureEnabled: false }}
+            />
+
+            <Stack.Screen
+              name="ForgotPassword"
+              component={ForgotPasswordScreen}
+            />
+
+            <Stack.Screen
+              name="CodeSent"
+              component={CodeSentScreen}
+              options={{
+                gestureEnabled: false,
+                animation: 'fade',
+                contentStyle: { backgroundColor: '#FFFFFF' },
+              }}
+            />
+
+            <Stack.Screen
+              name="Verification"
+              component={VerificationScreen}
+              options={{ gestureEnabled: false }}
+            />
+
+            <Stack.Screen
+              name="RegistrationSuccess"
+              component={RegistrationSuccessScreen}
+              options={{
+                gestureEnabled: false,
+                animation: 'fade',
+                contentStyle: { backgroundColor: '#FFFFFF' },
+              }}
+            />
+
+            <Stack.Screen
+              name="NewPassword"
+              component={NewPasswordScreen}
+            />
+
+            <Stack.Screen
+              name="PasswordUpdated"
+              component={PasswordUpdatedScreen}
+              options={{
+                gestureEnabled: false,
+                animation: 'fade',
+                contentStyle: { backgroundColor: '#FFFFFF' },
+              }}
+            />
+
+            <Stack.Screen
+              name="MainTabs"
+              component={BottomTabNavigator}
+            />
+
+            <Stack.Screen
+              name="Profile"
+              component={ProfileScreen}
+            />
+
+            <Stack.Screen
+              name="EditProfile"
+              component={EditProfileScreen}
+            />
+
             <Stack.Screen
               name="Notifications"
               component={NotificationsScreen}
             />
+
             <Stack.Screen
               name="Bookmarks"
               component={BookmarksScreen}
               options={{ animation: 'slide_from_right' }}
             />
+
             <Stack.Screen
               name="JobDetails"
               component={JobDetailsScreen}
-              options={{ animation: 'slide_from_right', gestureEnabled: false }}
+              options={{
+                animation: 'slide_from_right',
+                gestureEnabled: false,
+              }}
             />
+
             <Stack.Screen
               name="ApplyJob"
               component={ApplyJobScreen}
               options={{ animation: 'slide_from_right' }}
             />
+
+            {/* Chethya's screen */}
+            <Stack.Screen
+              name="SafeJobRecommendations"
+              component={SafeJobRecommendationsScreen}
+            />
           </Stack.Navigator>
+
           <StatusBar style="auto" />
         </NavigationContainer>
       </BookmarksProvider>
