@@ -17,7 +17,16 @@ def run_ranking(skill_df, risk_df, skill_weight=0.5, safety_weight=0.5):
         DataFrame sorted by TOPSIS score (highest first)
     """
     # Merge skill and risk data
-    job_scores = skill_df[['job_id', 'job_title', 'skill_match_score']].merge(
+    job_scores = skill_df[
+    [
+        'job_id',
+        'job_title',
+        'skill_match_score',
+        'matched_skills',
+        'matched_count',
+        'job_skill_set'
+    ]
+].merge(
         risk_df[['job_id', 'risk_score', 'safety_score']], on='job_id'
     )
 
