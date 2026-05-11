@@ -19,12 +19,12 @@ import {
   Poppins_600SemiBold,
 } from '@expo-google-fonts/poppins';
 
-import type { RootStackParamList } from '../../navigation/rootStackParams';
+import type { RootStackParamList } from '../navigation/rootStackParams';
 
 import {
   fetchRecommendations,
   Recommendation,
-} from '../../api/safeJobApi';
+} from '../api/safeJobApi';
 
 const NAVY = '#202871';
 

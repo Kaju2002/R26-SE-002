@@ -22,7 +22,7 @@ import { BookmarksProvider } from './src/context/BookmarksContext';
 
 import type { RootStackParamList } from './src/navigation/rootStackParams';
 
-import SafeJobRecommendationsScreen from './src/screens/screens/SafeJobRecommendationsScreen';
+import SafeJobRecommendationsScreen from './src/screens/SafeJobRecommendationsScreen';
 
 export type { RootStackParamList };
 
