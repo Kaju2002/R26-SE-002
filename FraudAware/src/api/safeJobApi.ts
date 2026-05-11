@@ -1,3 +1,5 @@
+import { getJobRecommendUrl } from '../config/jobRecommendationApi';
+
 export interface Recommendation {
   job_id: number;
   job_title: string;
@@ -8,13 +10,10 @@ export interface Recommendation {
   skills_to_develop: string[];
 }
 
-//const API_URL = 'http://172.20.10.2:8000/recommend';
-const API_URL = 'http://localhost:8000/recommend';
-
 export async function fetchRecommendations(
   skills: string[]
 ): Promise<Recommendation[]> {
-  const response = await fetch(API_URL, {
+  const response = await fetch(getJobRecommendUrl(), {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

@@ -1,0 +1,23 @@
+# Core API
+fastapi
+uvicorn
+pydantic
+
+# HTTP & scraping
+requests
+beautifulsoup4
+duckduckgo-search
+python-whois
+
+# ML / data (model bundle + features)
+pandas
+numpy
+joblib
+scikit-learn
+
+# Headless browser (eROC / CSE fallbacks, feature_engine)
+selenium
+webdriver-manager
+
+# Config
+python-dotenv
