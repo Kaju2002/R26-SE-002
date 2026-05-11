@@ -1,0 +1,414 @@
+msg_id,speaker,text,label,tactic,stage,platform,urgency,subtlety_level,scam_subtype
+EXT_SCAM_0001,hr,registration deposit LKR 7500 — covers compliance documentation.,1,urgency,payment_request,WhatsApp,medium,obvious,training_fee
+EXT_SCAM_0002,recruiter,Educational certificate attestation fee AED 200 via authorized agent.,1,urgency,payment_request,WhatsApp,medium,obvious,background_check
+EXT_LEGIT_0003,manager,"Hi Thilini, the technical round is a case study. You'll get the problem statement via email and have 48 hours to submit.",0,,document_request,Email,low,,
+EXT_LEGIT_0004,manager,Welcome aboard Pradeep! Your employee ID and system access will be ready from day one. IT team will set up your laptop at reception.,0,,document_request,LinkedIn,low,,
+EXT_SCAM_0005,recruiter,PHP 2000 per day product testing. Simple work from phone.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0006,attacker,Remote Singapore company job. SGD 500 per task set.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0007,manager,"Hi Thilini, for HR onboarding records please upload your NIC copy and latest tax slip to our secure portal: https://hr.mas.com/onboard. Do not share via WhatsApp.",0,,document_request,LinkedIn,medium,,
+EXT_SCAM_0008,recruiter,sgd 200 per hour online work. easy. daily cashout.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0009,attacker,singapore job confirmed. work permit sgd 200 via our agent. normal charge.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0010,attacker,earn $200 per day rating products. simple phone work. flexible.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0011,hr,File processing charge LKR 12000 to initiate official employer correspondence.,1,urgency,payment_request,WhatsApp,medium,obvious,direct_payment
+EXT_SCAM_0012,recruiter,akka earn inr 2000 per day home job. typing work. very easy.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_LEGIT_0013,manager,"Hi Divya, please upload NIC copy and bank statement to our secure portal: https://portal.hsenid.com/hr for payroll setup.",0,,initial_contact,LinkedIn,medium,,
+EXT_SCAM_0014,attacker,Training material fee LKR 12000 covers study pack and certification exam.,1,urgency,payment_request,WhatsApp,medium,obvious,document_fee
+EXT_SCAM_0015,manager,Our vetting process ensures only genuine opportunities reach candidates we contact.,1,social_proof,qualification,WhatsApp,low,very subtle,subtle_pressure
+EXT_SCAM_0016,recruiter,Background verification SGD 200 through certified screening partner.,1,urgency,payment_request,WhatsApp,medium,obvious,background_check
+EXT_SCAM_0017,attacker,Dubai security job confirmed. Employment visa fee AED 800 via authorized agent.,1,"social_proof,urgency",payment_request,Email,high,obvious,visa_scam
+EXT_LEGIT_0018,hr,"Hi Chamara, thanks for interviewing with Hsenid Business Solutions. Please complete the take-home assignment — link in email from our HR system.",0,,offer_announcement,WhatsApp,medium,,
+EXT_SCAM_0019,recruiter,LKR 7500 daily for online form filling. No skills needed.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0020,recruiter,Click partner ads daily earn $100 per click. Minimum 20 clicks.,1,"social_proof,urgency",initial_contact,Email,medium,medium,quick_task
+EXT_SCAM_0021,recruiter,bro this job pays $100 daily. just rate products online.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_LEGIT_0022,recruiter,hey Arjun — team was impressed in panel. moving u to final stage.,0,,document_request,Telegram,low,,
+EXT_LEGIT_0023,manager,"Hi Amaya, final round interview with the CTO at MAS Holdings — Friday 11:00 via Zoom. Please confirm availability.",0,,initial_contact,LinkedIn,low,,
+EXT_SCAM_0024,hr,Singapore restaurant job. S-Pass processing fee SGD 150 through partner.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0025,attacker,Qatar security guard job. Medical + visa fee QAR 200 through our agent.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0026,recruiter,processing charge USD 150. required by employer compliance.,1,urgency,payment_request,Telegram,high,obvious,background_check
+EXT_SCAM_0027,recruiter,Our company has a faster track for serious candidates. Not everyone qualifies.,1,social_proof,initial_contact,WhatsApp,medium,very subtle,subtle_pressure
+EXT_SCAM_0028,recruiter,PHP 800 daily for digital tasks. Phone based. Flexible hours.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_SCAM_0029,recruiter,Work permit fee AED 300 — government mandated for all expatriates.,1,urgency,payment_request,Telegram,high,obvious,training_fee
+EXT_SCAM_0030,manager,We are a government-registered recruitment agency with offices in Canada and Colombo.,1,social_proof,initial_contact,Email,low,very subtle,subtle_pressure
+EXT_SCAM_0031,recruiter,Our Bahrain-based client specifically requested a Sri Lankan candidate with your skill set.,1,social_proof,initial_contact,Email,low,very subtle,subtle_pressure
+EXT_SCAM_0032,attacker,rate products on amazon earn $50 per review. phone based easy task.,1,social_proof,initial_contact,Telegram,medium,medium,quick_task
+EXT_SCAM_0033,recruiter,Work from home earn SGD 300 per day. Simple tasks.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0034,hr,Document processing fee USD 500 required to proceed.,1,urgency,payment_request,Telegram,medium,obvious,visa_scam
+EXT_SCAM_0035,attacker,Document processing fee LKR 20000 required to proceed with your application.,1,urgency,payment_request,WhatsApp,medium,obvious,direct_payment
+EXT_SCAM_0036,attacker,Processing fee SGD 50 required to proceed with Singapore posting.,1,urgency,payment_request,Telegram,high,obvious,background_check
+EXT_SCAM_0037,manager,Your background is exactly what our Gulf client is targeting for this quarter's intake.,1,social_proof,initial_contact,Telegram,low,very subtle,subtle_pressure
+EXT_SCAM_0038,hr,Malaysia production job. Work permit processing AED equivalent LKR 5000.,1,"social_proof,urgency",payment_request,Telegram,high,obvious,visa_scam
+EXT_LEGIT_0039,recruiter,"Welcome to the team Nethmi! First day briefing: Monday 8:30am, Colombo office. Casual dress for the first week. See you soon!",0,,document_request,LinkedIn,low,,
+EXT_SCAM_0040,recruiter,Processing fee PHP 1000 required. Pay to activate your file.,1,urgency,payment_request,Telegram,high,obvious,direct_payment
+EXT_SCAM_0041,attacker,Kuwait domestic helper job. Visa processing LKR 2500 standard charge.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0042,recruiter,Part-time online job INR 3000 daily. Flexible hours.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0043,manager,Checking in Hasitha — the role is still open and your profile is in consideration. Let me know if anything has changed on your end.,0,,follow_up,Email,medium,,
+EXT_LEGIT_0044,manager,"Hi Nisha, background verification requires NIC scan and 2 references. Please submit via our HR portal — link in your offer email.",0,,offer_announcement,Email,medium,,
+EXT_LEGIT_0045,hr,"Sanduni, I'm reaching out from Hsenid Business Solutions's talent team. Your profile matches a role we're actively filling. Five-minute intro call this week?",0,,offer_announcement,WhatsApp,medium,,
+EXT_SCAM_0046,attacker,Product rating job. AED 800 per review. Work from home.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0047,hr,Medical examination fee LKR 2500 at our partner clinic. Mandatory for posting.,1,urgency,payment_request,WhatsApp,high,obvious,equipment_deposit
+EXT_LEGIT_0048,manager,"Hi Suresh, we reviewed your counter-offer. Team can come up to LKR 15000. Beyond that needs executive approval. Acceptable?",0,,qualification,Email,medium,,
+EXT_SCAM_0049,recruiter,facebook like task anna. LKR 12000 per like. daily cashout possible.,1,"social_proof,urgency",initial_contact,Telegram,medium,medium,quick_task
+EXT_SCAM_0050,attacker,bro aed 150 per hour online job. no office no exp needed.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0051,manager,"Hi Ruwan, Virtusa offer for UX Designer is attached. Salary LKR 75000 as discussed. Confirm acceptance by Friday.",0,,document_request,WhatsApp,low,,
+EXT_SCAM_0052,attacker,Rate Airbnb listings. USD 500 per review. Work from anywhere.,1,"social_proof,urgency",initial_contact,WhatsApp,medium,medium,quick_task
+EXT_SCAM_0053,recruiter,easy task — join telegram groups earn LKR 12000 per group joined.,1,"social_proof,urgency",initial_contact,WhatsApp,medium,medium,quick_task
+EXT_SCAM_0054,hr,medical clearance LKR 5000 at our certified partner clinic.,1,urgency,payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0055,recruiter,Work from home — USD 300 per hour. Flexible schedule.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0056,hr,Abu Dhabi driver job. Employment visa AED 100 through our authorized office.,1,"social_proof,urgency",payment_request,Email,high,obvious,visa_scam
+EXT_SCAM_0057,recruiter,Social media task — AED 200 per hour. Flexible. Phone only.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0058,attacker,Processing charge LKR 12000 — covers documentation for employer submission.,1,urgency,payment_request,WhatsApp,medium,obvious,training_fee
+EXT_SCAM_0059,hr,Singapore factory job placement. Work visa processing fee LKR 25000 required.,1,"social_proof,urgency",payment_request,Instagram,high,obvious,visa_scam
+EXT_LEGIT_0060,hr,"Hi Pradeep, panel interview confirmed for Thursday 3:00. Three team members joining via Zoom. Agenda: technical + culture fit.",0,,offer_announcement,LinkedIn,low,,
+EXT_LEGIT_0061,manager,"Hi Bimal, background verification is the last step before offer letter. Please provide reference details on https://hr.calcey.com/onboard this week.",0,,offer_announcement,WhatsApp,low,,
+EXT_SCAM_0062,recruiter,Google Maps review task — LKR 25000 per 5-star review. Phone work.,1,"social_proof,urgency",initial_contact,Instagram,medium,medium,quick_task
+EXT_SCAM_0063,attacker,Singapore company hiring remote. SGD 300 per hour.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_SCAM_0064,attacker,online earn sgd 50 per hour. no target. work own schedule.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0065,attacker,usd 300 per hour remote work. set ur own hours. phone job.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0066,hr,Work visa processing SGD 100 through our authorized agent.,1,urgency,payment_request,WhatsApp,high,obvious,background_check
+EXT_SCAM_0067,recruiter,Onboarding administration fee LKR 12000. Refundable upon completion of probation.,1,urgency,payment_request,SMS,high,obvious,equipment_deposit
+EXT_SCAM_0068,recruiter,document fee LKR 25000 need to pay before we can submit ur file.,1,urgency,payment_request,SMS,high,obvious,training_fee
+EXT_SCAM_0069,hr,Visa processing fee AED 150 through our partner agency in Bahrain.,1,urgency,payment_request,SMS,medium,obvious,training_fee
+EXT_SCAM_0070,recruiter,Your profile alignment score was the highest we've seen in this candidate batch.,1,social_proof,qualification,WhatsApp,low,very subtle,subtle_pressure
+EXT_LEGIT_0071,hr,"Hi Arjun, we'd like to schedule you for a technical interview with our Data Analyst team. Tuesday at AM via phone call. Free?",0,,qualification,SMS,low,,
+EXT_SCAM_0072,attacker,Remote position — AED 200 per hour. No experience needed.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0073,recruiter,Insurance registration LKR 2000. Mandatory for all overseas placements.,1,urgency,payment_request,Telegram,medium,obvious,visa_scam
+EXT_SCAM_0074,attacker,Online job paying USD 50 per completed task. Any device.,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0075,recruiter,You've been added to our priority talent pool — exclusive to top 500 candidates.,1,social_proof,qualification,SMS,low,very subtle,subtle_pressure
+EXT_SCAM_0076,attacker,Part time online work AED 150 per hour. Phone or laptop.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0077,recruiter,bro follow IG pages earn PHP 2000 per follow. unlimited daily la.,1,social_proof,initial_contact,Email,medium,medium,quick_task
+EXT_SCAM_0078,hr,Police clearance fee LKR 4500 through our authorized agent. Standard process.,1,urgency,payment_request,WhatsApp,medium,obvious,equipment_deposit
+EXT_LEGIT_0079,recruiter,"Hi Thilini, your joining documents are in order. Your manager Priya will meet you on arrival at our Gampaha office.",0,,initial_contact,LinkedIn,low,,
+EXT_LEGIT_0080,hr,hi Priya — contract attached in email. sign and send back pls.,0,,initial_contact,WhatsApp,low,,
+EXT_SCAM_0081,recruiter,Our team spent considerable time on your profile before deciding to reach out directly.,1,social_proof,initial_contact,Telegram,medium,very subtle,subtle_pressure
+EXT_SCAM_0082,recruiter,u follow instagram accounts get paid 5000 PHP per follow. easy phone job.,1,social_proof,initial_contact,WhatsApp,medium,medium,quick_task
+EXT_SCAM_0083,attacker,hi this job is PHP 1500 per task 20 task daily very easy.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0084,attacker,$100 per task online. Work own hours. Direct bank payment.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0085,hr,training fee LKR 3000 to register. course material included.,1,urgency,payment_request,Email,high,obvious,visa_scam
+EXT_LEGIT_0086,recruiter,"Hi Thilini, revised offer: LKR 25000 fixed plus performance bonus up to 20%. Medical and transport included. Formal letter follows.",0,,qualification,SMS,low,,
+EXT_SCAM_0087,recruiter,Like and follow celebrity Instagram accounts. PHP 500 per follow. Unlimited daily.,1,social_proof,initial_contact,WhatsApp,medium,medium,quick_task
+EXT_LEGIT_0088,hr,"Hi Kavya, coding challenge sent via HackerRank. 90 minutes, covers algorithms and SQL. Please start only when ready.",0,,document_request,WhatsApp,low,,
+EXT_SCAM_0089,recruiter,earn php 1000 daily rating product. simple. no exp. phone work.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0090,attacker,Tripadvisor review task. USD 100 per review. Phone or laptop.,1,social_proof,initial_contact,WhatsApp,medium,medium,quick_task
+EXT_SCAM_0091,manager,The hiring manager personally reviewed your profile and asked us to reach out.,1,social_proof,initial_contact,WhatsApp,medium,very subtle,subtle_pressure
+EXT_SCAM_0092,attacker,Equipment security bond SGD 200. Required by company policy.,1,urgency,payment_request,SMS,high,obvious,training_fee
+EXT_SCAM_0093,attacker,Online job SGD 500 per session. Work own hours any day.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0094,recruiter,kuwait job confirmed. processing fee lkr 5000 through certified agent.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0095,attacker,Online product review — LKR 6000 per review. Work from anywhere.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0096,recruiter,Digital task work paying $50 daily. No experience needed.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0097,attacker,Online job — LKR 8000 per completed set. Work any time.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_LEGIT_0098,hr,"Hi Sajith, compensation for Marketing Executive role is LKR 100000 per month as discussed. Formal letter being sent to your registered email.",0,,qualification,Telegram,low,,
+EXT_SCAM_0099,hr,Medical clearance fee USD 300 at our partner clinic.,1,urgency,payment_request,WhatsApp,high,obvious,background_check
+EXT_SCAM_0100,recruiter,easy home job. lkr 2500 per session. mobile work. no exp needed.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0101,recruiter,anna earn AED 100 per hour from phone. easy la.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0102,attacker,Seat confirmation deposit LKR 1500. Deducted from first month salary.,1,urgency,payment_request,SMS,medium,obvious,training_fee
+EXT_SCAM_0103,recruiter,sister trustpilot review task usd 300 per review no exp needed.,1,"social_proof,urgency",initial_contact,SMS,medium,medium,quick_task
+EXT_SCAM_0104,attacker,Data entry job PHP 1200 daily. Simple typing. Own hours.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0105,hr,Work permit processing fee LKR 10000 required by immigration authority.,1,urgency,payment_request,SMS,high,obvious,direct_payment
+EXT_SCAM_0106,attacker,LinkedIn connection task — USD 300 per 10 connections sent.,1,"social_proof,urgency",initial_contact,Instagram,medium,medium,quick_task
+EXT_SCAM_0107,recruiter,Earn $100 per day from home. Phone or PC. Flexible timing.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0108,recruiter,Canada hospital cleaning job. Medical + visa LKR 2500 via our agent.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0109,recruiter,Work from mobile — LKR 10000 per session. No qualification required.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_SCAM_0110,attacker,Visa processing fee LKR 3000 through our partner agency. Standard charge.,1,urgency,payment_request,WhatsApp,medium,obvious,background_check
+EXT_LEGIT_0111,recruiter,"Hi Ruwantha, Dialog Axiata can revise the offer to LKR 37500 with 6-month performance review. Would that work?",0,,qualification,LinkedIn,low,,
+EXT_SCAM_0112,recruiter,work permit processing AED 500. government authorized charge.,1,urgency,payment_request,WhatsApp,medium,obvious,training_fee
+EXT_SCAM_0113,recruiter,Training deposit SGD 100 — refundable after completing induction.,1,urgency,payment_request,WhatsApp,high,obvious,visa_scam
+EXT_LEGIT_0114,recruiter,"Hi Vikram, HackerRank assessment link sent to your email. 90 minutes, no deadline extension. Complete at your convenience this week.",0,,offer_announcement,SMS,medium,,
+EXT_SCAM_0115,recruiter,INR 1500 per hour remote work. Mobile or laptop.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0116,manager,Our placement success rate is 94% — candidates we select almost always get the role.,1,social_proof,initial_contact,Telegram,medium,very subtle,subtle_pressure
+EXT_SCAM_0117,attacker,machan 1500 PHP per task 15 task = PHP 22500 per day easy.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0118,hr,"Hi Bimal, apologies for the cold message — Lakmini from Arimac Lanka. Came across your CV on our portal. We have a HR Business Partner role that aligns closely with your experience.",0,,follow_up,WhatsApp,medium,,
+EXT_SCAM_0119,recruiter,Online survey job. LKR 15000 per hour. No experience required.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0120,attacker,Earn SGD 150 per hour from home. Digital tasks. No skills required.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0121,recruiter,YouTube subscribe task. LKR 2500 per channel subscribed. Easy phone.,1,social_proof,initial_contact,Telegram,medium,medium,quick_task
+EXT_SCAM_0122,hr,Tax clearance certificate LKR 10000 — mandatory for overseas salary.,1,urgency,payment_request,Telegram,high,obvious,background_check
+EXT_LEGIT_0123,recruiter,"Hi Chathura, our HR team is finalizing the shortlist. Your profile is in the final three. Decision expected by end of week.",0,,initial_contact,Email,medium,,
+EXT_SCAM_0124,recruiter,Document fee PHP 800 — covers authentication and submission.,1,urgency,payment_request,SMS,medium,obvious,document_fee
+EXT_SCAM_0125,recruiter,bro google review task LKR 5000 per review. just 5 star review only.,1,social_proof,initial_contact,WhatsApp,medium,medium,quick_task
+EXT_SCAM_0126,hr,Security deposit USD 150 for remote work equipment.,1,urgency,payment_request,Instagram,high,obvious,equipment_deposit
+EXT_SCAM_0127,recruiter,Background check fee USD 200 through our certified partner.,1,urgency,payment_request,Telegram,medium,obvious,direct_payment
+EXT_SCAM_0128,recruiter,USD 300 per hour online work. Set your own hours. No exp.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0129,hr,Document authentication fee USD 200 — paid once to processing center.,1,urgency,payment_request,WhatsApp,medium,obvious,training_fee
+EXT_LEGIT_0130,manager,"Hi Thilini, any update on whether you're still interested in the Arimac Lanka opportunity? Panel review meeting tomorrow.",0,,document_request,LinkedIn,low,,
+EXT_SCAM_0131,attacker,USD 50 daily online work. Simple tasks no experience needed.,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0132,attacker,machan sgd 100 per day part time only 2 hour daily la.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0133,recruiter,document attestation fee SGD 50 — standard overseas requirement.,1,urgency,payment_request,WhatsApp,medium,obvious,direct_payment
+EXT_SCAM_0134,recruiter,Home-based typing — LKR 10000 per hour. Daily bank transfer.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0135,attacker,Digital work from home. INR 2000 per session. Phone.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0136,hr,Medical fitness certificate fee LKR 3000 at our certified clinic.,1,urgency,payment_request,Email,high,obvious,direct_payment
+EXT_SCAM_0137,recruiter,aed 500 per day easy home job. no exp. daily payment.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0138,attacker,NIC verification fee LKR 12000 payable to our compliance team.,1,urgency,payment_request,SMS,high,obvious,document_fee
+EXT_LEGIT_0139,manager,"Hi Sajith, saw your profile on LinkedIn and wanted to reach out about a Cloud Architect opportunity at LSEG Technology. Would you be open to hearing more?",0,,offer_announcement,SMS,medium,,
+EXT_LEGIT_0140,hr,hi Pratheek offer letter in ur email. check and revert pls by friday.,0,,follow_up,LinkedIn,medium,,
+EXT_SCAM_0141,attacker,AED 300 per day remote work. Product reviews from phone.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_LEGIT_0142,recruiter,"Hi Tharaka, for EPF registration we need your NIC copy and bank account details. Please upload only to our official portal: https://careers.ndbbank.lk/onboarding",0,,follow_up,Telegram,low,,
+EXT_LEGIT_0143,manager,"Hi Pradeep, quick follow-up — references are clear. Final compensation discussion to be scheduled this week. Still available?",0,,initial_contact,WhatsApp,low,,
+EXT_SCAM_0144,manager,Not many people get a direct call from our headhunting division. Take it seriously.,1,social_proof,qualification,Telegram,medium,very subtle,subtle_pressure
+EXT_LEGIT_0145,recruiter,"Dear Harshi, MAS Holdings is pleased to extend a formal offer for Finance Manager. Package details in the attached PDF. Let us know if you have questions.",0,,initial_contact,Email,low,,
+EXT_SCAM_0146,manager,We represent only C-suite and senior-level clients. This role is from one of them.,1,social_proof,initial_contact,WhatsApp,medium,very subtle,subtle_pressure
+EXT_SCAM_0147,attacker,INR 3000 per hour online work. No experience needed.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0148,recruiter,attestation charge LKR 20000 for ur educational certificates.,1,urgency,payment_request,SMS,high,obvious,training_fee
+EXT_LEGIT_0149,recruiter,"Hi Nadeesha, interview with NDB Bank confirmed for Friday at 11:00 via in person at our Colombo office. Calendar invite following.",0,,document_request,LinkedIn,low,,
+EXT_SCAM_0150,recruiter,Home data entry INR 3000 per hour. Daily bank payment.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0151,attacker,Attestation fee LKR 5000 for your educational certificates. Required by employer.,1,urgency,payment_request,SMS,medium,obvious,background_check
+EXT_SCAM_0152,attacker,uk care job visa processing usd 200 through authorized uk partner.,1,"social_proof,urgency",payment_request,Email,high,obvious,visa_scam
+EXT_SCAM_0153,hr,UK factory job. Tier 2 visa processing USD 200 through our UK partner.,1,"social_proof,urgency",payment_request,SMS,high,obvious,visa_scam
+EXT_SCAM_0154,attacker,Placement fee LKR 20000 — covers documentation and employer coordination.,1,urgency,payment_request,WhatsApp,medium,obvious,direct_payment
+EXT_SCAM_0155,manager,"The role includes accommodation, insurance, and annual flights. Rarely offered together.",1,social_proof,qualification,SMS,medium,very subtle,subtle_pressure
+EXT_SCAM_0156,recruiter,Visa processing USD 500 through our authorized agency.,1,urgency,payment_request,Email,medium,obvious,visa_scam
+EXT_SCAM_0157,attacker,SGD 200 daily for digital tasks. Work from mobile.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0158,attacker,machan airbnb review job USD 200 per review work from anywhere.,1,social_proof,initial_contact,Telegram,medium,medium,quick_task
+EXT_SCAM_0159,attacker,Flexible remote work LKR 5000 daily. Phone based. Any hours.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0160,recruiter,This isn't a mass application process. You were individually selected.,1,social_proof,initial_contact,Instagram,low,very subtle,subtle_pressure
+EXT_SCAM_0161,hr,insurance registration fee LKR 1500. mandatory for overseas work.,1,urgency,payment_request,WhatsApp,medium,obvious,training_fee
+EXT_SCAM_0162,recruiter,Our network spans 22 countries. We identify talent before roles go to market.,1,social_proof,qualification,Telegram,low,very subtle,subtle_pressure
+EXT_LEGIT_0163,hr,"Hi Fathima, Ananya here from Arimac Lanka. Your profile on LinkedIn stood out for our Business Analyst opening. Open to a quick call?",0,,follow_up,LinkedIn,medium,,
+EXT_SCAM_0164,recruiter,Canada job placement ready. visa + doc fee lkr 25000 via authorized agent.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0165,attacker,machan google maps review job LKR 3000 per review very easy phone work.,1,"social_proof,urgency",initial_contact,Telegram,medium,medium,quick_task
+EXT_SCAM_0166,attacker,anna app download task sgd 100 per app downloaded and reviewed.,1,social_proof,initial_contact,SMS,medium,medium,quick_task
+EXT_LEGIT_0167,manager,akka the interview postponed to Monday — sorry for inconvenience.,0,,qualification,WhatsApp,medium,,
+EXT_SCAM_0168,attacker,Administration fee USD 50 for overseas placement coordination.,1,urgency,payment_request,Instagram,medium,obvious,background_check
+EXT_LEGIT_0169,recruiter,hey Nethmi — offer letter in ur email. check and revert pls.,0,,offer_announcement,LinkedIn,medium,,
+EXT_SCAM_0170,recruiter,This is an executive-level opportunity. We approach fewer than 5 candidates per role.,1,social_proof,initial_contact,WhatsApp,medium,very subtle,subtle_pressure
+EXT_SCAM_0171,recruiter,u can earn LKR 3500 per hour from home. easy work no exp.,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0172,hr,Dubai hotel job confirmed. Visa processing fee LKR 2500 via authorized agent.,1,"social_proof,urgency",payment_request,Instagram,high,obvious,visa_scam
+EXT_SCAM_0173,manager,"We headhunt, we don't advertise. The fact you're hearing from us means you're on our A-list.",1,social_proof,initial_contact,WhatsApp,medium,very subtle,subtle_pressure
+EXT_SCAM_0174,hr,Equipment deposit USD 50. Refundable after joining.,1,urgency,payment_request,Telegram,high,obvious,visa_scam
+EXT_SCAM_0175,recruiter,Insurance enrollment fee LKR 2000. Covers first 3 months of employment.,1,urgency,payment_request,SMS,high,obvious,equipment_deposit
+EXT_SCAM_0176,hr,Placement fee AED 200 covers document handling and coordination.,1,urgency,payment_request,Instagram,high,obvious,document_fee
+EXT_SCAM_0177,attacker,TikTok like and follow task. PHP 500 per task. Work from mobile.,1,social_proof,initial_contact,SMS,medium,medium,quick_task
+EXT_SCAM_0178,recruiter,"The role has been open internally for months — they want the right person, not just anyone.",1,social_proof,qualification,Email,medium,very subtle,subtle_pressure
+EXT_SCAM_0179,manager,We are an ISO-certified recruitment consultancy operating across South and Southeast Asia.,1,social_proof,qualification,Telegram,medium,very subtle,subtle_pressure
+EXT_SCAM_0180,recruiter,Most roles we fill never appear on job boards. This is one of them.,1,social_proof,qualification,Email,medium,very subtle,subtle_pressure
+EXT_SCAM_0181,hr,Equipment security deposit LKR 1500. Refundable after 3 months of employment.,1,urgency,payment_request,Telegram,high,obvious,visa_scam
+EXT_SCAM_0182,recruiter,We partnered with the top employer in the region. Your profile made the shortlist.,1,social_proof,qualification,Telegram,low,very subtle,subtle_pressure
+EXT_LEGIT_0183,recruiter,"Interview confirmation — MAS Holdings, Tuesday at PM, Zoom. Please let us know 24 hours in advance if you need to reschedule.",0,,follow_up,Email,medium,,
+EXT_SCAM_0184,attacker,Seat confirmation deposit LKR 12000 required before offer letter issued.,1,urgency,payment_request,WhatsApp,medium,obvious,background_check
+EXT_SCAM_0185,attacker,Placement coordination fee SGD 100 for Bahrain employer.,1,urgency,payment_request,Telegram,high,obvious,direct_payment
+EXT_SCAM_0186,recruiter,Product testing job. Earn LKR 1500 per test. Work from home.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0187,recruiter,This role is not publicly advertised. Shared only with top-tier candidates.,1,social_proof,initial_contact,WhatsApp,medium,very subtle,subtle_pressure
+EXT_SCAM_0188,attacker,earn lkr 8000 per task from mobile. very easy. daily cashout.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0189,recruiter,Document attestation SGD 300 for your file submission.,1,urgency,payment_request,WhatsApp,high,obvious,equipment_deposit
+EXT_SCAM_0190,recruiter,Work from mobile earn LKR 2000 per task set. Start anytime.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0191,manager,Following up Chamara — the engineering team reviewed your assessment positively. Would like to discuss next steps when you're free.,0,,initial_contact,WhatsApp,medium,,
+EXT_SCAM_0192,attacker,ecommerce rating job LKR 3000 daily. very simple work phone only.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0193,attacker,Digital task job. AED 300 per session. Work any hours.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_SCAM_0194,recruiter,Earn $$200 daily rating products online. Simple mobile work.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0195,attacker,App download and review task. SGD 150 per completed review.,1,"social_proof,urgency",initial_contact,Telegram,medium,medium,quick_task
+EXT_SCAM_0196,recruiter,Copy paste work from home. LKR 3000 per hour no experience.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0197,hr,Tax registration fee LKR 8000 required before salary can be processed.,1,urgency,payment_request,SMS,high,obvious,background_check
+EXT_SCAM_0198,attacker,Remote data entry — USD 50 per hour. Work from anywhere.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_LEGIT_0199,manager,ok team liked ur profile. next step is tech test. check email.,0,,follow_up,Email,low,,
+EXT_SCAM_0200,hr,malaysia factory job work permit fee lkr 25000 — employer verified.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0201,recruiter,u need to pay SGD 500 processing before we proceed.,1,urgency,payment_request,Email,medium,obvious,direct_payment
+EXT_SCAM_0202,recruiter,Social media job from home. Earn LKR 5000 per hour easily.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0203,attacker,Home-based online job. $50 daily for simple tasks.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_LEGIT_0204,manager,"Hi Kasun, offer for Finance Manager at MillenniumIT ESP is ready. Base salary, EPF/ETF, and leave policy on page 2. Reply to confirm acceptance.",0,,follow_up,LinkedIn,medium,,
+EXT_SCAM_0205,recruiter,Digital marketing work from home. LKR 5000 per hour. No exp.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_LEGIT_0206,recruiter,machan Hsenid Business Solutions offer confirmed. LKR 14000 basic + bonus. formal letter tmrw.,0,,follow_up,SMS,medium,,
+EXT_SCAM_0207,recruiter,thambi this job pays USD 300 per day. just phone work.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0208,recruiter,Australia farm job. Visa processing fee USD 300 through authorized agency.,1,"social_proof,urgency",payment_request,Email,high,obvious,visa_scam
+EXT_SCAM_0209,recruiter,This position comes with a 3-year contract and return flight coverage. Very few openings.,1,social_proof,qualification,Telegram,medium,very subtle,subtle_pressure
+EXT_SCAM_0210,recruiter,Medical examination AED 150 — required for work permit approval.,1,urgency,payment_request,WhatsApp,high,obvious,equipment_deposit
+EXT_LEGIT_0211,hr,hey Hasitha they want u for the role. sorting paperwork internally.,0,,initial_contact,LinkedIn,medium,,
+EXT_LEGIT_0212,manager,"Hi Akila, IronOne Technologies team is finalizing decision. Your profile is in the top two. Expect an update by Thursday.",0,,offer_announcement,LinkedIn,medium,,
+EXT_SCAM_0213,attacker,Earn AED 200 daily for online product review. Remote. Flexible.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0214,manager,We work exclusively with employers who offer verified contracts and direct employment.,1,social_proof,initial_contact,Instagram,medium,very subtle,subtle_pressure
+EXT_SCAM_0215,recruiter,training enrollment LKR 3500. refundable after probation period.,1,urgency,payment_request,Telegram,high,obvious,training_fee
+EXT_SCAM_0216,hr,Document clearance LKR 1500 payable to authorized processing agent.,1,urgency,payment_request,SMS,medium,obvious,equipment_deposit
+EXT_SCAM_0217,recruiter,We've been operating in Bahrain recruitment for 14 years. Fully licensed.,1,social_proof,initial_contact,WhatsApp,low,very subtle,subtle_pressure
+EXT_LEGIT_0218,hr,bro CodeGen International interview confirm aagiyacha? u got the calendar invite right?,0,,document_request,Email,medium,,
+EXT_SCAM_0219,recruiter,"Our track record speaks for itself — 1,400 successful placements in the last 3 years.",1,social_proof,qualification,Telegram,medium,very subtle,subtle_pressure
+EXT_SCAM_0220,recruiter,"We represent employers directly — no middlemen, no agent fees to candidates.",1,social_proof,initial_contact,WhatsApp,low,very subtle,subtle_pressure
+EXT_SCAM_0221,attacker,Laptop security deposit LKR 2500 for work-from-home equipment. Fully refundable.,1,urgency,payment_request,SMS,high,obvious,visa_scam
+EXT_SCAM_0222,recruiter,Google review task. LKR 15000 per 5-star review submitted. Phone work.,1,social_proof,initial_contact,Instagram,medium,medium,quick_task
+EXT_LEGIT_0223,recruiter,"Hi Pradeep, Nirosha from Arimac Lanka here. Decision is with senior management. Hoping to come back to you by Friday.",0,,initial_contact,SMS,low,,
+EXT_SCAM_0224,attacker,Remote social media job — USD 500 per hour. Very easy.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0225,hr,hi Divya reference check cleared. offer being prepared this week.,0,,offer_announcement,WhatsApp,medium,,
+EXT_LEGIT_0226,hr,Welcome to CodeGen International Madushi! Your start date is confirmed. HR will share the onboarding schedule and laptop pickup details by tomorrow.,0,,offer_announcement,LinkedIn,medium,,
+EXT_LEGIT_0227,hr,congrats Suresh! MillenniumIT ESP confirmed ur selection. start date 1st next month.,0,,document_request,Email,low,,
+EXT_SCAM_0228,hr,Placement fee USD 100 — covers all documentation handling.,1,urgency,payment_request,Email,high,obvious,training_fee
+EXT_LEGIT_0229,manager,"Hi Roshani, could you connect us with 2 professional references? We'll reach out directly. Please ensure they're aware.",0,,initial_contact,LinkedIn,medium,,
+EXT_SCAM_0230,manager,Our Asia Pacific talent desk flagged your profile as a strong regional fit.,1,social_proof,initial_contact,Email,medium,very subtle,subtle_pressure
+EXT_SCAM_0231,manager,This vacancy has a 3-year waiting list through normal channels. You're getting priority access.,1,social_proof,qualification,WhatsApp,medium,very subtle,subtle_pressure
+EXT_LEGIT_0232,manager,"Hi Chathura, interview reminder for tomorrow at 2:30 via Zoom with PwC Sri Lanka. Join 5 minutes early please.",0,,offer_announcement,Email,medium,,
+EXT_SCAM_0233,recruiter,Clearance fee INR 2000 through our partner processing center.,1,urgency,payment_request,SMS,high,obvious,background_check
+EXT_SCAM_0234,attacker,canada job visa processing lkr 5000 through our immigration partner.,1,"social_proof,urgency",payment_request,SMS,high,obvious,visa_scam
+EXT_SCAM_0235,manager,Not everyone gets this direct outreach — your profile genuinely stood out.,1,social_proof,initial_contact,WhatsApp,low,very subtle,subtle_pressure
+EXT_SCAM_0236,attacker,WhatsApp group join task. LKR 15000 per group. Unlimited.,1,"social_proof,urgency",initial_contact,Email,medium,medium,quick_task
+EXT_SCAM_0237,recruiter,earning LKR 1500 per hour is possible this work. easy phone job.,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0238,recruiter,UK care home job. Visa sponsorship + processing fee USD 300 via agent.,1,"social_proof,urgency",payment_request,Instagram,high,obvious,visa_scam
+EXT_LEGIT_0239,hr,"Hi Akash, as part of onboarding we need your NIC and bank account for payroll setup. Use only https://careers.wso2.com/apply for security.",0,,offer_announcement,Email,low,,
+EXT_LEGIT_0240,manager,bro Virtusa selected u for Project Manager 🎉 formal letter in email today.,0,,document_request,LinkedIn,medium,,
+EXT_SCAM_0241,recruiter,We conduct pre-screening so our clients only interview pre-approved candidates.,1,social_proof,initial_contact,WhatsApp,low,very subtle,subtle_pressure
+EXT_LEGIT_0242,manager,"Hi Nisha, quick update — your profile is still in consideration at HNB. Senior review meeting tomorrow. Expect news by Thursday.",0,,qualification,WhatsApp,low,,
+EXT_SCAM_0243,recruiter,Compliance registration fee INR 2000 required before joining.,1,urgency,payment_request,WhatsApp,high,obvious,document_fee
+EXT_LEGIT_0244,recruiter,"Hi Oshadi, please complete your onboarding forms at https://onboard.virtusa.com before your start date. NIC and bank details needed for payroll.",0,,offer_announcement,SMS,medium,,
+EXT_SCAM_0245,recruiter,We've worked with this employer for 9 years. They trust our judgment on candidates.,1,social_proof,qualification,Email,low,very subtle,subtle_pressure
+EXT_SCAM_0246,attacker,akka telegram task group daily earn SGD 50. join and do simple task.,1,"social_proof,urgency",initial_contact,Telegram,medium,medium,quick_task
+EXT_SCAM_0247,attacker,sir the document fee is LKR 4500 through authorized agent only.,1,urgency,payment_request,Instagram,medium,obvious,background_check
+EXT_LEGIT_0248,hr,welcome to 99X Technology family Isuri! 🎉 onboarding email on its way.,0,,offer_announcement,Email,medium,,
+EXT_LEGIT_0249,manager,decision coming this friday Isuri. fingers crossed for u 🤞,0,,follow_up,WhatsApp,low,,
+EXT_LEGIT_0250,hr,bro Sysco LABS ref check done. offer letter coming tmrw check email.,0,,document_request,WhatsApp,medium,,
+EXT_LEGIT_0251,hr,hi Harshi — r u ok with hybrid? 3 days office 2 wfh. Cambio Software asking.,0,,follow_up,WhatsApp,medium,,
+EXT_SCAM_0252,attacker,Abu Dhabi hotel housekeeping job. Visa fee AED 800 through agency.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_LEGIT_0253,hr,"Hi Chathura, technical assessment via HireVue link sent to your email. Complete before Friday — time cannot be extended.",0,,initial_contact,Email,low,,
+EXT_SCAM_0254,recruiter,bro $300 per hour from home. just rating stuff online.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0255,recruiter,Social media work from home. PHP 1200 per hour.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_LEGIT_0256,manager,hi pls complete hackerrank test — link in email. closes friday.,0,,follow_up,SMS,low,,
+EXT_SCAM_0257,recruiter,SGD 500 per hour social media work. No qualifications.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_LEGIT_0258,manager,"Hi Pradeep, Nilantha here from NDB Bank. Found your work through a referral — impressive background. We have a Business Analyst opening I think fits you well.",0,,document_request,WhatsApp,low,,
+EXT_SCAM_0259,recruiter,click ads online $500 per click. 50 click per day. easy phone work.,1,"social_proof,urgency",initial_contact,Email,medium,medium,quick_task
+EXT_SCAM_0260,recruiter,Remote data entry — SGD 200 per hour. No experience.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0261,attacker,PHP 500 per hour online work. No skills required.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0262,recruiter,Online rating job. PHP 500 per review. Work from anywhere.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_LEGIT_0263,recruiter,"Hi Tharaka, please find the attached offer letter for the Cloud Architect position at Dialog Axiata. Salary as discussed. Please review and revert by Friday.",0,,qualification,LinkedIn,low,,
+EXT_SCAM_0264,attacker,qatar job visa + medical lkr 6000 through partner agency. standard process.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0265,recruiter,part time digital job lkr 15000 per day. flexible timing. phone.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0266,attacker,Product photo review task — PHP 2000 per review. Amazon products.,1,"social_proof,urgency",initial_contact,WhatsApp,medium,medium,quick_task
+EXT_SCAM_0267,recruiter,whatsapp group join task lkr 3000 per group unlimited daily.,1,"social_proof,urgency",initial_contact,Telegram,medium,medium,quick_task
+EXT_LEGIT_0268,hr,hey Rajesh — decision this friday. team liked ur profile. fingers crossed 🤞,0,,follow_up,Email,medium,,
+EXT_LEGIT_0269,manager,Reference check stage — please share 2 professional references via our secure HR portal. No need to contact them in advance.,0,,offer_announcement,LinkedIn,low,,
+EXT_SCAM_0270,recruiter,Onboarding deposit USD 50. Refunded in full after probation period.,1,urgency,payment_request,Instagram,medium,obvious,document_fee
+EXT_LEGIT_0271,hr,"Hello Amaya, saw your profile on TopJobs — your experience caught our attention. We have a Software Engineer opening at Arimac Lanka. Interested?",0,,document_request,LinkedIn,low,,
+EXT_SCAM_0272,recruiter,shopee rating task php 500 per product rating. very simple la.,1,"social_proof,urgency",initial_contact,Instagram,medium,medium,quick_task
+EXT_SCAM_0273,manager,Our firm was ranked top recruitment agency in South Asia for 2023 and 2024.,1,social_proof,qualification,Email,medium,very subtle,subtle_pressure
+EXT_LEGIT_0274,manager,"Hi Arjun, for SLIC insurance enrollment, please upload NIC copy and beneficiary details to https://careers.lseg.com this week.",0,,document_request,Telegram,medium,,
+EXT_LEGIT_0275,hr,Welcome to 99X Technology Rizna! Start date confirmed. IT will set up your laptop — collect from reception on day one.,0,,follow_up,WhatsApp,low,,
+EXT_SCAM_0276,recruiter,inr 3000 per task online job. simple. no exp needed.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0277,recruiter,The employer requires confidentiality — that's why this isn't publicly listed.,1,social_proof,qualification,WhatsApp,low,very subtle,subtle_pressure
+EXT_LEGIT_0278,recruiter,"Hi Nethmi, the assignment is a short system design task. You'll receive the brief by email. Submission deadline is end of next week.",0,,initial_contact,SMS,low,,
+EXT_LEGIT_0279,manager,Congratulations Kumar! 99X Technology is delighted to bring you on board as Backend Engineer. Offer letter attached. Start date tentatively 15th of next month.,0,,offer_announcement,Email,low,,
+EXT_SCAM_0280,recruiter,PHP 1000 per hour digital marketing task. Phone only. No experience.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0281,manager,"Dear Priya, thank you for applying to Accenture Lanka. Interview scheduled for Thursday 9:00 — in person at our Colombo office. Calendar invite to follow.",0,,follow_up,WhatsApp,low,,
+EXT_SCAM_0282,attacker,INR 3000 per day online tasks. No skills required.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0283,manager,"Hi Kavya, as part of background check could you provide 2 professional references with email addresses? Submit via https://hr.dialog.lk/portal",0,,offer_announcement,SMS,medium,,
+EXT_SCAM_0284,recruiter,Earn USD 100 per session. Product rating from mobile.,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0285,recruiter,Background verification fee LKR 2500 through our authorized processing center.,1,urgency,payment_request,WhatsApp,high,obvious,equipment_deposit
+EXT_SCAM_0286,recruiter,anna lkr 5000 per hour online. work from home. no qualifications.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0287,recruiter,earn inr 1500 daily from home. copy paste work. easy.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0288,attacker,AED 500 daily online work. Simple tasks. Own schedule.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0289,attacker,bahrain job placement. visa fee lkr 4500. pay to proceed with ur file.,1,"social_proof,urgency",payment_request,SMS,high,obvious,visa_scam
+EXT_SCAM_0290,recruiter,australia farm placement. visa fee usd 150 via registered partner agency.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0291,recruiter,hi earn SGD 100 daily 2hr work only. part time.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0292,attacker,Instagram follow task. AED 200 per follow. 200 follows daily limit.,1,social_proof,initial_contact,WhatsApp,medium,medium,quick_task
+EXT_SCAM_0293,recruiter,Work permit fee USD 100 — paid to immigration representative.,1,urgency,payment_request,WhatsApp,medium,obvious,background_check
+EXT_LEGIT_0294,recruiter,hi Mohamed — panel was impressed. moving to final round with cto.,0,,document_request,SMS,medium,,
+EXT_SCAM_0295,recruiter,This employer has a no-interview policy for candidates we recommend directly.,1,social_proof,qualification,Telegram,low,very subtle,subtle_pressure
+EXT_SCAM_0296,hr,Training registration fee LKR 1500. Pay to confirm enrollment in next batch.,1,urgency,payment_request,Telegram,high,obvious,visa_scam
+EXT_SCAM_0297,recruiter,Malaysia hotel job. Work permit + medical fee LKR 7500 via agent.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0298,recruiter,"Our Singapore-based firm has placed 2,000+ professionals across Asia Pacific.",1,social_proof,qualification,Telegram,medium,very subtle,subtle_pressure
+EXT_LEGIT_0299,manager,"Hi Harshi, Emma here. We'd like you to complete a 2-hour coding assessment on HackerRank. Invite sent to your email. Complete within 5 days.",0,,initial_contact,LinkedIn,low,,
+EXT_SCAM_0300,recruiter,Remote work available — LKR 2500 per hour. Phone or laptop.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0301,attacker,sister this work pays LKR 4500 per day no experience needed.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0302,attacker,online earn LKR 2500 per hour no target no boss.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0303,attacker,SGD 50 per task set. Work from home. 3–4 sets daily possible.,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0304,hr,sit deposit SGD 500 — refund given after 90 days employment.,1,urgency,payment_request,SMS,medium,obvious,equipment_deposit
+EXT_SCAM_0305,attacker,LKR 3500 per completed task. Work from mobile anytime. Daily pay.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0306,hr,Canada construction job. Work permit application fee CAD equivalent LKR 2000.,1,"social_proof,urgency",payment_request,Instagram,high,obvious,visa_scam
+EXT_SCAM_0307,recruiter,php 1000 per task no experience just phone. daily payment.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0308,hr,equipment deposit LKR 12000 required. refunded after 6 months.,1,urgency,payment_request,SMS,high,obvious,background_check
+EXT_LEGIT_0309,manager,"Hi Chathura, excited to have you join Sampath Bank! Reporting time on Monday is 9am to our Colombo office. Bring originals of NIC and certificates.",0,,offer_announcement,WhatsApp,low,,
+EXT_SCAM_0310,recruiter,Our Canada partner company is expanding. They asked for quality candidates only.,1,social_proof,qualification,WhatsApp,medium,very subtle,subtle_pressure
+EXT_LEGIT_0311,hr,"Hi Roshan, I'm Ajith from Hsenid Business Solutions HR. We'd like to invite you for an interview on Wednesday at PM via Google Meet. Please confirm.",0,,offer_announcement,Telegram,low,,
+EXT_SCAM_0312,attacker,Social media job in Bahrain — AED 200 per hour. Remote.,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0313,recruiter,Kuwait driver job confirmed. Visa processing LKR 6000 via partner agent.,1,"social_proof,urgency",payment_request,Instagram,high,obvious,visa_scam
+EXT_SCAM_0314,hr,Registration fee INR 1500 for training enrollment. Standard charge.,1,urgency,payment_request,Telegram,high,obvious,equipment_deposit
+EXT_SCAM_0315,attacker,Twitter/X follow task. USD 200 per account followed. Phone only.,1,"social_proof,urgency",initial_contact,Telegram,medium,medium,quick_task
+EXT_SCAM_0316,recruiter,Our SLA with this employer guarantees interviews within 48 hours for shortlisted candidates.,1,social_proof,initial_contact,Instagram,low,very subtle,subtle_pressure
+EXT_SCAM_0317,recruiter,We only reach out when we're confident. Your profile justified the contact.,1,social_proof,qualification,WhatsApp,low,very subtle,subtle_pressure
+EXT_SCAM_0318,recruiter,Rate Google Maps businesses. LKR 3500 per review. Unlimited tasks available.,1,social_proof,initial_contact,SMS,medium,medium,quick_task
+EXT_SCAM_0319,manager,Our team was impressed by your background. Very few candidates reach this stage directly.,1,social_proof,initial_contact,Email,medium,very subtle,subtle_pressure
+EXT_SCAM_0320,attacker,Singapore construction contract. Work permit fee SGD 500 through our agency.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0321,recruiter,Earn LKR 7500 per hour from home. No experience needed.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0322,hr,hi Isuri ur cv was shortlisted at HNB. call pannalama this week?,0,,qualification,Email,low,,
+EXT_LEGIT_0323,manager,"Hasitha, assessment link sent. The test covers data structures and system design. Time limit 90 minutes. Complete by next Monday.",0,,follow_up,LinkedIn,medium,,
+EXT_SCAM_0324,recruiter,INR 3000 per day work from home. Simple form filling. Phone-based.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_LEGIT_0325,hr,"hi Chathura, onboarding docs: upload NIC and cert to https://careers.99x.io before start date.",0,,qualification,WhatsApp,medium,,
+EXT_SCAM_0326,recruiter,easy work daily earn LKR 3500. no skill needed. home job.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_SCAM_0327,recruiter,LKR 2000 per hour data entry work. Phone only. Daily payment.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0328,recruiter,"Onboarding docs needed: NIC copy, A/L or degree certificate, passport photo. Upload to portal — link sent separately by IT.",0,,offer_announcement,LinkedIn,medium,,
+EXT_LEGIT_0329,recruiter,"Hello Amaya, Calcey Technologies is expanding and looking for a Project Manager. Your background on TopJobs stood out. Would you be interested in an intro call?",0,,document_request,SMS,medium,,
+EXT_SCAM_0330,recruiter,PHP 3000 per task. 15 tasks daily. Work from mobile only.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_SCAM_0331,attacker,Online work from home. USD 500 per completed session.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0332,recruiter,hi Isuri final round confirmed. Wednesday 9:00 via Zoom.,0,,document_request,LinkedIn,low,,
+EXT_SCAM_0333,attacker,placement deposit LKR 15000 deducted from first salary on joining.,1,urgency,payment_request,SMS,high,obvious,direct_payment
+EXT_SCAM_0334,attacker,YouTube like task — PHP 800 per like. Do 100 likes = PHP 300000.,1,"social_proof,urgency",initial_contact,Email,medium,medium,quick_task
+EXT_SCAM_0335,recruiter,Home-based typing job. LKR 20000 per day for simple data entry.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0336,attacker,ecommerce work from home php 800 per task very easy just phone,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0337,recruiter,Our Dubai office referred your profile to us as a potential match for their senior opening.,1,social_proof,initial_contact,SMS,low,very subtle,subtle_pressure
+EXT_SCAM_0338,recruiter,Shopee/Lazada product rating task. PHP 2000 per rating. Simple work.,1,"social_proof,urgency",initial_contact,Email,medium,medium,quick_task
+EXT_SCAM_0339,recruiter,Candidates we contact directly skip the initial screening. You're already past that stage.,1,social_proof,qualification,Telegram,low,very subtle,subtle_pressure
+EXT_SCAM_0340,attacker,LKR 2000 per day online task. Simple work. Daily bank transfer.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0341,hr,"Following our negotiation call, NDB Bank is pleased to revise the offer to LKR 40000. This is our best position.",0,,initial_contact,Telegram,medium,,
+EXT_SCAM_0342,attacker,Product review job. SGD 50 per review. Phone based.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_SCAM_0343,recruiter,akka LKR 10000 per day online. no qualification. daily cashout.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_LEGIT_0344,recruiter,thambi ur references cleared. offer uploading today. check portal.,0,,document_request,Email,medium,,
+EXT_SCAM_0345,attacker,machan 20000 per hour la. phone work only. no exp needed.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0346,attacker,document attestation aed 200 via certified agent. very standard.,1,urgency,payment_request,WhatsApp,medium,obvious,direct_payment
+EXT_LEGIT_0347,recruiter,"Hi Harshi, next step is a take-home technical assessment. Invitation coming from our HR system — check your email including spam. Complete by Friday.",0,,initial_contact,WhatsApp,medium,,
+EXT_LEGIT_0348,manager,hi Nuwan tech test result — passed! HR will call in 2 days.,0,,offer_announcement,WhatsApp,medium,,
+EXT_SCAM_0349,manager,Your experience puts you in the top 2% of candidates we've assessed this year.,1,social_proof,qualification,WhatsApp,low,very subtle,subtle_pressure
+EXT_SCAM_0350,recruiter,Background check fee AED 150 through authorized UAE agent.,1,urgency,payment_request,SMS,medium,obvious,equipment_deposit
+EXT_SCAM_0351,recruiter,work from mobile earn SGD 150 per hour. super easy.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0352,recruiter,hi Isuru pls complete the assessment link — sent to ur email. closes friday.,0,,follow_up,WhatsApp,low,,
+EXT_LEGIT_0353,recruiter,"Hi Isuru, onboarding confirmed. Please complete the digital HR forms at https://careers.ndbbank.lk/onboarding before your first day.",0,,qualification,SMS,low,,
+EXT_LEGIT_0354,hr,"Akash, can you make Wednesday at 11:00 for a 45-minute session with our engineering team on Google Meet?",0,,offer_announcement,WhatsApp,low,,
+EXT_SCAM_0355,attacker,USD 150 per hour for remote data processing. Flexible schedule.,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0356,attacker,$300 per session product review work. Mobile or PC. Own hours.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0357,manager,Our UK client specifically requested profiles with your background.,1,social_proof,initial_contact,WhatsApp,medium,very subtle,subtle_pressure
+EXT_SCAM_0358,recruiter,Your profile was flagged as priority by our senior headhunting team.,1,social_proof,initial_contact,Telegram,low,very subtle,subtle_pressure
+EXT_SCAM_0359,attacker,Part-time home job. LKR 1500 per day. Simple mobile tasks.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0360,hr,hi Kumar — quick call tomorrow? 15 mins max. about the Sales Executive role.,0,,qualification,LinkedIn,low,,
+EXT_SCAM_0361,recruiter,Remote product review — $300 per review. Phone based.,1,social_proof,initial_contact,Telegram,medium,medium,high_hourly
+EXT_SCAM_0362,attacker,file processing fee lkr 2000 to start official employer correspondence.,1,urgency,payment_request,Instagram,high,obvious,background_check
+EXT_SCAM_0363,attacker,Follow Instagram accounts and get paid PHP 500 per follow. Cashout daily.,1,social_proof,initial_contact,WhatsApp,medium,medium,quick_task
+EXT_SCAM_0364,recruiter,Join our Telegram task group. Complete simple tasks. USD 150 daily.,1,social_proof,initial_contact,Instagram,medium,medium,quick_task
+EXT_SCAM_0365,attacker,Qatar construction project hiring. Visa + medical fee QAR 500 via agency.,1,"social_proof,urgency",payment_request,SMS,high,obvious,visa_scam
+EXT_SCAM_0366,recruiter,Work from mobile. PHP 1200 per day. Rating and reviewing.,1,social_proof,initial_contact,SMS,medium,medium,high_hourly
+EXT_LEGIT_0367,manager,"For your employee file, LSEG Technology HR requires: NIC copy, educational certificates, and a passport photo. Submit through the onboarding portal only.",0,,offer_announcement,LinkedIn,low,,
+EXT_SCAM_0368,attacker,Remote part-time role — AED 500 per hour. No office. Phone work.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0369,attacker,$$200 per day for social media work. Phone only. No skills.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0370,attacker,Training registration USD 300. Pay to confirm your enrollment.,1,urgency,payment_request,WhatsApp,high,obvious,document_fee
+EXT_SCAM_0371,recruiter,We've successfully placed over 800 Sri Lankans in Kuwait over the past 5 years.,1,social_proof,qualification,SMS,medium,very subtle,subtle_pressure
+EXT_LEGIT_0372,recruiter,Following our verbal offer — the written letter for HR Business Partner at CodeGen International has been prepared. Kindly upload signed copy to https://careers.99x.io,0,,document_request,LinkedIn,medium,,
+EXT_SCAM_0373,attacker,Online work for Singapore-based company. AED 500 per hour.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0374,recruiter,Home-based job INR 1000 per day. Simple data entry.,1,social_proof,initial_contact,Instagram,medium,medium,high_hourly
+EXT_SCAM_0375,attacker,Trustpilot review task. USD 100 per review. Work from home.,1,"social_proof,urgency",initial_contact,WhatsApp,medium,medium,quick_task
+EXT_SCAM_0376,attacker,compliance fee usd 50 required. standard charge. refundable.,1,urgency,payment_request,WhatsApp,high,obvious,direct_payment
+EXT_SCAM_0377,attacker,Rate app store reviews. SGD 300 per review. 50 reviews per day allowed.,1,social_proof,initial_contact,Email,medium,medium,quick_task
+EXT_SCAM_0378,recruiter,Telegram channel subscription task. SGD 300 per join. Unlimited.,1,"social_proof,urgency",initial_contact,Email,medium,medium,quick_task
+EXT_SCAM_0379,manager,You're in our Elite Candidate Program — we only contact when there's a genuine match.,1,social_proof,qualification,SMS,medium,very subtle,subtle_pressure
+EXT_SCAM_0380,recruiter,We're expanding our Sri Lanka operations and want people like you on our radar.,1,social_proof,qualification,Telegram,low,very subtle,subtle_pressure
+EXT_LEGIT_0381,recruiter,"Hi Nuwan, the band for Network Engineer at MAS Holdings is LKR 60000–12000. We can position you at the top given your experience.",0,,qualification,WhatsApp,medium,,
+EXT_SCAM_0382,hr,background check USD 50 via certified partner. refundable.,1,urgency,payment_request,SMS,medium,obvious,direct_payment
+EXT_SCAM_0383,attacker,visa agent fee AED 200 required before permit application.,1,urgency,payment_request,Telegram,high,obvious,training_fee
+EXT_SCAM_0384,hr,Bahrain supermarket job. Work visa fee LKR 4500 — employer-verified position.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0385,attacker,Security clearance fee SGD 200 through our government-licensed partner.,1,urgency,payment_request,WhatsApp,medium,obvious,background_check
+EXT_SCAM_0386,attacker,Online task earn PHP 800 per session. No qualifications.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_LEGIT_0387,hr,"Hi Keshi, the offer is finalized at LKR 15000 fixed with quarterly variable component. Let us know if you'd like to discuss.",0,,offer_announcement,Email,medium,,
+EXT_SCAM_0388,attacker,Document processing AED 300 for Malaysia employer submission.,1,urgency,payment_request,Telegram,medium,obvious,document_fee
+EXT_LEGIT_0389,hr,"Hi Karthik, could you share 2 professional references with name, email, and designation? Submit via https://hr.dialog.lk/portal",0,,qualification,LinkedIn,medium,,
+EXT_SCAM_0390,attacker,processing charge LKR 20000 — standard for all applicants.,1,urgency,payment_request,WhatsApp,medium,obvious,background_check
+EXT_LEGIT_0391,recruiter,"Hi Chathura, Arimac Lanka can go up to LKR 7500 with an early performance review at 6 months. Is that acceptable?",0,,qualification,WhatsApp,low,,
+EXT_SCAM_0392,manager,Your profile matches exactly what our Tier 1 client specified. Rare fit.,1,social_proof,qualification,WhatsApp,medium,very subtle,subtle_pressure
+EXT_LEGIT_0393,hr,"Hi Nisha, regarding compensation — KPMG Sri Lanka can offer LKR 50000 basic with performance bonus up to 20%. Would that work?",0,,offer_announcement,LinkedIn,low,,
+EXT_SCAM_0394,attacker,Facebook page like task. LKR 4500 per like. Daily cashout available.,1,"social_proof,urgency",initial_contact,WhatsApp,medium,medium,quick_task
+EXT_LEGIT_0395,recruiter,"Hi Sanduni, I'm Priya from WSO2. Came across your profile on LinkedIn and think your background aligns well with a HR Business Partner role we're filling. Open to a chat?",0,,offer_announcement,LinkedIn,medium,,
+EXT_SCAM_0396,recruiter,We work with Fortune 500 companies and are expanding operations to Sri Lanka.,1,social_proof,initial_contact,Email,medium,very subtle,subtle_pressure
+EXT_SCAM_0397,recruiter,Click our partner links daily. $200 per click. Work from your phone.,1,"social_proof,urgency",initial_contact,WhatsApp,medium,medium,quick_task
+EXT_LEGIT_0398,manager,"Hi Ravi, Jessica from Calcey Technologies HR. We need contact details of 2 references before finalizing your offer. Former managers preferred.",0,,initial_contact,WhatsApp,medium,,
+EXT_LEGIT_0399,recruiter,machan Creative Software selected u 🎉 salary as discussed. formal letter tmrw.,0,,document_request,LinkedIn,low,,
+EXT_SCAM_0400,recruiter,Rate products online earn LKR 2000 per session. Mobile job.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0401,attacker,Online rating job. INR 2000 per review. Work anytime.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0402,recruiter,Earn PHP 5000 per hour online. No experience. Direct payout.,1,social_proof,initial_contact,WhatsApp,medium,medium,high_hourly
+EXT_SCAM_0403,attacker,SGD 200 per day part-time online work. Just 2 hours.,1,social_proof,initial_contact,Email,medium,medium,high_hourly
+EXT_SCAM_0404,hr,dubai hotel job visa fee lkr 25000 pay through our agent. confirmed slot.,1,"social_proof,urgency",payment_request,WhatsApp,high,obvious,visa_scam
+EXT_SCAM_0405,recruiter,Telegram group promotion task. SGD 150 per post shared.,1,"social_proof,urgency",initial_contact,WhatsApp,medium,medium,quick_task
+EXT_LEGIT_0406,recruiter,hi Chathura — offer revised slightly upward. will explain on call tmrw.,0,,follow_up,Email,medium,,
+EXT_SCAM_0407,recruiter,youtube like task PHP 3000 per like 100 likes per day = PHP 100000.,1,social_proof,initial_contact,Instagram,medium,medium,quick_task
+EXT_LEGIT_0408,manager,"Hi Sanduni, following up on our interview last week. Team was positive. Finalizing decision by end of this week — will update you.",0,,offer_announcement,LinkedIn,medium,,
+EXT_SCAM_0409,hr,sir pls pay LKR 6000 background check fee through our agent.,1,urgency,payment_request,WhatsApp,medium,obvious,training_fee
+EXT_SCAM_0410,attacker,document clearance PHP 2000 required before submission.,1,urgency,payment_request,SMS,high,obvious,background_check
+EXT_SCAM_0411,recruiter,Singapore elderly care job. Work permit processing SGD 50 via agency.,1,"social_proof,urgency",payment_request,Telegram,high,obvious,visa_scam
+EXT_SCAM_0412,hr,Background check through our certified agency — fee LKR 12000.,1,urgency,payment_request,WhatsApp,medium,obvious,background_check
+EXT_SCAM_0413,attacker,Data input job paying LKR 4500 per hour. Work own hours.,1,social_proof,initial_contact,Email,medium,medium,high_hourly

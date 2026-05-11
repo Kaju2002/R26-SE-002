@@ -1,16 +1,17 @@
 import React from 'react';
-import { StyleSheet, ScrollView } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../components/Header';
+import PostJobForm from '../components/post/PostJobForm';
+import { POST_JOB } from '../components/post/postJobTheme';
 
-/** Middle tab (+) placeholder. */
 export default function PostTabScreen() {
   return (
-    <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <Header />
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Add your Post creation content here */}
-      </ScrollView>
+      <View style={styles.body}>
+        <PostJobForm />
+      </View>
     </SafeAreaView>
   );
 }
@@ -18,10 +19,9 @@ export default function PostTabScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: POST_JOB.pageBg,
   },
-  content: {
-    paddingVertical: 20,
-    paddingHorizontal: 16,
+  body: {
+    flex: 1,
   },
 });
