@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Header from '../components/Header';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
+import { getEmployerPredictUrl } from '../config/employerVerificationApi';
 
 const TEXT_ACCENT = '#202871';
 const INPUT_BORDER = '#202871';
@@ -29,7 +30,7 @@ export default function EmployerCheckScreen({ navigation }: Props) {
     setError('');
     setResult(null);
     try {
-      const res = await fetch('http://192.168.8.191:8000/predict', {
+      const res = await fetch(getEmployerPredictUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

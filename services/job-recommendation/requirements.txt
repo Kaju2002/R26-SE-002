@@ -1,0 +1,9 @@
+# Core API
+fastapi
+uvicorn
+pydantic
+
+# Ranking / skill matching (TF-IDF, TOPSIS data)
+pandas
+numpy
+scikit-learn

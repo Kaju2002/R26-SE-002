@@ -1,7 +1,12 @@
+# Core API
 fastapi
 uvicorn
 python-multipart
+
+# Model inference
 transformers
 torch
 pillow
+
+# Vision → text (job post OCR path)
 anthropic

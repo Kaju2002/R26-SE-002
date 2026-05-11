@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
+import { getFakeJobPredictUrl } from '../config/fakeJobDetectionApi';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'JobPost'>;
 
@@ -21,7 +22,6 @@ const GREY_TEXT = '#6B7280';
 const GREY_BORDER = '#C8CED6';
 const JOB_BLUE = '#0D47A1';
 const JOB_BLUE_BG = '#EAF2FF';
-const API_URL = 'http://192.168.1.3:8000/predict';
 
 const LOADING_STEPS = [
   '📄 Extracting text from image...',
@@ -84,7 +84,7 @@ export default function JobPostScreen({ navigation }: Props) {
         name: 'job_post.jpg',
       } as any);
 
-      const response = await fetch(API_URL, {
+      const response = await fetch(getFakeJobPredictUrl(), {
         method: 'POST',
         body: formData,
       });
