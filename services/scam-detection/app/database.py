@@ -1,4 +1,5 @@
 # app/database.py
+#Handles all saving and retrieving from MongoDB.
 
 import os
 from datetime import datetime, timezone

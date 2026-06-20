@@ -2,7 +2,11 @@ import React from 'react';
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { AnalysisPayload } from '../../navigation/detectStackTypes';
-import { getSignalStrengthHeadline } from '../../utils/signalStrengthPresentation';
+import {
+  displayConfidencePercent,
+  getConfidenceScoreCopy,
+  getSignalStrengthHeadline,
+} from '../../utils/signalStrengthPresentation';
 
 const PRIMARY_RED = '#E53535';
 const SUCCESS_GREEN = '#3B6D11';
@@ -37,6 +41,35 @@ function verdictVisuals(payload: AnalysisPayload) {
   const isScam = payload.is_scam && !isInconclusive;
   const accent = isInconclusive ? AMBER_ALERT : isScam ? PRIMARY_RED : SUCCESS_GREEN;
   return { isInconclusive, isScam, accent };
+}
+
+type SignalBlockProps = {
+  payload: AnalysisPayload;
+  accent: string;
+  signalHeadline: string;
+};
+
+/** Plain-language tier, score, and a short hint (see predictor.combine). */
+function SignalStrengthBlock({ payload, accent, signalHeadline }: SignalBlockProps) {
+  const isInconclusive = payload.inconclusive === true;
+  const isScam = payload.is_scam && !isInconclusive;
+  const copy = getConfidenceScoreCopy({ isScam, inconclusive: isInconclusive });
+  const pct = displayConfidencePercent(payload.confidence);
+
+  return (
+    <>
+      <Text style={styles.simpleMutedLabel}>Signal strength</Text>
+      <Text style={[styles.simpleTier, { color: accent }]} numberOfLines={2}>
+        {signalHeadline}
+      </Text>
+      <Text style={styles.simpleScoreLine}>
+        <Text style={[styles.simpleScorePct, { color: accent }]}>{pct}%</Text>
+        <Text style={styles.simpleScoreSep}> — </Text>
+        <Text style={styles.simpleScoreMetric}>{copy.metricLabel}</Text>
+      </Text>
+      <Text style={styles.simpleFootnote}>{copy.footnote}</Text>
+    </>
+  );
 }
 
 type VerdictBannerProps = {
@@ -110,38 +143,40 @@ export default function AnalysisResultContent({
 
       {showTacticsCounter ? (
         <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={[styles.statStrengthHeadline, { color: accent }]} numberOfLines={2}>
-              {signalHeadline}
-            </Text>
-            <Text style={styles.statLabel}>Signal strength</Text>
+          <View style={styles.simpleStatCard}>
+            <SignalStrengthBlock
+              payload={payload}
+              accent={accent}
+              signalHeadline={signalHeadline}
+            />
           </View>
-          <View style={styles.statCard}>
-            <Text style={[styles.statValueNumeric, { color: accent }]}>{tacticCount}</Text>
-            <Text style={styles.statLabel}>{isScam ? 'Patterns flagged' : 'Possible patterns'}</Text>
+          <View style={styles.simpleStatCard}>
+            <Text style={[styles.simpleTacticNum, { color: accent }]}>{tacticCount}</Text>
+            <Text style={styles.simpleMutedLabel}>
+              {isScam ? 'Patterns flagged' : 'Possible patterns'}
+            </Text>
           </View>
         </View>
       ) : (
-        <View style={styles.statsRow}>
-          <View style={[styles.statCard, styles.statCardFull]}>
-            <Text style={[styles.statStrengthHeadline, { color: accent }]} numberOfLines={2}>
-              {signalHeadline}
-            </Text>
-            <Text style={styles.statLabel}>Signal strength</Text>
-            {isLegitimate ? (
-              <View style={styles.verdictFootnote}>
-                <MaterialCommunityIcons name="shield-check-outline" size={18} color={SUCCESS_GREEN} />
-                <Text style={styles.verdictFootnoteText}>No manipulation tactics detected</Text>
-              </View>
-            ) : (
-              <View style={styles.verdictFootnote}>
-                <MaterialCommunityIcons name="information-outline" size={18} color={AMBER_ALERT} />
-                <Text style={[styles.verdictFootnoteText, styles.verdictFootnoteTextInconclusive]}>
-                  No specific patterns listed — follow the guidance below
-                </Text>
-              </View>
-            )}
-          </View>
+        <View style={styles.simpleStatCardFull}>
+          <SignalStrengthBlock
+            payload={payload}
+            accent={accent}
+            signalHeadline={signalHeadline}
+          />
+          {isLegitimate ? (
+            <View style={styles.verdictFootnote}>
+              <MaterialCommunityIcons name="shield-check-outline" size={18} color={SUCCESS_GREEN} />
+              <Text style={styles.verdictFootnoteText}>No manipulation tactics detected</Text>
+            </View>
+          ) : (
+            <View style={styles.verdictFootnote}>
+              <MaterialCommunityIcons name="information-outline" size={18} color={AMBER_ALERT} />
+              <Text style={[styles.verdictFootnoteText, styles.verdictFootnoteTextInconclusive]}>
+                No specific patterns listed — follow the guidance below
+              </Text>
+            </View>
+          )}
         </View>
       )}
       <Text style={styles.modelDisclaimer}>{MODEL_DISCLAIMER}</Text>
@@ -225,22 +260,70 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: 'row',
     gap: 12,
-    marginBottom: 20,
+    marginBottom: 18,
+    alignItems: 'stretch',
   },
-  statCard: {
+  simpleStatCard: {
     flex: 1,
+    minWidth: 0,
     backgroundColor: GREY_CARD,
     borderRadius: 12,
     paddingVertical: 14,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 96,
   },
-  statCardFull: {
-    flex: 1,
-    minHeight: 112,
+  simpleStatCardFull: {
+    backgroundColor: GREY_CARD,
+    borderRadius: 12,
+    paddingVertical: 16,
     paddingHorizontal: 14,
+    alignItems: 'center',
+    marginBottom: 18,
+  },
+  simpleMutedLabel: {
+    fontSize: 12,
+    color: GREY_TEXT,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  simpleTier: {
+    fontSize: 17,
+    fontWeight: '800',
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 8,
+  },
+  simpleScoreLine: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  simpleScorePct: {
+    fontWeight: '800',
+  },
+  simpleScoreSep: {
+    color: GREY_TEXT,
+    fontWeight: '600',
+  },
+  simpleScoreMetric: {
+    color: GREY_TEXT,
+    fontWeight: '600',
+  },
+  simpleFootnote: {
+    fontSize: 11,
+    lineHeight: 15,
+    color: GREY_TEXT,
+    textAlign: 'center',
+    fontWeight: '500',
+    paddingHorizontal: 2,
+  },
+  simpleTacticNum: {
+    fontSize: 28,
+    fontWeight: '800',
+    marginBottom: 4,
+    textAlign: 'center',
   },
   verdictFootnote: {
     flexDirection: 'row',
@@ -264,30 +347,12 @@ const styles = StyleSheet.create({
     color: GREY_TEXT,
     fontWeight: '600',
   },
-  statStrengthHeadline: {
-    fontSize: 17,
-    fontWeight: '800',
-    textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 6,
-  },
-  statValueNumeric: {
-    fontSize: 28,
-    fontWeight: '800',
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 13,
-    color: GREY_TEXT,
-    fontWeight: '600',
-    textAlign: 'center',
-  },
   modelDisclaimer: {
     fontSize: 12,
     color: GREY_TEXT,
     lineHeight: 17,
     textAlign: 'center',
-    marginTop: -8,
+    marginTop: 0,
     marginBottom: 18,
     paddingHorizontal: 4,
   },
