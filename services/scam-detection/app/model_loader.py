@@ -1,4 +1,5 @@
-# app/model_loader.py
+# app/model_loader.py - Loads Phase 1 and Phase 2 models when server starts.
+
 
 import os
 import torch

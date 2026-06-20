@@ -1,6 +1,8 @@
 /**
  * Maps numeric model output to plain-language tiers for the result UI.
- * Avoid presenting a raw % as the primary verdict (consumer trust / education norm).
+ * Raw % is shown together with verdict-specific labels so users do not read it
+ * as a standalone “scam vs legitimate” split (the backend uses one confidence field
+ * with different meanings for scam vs safe classifications).
  */
 
 export type SignalStrengthInput = {
@@ -46,4 +48,42 @@ export function getSignalStrengthHeadline(input: SignalStrengthInput): string {
     return 'Generally consistent';
   }
   return 'Limited read';
+}
+
+export type ConfidenceScoreCopy = {
+  /** Short name for what the numeric score represents */
+  metricLabel: string;
+  /** One line clarifying what this percentage is not */
+  footnote: string;
+};
+
+/**
+ * Labels for the API `confidence` field (0–100), which is defined differently
+ * for scam vs legitimate vs inconclusive paths in `predictor.combine`.
+ */
+export function getConfidenceScoreCopy(input: {
+  isScam: boolean;
+  inconclusive: boolean;
+}): ConfidenceScoreCopy {
+  if (input.inconclusive) {
+    return {
+      metricLabel: 'Read strength',
+      footnote: 'This number is not a scam vs. safe split — it reflects how much signal we got from the text.',
+    };
+  }
+  if (input.isScam) {
+    return {
+      metricLabel: 'Pattern strength',
+      footnote: 'How strong the clearest flagged pattern is — not a separate "legitimate" percentage.',
+    };
+  }
+  return {
+    metricLabel: 'Safe-read confidence',
+    footnote: 'How sure the model is this looks like normal outreach — not "remaining scam risk".',
+  };
+}
+
+/** Clamp and round for display (API sends integer 0–100; mapping may produce decimals). */
+export function displayConfidencePercent(confidencePct: number): number {
+  return Math.min(100, Math.max(0, Math.round(confidencePct)));
 }
