@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -18,6 +18,7 @@ import { useFonts, Roboto_500Medium } from '@expo-google-fonts/roboto';
 import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useUser } from '../context/UserContext';
 
 /** Brand navy — CareerPathway title only */
 const BRAND_NAVY = '#1F2A90';
@@ -52,12 +53,40 @@ export default function LoginScreen({ navigation }: Props) {
     Poppins_500Medium,
   });
 
+  const { login, isLoading, error, clearError, isAuthenticated } = useUser();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const onSignIn = () => {
-    navigation.replace('MainTabs');
+  // ============ AUTO NAVIGATE ON SUCCESS ============
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigation.replace('MainTabs');
+    }
+  }, [isAuthenticated, navigation]);
+
+  // ============ HANDLE LOGIN ============
+  const onSignIn = async () => {
+    try {
+      clearError();
+
+      // Validate inputs
+      if (!email.trim()) {
+        Alert.alert('Error', 'Please enter your email');
+        return;
+      }
+      if (!password) {
+        Alert.alert('Error', 'Please enter your password');
+        return;
+      }
+
+      // Call login from context
+      await login({ email: email.trim(), password });
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Login failed';
+      Alert.alert('Login Failed', errorMsg);
+    }
   };
 
   if (!fontsLoaded) {
@@ -92,6 +121,16 @@ export default function LoginScreen({ navigation }: Props) {
 
           <Text style={styles.appName}>CareerPathway</Text>
           <Text style={styles.headline}>Welcome Back!</Text>
+
+          {/* ERROR MESSAGE */}
+          {error && (
+            <View style={styles.errorContainer}>
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity onPress={clearError}>
+                <Text style={styles.errorDismiss}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <Text style={styles.fieldLabel}>Email</Text>
           <View style={styles.inputShell}>
@@ -141,13 +180,18 @@ export default function LoginScreen({ navigation }: Props) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.signInBtn}
+            style={[styles.signInBtn, isLoading && styles.signInBtnDisabled]}
             onPress={onSignIn}
             activeOpacity={0.85}
+            disabled={isLoading}
             accessibilityRole="button"
             accessibilityLabel="Sign in"
           >
-            <Text style={styles.signInBtnText}>Sign In</Text>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.signInBtnText}>Sign In</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.orRow}>
@@ -298,6 +342,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#FFFFFF',
     letterSpacing: 0.2,
+  },
+  signInBtnDisabled: {
+    opacity: 0.6,
+  },
+  /** Error message container */
+  errorContainer: {
+    alignSelf: 'stretch',
+    backgroundColor: '#fee',
+    borderColor: '#f99',
+    borderWidth: 1,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#c33',
+    fontSize: 13,
+    flex: 1,
+  },
+  errorDismiss: {
+    fontSize: 18,
+    color: '#c33',
+    marginLeft: 8,
   },
   orRow: {
     flexDirection: 'row',
