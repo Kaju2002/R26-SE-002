@@ -19,6 +19,7 @@ import JobDetailsScreen from './src/screens/JobDetailsScreen';
 import ApplyJobScreen from './src/screens/ApplyJobScreen';
 import BookmarksScreen from './src/screens/BookmarksScreen';
 import { BookmarksProvider } from './src/context/BookmarksContext';
+import { UserProvider } from './src/context/UserContext';
 
 import type { RootStackParamList } from './src/navigation/rootStackParams';
 
@@ -31,8 +32,9 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function App() {
   return (
     <SafeAreaProvider>
-      <BookmarksProvider>
-        <NavigationContainer>
+      <UserProvider>
+        <BookmarksProvider>
+          <NavigationContainer>
           <Stack.Navigator
             initialRouteName="Onboarding"
             screenOptions={{ headerShown: false }}
@@ -155,8 +157,9 @@ export default function App() {
           </Stack.Navigator>
 
           <StatusBar style="auto" />
-        </NavigationContainer>
-      </BookmarksProvider>
+          </NavigationContainer>
+        </BookmarksProvider>
+      </UserProvider>
     </SafeAreaProvider>
   );
 }
