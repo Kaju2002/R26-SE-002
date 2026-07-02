@@ -1,5 +1,5 @@
 import type { ImageSourcePropType } from 'react-native';
-import type { LogoFallbackData } from './profileDetails';
+import type { LogoFallbackData } from '../src/types/profile';
 import type { ApplicationStatus } from './applicationNotifications';
 
 export type JobMode = 'On-Site' | 'Remote' | 'Hybrid';

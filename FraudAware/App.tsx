@@ -14,12 +14,16 @@ import NewPasswordScreen from './src/user_screen/NewPasswordScreen';
 import PasswordUpdatedScreen from './src/user_screen/PasswordUpdatedScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 import EditProfileScreen from './src/screens/EditProfileScreen';
+import EditWorkExperienceScreen from './src/screens/EditWorkExperienceScreen';
+import EditEducationScreen from './src/screens/EditEducationScreen';
+import EditLanguageScreen from './src/screens/EditLanguageScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import JobDetailsScreen from './src/screens/JobDetailsScreen';
 import ApplyJobScreen from './src/screens/ApplyJobScreen';
 import BookmarksScreen from './src/screens/BookmarksScreen';
 import { BookmarksProvider } from './src/context/BookmarksContext';
 import { UserProvider } from './src/context/UserContext';
+import { ProfileProvider } from './src/context/ProfileContext';
 
 import type { RootStackParamList } from './src/navigation/rootStackParams';
 
@@ -33,6 +37,7 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <UserProvider>
+        <ProfileProvider>
         <BookmarksProvider>
           <NavigationContainer>
           <Stack.Navigator
@@ -124,6 +129,21 @@ export default function App() {
             />
 
             <Stack.Screen
+              name="EditWorkExperience"
+              component={EditWorkExperienceScreen}
+            />
+
+            <Stack.Screen
+              name="EditEducation"
+              component={EditEducationScreen}
+            />
+
+            <Stack.Screen
+              name="EditLanguage"
+              component={EditLanguageScreen}
+            />
+
+            <Stack.Screen
               name="Notifications"
               component={NotificationsScreen}
             />
@@ -159,6 +179,7 @@ export default function App() {
           <StatusBar style="auto" />
           </NavigationContainer>
         </BookmarksProvider>
+        </ProfileProvider>
       </UserProvider>
     </SafeAreaProvider>
   );

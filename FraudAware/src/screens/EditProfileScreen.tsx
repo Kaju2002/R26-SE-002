@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -20,11 +21,34 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../App';
-import { PROFILE } from '../../data/profile';
+import { useProfile } from '../context/ProfileContext';
 import EditProfileAvatarPicker from '../components/profile/EditProfileAvatarPicker';
 import EditProfileField from '../components/profile/EditProfileField';
 
 const NAVY = '#202871';
+
+function formatDob(value: string | null | undefined): string {
+  if (!value) return '';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+function parseDobInput(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+
+  const slashParts = trimmed.split('/');
+  if (slashParts.length === 3) {
+    const [day, month, year] = slashParts;
+    return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  }
+
+  return trimmed;
+}
 
 export default function EditProfileScreen() {
   const [fontsLoaded] = useFonts({
@@ -34,14 +58,30 @@ export default function EditProfileScreen() {
 
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { profile, updateBasicProfile, updateAvatar, isLoading } = useProfile();
 
-  const [fullName, setFullName] = useState(PROFILE.fullName);
+  const [fullName, setFullName] = useState('');
   const [dob, setDob] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [location, setLocation] = useState('');
-  const [currentPosition, setCurrentPosition] = useState(PROFILE.role);
+  const [currentPosition, setCurrentPosition] = useState('');
   const [company, setCompany] = useState('');
+  const [avatarUri, setAvatarUri] = useState('');
+  const [pendingAvatarUri, setPendingAvatarUri] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!profile) return;
+    setFullName(profile.fullName);
+    setDob(formatDob(profile.dateOfBirth));
+    setEmail(profile.email);
+    setPhone(profile.phone || '');
+    setLocation(profile.location || '');
+    setCurrentPosition(profile.role || '');
+    setCompany(profile.company?.name || '');
+    setAvatarUri(profile.avatar || '');
+  }, [profile]);
 
   if (!fontsLoaded) {
     return (
@@ -51,8 +91,37 @@ export default function EditProfileScreen() {
     );
   }
 
-  const onSave = () => {
-    navigation.goBack();
+  const onSave = async () => {
+    if (!fullName.trim()) {
+      Alert.alert('Missing name', 'Please enter your full name.');
+      return;
+    }
+
+    try {
+      setSaving(true);
+
+      if (pendingAvatarUri) {
+        await updateAvatar(pendingAvatarUri);
+      }
+
+      await updateBasicProfile({
+        fullName: fullName.trim(),
+        phone: phone.trim(),
+        location: location.trim(),
+        currentPosition: currentPosition.trim(),
+        company: company.trim(),
+        dob: parseDobInput(dob),
+      });
+
+      navigation.goBack();
+    } catch (err) {
+      Alert.alert(
+        'Save failed',
+        err instanceof Error ? err.message : 'Could not save profile'
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -84,7 +153,10 @@ export default function EditProfileScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.avatarBlock}>
-            <EditProfileAvatarPicker avatar={PROFILE.avatar} />
+            <EditProfileAvatarPicker
+              avatar={pendingAvatarUri || avatarUri}
+              onImageSelected={setPendingAvatarUri}
+            />
           </View>
 
           <EditProfileField
@@ -105,10 +177,11 @@ export default function EditProfileScreen() {
           <EditProfileField
             label="Email"
             value={email}
-            onChangeText={setEmail}
+            onChangeText={() => {}}
             placeholder="example@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
+            editable={false}
           />
           <EditProfileField
             label="Phone number"
@@ -140,13 +213,18 @@ export default function EditProfileScreen() {
           />
 
           <TouchableOpacity
-            style={styles.saveBtn}
+            style={[styles.saveBtn, (saving || isLoading) && styles.saveBtnDisabled]}
             onPress={onSave}
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Save profile"
+            disabled={saving || isLoading}
           >
-            <Text style={styles.saveBtnText}>Save</Text>
+            {saving ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.saveBtnText}>Save</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -181,7 +259,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  /** "Edit profile" — Poppins Medium 18 · #202871 */
   title: {
     fontFamily: 'Poppins_500Medium',
     fontSize: 18,
@@ -211,7 +288,9 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
   },
-  /** Save — Poppins Regular 16 · white */
+  saveBtnDisabled: {
+    opacity: 0.7,
+  },
   saveBtnText: {
     fontFamily: 'Poppins_400Regular',
     fontSize: 16,

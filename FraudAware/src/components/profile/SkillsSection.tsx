@@ -1,8 +1,7 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import ProfileSectionCard from './ProfileSectionCard';
 import SkillPill from './SkillPill';
-import { PROFILE_DETAILS } from '../../../data/profileDetails';
 
 type Props = {
   skills?: string[];
@@ -10,7 +9,7 @@ type Props = {
 };
 
 export default function SkillsSection({
-  skills = PROFILE_DETAILS.skills,
+  skills = [],
   onAdd,
 }: Props) {
   return (
@@ -20,9 +19,11 @@ export default function SkillsSection({
       onAdd={onAdd ?? (() => {})}
     >
       <View style={styles.wrap}>
-        {skills.map((s) => (
-          <SkillPill key={s} label={s} />
-        ))}
+        {skills.length > 0 ? (
+          skills.map((s) => <SkillPill key={s} label={s} />)
+        ) : (
+          <Text style={styles.empty}>No skills added yet.</Text>
+        )}
       </View>
     </ProfileSectionCard>
   );
@@ -33,5 +34,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+  },
+  empty: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 12,
+    color: '#5B6473',
   },
 });

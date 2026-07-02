@@ -1,10 +1,7 @@
 import React from 'react';
 import ProfileSectionCard from './ProfileSectionCard';
 import EducationItem from './EducationItem';
-import {
-  PROFILE_DETAILS,
-  type EducationItem as EducationItemData,
-} from '../../../data/profileDetails';
+import type { EducationItem as EducationItemData } from '../../types/profile';
 
 type Props = {
   items?: EducationItemData[];
@@ -13,7 +10,7 @@ type Props = {
 };
 
 export default function EducationSection({
-  items = PROFILE_DETAILS.education,
+  items = [],
   onAdd,
   onItemEdit,
 }: Props) {

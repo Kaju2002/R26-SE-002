@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import type { CVFile } from '../../../data/profileDetails';
+import type { CVFile } from '../../types/profile';
 
 const NAVY = '#202871';
 const SUBTLE = '#7A88A6';
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   },
   size: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 11,
+    fontSize: 12,
     color: SUBTLE,
   },
   removeBtn: {

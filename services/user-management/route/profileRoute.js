@@ -43,8 +43,8 @@ router.put("/education/:itemId", uploadLogo, updateEducation);
 router.delete("/education/:itemId", deleteEducation);
 
 // ============ LANGUAGES ============
-router.post("/languages", addLanguage);
-router.put("/languages/:itemId", updateLanguage);
+router.post("/languages", uploadLogo, addLanguage);
+router.put("/languages/:itemId", uploadLogo, updateLanguage);
 router.delete("/languages/:itemId", deleteLanguage);
 
 // ============ FILE UPLOADS ============

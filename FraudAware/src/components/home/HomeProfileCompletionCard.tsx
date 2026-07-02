@@ -1,5 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useProfile } from '../../context/ProfileContext';
 import { getProfileCompletionPercent } from '../../utils/profileCompletion';
 
 const NAVY = '#202871';
@@ -12,7 +13,8 @@ type Props = {
 };
 
 export default function HomeProfileCompletionCard({ onCompletePress }: Props) {
-  const pct = getProfileCompletionPercent();
+  const { profile, details } = useProfile();
+  const pct = getProfileCompletionPercent(profile, details);
   if (pct >= 100) return null;
 
   return (

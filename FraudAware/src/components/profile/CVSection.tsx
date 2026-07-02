@@ -1,10 +1,7 @@
 import React from 'react';
 import ProfileSectionCard from './ProfileSectionCard';
 import CVFileItem from './CVFileItem';
-import {
-  PROFILE_DETAILS,
-  type CVFile,
-} from '../../../data/profileDetails';
+import type { CVFile } from '../../types/profile';
 
 type Props = {
   files?: CVFile[];
@@ -14,7 +11,7 @@ type Props = {
 };
 
 export default function CVSection({
-  files = PROFILE_DETAILS.cvFiles,
+  files = [],
   onEdit,
   onRemove,
   onPressFile,

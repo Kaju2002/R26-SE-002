@@ -6,7 +6,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import type { LanguageItem as LanguageItemData } from '../../../data/profileDetails';
+import type { LanguageItem as LanguageItemData } from '../../types/profile';
 
 const NAVY = '#202871';
 const SUBTLE = '#5B6473';
@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default function LanguageItem({ item, onEdit, showDivider }: Props) {
-  const flagSource = item.flag ?? (item.flagUri ? { uri: item.flagUri } : undefined);
+  const flagSource = item.flagUri ? { uri: item.flagUri } : undefined;
 
   return (
     <View>

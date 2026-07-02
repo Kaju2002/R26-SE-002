@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import LogoFallback from './LogoFallback';
-import type { EducationItem as EducationItemData } from '../../../data/profileDetails';
+import type { EducationItem as EducationItemData } from '../../types/profile';
 
 const NAVY = '#202871';
 const SUBTLE = '#5B6473';
@@ -24,7 +24,6 @@ export default function EducationItem({ item, onEdit, showDivider }: Props) {
     <View>
       <View style={styles.row}>
         <LogoFallback
-          source={item.logo}
           uri={item.logoUri}
           fallback={item.fallback}
           size={44}
@@ -82,7 +81,7 @@ const styles = StyleSheet.create({
   },
   duration: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 10,
+    fontSize: 11,
     color: META,
   },
   editBtn: {

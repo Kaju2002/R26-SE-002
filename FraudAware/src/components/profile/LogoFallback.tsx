@@ -6,7 +6,7 @@ import {
   View,
   type ImageSourcePropType,
 } from 'react-native';
-import type { LogoFallbackData } from '../../../data/profileDetails';
+import type { LogoFallbackData } from '../../types/profile';
 
 type Props = {
   source?: ImageSourcePropType;

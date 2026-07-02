@@ -1,10 +1,7 @@
 import React from 'react';
 import ProfileSectionCard from './ProfileSectionCard';
 import LanguageItem from './LanguageItem';
-import {
-  PROFILE_DETAILS,
-  type LanguageItem as LanguageItemData,
-} from '../../../data/profileDetails';
+import type { LanguageItem as LanguageItemData } from '../../types/profile';
 
 type Props = {
   items?: LanguageItemData[];
@@ -13,7 +10,7 @@ type Props = {
 };
 
 export default function LanguagesSection({
-  items = PROFILE_DETAILS.languages,
+  items = [],
   onAdd,
   onItemEdit,
 }: Props) {
