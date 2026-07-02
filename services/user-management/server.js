@@ -3,6 +3,7 @@ import cors from "cors";
 import "dotenv/config";
 import connectDB from "./config/mongodb.js";
 import userRoute from "./route/userRoute.js";
+import profileRoute from "./route/profileRoute.js";
 
 // ==== APP CONFIG ====
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // ==== ROUTES ====
 app.use("/api/auth", userRoute);
+app.use("/api/profile", profileRoute);
 
 // ==== HEALTH CHECK ====
 app.get("/health", (req, res) => {
@@ -35,7 +37,22 @@ app.get("/", (req, res) => {
     message: "Welcome to FraudAware User Management Service",
     version: "1.0.0",
     endpoints: {
-      register: "POST /api/auth/register",
+      auth: {
+        register: "POST /api/auth/register",
+        login: "POST /api/auth/login",
+        verifyEmail: "POST /api/auth/verify-email",
+      },
+      profile: {
+        getMe: "GET /api/profile/me",
+        updateBasic: "PATCH /api/profile/basic",
+        updateSummary: "PATCH /api/profile/summary",
+        updateSkills: "PUT /api/profile/skills",
+        workExperience: "POST/PUT/DELETE /api/profile/work-experience/:itemId",
+        education: "POST/PUT/DELETE /api/profile/education/:itemId",
+        languages: "POST/PUT/DELETE /api/profile/languages/:itemId",
+        avatar: "PATCH /api/profile/avatar",
+        cv: "POST/DELETE /api/profile/cv/:cvId",
+      },
       health: "GET /health",
     },
   });
@@ -52,6 +69,14 @@ app.use((req, res) => {
 // ==== ERROR HANDLER ====
 app.use((err, req, res, next) => {
   console.error("Error:", err);
+
+  if (err.name === "MulterError") {
+    return res.status(400).json({
+      success: false,
+      message: err.message,
+    });
+  }
+
   res.status(err.status || 500).json({
     success: false,
     message: err.message || "Internal server error",
@@ -61,7 +86,8 @@ app.use((err, req, res, next) => {
 // ==== START SERVER ====
 app.listen(PORT, () => {
   console.log(`✅ User Management Service running on http://localhost:${PORT}`);
-  console.log(`📍 Register endpoint: POST http://localhost:${PORT}/api/auth/register`);
+  console.log(`📍 Auth: POST http://localhost:${PORT}/api/auth/register`);
+  console.log(`👤 Profile: GET http://localhost:${PORT}/api/profile/me`);
   console.log(`🏥 Health check: GET http://localhost:${PORT}/health`);
 });
 
