@@ -45,7 +45,7 @@ export interface RegisterRequest {
 export interface RegisterResponse {
   success: boolean;
   message: string;
-  token: string;
+  requiresEmailVerification?: boolean;
   user: {
     id: string;
     email: string;
@@ -54,6 +54,21 @@ export interface RegisterResponse {
     fullName: string;
     createdAt: string;
   };
+}
+
+export interface VerifyEmailOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyEmailOtpResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ResendVerificationOtpResponse {
+  success: boolean;
+  message: string;
 }
 
 export interface LogoutResponse {
@@ -106,6 +121,56 @@ export const registerUser = async (userData: RegisterRequest): Promise<RegisterR
     return data;
   } catch (error) {
     throw error instanceof Error ? error : new Error("Register API error");
+  }
+};
+
+// ============ VERIFY EMAIL OTP API ============
+export const verifyEmailOtp = async (
+  payload: VerifyEmailOtpRequest
+): Promise<VerifyEmailOtpResponse> => {
+  try {
+    const response = await fetch(`${getUserManagementBaseUrl()}/api/auth/verify-email`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "OTP verification failed");
+    }
+
+    const data: VerifyEmailOtpResponse = await response.json();
+    return data;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Verify email API error");
+  }
+};
+
+// ============ RESEND EMAIL OTP API ============
+export const resendVerificationOtp = async (
+  email: string
+): Promise<ResendVerificationOtpResponse> => {
+  try {
+    const response = await fetch(`${getUserManagementBaseUrl()}/api/auth/resend-verification-otp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Resend OTP failed");
+    }
+
+    const data: ResendVerificationOtpResponse = await response.json();
+    return data;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Resend OTP API error");
   }
 };
 

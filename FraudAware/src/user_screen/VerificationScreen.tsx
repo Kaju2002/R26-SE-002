@@ -20,6 +20,7 @@ import {
 } from '@expo-google-fonts/poppins';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { resendVerificationOtp, verifyEmailOtp } from '../api/userApi';
 
 const TEXT_ACCENT = '#202871';
 const SUBTLE_TEXT = '#6B7280';
@@ -75,6 +76,8 @@ export default function VerificationScreen({ navigation, route }: Props) {
   );
   const [focusedIndex, setFocusedIndex] = useState<number>(0);
   const [seconds, setSeconds] = useState<number>(RESEND_SECONDS);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [isResending, setIsResending] = useState(false);
 
   const inputRefs = useRef<Array<TextInput | null>>([]);
 
@@ -126,24 +129,51 @@ export default function VerificationScreen({ navigation, route }: Props) {
     }
   };
 
-  const onResend = () => {
-    if (seconds > 0) return;
-    setDigits(Array(OTP_LENGTH).fill(''));
-    setSeconds(RESEND_SECONDS);
-    inputRefs.current[0]?.focus();
-    Alert.alert('Code Sent', `A new verification code has been sent${email ? ` to ${email}` : ''}.`);
+  const onResend = async () => {
+    if (seconds > 0 || !email || isResending) return;
+
+    try {
+      setIsResending(true);
+      const response = await resendVerificationOtp(email);
+      setDigits(Array(OTP_LENGTH).fill(''));
+      setSeconds(RESEND_SECONDS);
+      inputRefs.current[0]?.focus();
+      Alert.alert('Code Sent', response.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to resend OTP';
+      Alert.alert('Resend failed', message);
+    } finally {
+      setIsResending(false);
+    }
   };
 
-  const onVerify = () => {
+  const onVerify = async () => {
     if (!isComplete) {
       Alert.alert('Incomplete code', 'Please enter all 6 digits.');
       return;
     }
+
+    if (!email || isVerifying) {
+      Alert.alert('Missing email', 'Please register again and retry verification.');
+      return;
+    }
+
     inputRefs.current.forEach((r) => r?.blur());
-    if (flow === 'reset') {
-      navigation.replace('NewPassword', { email });
-    } else {
-      navigation.replace('RegistrationSuccess');
+
+    try {
+      setIsVerifying(true);
+      const response = await verifyEmailOtp({ email, otp: code });
+      Alert.alert('Success', response.message);
+      if (flow === 'reset') {
+        navigation.replace('NewPassword', { email });
+      } else {
+        navigation.replace('RegistrationSuccess');
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Verification failed';
+      Alert.alert('Verification failed', message);
+    } finally {
+      setIsVerifying(false);
     }
   };
 
@@ -211,28 +241,33 @@ export default function VerificationScreen({ navigation, route }: Props) {
             <Text style={styles.timerText}>{formatTime(seconds)}</Text>
             <TouchableOpacity
               onPress={onResend}
-              disabled={seconds > 0}
+              disabled={seconds > 0 || !email || isResending}
               accessibilityRole="button"
             >
               <Text
                 style={[
                   styles.resendText,
-                  seconds > 0 && styles.resendDisabled,
+                  (seconds > 0 || !email || isResending) && styles.resendDisabled,
                 ]}
               >
-                Resend Code
+                {isResending ? 'Resending...' : 'Resend Code'}
               </Text>
             </TouchableOpacity>
           </View>
 
           <TouchableOpacity
-            style={[styles.verifyBtn, !isComplete && styles.verifyBtnDisabled]}
+            style={[styles.verifyBtn, (!isComplete || isVerifying) && styles.verifyBtnDisabled]}
             onPress={onVerify}
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Verify"
+            disabled={!isComplete || isVerifying}
           >
-            <Text style={styles.verifyBtnText}>Verify</Text>
+            {isVerifying ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.verifyBtnText}>Verify</Text>
+            )}
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
