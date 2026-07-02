@@ -435,10 +435,12 @@ export const addLanguage = async (req, res) => {
       });
     }
 
+    const uploadedFlag = getFileUrl(req.file);
+
     user.languages.push({
       language: languageName,
       proficiency,
-      flagUrl: flagUrl ?? flagUri ?? null,
+      flagUrl: uploadedFlag || flagUrl || flagUri || null,
     });
     await user.save();
     sendProfile(res, user, "Language added successfully");
@@ -465,8 +467,14 @@ export const updateLanguage = async (req, res) => {
     if (req.body.language !== undefined) item.language = req.body.language;
     if (req.body.name !== undefined) item.language = req.body.name;
     if (req.body.proficiency !== undefined) item.proficiency = req.body.proficiency;
-    if (req.body.flagUrl !== undefined) item.flagUrl = req.body.flagUrl;
-    if (req.body.flagUri !== undefined) item.flagUrl = req.body.flagUri;
+
+    if (req.file) {
+      item.flagUrl = await replaceUploadedImage(item.flagUrl, req);
+    } else if (req.body.flagUrl !== undefined) {
+      item.flagUrl = req.body.flagUrl || null;
+    } else if (req.body.flagUri !== undefined) {
+      item.flagUrl = req.body.flagUri || null;
+    }
 
     await user.save();
     sendProfile(res, user, "Language updated successfully");
@@ -488,6 +496,10 @@ export const deleteLanguage = async (req, res) => {
     const item = user.languages.id(req.params.itemId);
     if (!item) {
       return res.status(404).json({ success: false, message: "Language not found" });
+    }
+
+    if (item.flagUrl) {
+      await deleteFile(item.flagUrl, "image").catch(() => {});
     }
 
     item.deleteOne();

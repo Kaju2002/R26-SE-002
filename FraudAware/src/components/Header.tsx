@@ -15,7 +15,7 @@ import {
 } from '@expo-google-fonts/poppins';
 import { useNavigation } from '@react-navigation/native';
 import ProfileDrawer from './ProfileDrawer';
-import { PROFILE } from '../../data/profile';
+import { useProfile } from '../context/ProfileContext';
 
 const NAVY = '#202871';
 const GREETING_GREY = '#8A93B0';
@@ -40,6 +40,7 @@ export default function Header({
 }: HeaderProps) {
   const navigation = useNavigation();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const { profile } = useProfile();
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
@@ -86,11 +87,15 @@ export default function Header({
               pressed && { opacity: 0.85 },
             ]}
           >
-            <Image
-              source={{ uri: PROFILE.avatar }}
-              style={styles.avatar}
-              resizeMode="cover"
-            />
+            {profile?.avatar ? (
+              <Image
+                source={{ uri: profile.avatar }}
+                style={styles.avatar}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.avatar, styles.avatarPlaceholder]} />
+            )}
           </Pressable>
 
           <View style={styles.greetingCol}>
@@ -104,7 +109,7 @@ export default function Header({
               style={[styles.userName, { fontFamily: nameFont }]}
               numberOfLines={1}
             >
-              {PROFILE.fullName}
+              {profile?.fullName || 'User'}
             </Text>
           </View>
 
@@ -181,6 +186,10 @@ const styles = StyleSheet.create({
     height: AVATAR_SIZE,
     borderRadius: AVATAR_SIZE / 2,
     backgroundColor: '#EEF0F8',
+  },
+  avatarPlaceholder: {
+    borderWidth: 1,
+    borderColor: NAVY,
   },
   greetingCol: {
     flex: 1,

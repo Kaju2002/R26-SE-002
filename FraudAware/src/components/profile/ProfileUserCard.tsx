@@ -26,11 +26,15 @@ export default function ProfileUserCard({
 }: Props) {
   return (
     <View style={styles.card}>
-      <Image
-        source={{ uri: avatar }}
-        style={styles.avatar}
-        accessibilityLabel="Profile photo"
-      />
+      {avatar ? (
+        <Image
+          source={{ uri: avatar }}
+          style={styles.avatar}
+          accessibilityLabel="Profile photo"
+        />
+      ) : (
+        <View style={[styles.avatar, styles.avatarPlaceholder]} />
+      )}
       <View style={styles.textCol}>
         <Text style={styles.name} numberOfLines={1}>
           {name}
@@ -78,6 +82,10 @@ const styles = StyleSheet.create({
     height: 52,
     borderRadius: 26,
     backgroundColor: '#EAECF2',
+  },
+  avatarPlaceholder: {
+    borderWidth: 1,
+    borderColor: CARD_BORDER,
   },
   textCol: {
     flex: 1,

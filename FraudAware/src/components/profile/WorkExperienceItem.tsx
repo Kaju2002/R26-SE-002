@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native';
 import LogoFallback from './LogoFallback';
-import type { WorkExperience } from '../../../data/profileDetails';
+import type { WorkExperience } from '../../types/profile';
 
 const NAVY = '#202871';
 const SUBTLE = '#5B6473';
@@ -28,7 +28,6 @@ export default function WorkExperienceItem({
     <View>
       <View style={styles.row}>
         <LogoFallback
-          source={item.logo}
           uri={item.logoUri}
           fallback={item.fallback}
           size={44}
@@ -89,7 +88,7 @@ const styles = StyleSheet.create({
   },
   duration: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 10,
+    fontSize: 11,
     color: META,
   },
   editBtn: {

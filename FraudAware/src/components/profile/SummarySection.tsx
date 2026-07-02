@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 import ProfileSectionCard from './ProfileSectionCard';
-import { PROFILE_DETAILS } from '../../../data/profileDetails';
 
 const SUBTLE = '#5B6473';
 
@@ -11,7 +10,7 @@ type Props = {
 };
 
 export default function SummarySection({
-  text = PROFILE_DETAILS.summary,
+  text = '',
   onEdit,
 }: Props) {
   return (
@@ -20,17 +19,19 @@ export default function SummarySection({
       label="Summary"
       onEdit={onEdit ?? (() => {})}
     >
-      <Text style={styles.body}>{text}</Text>
+      <Text style={styles.body}>
+        {text.trim() ? text : 'No summary added yet.'}
+      </Text>
     </ProfileSectionCard>
   );
 }
 
 const styles = StyleSheet.create({
-  /** Summary text — Poppins Regular 12 */
+  /** Summary text — Poppins Regular 13 */
   body: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
-    lineHeight: 18,
+    fontSize: 13,
+    lineHeight: 19,
     color: SUBTLE,
   },
 });

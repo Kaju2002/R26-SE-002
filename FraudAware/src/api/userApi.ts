@@ -1,13 +1,5 @@
-/**
- * Set `EXPO_PUBLIC_USER_MANAGEMENT_API_BASE_URL` in `FraudAware/.env`
- * (e.g. `http://172.20.10.2:5000`, no trailing slash). Restart Expo after changing.
- */
-function getUserManagementBaseUrl(): string {
-  return (
-    (process.env.EXPO_PUBLIC_USER_MANAGEMENT_API_BASE_URL ?? '').trim().replace(/\/$/, '') ||
-    'http://127.0.0.1:5000'
-  );
-}
+import { getUserManagementBaseUrl } from './apiConfig';
+
 // ============ TYPES ============
 export interface LoginRequest {
   email: string;

@@ -1,10 +1,7 @@
 import React from 'react';
 import ProfileSectionCard from './ProfileSectionCard';
 import WorkExperienceItem from './WorkExperienceItem';
-import {
-  PROFILE_DETAILS,
-  type WorkExperience,
-} from '../../../data/profileDetails';
+import type { WorkExperience } from '../../types/profile';
 
 type Props = {
   items?: WorkExperience[];
@@ -13,7 +10,7 @@ type Props = {
 };
 
 export default function WorkExperienceSection({
-  items = PROFILE_DETAILS.experiences,
+  items = [],
   onAdd,
   onItemEdit,
 }: Props) {

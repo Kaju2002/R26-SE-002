@@ -19,7 +19,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { PROFILE } from '../../data/profile';
+import { useProfile } from '../context/ProfileContext';
+import { DRAWER_MENU_ITEMS } from '../types/profile';
 import type { RootStackParamList } from '../../App';
 import { useUser } from '../context/UserContext';
 
@@ -48,6 +49,7 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { logout, isLoading } = useUser();
+  const { profile } = useProfile();
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -158,11 +160,15 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
               accessibilityRole="button"
               accessibilityLabel="Open profile page"
             >
-              <Image
-                source={{ uri: PROFILE.avatar }}
-                style={styles.avatar}
-                accessibilityLabel="Profile photo"
-              />
+              {profile?.avatar ? (
+                <Image
+                  source={{ uri: profile.avatar }}
+                  style={styles.avatar}
+                  accessibilityLabel="Profile photo"
+                />
+              ) : (
+                <View style={[styles.avatar, styles.avatarPlaceholder]} />
+              )}
             </TouchableOpacity>
             <TouchableOpacity
               onPress={onClose}
@@ -190,9 +196,9 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
               style={styles.nameRow}
             >
               <Text style={styles.name} numberOfLines={1}>
-                {PROFILE.fullName}
+                {profile?.fullName || 'User'}
               </Text>
-              {PROFILE.isVerified && (
+              {profile?.isVerified && (
                 <View style={styles.verifiedBadge}>
                   <MaterialCommunityIcons
                     name="shield-check"
@@ -203,21 +209,25 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
               )}
             </TouchableOpacity>
 
-            <Text style={styles.headline}>{PROFILE.headline}</Text>
-            <Text style={styles.location}>{PROFILE.location}</Text>
+            <Text style={styles.headline}>{profile?.headline || ''}</Text>
+            <Text style={styles.location}>{profile?.location || ''}</Text>
 
+            {(profile?.company?.logo || profile?.company?.name) && (
             <View style={styles.companyRow}>
-              <Image
-                source={{ uri: PROFILE.company.logo }}
-                style={styles.companyLogo}
-                resizeMode="contain"
-              />
-              <Text style={styles.companyName}>{PROFILE.company.name}</Text>
+              {profile?.company?.logo ? (
+                <Image
+                  source={{ uri: profile.company.logo }}
+                  style={styles.companyLogo}
+                  resizeMode="contain"
+                />
+              ) : null}
+              <Text style={styles.companyName}>{profile?.company?.name || ''}</Text>
             </View>
+            )}
 
             <View style={styles.divider} />
 
-            {PROFILE.stats.map((s) => (
+            {(profile?.stats || []).map((s) => (
               <TouchableOpacity
                 key={s.id}
                 style={styles.statRow}
@@ -230,7 +240,7 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
 
             <View style={styles.divider} />
 
-            {PROFILE.menu.map((m) => (
+            {DRAWER_MENU_ITEMS.map((m) => (
               <TouchableOpacity
                 key={m.id}
                 style={styles.menuRow}
@@ -280,7 +290,7 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
               activeOpacity={0.85}
               accessibilityRole="button"
             >
-              <Text style={styles.premiumText}>{PROFILE.premiumLabel}</Text>
+              <Text style={styles.premiumText}>{profile?.premiumLabel || 'Try Premium for Rs 0'}</Text>
             </TouchableOpacity>
           </View>
         </Animated.View>
@@ -324,6 +334,10 @@ const styles = StyleSheet.create({
     height: 64,
     borderRadius: 32,
     backgroundColor: '#EAECF2',
+  },
+  avatarPlaceholder: {
+    borderWidth: 1,
+    borderColor: '#D6DBF0',
   },
   closeBtn: {
     width: 36,
