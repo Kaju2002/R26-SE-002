@@ -17,6 +17,11 @@ const workExperienceSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  logoKey: {
+    type: String,
+    default: null,
+    trim: true,
+  },
   startDate: {
     type: Date,
     required: [true, "Start date is required"],
@@ -59,6 +64,11 @@ const educationSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  logoKey: {
+    type: String,
+    default: null,
+    trim: true,
+  },
   fieldOfStudy: {
     type: String,
     trim: true,
@@ -90,8 +100,17 @@ const languageSchema = new mongoose.Schema({
   },
   proficiency: {
     type: String,
-    enum: ["Native", "Fluent", "Intermediate", "Basic"],
     required: [true, "Proficiency level is required"],
+    trim: true,
+  },
+  flagUrl: {
+    type: String,
+    default: null,
+  },
+  flagKey: {
+    type: String,
+    default: null,
+    trim: true,
   },
   createdAt: {
     type: Date,
@@ -133,6 +152,11 @@ const companySchema = new mongoose.Schema({
   logo: {
     type: String,
     default: null,
+  },
+  logoKey: {
+    type: String,
+    default: null,
+    trim: true,
   },
   website: {
     type: String,
@@ -261,6 +285,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
     match: [/^\+?[0-9\s\-()]*$/, "Please enter a valid phone number"],
+  },
+  dateOfBirth: {
+    type: Date,
+    default: null,
   },
 
   // ==== Professional Information ====
