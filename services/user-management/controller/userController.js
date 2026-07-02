@@ -1,5 +1,23 @@
 import User from "../model/userModel.js";
 import jwt from "jsonwebtoken";
+import transporter from "../config/nodemailer.js";
+import { EMAIL_VERIFY_TEMPLATE } from "../config/emailTemplate.js";
+
+const OTP_VALIDITY_MS = 24 * 60 * 60 * 1000;
+
+const generateOtp = () => `${Math.floor(100000 + Math.random() * 900000)}`;
+
+const buildVerificationHtml = (email, otp) =>
+  EMAIL_VERIFY_TEMPLATE.replace("{{email}}", email).replace("{{otp}}", otp);
+
+const sendVerificationEmail = async (email, otp) => {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+    to: email,
+    subject: "Verify your FraudAware account",
+    html: buildVerificationHtml(email, otp),
+  });
+};
 
 // ============ REGISTER ============
 export const register = async (req, res) => {
@@ -72,6 +90,9 @@ export const register = async (req, res) => {
     const firstName = nameParts2[0];
     const lastName = nameParts2.slice(1).join(" ");
 
+    const verificationOtp = generateOtp();
+    const verificationExpiry = new Date(Date.now() + OTP_VALIDITY_MS);
+
     // ==== CREATE NEW USER ====
     const newUser = await User.create({
       email: email.toLowerCase().trim(),
@@ -80,20 +101,17 @@ export const register = async (req, res) => {
       lastName: lastName.trim(),
       accountStatus: "active",
       emailVerified: false,
+      emailVerificationToken: verificationOtp,
+      emailVerificationExpires: verificationExpiry,
     });
 
-    // ==== GENERATE JWT TOKEN ====
-    const token = jwt.sign(
-      { userId: newUser._id, email: newUser.email },
-      process.env.JWT_SECRET || "greatStack",
-      { expiresIn: process.env.JWT_EXPIRE || "7d" }
-    );
+    await sendVerificationEmail(newUser.email, verificationOtp);
 
     // ==== RESPONSE ====
     res.status(201).json({
       success: true,
-      message: "User registered successfully",
-      token,
+      message: "User registered successfully. Verification OTP sent to email.",
+      requiresEmailVerification: true,
       user: {
         id: newUser._id,
         email: newUser.email,
@@ -175,6 +193,15 @@ export const login = async (req, res) => {
       });
     }
 
+    // 5. Block login until email is verified
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before logging in",
+        requiresEmailVerification: true,
+      });
+    }
+
     // ==== COMPARE PASSWORD ====
     const isPasswordValid = await user.comparePassword(password);
 
@@ -223,6 +250,136 @@ export const login = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error during login",
+      error: error.message,
+    });
+  }
+};
+
+// ============ VERIFY EMAIL OTP ============
+export const verifyEmailOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and OTP are required",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const normalizedOtp = otp.trim();
+
+    if (!/^\d{6}$/.test(normalizedOtp)) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP must be a 6-digit code",
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+emailVerificationToken +emailVerificationExpires"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.emailVerified) {
+      return res.status(200).json({
+        success: true,
+        message: "Email already verified",
+      });
+    }
+
+    if (
+      !user.emailVerificationToken ||
+      !user.emailVerificationExpires ||
+      user.emailVerificationExpires.getTime() < Date.now()
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "OTP is expired. Please request a new OTP.",
+      });
+    }
+
+    if (user.emailVerificationToken !== normalizedOtp) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid OTP",
+      });
+    }
+
+    user.emailVerified = true;
+    user.emailVerifiedAt = new Date();
+    user.emailVerificationToken = null;
+    user.emailVerificationExpires = null;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+    });
+  } catch (error) {
+    console.error("Verify email OTP error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error while verifying email OTP",
+      error: error.message,
+    });
+  }
+};
+
+// ============ RESEND VERIFICATION OTP ============
+export const resendVerificationOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const normalizedEmail = email.toLowerCase().trim();
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+emailVerificationToken +emailVerificationExpires"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already verified",
+      });
+    }
+
+    const verificationOtp = generateOtp();
+    user.emailVerificationToken = verificationOtp;
+    user.emailVerificationExpires = new Date(Date.now() + OTP_VALIDITY_MS);
+    await user.save();
+
+    await sendVerificationEmail(user.email, verificationOtp);
+
+    res.status(200).json({
+      success: true,
+      message: "Verification OTP sent successfully",
+    });
+  } catch (error) {
+    console.error("Resend verification OTP error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error while resending verification OTP",
       error: error.message,
     });
   }

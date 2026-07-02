@@ -18,6 +18,7 @@ import { useFonts, Roboto_500Medium } from '@expo-google-fonts/roboto';
 import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { registerUser } from '../api/userApi';
 
 const TEXT_ACCENT = '#202871';
 const REGISTER_BTN = '#202871';
@@ -58,9 +59,31 @@ export default function RegisterScreen({ navigation }: Props) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const onRegister = () => {
-    navigation.navigate('Verification', { email, flow: 'register' });
+  const onRegister = async () => {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!fullName.trim() || !normalizedEmail || !password || !confirmPassword) {
+      Alert.alert('Missing details', 'Please fill all registration fields.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await registerUser({
+        fullName: fullName.trim(),
+        email: normalizedEmail,
+        password,
+        confirmPassword,
+      });
+      navigation.navigate('Verification', { email: normalizedEmail, flow: 'register' });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Registration failed';
+      Alert.alert('Registration failed', message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!fontsLoaded) {
@@ -159,13 +182,18 @@ export default function RegisterScreen({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={styles.registerBtn}
+            style={[styles.registerBtn, isSubmitting && styles.registerBtnDisabled]}
             onPress={onRegister}
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Register"
+            disabled={isSubmitting}
           >
-            <Text style={styles.registerBtnText}>Register</Text>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.registerBtnText}>Register</Text>
+            )}
           </TouchableOpacity>
 
           <View style={styles.orRow}>
@@ -302,6 +330,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 14,
     marginBottom: 4,
+  },
+  registerBtnDisabled: {
+    opacity: 0.7,
   },
   registerBtnText: {
     fontFamily: FONT.poppinsReg,

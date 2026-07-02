@@ -1,5 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import {
+  ActivityIndicator,
+  Alert,
   Animated,
   BackHandler,
   Dimensions,
@@ -15,10 +17,11 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { CommonActions, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { PROFILE } from '../../data/profile';
 import type { RootStackParamList } from '../../App';
+import { useUser } from '../context/UserContext';
 
 const NAVY = '#202871';
 const NAVY_DARK = '#0E1140';
@@ -27,6 +30,7 @@ const DIVIDER = '#E5E7EE';
 const VERIFIED_BG = '#D8E1FF';
 const PREMIUM_BG = '#F4D27A';
 const PREMIUM_TEXT = '#1B1B1F';
+const LOGOUT_RED = '#C0392B';
 
 const ANIM_IN = 280;
 const ANIM_OUT = 220;
@@ -43,12 +47,37 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { logout, isLoading } = useUser();
   const translateX = useRef(new Animated.Value(-DRAWER_WIDTH)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
   const goToProfile = () => {
     onClose();
     navigation.navigate('Profile');
+  };
+
+  const handleLogout = () => {
+    Alert.alert('Log out', 'Are you sure you want to log out?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Log out',
+        style: 'destructive',
+        onPress: async () => {
+          onClose();
+          try {
+            await logout();
+          } catch {
+            // UserContext clears local session even if the API call fails
+          }
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 0,
+              routes: [{ name: 'Login' }],
+            }),
+          );
+        },
+      },
+    ]);
   };
 
   useEffect(() => {
@@ -231,6 +260,22 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
             </TouchableOpacity>
 
             <TouchableOpacity
+              style={styles.settingsRow}
+              activeOpacity={0.7}
+              onPress={handleLogout}
+              disabled={isLoading}
+              accessibilityRole="button"
+              accessibilityLabel="Log out"
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color={LOGOUT_RED} />
+              ) : (
+                <Ionicons name="log-out-outline" size={22} color={LOGOUT_RED} />
+              )}
+              <Text style={styles.logoutText}>Log out</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
               style={styles.premiumBtn}
               activeOpacity={0.85}
               accessibilityRole="button"
@@ -387,6 +432,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: NAVY_DARK,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: LOGOUT_RED,
   },
   premiumBtn: {
     backgroundColor: PREMIUM_BG,
