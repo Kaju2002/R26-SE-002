@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -41,6 +42,7 @@ type RootParamList = {
   Onboarding: undefined;
   Login: undefined;
   Register: undefined;
+  ForgotPassword: undefined;
   Verification: { email?: string; flow: 'register' | 'reset' } | undefined;
   RegistrationSuccess: undefined;
   NewPassword: { email?: string } | undefined;
@@ -66,10 +68,31 @@ export default function VerificationScreen({ navigation, route }: Props) {
   const email = route?.params?.email;
   const flow = route?.params?.flow ?? 'register';
 
+  const handleBack = () => {
+    if (flow === 'register') {
+      navigation.replace('Login');
+      return;
+    }
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.replace('ForgotPassword');
+    }
+  };
+
+  useEffect(() => {
+    if (flow !== 'register') return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      navigation.replace('Login');
+      return true;
+    });
+    return () => sub.remove();
+  }, [flow, navigation]);
+
   const subtitleText =
     flow === 'reset'
       ? 'Enter the code we sent to your email to reset your password.'
-      : 'A verification code has been sent to your email.';
+      : 'Enter the 6-digit code from your email to activate your account.';
 
   const [digits, setDigits] = useState<string[]>(() =>
     Array(OTP_LENGTH).fill('')
@@ -193,10 +216,10 @@ export default function VerificationScreen({ navigation, route }: Props) {
       >
         <View style={styles.headerRow}>
           <Pressable
-            onPress={() => navigation.goBack()}
+            onPress={handleBack}
             hitSlop={16}
             accessibilityRole="button"
-            accessibilityLabel="Go back"
+            accessibilityLabel={flow === 'register' ? 'Back to sign in' : 'Go back'}
             style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.6 }]}
           >
             <Ionicons name="chevron-back" size={28} color={TEXT_ACCENT} />
@@ -204,7 +227,28 @@ export default function VerificationScreen({ navigation, route }: Props) {
         </View>
 
         <View style={styles.body}>
-          <Text style={styles.title}>Verification Code</Text>
+          <Text style={styles.title}>
+            {flow === 'register' ? 'Check your email' : 'Verification Code'}
+          </Text>
+
+          {flow === 'register' && (
+            <View style={styles.sentBanner}>
+              <Ionicons name="mail-outline" size={22} color={TEXT_ACCENT} />
+              <View style={styles.sentBannerText}>
+                <Text style={styles.sentBannerTitle}>Verification email sent</Text>
+                <Text style={styles.sentBannerBody}>
+                  We sent a 6-digit code to{' '}
+                  {email ? (
+                    <Text style={styles.emailHighlight}>{email}</Text>
+                  ) : (
+                    'your email'
+                  )}
+                  . Check your inbox and spam folder.
+                </Text>
+              </View>
+            </View>
+          )}
+
           <Text style={styles.subtitle}>{subtitleText}</Text>
 
           <View style={styles.otpRow}>
@@ -303,8 +347,40 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     paddingHorizontal: 28,
-    paddingTop: 28,
+    paddingTop: 12,
     alignItems: 'center',
+  },
+  sentBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    alignSelf: 'stretch',
+    backgroundColor: '#F0F4FF',
+    borderWidth: 1,
+    borderColor: '#D6DBF0',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 20,
+  },
+  sentBannerText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  sentBannerTitle: {
+    fontFamily: FONT.poppinsMed,
+    fontSize: 14,
+    color: TEXT_ACCENT,
+    marginBottom: 4,
+  },
+  sentBannerBody: {
+    fontFamily: FONT.poppinsReg,
+    fontSize: 13,
+    lineHeight: 19,
+    color: SUBTLE_TEXT,
+  },
+  emailHighlight: {
+    fontFamily: FONT.poppinsMed,
+    color: TEXT_ACCENT,
   },
   /** Verification Code — Poppins SemiBold 24 · #202871 */
   title: {
@@ -312,7 +388,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: TEXT_ACCENT,
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 16,
     letterSpacing: -0.3,
   },
   /** Subtitle — Poppins Regular 14 · muted */
@@ -322,7 +398,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: SUBTLE_TEXT,
     textAlign: 'center',
-    marginBottom: 36,
+    marginBottom: 28,
   },
   otpRow: {
     flexDirection: 'row',

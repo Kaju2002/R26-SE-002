@@ -77,7 +77,7 @@ export default function RegisterScreen({ navigation }: Props) {
         password,
         confirmPassword,
       });
-      navigation.navigate('Verification', { email: normalizedEmail, flow: 'register' });
+      navigation.replace('Verification', { email: normalizedEmail, flow: 'register' });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Registration failed';
       Alert.alert('Registration failed', message);

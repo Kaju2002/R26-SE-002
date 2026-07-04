@@ -26,6 +26,7 @@ type Props = {
   autoCapitalize?: TextInputProps['autoCapitalize'];
   trailingIcon?: 'calendar';
   onTrailingIconPress?: () => void;
+  onPress?: () => void;
   editable?: boolean;
 };
 
@@ -38,43 +39,55 @@ export default function EditProfileField({
   autoCapitalize,
   trailingIcon,
   onTrailingIconPress,
+  onPress,
   editable = true,
 }: Props) {
   const [focused, setFocused] = useState(false);
 
+  const rowContent = (
+    <View
+      style={[
+        styles.inputRow,
+        focused && styles.inputRowFocused,
+      ]}
+    >
+      <TextInput
+        style={styles.input}
+        value={value}
+        onChangeText={onChangeText}
+        onFocus={() => setFocused(true)}
+        onBlur={() => setFocused(false)}
+        placeholder={placeholder}
+        placeholderTextColor={PLACEHOLDER}
+        keyboardType={keyboardType}
+        autoCapitalize={autoCapitalize}
+        editable={editable}
+        pointerEvents={onPress ? 'none' : 'auto'}
+        selectionColor={NAVY}
+      />
+      {trailingIcon === 'calendar' && (
+        <Pressable
+          onPress={onTrailingIconPress}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel="Pick date"
+        >
+          <Ionicons name="calendar-outline" size={20} color={NAVY} />
+        </Pressable>
+      )}
+    </View>
+  );
+
   return (
     <View style={styles.block}>
       <Text style={styles.label}>{label}</Text>
-      <View
-        style={[
-          styles.inputRow,
-          focused && styles.inputRowFocused,
-        ]}
-      >
-        <TextInput
-          style={styles.input}
-          value={value}
-          onChangeText={onChangeText}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
-          placeholder={placeholder}
-          placeholderTextColor={PLACEHOLDER}
-          keyboardType={keyboardType}
-          autoCapitalize={autoCapitalize}
-          editable={editable}
-          selectionColor={NAVY}
-        />
-        {trailingIcon === 'calendar' && (
-          <Pressable
-            onPress={onTrailingIconPress}
-            hitSlop={10}
-            accessibilityRole="button"
-            accessibilityLabel="Pick date"
-          >
-            <Ionicons name="calendar-outline" size={20} color={NAVY} />
-          </Pressable>
-        )}
-      </View>
+      {onPress ? (
+        <Pressable onPress={onPress} accessibilityRole="button">
+          {rowContent}
+        </Pressable>
+      ) : (
+        rowContent
+      )}
     </View>
   );
 }

@@ -27,8 +27,9 @@ import type { RootStackParamList } from '../navigation/rootStackParams';
 import { useProfile } from '../context/ProfileContext';
 import EditProfileField from '../components/profile/EditProfileField';
 import EditLogoPicker from '../components/profile/EditLogoPicker';
+import EditMonthYearField from '../components/profile/EditMonthYearField';
 import { buildLogoFallback } from '../utils/logoFallback';
-import { formatMonthYear, parseMonthYear } from '../utils/formDataHelpers';
+import { formatMonthYear, monthYearToDate, parseMonthYear } from '../utils/formDataHelpers';
 
 const NAVY = '#202871';
 
@@ -192,12 +193,12 @@ export default function EditWorkExperienceScreen() {
             placeholder="Accra"
             autoCapitalize="words"
           />
-          <EditProfileField
+          <EditMonthYearField
             label="Start date"
             value={startDate}
-            onChangeText={setStartDate}
+            onChange={setStartDate}
             placeholder="01/2020"
-            keyboardType="numbers-and-punctuation"
+            maximumDate={new Date()}
           />
           <View style={styles.switchRow}>
             <Text style={styles.switchLabel}>I currently work here</Text>
@@ -208,12 +209,17 @@ export default function EditWorkExperienceScreen() {
             />
           </View>
           {!isCurrentlyWorking && (
-            <EditProfileField
+            <EditMonthYearField
               label="End date"
               value={endDate}
-              onChangeText={setEndDate}
+              onChange={setEndDate}
               placeholder="06/2023"
-              keyboardType="numbers-and-punctuation"
+              maximumDate={new Date()}
+              minimumDate={
+                parseMonthYear(startDate)
+                  ? monthYearToDate(startDate)
+                  : undefined
+              }
             />
           )}
           <Text style={styles.fieldLabel}>Description</Text>
