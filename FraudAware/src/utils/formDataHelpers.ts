@@ -39,6 +39,22 @@ export function formatMonthYear(date: string | null | undefined): string {
   return `${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 }
 
+export function dateToMonthYear(date: Date): string {
+  return `${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
+}
+
+export function monthYearToDate(
+  value: string | null | undefined,
+  fallback?: Date
+): Date {
+  const parsed = parseMonthYear(value || '');
+  if (parsed) {
+    const d = new Date(parsed);
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  return fallback ?? new Date(new Date().getFullYear() - 1, 0, 1);
+}
+
 export function parseMonthYear(value: string): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) return undefined;

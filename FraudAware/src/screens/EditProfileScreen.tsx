@@ -20,6 +20,9 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import DateTimePicker, {
+  type DateTimePickerEvent,
+} from '@react-native-community/datetimepicker';
 import type { RootStackParamList } from '../../App';
 import { useProfile } from '../context/ProfileContext';
 import EditProfileAvatarPicker from '../components/profile/EditProfileAvatarPicker';
@@ -35,6 +38,13 @@ function formatDob(value: string | null | undefined): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
+}
+
+function parseDobToDate(value: string | null | undefined): Date | null {
+  if (!value) return null;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date;
 }
 
 function parseDobInput(value: string): string | undefined {
@@ -62,6 +72,8 @@ export default function EditProfileScreen() {
 
   const [fullName, setFullName] = useState('');
   const [dob, setDob] = useState('');
+  const [dobDate, setDobDate] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [location, setLocation] = useState('');
@@ -75,6 +87,7 @@ export default function EditProfileScreen() {
     if (!profile) return;
     setFullName(profile.fullName);
     setDob(formatDob(profile.dateOfBirth));
+    setDobDate(parseDobToDate(profile.dateOfBirth));
     setEmail(profile.email);
     setPhone(profile.phone || '');
     setLocation(profile.location || '');
@@ -90,6 +103,21 @@ export default function EditProfileScreen() {
       </View>
     );
   }
+
+  const onDateChange = (event: DateTimePickerEvent, selected?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+      if (event.type === 'dismissed' || !selected) return;
+    }
+    if (selected) {
+      setDobDate(selected);
+      setDob(formatDob(selected.toISOString()));
+    }
+  };
+
+  const openDatePicker = () => {
+    setShowDatePicker(true);
+  };
 
   const onSave = async () => {
     if (!fullName.trim()) {
@@ -170,10 +198,34 @@ export default function EditProfileScreen() {
             label="Date of Birth"
             value={dob}
             onChangeText={setDob}
-            placeholder="02/02/2000"
-            keyboardType="numbers-and-punctuation"
+            placeholder="Select your date of birth"
             trailingIcon="calendar"
+            editable={false}
+            onPress={openDatePicker}
+            onTrailingIconPress={openDatePicker}
           />
+
+          {showDatePicker && (
+            <DateTimePicker
+              value={dobDate ?? new Date(2000, 0, 1)}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              maximumDate={new Date()}
+              onChange={onDateChange}
+            />
+          )}
+
+          {Platform.OS === 'ios' && showDatePicker && (
+            <View style={styles.iosPickerActions}>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(false)}
+                style={styles.iosPickerDone}
+                accessibilityRole="button"
+              >
+                <Text style={styles.iosPickerDoneText}>Done</Text>
+              </TouchableOpacity>
+            </View>
+          )}
           <EditProfileField
             label="Email"
             value={email}
@@ -280,6 +332,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 4,
     marginBottom: 26,
+  },
+  iosPickerActions: {
+    alignItems: 'flex-end',
+    marginTop: -6,
+    marginBottom: 12,
+  },
+  iosPickerDone: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  iosPickerDoneText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 14,
+    color: NAVY,
   },
   saveBtn: {
     marginTop: 14,

@@ -26,8 +26,9 @@ import type { RootStackParamList } from '../navigation/rootStackParams';
 import { useProfile } from '../context/ProfileContext';
 import EditProfileField from '../components/profile/EditProfileField';
 import EditLogoPicker from '../components/profile/EditLogoPicker';
+import EditMonthYearField from '../components/profile/EditMonthYearField';
 import { buildLogoFallback } from '../utils/logoFallback';
-import { formatMonthYear, parseMonthYear } from '../utils/formDataHelpers';
+import { formatMonthYear, monthYearToDate, parseMonthYear } from '../utils/formDataHelpers';
 
 const NAVY = '#202871';
 
@@ -180,19 +181,22 @@ export default function EditEducationScreen() {
             placeholder="Computer Science"
             autoCapitalize="words"
           />
-          <EditProfileField
+          <EditMonthYearField
             label="Start date"
             value={startDate}
-            onChangeText={setStartDate}
+            onChange={setStartDate}
             placeholder="09/2018"
-            keyboardType="numbers-and-punctuation"
+            maximumDate={new Date()}
           />
-          <EditProfileField
+          <EditMonthYearField
             label="End date"
             value={endDate}
-            onChangeText={setEndDate}
+            onChange={setEndDate}
             placeholder="06/2022"
-            keyboardType="numbers-and-punctuation"
+            maximumDate={new Date()}
+            minimumDate={
+              parseMonthYear(startDate) ? monthYearToDate(startDate) : undefined
+            }
           />
           <Text style={styles.fieldLabel}>Description</Text>
           <TextInput
