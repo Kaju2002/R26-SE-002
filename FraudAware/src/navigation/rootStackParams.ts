@@ -6,7 +6,7 @@ export type RootStackParamList = {
   CodeSent: { email?: string } | undefined;
   Verification: { email?: string; flow: 'register' | 'reset' } | undefined;
   RegistrationSuccess: undefined;
-  NewPassword: { email?: string } | undefined;
+  NewPassword: { email?: string; otp?: string } | undefined;
   PasswordUpdated: undefined;
   MainTabs: undefined;
   Profile: undefined;

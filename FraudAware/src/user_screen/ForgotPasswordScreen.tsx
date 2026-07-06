@@ -20,6 +20,7 @@ import {
 } from '@expo-google-fonts/poppins';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { forgotPassword } from '../api/userApi';
 
 const TEXT_ACCENT = '#202871';
 const SUBTITLE_COLOR = '#798AA3';
@@ -54,6 +55,7 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
   });
 
   const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!fontsLoaded) {
     return (
@@ -65,12 +67,25 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
 
   const isValid = EMAIL_RE.test(email.trim());
 
-  const onContinue = () => {
+  const onContinue = async () => {
     if (!isValid) {
       Alert.alert('Invalid email', 'Please enter a valid email address.');
       return;
     }
-    navigation.replace('CodeSent', { email: email.trim() });
+
+    const normalizedEmail = email.trim();
+
+    try {
+      setIsSubmitting(true);
+      await forgotPassword(normalizedEmail);
+      navigation.replace('CodeSent', { email: normalizedEmail });
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to send reset code';
+      Alert.alert('Request failed', message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -119,13 +134,18 @@ export default function ForgotPasswordScreen({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={styles.continueBtn}
+            style={[styles.continueBtn, isSubmitting && styles.continueBtnDisabled]}
             onPress={onContinue}
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Continue"
+            disabled={isSubmitting}
           >
-            <Text style={styles.continueBtnText}>Continue</Text>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.continueBtnText}>Continue</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -217,6 +237,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
+  },
+  continueBtnDisabled: {
+    opacity: 0.7,
   },
   /** Continue — Poppins Regular 16 · white */
   continueBtnText: {
