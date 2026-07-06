@@ -1,14 +1,34 @@
 import User from "../model/userModel.js";
 import jwt from "jsonwebtoken";
 import transporter from "../config/nodemailer.js";
-import { EMAIL_VERIFY_TEMPLATE } from "../config/emailTemplate.js";
+import {
+  EMAIL_VERIFY_TEMPLATE,
+  PASSWORD_RESET_TEMPLATE,
+} from "../config/emailTemplate.js";
 
 const OTP_VALIDITY_MS = 24 * 60 * 60 * 1000;
+const RESET_OTP_VALIDITY_MS = 15 * 60 * 1000;
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+const FORGOT_PASSWORD_SUCCESS_MESSAGE =
+  "If an account with this email exists, a password reset code has been sent.";
 
 const generateOtp = () => `${Math.floor(100000 + Math.random() * 900000)}`;
 
+const normalizeEmail = (email) => email.toLowerCase().trim();
+
+const normalizeOtp = (otp) => String(otp).trim();
+
+const isValidEmail = (email) => EMAIL_REGEX.test(email);
+
+const isValidOtp = (otp) => /^\d{6}$/.test(otp);
+
 const buildVerificationHtml = (email, otp) =>
   EMAIL_VERIFY_TEMPLATE.replace("{{email}}", email).replace("{{otp}}", otp);
+
+const buildPasswordResetHtml = (email, otp) =>
+  PASSWORD_RESET_TEMPLATE.replace("{{email}}", email).replace("{{otp}}", otp);
 
 const sendVerificationEmail = async (email, otp) => {
   await transporter.sendMail({
@@ -18,6 +38,82 @@ const sendVerificationEmail = async (email, otp) => {
     html: buildVerificationHtml(email, otp),
   });
 };
+
+const sendPasswordResetEmail = async (email, otp) => {
+  await transporter.sendMail({
+    from: process.env.SMTP_FROM_EMAIL || process.env.SMTP_USER,
+    to: email,
+    subject: "Reset your FraudAware password",
+    html: buildPasswordResetHtml(email, otp),
+  });
+};
+
+const canRequestPasswordReset = (user) =>
+  user &&
+  user.emailVerified === true &&
+  user.accountStatus === "active";
+
+const validatePasswordResetOtp = (user, normalizedOtp) => {
+  if (
+    !user.passwordResetToken ||
+    !user.passwordResetExpires ||
+    user.passwordResetExpires.getTime() < Date.now()
+  ) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Reset code is expired. Please request a new code.",
+    };
+  }
+
+  if (user.passwordResetToken !== normalizedOtp) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Invalid reset code",
+    };
+  }
+
+  return { ok: true };
+};
+
+const issuePasswordResetOtp = async (user) => {
+  const resetOtp = generateOtp();
+  user.passwordResetToken = resetOtp;
+  user.passwordResetExpires = new Date(Date.now() + RESET_OTP_VALIDITY_MS);
+  await user.save();
+  await sendPasswordResetEmail(user.email, resetOtp);
+};
+
+const JWT_SECRET = () => process.env.JWT_SECRET || "greatStack";
+const JWT_EXPIRE = () => process.env.JWT_EXPIRE || "7d";
+
+const formatAuthUser = (user) => ({
+  id: user._id,
+  email: user.email,
+  firstName: user.firstName,
+  lastName: user.lastName,
+  fullName: `${user.firstName} ${user.lastName}`,
+  avatar: user.avatar,
+  headline: user.headline,
+  role: user.role,
+  location: user.location,
+  accountStatus: user.accountStatus,
+  emailVerified: user.emailVerified,
+  isPremium: user.isPremium,
+  lastLoginAt: user.lastLoginAt,
+});
+
+const signAuthToken = (user) =>
+  jwt.sign(
+    {
+      userId: user._id,
+      email: user.email,
+      tokenVersion: user.tokenVersion ?? 0,
+    },
+    JWT_SECRET(),
+    { expiresIn: JWT_EXPIRE() }
+  );
 
 // ============ REGISTER ============
 export const register = async (req, res) => {
@@ -217,32 +313,14 @@ export const login = async (req, res) => {
     await user.save();
 
     // ==== GENERATE JWT TOKEN ====
-    const token = jwt.sign(
-      { userId: user._id, email: user.email },
-      process.env.JWT_SECRET || "greatStack",
-      { expiresIn: process.env.JWT_EXPIRE || "7d" }
-    );
+    const token = signAuthToken(user);
 
     // ==== RESPONSE ====
     res.status(200).json({
       success: true,
       message: "Login successful",
       token,
-      user: {
-        id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        fullName: `${user.firstName} ${user.lastName}`,
-        avatar: user.avatar,
-        headline: user.headline,
-        role: user.role,
-        location: user.location,
-        accountStatus: user.accountStatus,
-        emailVerified: user.emailVerified,
-        isPremium: user.isPremium,
-        lastLoginAt: user.lastLoginAt,
-      },
+      user: formatAuthUser(user),
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -385,10 +463,339 @@ export const resendVerificationOtp = async (req, res) => {
   }
 };
 
+// ============ FORGOT PASSWORD ============
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!isValidEmail(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address",
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+passwordResetToken +passwordResetExpires"
+    );
+
+    if (canRequestPasswordReset(user)) {
+      await issuePasswordResetOtp(user);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: FORGOT_PASSWORD_SUCCESS_MESSAGE,
+    });
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error while sending password reset code",
+      error: error.message,
+    });
+  }
+};
+
+// ============ VERIFY RESET OTP ============
+export const verifyResetOtp = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    if (!email || !otp) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and reset code are required",
+      });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+    const normalizedOtp = normalizeOtp(otp);
+
+    if (!isValidEmail(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address",
+      });
+    }
+
+    if (!isValidOtp(normalizedOtp)) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset code must be a 6-digit code",
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+passwordResetToken +passwordResetExpires"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before resetting your password",
+      });
+    }
+
+    if (user.accountStatus !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: `Account is ${user.accountStatus}`,
+      });
+    }
+
+    const otpCheck = validatePasswordResetOtp(user, normalizedOtp);
+    if (!otpCheck.ok) {
+      return res.status(otpCheck.status).json({
+        success: false,
+        message: otpCheck.message,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Reset code verified successfully",
+    });
+  } catch (error) {
+    console.error("Verify reset OTP error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error while verifying reset code",
+      error: error.message,
+    });
+  }
+};
+
+// ============ RESET PASSWORD ============
+export const resetPassword = async (req, res) => {
+  try {
+    const { email, otp, password, confirmPassword } = req.body;
+
+    if (!email || !otp || !password || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Email, reset code, password, and confirm password are required",
+      });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+    const normalizedOtp = normalizeOtp(otp);
+
+    if (!isValidEmail(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address",
+      });
+    }
+
+    if (!isValidOtp(normalizedOtp)) {
+      return res.status(400).json({
+        success: false,
+        message: "Reset code must be a 6-digit code",
+      });
+    }
+
+    if (password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: "Password must be at least 8 characters long",
+      });
+    }
+
+    if (password !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Passwords do not match",
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+password +passwordResetToken +passwordResetExpires"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before resetting your password",
+      });
+    }
+
+    if (user.accountStatus !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: `Account is ${user.accountStatus}`,
+      });
+    }
+
+    const otpCheck = validatePasswordResetOtp(user, normalizedOtp);
+    if (!otpCheck.ok) {
+      return res.status(otpCheck.status).json({
+        success: false,
+        message: otpCheck.message,
+      });
+    }
+
+    const isSamePassword = await user.comparePassword(password);
+    if (isSamePassword) {
+      return res.status(400).json({
+        success: false,
+        message: "New password must be different from your current password",
+      });
+    }
+
+    user.password = password;
+    user.passwordResetToken = null;
+    user.passwordResetExpires = null;
+    user.tokenVersion = (user.tokenVersion ?? 0) + 1;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({
+        success: false,
+        message: "Validation error",
+        errors: messages,
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: "Error while resetting password",
+      error: error.message,
+    });
+  }
+};
+
+// ============ RESEND RESET OTP ============
+export const resendResetOtp = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required",
+      });
+    }
+
+    const normalizedEmail = normalizeEmail(email);
+
+    if (!isValidEmail(normalizedEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: "Please enter a valid email address",
+      });
+    }
+
+    const user = await User.findOne({ email: normalizedEmail }).select(
+      "+passwordResetToken +passwordResetExpires"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (!user.emailVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before resetting your password",
+      });
+    }
+
+    if (user.accountStatus !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: `Account is ${user.accountStatus}`,
+      });
+    }
+
+    await issuePasswordResetOtp(user);
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset code sent successfully",
+    });
+  } catch (error) {
+    console.error("Resend reset OTP error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error while resending reset code",
+      error: error.message,
+    });
+  }
+};
+
+// ============ GET CURRENT USER (SESSION VALIDATION) ============
+export const getCurrentUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.accountStatus !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: `Account is ${user.accountStatus}`,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Session is valid",
+      user: formatAuthUser(user),
+    });
+  } catch (error) {
+    console.error("Get current user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error validating session",
+      error: error.message,
+    });
+  }
+};
+
 // ============ LOGOUT ============
 export const logout = async (req, res) => {
   try {
-    const userId = req.userId; // Set by auth middleware
+    const userId = req.userId;
 
     if (!userId) {
       return res.status(401).json({
@@ -397,11 +804,12 @@ export const logout = async (req, res) => {
       });
     }
 
-    // ==== UPDATE LAST ACTIVITY ====
-    // Update lastLoginAt to track last user activity
     const user = await User.findByIdAndUpdate(
       userId,
-      { lastLoginAt: new Date() },
+      {
+        $inc: { tokenVersion: 1 },
+        lastLoginAt: new Date(),
+      },
       { new: true }
     );
 
@@ -412,7 +820,6 @@ export const logout = async (req, res) => {
       });
     }
 
-    // ==== RESPONSE ====
     res.status(200).json({
       success: true,
       message: "Logout successful",

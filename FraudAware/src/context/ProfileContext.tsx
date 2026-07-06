@@ -17,6 +17,7 @@ import {
   getMyProfile,
   updateAvatar as updateAvatarApi,
   updateBasicProfile as updateBasicProfileApi,
+  updateCompanyLogo as updateCompanyLogoApi,
   updateEducation as updateEducationApi,
   updateLanguage as updateLanguageApi,
   updateSkills as updateSkillsApi,
@@ -51,6 +52,7 @@ export interface ProfileContextValue {
   fetchProfile: () => Promise<void>;
   updateBasicProfile: (payload: UpdateBasicProfileRequest) => Promise<void>;
   updateAvatar: (imageUri: string) => Promise<void>;
+  updateCompanyLogo: (imageUri: string) => Promise<void>;
   updateSummary: (summary: string) => Promise<void>;
   updateSkills: (skills: string[]) => Promise<void>;
   addWorkExperience: (
@@ -108,7 +110,7 @@ function applyProfileResponse(
 }
 
 export function ProfileProvider({ children }: { children: ReactNode }) {
-  const { token } = useUser();
+  const { token, clearSession } = useUser();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [details, setDetails] = useState<ProfileDetailsData>(EMPTY_DETAILS);
   const [isLoading, setIsLoading] = useState(false);
@@ -138,11 +140,19 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load profile';
       setError(message);
+      if (
+        message.includes('Session expired') ||
+        message.includes('Please login') ||
+        message.includes('Invalid token') ||
+        message.includes('Token expired')
+      ) {
+        await clearSession();
+      }
       throw err;
     } finally {
       setIsLoading(false);
     }
-  }, [token, clearProfile]);
+  }, [token, clearProfile, clearSession]);
 
   const updateBasicProfile = useCallback(
     async (payload: UpdateBasicProfileRequest) => {
@@ -175,6 +185,27 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         applyProfileResponse(setProfile, setDetails, data);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Failed to update avatar';
+        setError(message);
+        throw err;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [token]
+  );
+
+  const updateCompanyLogo = useCallback(
+    async (imageUri: string) => {
+      if (!token) throw new Error('Not authenticated');
+
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await updateCompanyLogoApi(token, imageUri);
+        applyProfileResponse(setProfile, setDetails, data);
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to update company logo';
         setError(message);
         throw err;
       } finally {
@@ -343,6 +374,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     fetchProfile,
     updateBasicProfile,
     updateAvatar,
+    updateCompanyLogo,
     updateSummary,
     updateSkills,
     addWorkExperience,

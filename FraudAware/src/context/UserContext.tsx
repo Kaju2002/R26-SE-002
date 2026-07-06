@@ -7,13 +7,17 @@ import React, {
   type ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { loginUser, logoutUser, type LoginRequest, type LoginResponse } from '../api/userApi';
+import {
+  getCurrentUser,
+  loginUser,
+  logoutUser,
+  type LoginRequest,
+  type LoginResponse,
+} from '../api/userApi';
 
-// ============ STORAGE KEYS ============
 const AUTH_TOKEN_KEY = '@fraudaware/auth_token';
 const USER_DATA_KEY = '@fraudaware/user_data';
 
-// ============ TYPES ============
 export interface User {
   id: string;
   email: string;
@@ -31,24 +35,21 @@ export interface User {
 }
 
 export interface UserContextValue {
-  // State
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  isInitializing: boolean;
   error: string | null;
   isAuthenticated: boolean;
-
-  // Methods
   login: (credentials: LoginRequest) => Promise<void>;
   logout: () => Promise<void>;
   clearError: () => void;
   checkAuthStatus: () => Promise<void>;
+  clearSession: () => Promise<void>;
 }
 
-// ============ CONTEXT ============
 const UserContext = createContext<UserContextValue | null>(null);
 
-// ============ CUSTOM HOOK ============
 export function useUser(): UserContextValue {
   const ctx = useContext(UserContext);
   if (!ctx) {
@@ -57,38 +58,46 @@ export function useUser(): UserContextValue {
   return ctx;
 }
 
-// ============ PROVIDER ============
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ============ CHECK AUTH STATUS ON APP START ============
-  useEffect(() => {
-    checkAuthStatus();
+  const clearSession = useCallback(async () => {
+    await AsyncStorage.multiRemove([AUTH_TOKEN_KEY, USER_DATA_KEY]);
+    setToken(null);
+    setUser(null);
   }, []);
 
-  // ============ CHECK STORED AUTH DATA ============
   const checkAuthStatus = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setIsInitializing(true);
       const storedToken = await AsyncStorage.getItem(AUTH_TOKEN_KEY);
-      const storedUser = await AsyncStorage.getItem(USER_DATA_KEY);
 
-      if (storedToken && storedUser) {
-        setToken(storedToken);
-        setUser(JSON.parse(storedUser));
+      if (!storedToken) {
+        await clearSession();
+        return;
       }
+
+      const response = await getCurrentUser(storedToken);
+      await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(response.user));
+      setToken(storedToken);
+      setUser(response.user);
     } catch (err) {
       console.error('Error checking auth status:', err);
+      await clearSession();
       setError(err instanceof Error ? err.message : 'Failed to check auth status');
     } finally {
-      setIsLoading(false);
+      setIsInitializing(false);
     }
-  }, []);
+  }, [clearSession]);
 
-  // ============ LOGIN ============
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
   const login = useCallback(async (credentials: LoginRequest) => {
     try {
       setIsLoading(true);
@@ -97,11 +106,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
       const response: LoginResponse = await loginUser(credentials);
 
       if (response.success && response.token && response.user) {
-        // Save token and user to AsyncStorage
         await AsyncStorage.setItem(AUTH_TOKEN_KEY, response.token);
         await AsyncStorage.setItem(USER_DATA_KEY, JSON.stringify(response.user));
-
-        // Update context state
         setToken(response.token);
         setUser(response.user);
       } else {
@@ -116,51 +122,41 @@ export function UserProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // ============ LOGOUT ============
   const logout = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
 
-      // Call logout API if token exists
       if (token) {
         await logoutUser(token);
       }
 
-      // Clear AsyncStorage
-      await AsyncStorage.removeItem(AUTH_TOKEN_KEY);
-      await AsyncStorage.removeItem(USER_DATA_KEY);
-
-      // Clear context state
-      setToken(null);
-      setUser(null);
+      await clearSession();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Logout failed';
       setError(errorMessage);
-      // Still clear local state even if API call fails
-      setToken(null);
-      setUser(null);
+      await clearSession();
     } finally {
       setIsLoading(false);
     }
-  }, [token]);
+  }, [token, clearSession]);
 
-  // ============ CLEAR ERROR ============
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  // ============ CONTEXT VALUE ============
   const value: UserContextValue = {
     user,
     token,
     isLoading,
+    isInitializing,
     error,
-    isAuthenticated: !!token && !!user,
+    isAuthenticated: !!token && !!user && !isInitializing,
     login,
     logout,
     clearError,
     checkAuthStatus,
+    clearSession,
   };
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

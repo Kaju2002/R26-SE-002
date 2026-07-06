@@ -18,6 +18,7 @@ import { useFonts, Roboto_500Medium } from '@expo-google-fonts/roboto';
 import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppins';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { EmailVerificationRequiredError } from '../api/userApi';
 import { useUser } from '../context/UserContext';
 
 /** Brand navy — CareerPathway title only */
@@ -41,6 +42,7 @@ type Props = NativeStackScreenProps<
     Login: undefined;
     Register: undefined;
     ForgotPassword: undefined;
+    Verification: { email?: string; flow: 'register' | 'reset' } | undefined;
     MainTabs: undefined;
   },
   'Login'
@@ -53,7 +55,7 @@ export default function LoginScreen({ navigation }: Props) {
     Poppins_500Medium,
   });
 
-  const { login, isLoading, error, clearError, isAuthenticated } = useUser();
+  const { login, isLoading, isInitializing, error, clearError, isAuthenticated } = useUser();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -84,12 +86,19 @@ export default function LoginScreen({ navigation }: Props) {
       // Call login from context
       await login({ email: email.trim(), password });
     } catch (err) {
+      if (err instanceof EmailVerificationRequiredError) {
+        navigation.replace('Verification', {
+          email: email.trim(),
+          flow: 'register',
+        });
+        return;
+      }
       const errorMsg = err instanceof Error ? err.message : 'Login failed';
       Alert.alert('Login Failed', errorMsg);
     }
   };
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || isInitializing) {
     return (
       <View style={styles.fontSplash}>
         <ActivityIndicator color={SIGN_IN_BTN} size="large" />

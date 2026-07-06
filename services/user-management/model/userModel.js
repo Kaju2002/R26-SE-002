@@ -483,6 +483,13 @@ const userSchema = new mongoose.Schema({
     select: false,
   },
 
+  // ==== Session / JWT invalidation ====
+  tokenVersion: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+
   // ==== Soft Delete ====
   deletedAt: {
     type: Date,

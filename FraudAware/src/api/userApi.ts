@@ -1,5 +1,15 @@
 import { getUserManagementBaseUrl } from './apiConfig';
 
+// ============ ERRORS ============
+export class EmailVerificationRequiredError extends Error {
+  requiresEmailVerification = true;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'EmailVerificationRequiredError';
+  }
+}
+
 // ============ TYPES ============
 export interface LoginRequest {
   email: string;
@@ -70,6 +80,44 @@ export interface LogoutResponse {
   lastActivityAt: string;
 }
 
+export interface ForgotPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface VerifyResetOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyResetOtpResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface ResetPasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface ResendResetOtpResponse {
+  success: boolean;
+  message: string;
+}
+
+export interface CurrentUserResponse {
+  success: boolean;
+  message: string;
+  user: LoginResponse['user'];
+}
+
 // ============ LOGIN API ============
 export const loginUser = async (credentials: LoginRequest): Promise<LoginResponse> => {
   try {
@@ -83,7 +131,12 @@ export const loginUser = async (credentials: LoginRequest): Promise<LoginRespons
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.message || "Login failed");
+      if (response.status === 403 && error.requiresEmailVerification) {
+        throw new EmailVerificationRequiredError(
+          error.message || 'Please verify your email before logging in'
+        );
+      }
+      throw new Error(error.message || 'Login failed');
     }
 
     const data: LoginResponse = await response.json();
@@ -163,6 +216,123 @@ export const resendVerificationOtp = async (
     return data;
   } catch (error) {
     throw error instanceof Error ? error : new Error("Resend OTP API error");
+  }
+};
+
+// ============ FORGOT PASSWORD API ============
+export const forgotPassword = async (email: string): Promise<ForgotPasswordResponse> => {
+  try {
+    const response = await fetch(`${getUserManagementBaseUrl()}/api/auth/forgot-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Failed to send reset code");
+    }
+
+    const data: ForgotPasswordResponse = await response.json();
+    return data;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Forgot password API error");
+  }
+};
+
+// ============ VERIFY RESET OTP API ============
+export const verifyResetOtp = async (
+  payload: VerifyResetOtpRequest
+): Promise<VerifyResetOtpResponse> => {
+  try {
+    const response = await fetch(`${getUserManagementBaseUrl()}/api/auth/verify-reset-otp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Reset code verification failed");
+    }
+
+    const data: VerifyResetOtpResponse = await response.json();
+    return data;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Verify reset OTP API error");
+  }
+};
+
+// ============ RESET PASSWORD API ============
+export const resetPassword = async (
+  payload: ResetPasswordRequest
+): Promise<ResetPasswordResponse> => {
+  try {
+    const response = await fetch(`${getUserManagementBaseUrl()}/api/auth/reset-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Password reset failed");
+    }
+
+    const data: ResetPasswordResponse = await response.json();
+    return data;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Reset password API error");
+  }
+};
+
+// ============ RESEND RESET OTP API ============
+export const resendResetOtp = async (email: string): Promise<ResendResetOtpResponse> => {
+  try {
+    const response = await fetch(`${getUserManagementBaseUrl()}/api/auth/resend-reset-otp`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || "Resend reset code failed");
+    }
+
+    const data: ResendResetOtpResponse = await response.json();
+    return data;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error("Resend reset OTP API error");
+  }
+};
+
+// ============ GET CURRENT USER (SESSION VALIDATION) ============
+export const getCurrentUser = async (token: string): Promise<CurrentUserResponse> => {
+  try {
+    const response = await fetch(`${getUserManagementBaseUrl()}/api/auth/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Session validation failed');
+    }
+
+    const data: CurrentUserResponse = await response.json();
+    return data;
+  } catch (error) {
+    throw error instanceof Error ? error : new Error('Session validation API error');
   }
 };
 

@@ -21,7 +21,12 @@ import {
 } from '@expo-google-fonts/poppins';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { resendVerificationOtp, verifyEmailOtp } from '../api/userApi';
+import {
+  resendResetOtp,
+  resendVerificationOtp,
+  verifyEmailOtp,
+  verifyResetOtp,
+} from '../api/userApi';
 
 const TEXT_ACCENT = '#202871';
 const SUBTLE_TEXT = '#6B7280';
@@ -45,7 +50,7 @@ type RootParamList = {
   ForgotPassword: undefined;
   Verification: { email?: string; flow: 'register' | 'reset' } | undefined;
   RegistrationSuccess: undefined;
-  NewPassword: { email?: string } | undefined;
+  NewPassword: { email?: string; otp?: string } | undefined;
   PasswordUpdated: undefined;
   MainTabs: undefined;
 };
@@ -157,13 +162,16 @@ export default function VerificationScreen({ navigation, route }: Props) {
 
     try {
       setIsResending(true);
-      const response = await resendVerificationOtp(email);
+      const response =
+        flow === 'reset'
+          ? await resendResetOtp(email)
+          : await resendVerificationOtp(email);
       setDigits(Array(OTP_LENGTH).fill(''));
       setSeconds(RESEND_SECONDS);
       inputRefs.current[0]?.focus();
       Alert.alert('Code Sent', response.message);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to resend OTP';
+      const message = error instanceof Error ? error.message : 'Failed to resend code';
       Alert.alert('Resend failed', message);
     } finally {
       setIsResending(false);
@@ -177,7 +185,12 @@ export default function VerificationScreen({ navigation, route }: Props) {
     }
 
     if (!email || isVerifying) {
-      Alert.alert('Missing email', 'Please register again and retry verification.');
+      Alert.alert(
+        'Missing email',
+        flow === 'reset'
+          ? 'Please go back and enter your email again.'
+          : 'Please register again and retry verification.'
+      );
       return;
     }
 
@@ -185,11 +198,12 @@ export default function VerificationScreen({ navigation, route }: Props) {
 
     try {
       setIsVerifying(true);
-      const response = await verifyEmailOtp({ email, otp: code });
-      Alert.alert('Success', response.message);
       if (flow === 'reset') {
-        navigation.replace('NewPassword', { email });
+        await verifyResetOtp({ email, otp: code });
+        navigation.replace('NewPassword', { email, otp: code });
       } else {
+        const response = await verifyEmailOtp({ email, otp: code });
+        Alert.alert('Success', response.message);
         navigation.replace('RegistrationSuccess');
       }
     } catch (error) {
@@ -244,6 +258,24 @@ export default function VerificationScreen({ navigation, route }: Props) {
                     'your email'
                   )}
                   . Check your inbox and spam folder.
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {flow === 'reset' && (
+            <View style={styles.sentBanner}>
+              <Ionicons name="mail-outline" size={22} color={TEXT_ACCENT} />
+              <View style={styles.sentBannerText}>
+                <Text style={styles.sentBannerTitle}>Reset code sent</Text>
+                <Text style={styles.sentBannerBody}>
+                  We sent a 6-digit code to{' '}
+                  {email ? (
+                    <Text style={styles.emailHighlight}>{email}</Text>
+                  ) : (
+                    'your email'
+                  )}
+                  . The code expires in 15 minutes.
                 </Text>
               </View>
             </View>

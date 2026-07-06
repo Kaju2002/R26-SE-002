@@ -150,6 +150,23 @@ export async function updateAvatar(
   return response.json();
 }
 
+export async function updateCompanyLogo(
+  token: string,
+  imageUri: string
+): Promise<ProfileResponse> {
+  const response = await fetch(`${getUserManagementBaseUrl()}/api/profile/company/logo`, {
+    method: 'PATCH',
+    headers: authHeaders(token),
+    body: buildImageFormData('logo', imageUri),
+  });
+
+  if (!response.ok) {
+    await parseError(response, 'Failed to update company logo');
+  }
+
+  return response.json();
+}
+
 export async function addWorkExperience(
   token: string,
   payload: WorkExperienceRequest,

@@ -21,6 +21,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { resetPassword } from '../api/userApi';
 
 const TEXT_ACCENT = '#202871';
 const SUBTITLE_COLOR = '#798AA3';
@@ -35,25 +36,30 @@ const FONT = {
 } as const;
 
 type RootParamList = {
-  NewPassword: { email?: string } | undefined;
+  NewPassword: { email?: string; otp?: string } | undefined;
   PasswordUpdated: undefined;
   Login: undefined;
+  ForgotPassword: undefined;
 };
 
 type Props = NativeStackScreenProps<RootParamList, 'NewPassword'>;
 
 const MIN_LEN = 8;
 
-export default function NewPasswordScreen({ navigation }: Props) {
+export default function NewPasswordScreen({ navigation, route }: Props) {
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
   });
 
+  const email = route?.params?.email;
+  const otp = route?.params?.otp;
+
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!fontsLoaded) {
     return (
@@ -63,7 +69,13 @@ export default function NewPasswordScreen({ navigation }: Props) {
     );
   }
 
-  const onContinue = () => {
+  const onContinue = async () => {
+    if (!email || !otp) {
+      Alert.alert('Session expired', 'Please request a new reset code.');
+      navigation.replace('ForgotPassword');
+      return;
+    }
+
     if (password.length < MIN_LEN) {
       Alert.alert('Password', `Use at least ${MIN_LEN} characters.`);
       return;
@@ -72,7 +84,23 @@ export default function NewPasswordScreen({ navigation }: Props) {
       Alert.alert('Password', 'Passwords do not match.');
       return;
     }
-    navigation.replace('PasswordUpdated');
+
+    try {
+      setIsSubmitting(true);
+      await resetPassword({
+        email,
+        otp,
+        password,
+        confirmPassword: confirm,
+      });
+      navigation.replace('PasswordUpdated');
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Could not reset password';
+      Alert.alert('Reset failed', message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -154,13 +182,18 @@ export default function NewPasswordScreen({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={styles.continueBtn}
+            style={[styles.continueBtn, isSubmitting && styles.continueBtnDisabled]}
             onPress={onContinue}
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Continue"
+            disabled={isSubmitting}
           >
-            <Text style={styles.continueBtnText}>Continue</Text>
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.continueBtnText}>Continue</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -259,6 +292,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
+  },
+  continueBtnDisabled: {
+    opacity: 0.7,
   },
   continueBtnText: {
     fontFamily: FONT.poppinsReg,

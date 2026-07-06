@@ -1,9 +1,11 @@
 import jwt from "jsonwebtoken";
+import User from "../model/userModel.js";
+
+const JWT_SECRET = () => process.env.JWT_SECRET || "greatStack";
 
 // ============ AUTH MIDDLEWARE ============
-export const authMiddleware = (req, res, next) => {
+export const authMiddleware = async (req, res, next) => {
   try {
-    // 1. Get token from headers
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) {
@@ -13,10 +15,34 @@ export const authMiddleware = (req, res, next) => {
       });
     }
 
-    // 2. Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "greatStack");
+    const decoded = jwt.verify(token, JWT_SECRET());
 
-    // 3. Attach userId to request
+    const user = await User.findById(decoded.userId).select(
+      "tokenVersion accountStatus email"
+    );
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found. Please login again.",
+      });
+    }
+
+    if (user.accountStatus !== "active") {
+      return res.status(403).json({
+        success: false,
+        message: `Account is ${user.accountStatus}`,
+      });
+    }
+
+    const tokenVersion = decoded.tokenVersion ?? 0;
+    if (tokenVersion !== (user.tokenVersion ?? 0)) {
+      return res.status(401).json({
+        success: false,
+        message: "Session expired. Please login again.",
+      });
+    }
+
     req.userId = decoded.userId;
     req.email = decoded.email;
 

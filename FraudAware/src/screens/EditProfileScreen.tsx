@@ -27,6 +27,8 @@ import type { RootStackParamList } from '../../App';
 import { useProfile } from '../context/ProfileContext';
 import EditProfileAvatarPicker from '../components/profile/EditProfileAvatarPicker';
 import EditProfileField from '../components/profile/EditProfileField';
+import EditLogoPicker from '../components/profile/EditLogoPicker';
+import { buildLogoFallback } from '../utils/logoFallback';
 
 const NAVY = '#202871';
 
@@ -68,7 +70,7 @@ export default function EditProfileScreen() {
 
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const { profile, updateBasicProfile, updateAvatar, isLoading } = useProfile();
+  const { profile, updateBasicProfile, updateAvatar, updateCompanyLogo, isLoading } = useProfile();
 
   const [fullName, setFullName] = useState('');
   const [dob, setDob] = useState('');
@@ -79,8 +81,10 @@ export default function EditProfileScreen() {
   const [location, setLocation] = useState('');
   const [currentPosition, setCurrentPosition] = useState('');
   const [company, setCompany] = useState('');
+  const [companyLogoUri, setCompanyLogoUri] = useState('');
   const [avatarUri, setAvatarUri] = useState('');
   const [pendingAvatarUri, setPendingAvatarUri] = useState<string | null>(null);
+  const [pendingCompanyLogoUri, setPendingCompanyLogoUri] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -93,6 +97,7 @@ export default function EditProfileScreen() {
     setLocation(profile.location || '');
     setCurrentPosition(profile.role || '');
     setCompany(profile.company?.name || '');
+    setCompanyLogoUri(profile.company?.logoUri || profile.company?.logo || '');
     setAvatarUri(profile.avatar || '');
   }, [profile]);
 
@@ -130,6 +135,10 @@ export default function EditProfileScreen() {
 
       if (pendingAvatarUri) {
         await updateAvatar(pendingAvatarUri);
+      }
+
+      if (pendingCompanyLogoUri) {
+        await updateCompanyLogo(pendingCompanyLogoUri);
       }
 
       await updateBasicProfile({
@@ -262,6 +271,12 @@ export default function EditProfileScreen() {
             onChangeText={setCompany}
             placeholder="Google LLC"
             autoCapitalize="words"
+          />
+          <EditLogoPicker
+            label="Company logo"
+            logoUri={pendingCompanyLogoUri || companyLogoUri || undefined}
+            fallback={buildLogoFallback(company)}
+            onImageSelected={setPendingCompanyLogoUri}
           />
 
           <TouchableOpacity
