@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -13,6 +14,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import {
   useFonts,
   Poppins_400Regular,
@@ -25,6 +27,8 @@ import {
 } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/rootStackParams';
+import { applyToJob } from '../api/jobApi';
+import { useUser } from '../context/UserContext';
 
 const NAVY = '#202871';
 const NAVY_DISABLED = '#A1A6CC';
@@ -41,13 +45,27 @@ const SUCCESS_BODY = '#449C0A';
 
 type RouteParams = { ApplyJob: { jobId?: string } | undefined };
 
-type Resume = { name: string; size: string };
+type Resume = {
+  name: string;
+  size: string;
+  uri: string;
+  mimeType: string;
+};
 
 type ApplyNav = NativeStackNavigationProp<RootStackParamList, 'ApplyJob'>;
 
+function formatFileSize(bytes?: number | null): string {
+  if (!bytes || bytes <= 0) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Kb`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} Mb`;
+}
+
 export default function ApplyJobScreen() {
   const navigation = useNavigation<ApplyNav>();
-  useRoute<RouteProp<RouteParams, 'ApplyJob'>>();
+  const route = useRoute<RouteProp<RouteParams, 'ApplyJob'>>();
+  const { token } = useUser();
+  const jobId = route.params?.jobId;
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -60,6 +78,7 @@ export default function ApplyJobScreen() {
   const [motivation, setMotivation] = useState('');
   const [focused, setFocused] = useState<string | null>(null);
   const [successVisible, setSuccessVisible] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   if (!fontsLoaded) {
     return (
@@ -71,17 +90,71 @@ export default function ApplyJobScreen() {
 
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const isValid =
-    fullName.trim().length > 0 && emailValid && resume !== null;
+    fullName.trim().length > 0 && emailValid && resume !== null && !submitting;
 
-  const handleUpload = () => {
-    setResume({ name: 'Resume_MelvinKuffour.pdf', size: '543 Kb' });
+  const handleUpload = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+
+      if (result.canceled || !result.assets?.[0]?.uri) return;
+
+      const asset = result.assets[0];
+      setResume({
+        name: asset.name || 'resume.pdf',
+        size: formatFileSize(asset.size),
+        uri: asset.uri,
+        mimeType: asset.mimeType || 'application/pdf',
+      });
+    } catch (err) {
+      Alert.alert(
+        'Upload failed',
+        err instanceof Error ? err.message : 'Could not pick resume file'
+      );
+    }
   };
 
   const handleRemove = () => setResume(null);
 
-  const handleSubmit = () => {
-    if (!isValid) return;
-    setSuccessVisible(true);
+  const handleSubmit = async () => {
+    if (!isValid || !resume) return;
+
+    if (!token) {
+      Alert.alert('Sign in required', 'Log in to apply for this job.');
+      return;
+    }
+
+    if (!jobId) {
+      Alert.alert('Missing job', 'Could not find the job to apply for.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await applyToJob(token, jobId, {
+        fullName: fullName.trim(),
+        email: email.trim(),
+        motivation: motivation.trim() || undefined,
+        resumeUri: resume.uri,
+        resumeName: resume.name,
+        resumeMimeType: resume.mimeType,
+      });
+      setSuccessVisible(true);
+    } catch (err) {
+      Alert.alert(
+        'Application failed',
+        err instanceof Error ? err.message : 'Could not submit your application.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleGoToApplications = () => {
@@ -259,7 +332,7 @@ export default function ApplyJobScreen() {
               pressed && isValid && { opacity: 0.9 },
             ]}
           >
-            <Text style={styles.submitText}>Submit</Text>
+            <Text style={styles.submitText}>{submitting ? 'Submitting…' : 'Submit'}</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>

@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import "dotenv/config";
 import connectDB from "./config/mongodb.js";
+import jobRoute from "./route/jobRoute.js";
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -12,6 +13,8 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/api/jobs", jobRoute);
 
 app.get("/health", (req, res) => {
   const dbStates = ["disconnected", "connected", "connecting", "disconnecting"];
@@ -32,9 +35,17 @@ app.get("/", (req, res) => {
     version: "1.0.0",
     endpoints: {
       health: "GET /health",
-      jobs: "Coming soon: GET/POST /api/jobs",
-      applications: "Coming soon: POST /api/jobs/:id/apply",
-      savedJobs: "Coming soon: GET /api/jobs/saved",
+      authPing: "GET /api/jobs/me/ping (protected, temporary)",
+      listJobs: "GET /api/jobs",
+      createJob: "POST /api/jobs",
+      myJobs: "GET /api/jobs/mine",
+      jobDetails: "GET /api/jobs/:id",
+      updateJob: "PUT /api/jobs/:id",
+      deleteJob: "DELETE /api/jobs/:id",
+      savedJobs: "GET /api/jobs/saved",
+      saveJob: "POST /api/jobs/saved",
+      unsaveJob: "DELETE /api/jobs/saved/:jobId",
+      applyToJob: "POST /api/jobs/:id/apply",
     },
   });
 });

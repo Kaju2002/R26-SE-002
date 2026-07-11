@@ -29,6 +29,8 @@ import PostJobTextField from './PostJobTextField';
 import { JOB_MODE_OPTIONS, JOB_TYPE_OPTIONS } from './postJobOptions';
 import { POST_JOB } from './postJobTheme';
 import type { JobMode, JobType } from '../../../data/jobs';
+import { createJob } from '../../api/jobApi';
+import { useUser } from '../../context/UserContext';
 
 const TAB_BAR_FALLBACK = 68;
 const TAB_GAP = 14;
@@ -61,6 +63,7 @@ function parseSalaryPair(minStr: string, maxStr: string): {
 export default function PostJobForm() {
   const tabBarHeight = useBottomTabBarHeight();
   const bottomInset = tabBarHeight > 0 ? tabBarHeight : TAB_BAR_FALLBACK;
+  const { token } = useUser();
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -93,6 +96,7 @@ export default function PostJobForm() {
   const [phone, setPhone] = useState('');
   const [website, setWebsite] = useState('');
   const [closingDate, setClosingDate] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   const scrollBottomPad = useMemo(
     () => 24 + bottomInset + TAB_GAP + FOOTER_EXTRA + 56,
@@ -100,15 +104,21 @@ export default function PostJobForm() {
   );
 
   const canSubmit = useMemo(() => {
+    if (submitting) return false;
     if (title.trim().length === 0) return false;
     if (companyName.trim().length === 0) return false;
     if (location.trim().length === 0) return false;
     if (description.trim().length < MIN_DESC) return false;
     const sal = parseSalaryPair(salaryMin, salaryMax);
     return sal.ok;
-  }, [title, companyName, location, description, salaryMin, salaryMax]);
+  }, [title, companyName, location, description, salaryMin, salaryMax, submitting]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    if (!token) {
+      Alert.alert('Sign in required', 'Log in to post a job listing.');
+      return;
+    }
+
     const sal = parseSalaryPair(salaryMin, salaryMax);
     if (!sal.ok) {
       Alert.alert('Check salary', sal.message ?? 'Invalid salary range.');
@@ -119,11 +129,48 @@ export default function PostJobForm() {
       return;
     }
 
-    Alert.alert(
-      'Submitted for review',
-      'Moderation will review your listing before it goes live. Employer verification and the Verified badge are handled by the platform—not on this form.',
-      [{ text: 'OK' }]
-    );
+    setSubmitting(true);
+    try {
+      const response = await createJob(token, {
+        title: title.trim(),
+        companyName: companyName.trim(),
+        location: location.trim(),
+        jobType,
+        jobMode,
+        salaryMin: salaryMin.trim() || undefined,
+        salaryMax: salaryMax.trim() || undefined,
+        currency: currency.trim() || undefined,
+        salaryPeriod: salaryPeriod.trim() || undefined,
+        description: description.trim(),
+        requirements: requirements.trim() || undefined,
+        skills: skills.trim() || undefined,
+        jobLevel: jobLevel.trim() || undefined,
+        education: education.trim() || undefined,
+        experience: experience.trim() || undefined,
+        benefitsLines: benefitsLines.trim() || undefined,
+        perksLines: perksLines.trim() || undefined,
+        about: about.trim() || undefined,
+        email: email.trim() || undefined,
+        phone: phone.trim() || undefined,
+        website: website.trim() || undefined,
+        closingDate: closingDate.trim() || undefined,
+        logoUri,
+      });
+
+      Alert.alert(
+        'Submitted for review',
+        response.message ||
+          'Moderation will review your listing before it goes live. Employer verification and the Verified badge are handled by the platform—not on this form.',
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      Alert.alert(
+        'Could not post job',
+        error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (!fontsLoaded) {
@@ -329,7 +376,7 @@ export default function PostJobForm() {
           accessibilityState={{ disabled: !canSubmit }}
         >
           <Text style={[styles.submitLabel, !canSubmit && styles.submitLabelDisabled]}>
-            Submit for review
+            {submitting ? 'Submitting…' : 'Submit for review'}
           </Text>
         </Pressable>
       </View>
