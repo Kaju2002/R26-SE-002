@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -25,7 +25,9 @@ import HomeProfileCompletionCard from '../components/home/HomeProfileCompletionC
 import HomeCategoryChips, {
   type HomeCategory,
 } from '../components/home/HomeCategoryChips';
-import { RECENT_JOBS, RECOMMENDED_JOBS } from '../../data/jobs';
+import type { Job } from '../../data/jobs';
+import { listJobs } from '../api/jobApi';
+import { mapApiJobsToJobs } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
 
 const NAVY = '#202871';
@@ -54,12 +56,41 @@ export default function HomeScreen() {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<HomeCategory>('All');
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
+  const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
+  const [recentJobs, setRecentJobs] = useState<Job[]>([]);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    (async () => {
+      try {
+        const [recommended, recent] = await Promise.all([
+          listJobs({ sort: 'newly_posted', limit: 10 }),
+          listJobs({ sort: 'newly_posted', limit: 20 }),
+        ]);
+
+        if (cancelled) return;
+
+        setRecommendedJobs(mapApiJobsToJobs(recommended.jobs));
+        setRecentJobs(mapApiJobsToJobs(recent.jobs));
+      } catch {
+        if (!cancelled) {
+          setRecommendedJobs([]);
+          setRecentJobs([]);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const openJobDetails = useCallback(
     (jobId: string) => {
@@ -74,7 +105,7 @@ export default function HomeScreen() {
         return (
           <JobsSection
             title="Recommended Jobs"
-            jobs={RECOMMENDED_JOBS}
+            jobs={recommendedJobs}
             layout="horizontal"
             bookmarkedIds={bookmarkedIds}
             onBookmarkPress={toggleBookmark}
@@ -88,7 +119,7 @@ export default function HomeScreen() {
       return (
         <JobsSection
           title="Recent Jobs"
-          jobs={RECENT_JOBS}
+          jobs={recentJobs}
           layout="vertical"
           bookmarkedIds={bookmarkedIds}
           onBookmarkPress={toggleBookmark}
@@ -99,7 +130,14 @@ export default function HomeScreen() {
         />
       );
     },
-    [bookmarkedIds, navigation, openJobDetails, toggleBookmark],
+    [
+      bookmarkedIds,
+      navigation,
+      openJobDetails,
+      recentJobs,
+      recommendedJobs,
+      toggleBookmark,
+    ],
   );
 
   const keyExtractorRow = useCallback(

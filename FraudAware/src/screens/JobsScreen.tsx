@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -20,8 +20,10 @@ import {
   Poppins_500Medium,
   Poppins_600SemiBold,
 } from '@expo-google-fonts/poppins';
-import { RECOMMENDED_JOBS, RECENT_JOBS, type Job } from '../../data/jobs';
+import type { Job } from '../../data/jobs';
 import type { RootStackParamList } from '../navigation/rootStackParams';
+import { listJobs, type ListJobsParams } from '../api/jobApi';
+import { mapApiJobsToJobs } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
 import JobsSearchHeader from '../components/jobs/search/JobsSearchHeader';
 import JobsLoadingState from '../components/jobs/search/JobsLoadingState';
@@ -37,7 +39,7 @@ import {
 import { JOB_SEARCH_COLORS } from '../components/jobs/search/jobSearchTheme';
 
 const SEARCH_LOADING_DELAY_MS = 450;
-const ALL_JOBS = [...RECOMMENDED_JOBS, ...RECENT_JOBS];
+
 type JobsSegment = 'forYou' | 'recent' | 'saved' | 'applied';
 type JobsRouteParams = {
   Jobs:
@@ -49,32 +51,23 @@ type JobsRouteParams = {
     | undefined;
 };
 
-function bySort(a: Job, b: Job, sort: SortOption): number {
-  if (sort === 'alphabetical') return a.title.localeCompare(b.title);
-  if (sort === 'highest_salary') return b.salaryMax - a.salaryMax;
-  if (sort === 'newly_posted') {
-    return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
-  }
-  return new Date(a.endsAt ?? '').getTime() - new Date(b.endsAt ?? '').getTime();
-}
-
-function applyFilters(jobs: Job[], query: string, filters: JobFilters): Job[] {
-  const normalizedQuery = query.trim().toLowerCase();
-  return jobs.filter((job) => {
-    const searchHit =
-      normalizedQuery.length === 0 ||
-      job.title.toLowerCase().includes(normalizedQuery) ||
-      job.companyName.toLowerCase().includes(normalizedQuery);
-    const modeHit = !filters.mode || job.mode === filters.mode;
-    const typeHit =
-      filters.types.length === 0 || filters.types.includes(job.type);
-    const locationHit =
-      !filters.location.trim() ||
-      job.location.toLowerCase().includes(filters.location.trim().toLowerCase());
-    const salaryHit =
-      job.salaryMax >= filters.salaryMin && job.salaryMin <= filters.salaryMax;
-    return searchHit && modeHit && typeHit && locationHit && salaryHit;
-  });
+function buildListParams(
+  segment: JobsSegment,
+  query: string,
+  filters: JobFilters,
+  sort: SortOption
+): ListJobsParams {
+  return {
+    q: query.trim() || undefined,
+    mode: filters.mode || undefined,
+    types: filters.types.length > 1 ? filters.types : undefined,
+    type: filters.types.length === 1 ? filters.types[0] : undefined,
+    location: filters.location.trim() || undefined,
+    salaryMin: filters.salaryMin,
+    salaryMax: filters.salaryMax,
+    sort: segment === 'forYou' ? 'newly_posted' : sort,
+    limit: 50,
+  };
 }
 
 export default function JobsScreen() {
@@ -90,7 +83,8 @@ export default function JobsScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [sort, setSort] = useState<SortOption>('newly_posted');
   const [filters, setFilters] = useState<JobFilters>(DEFAULT_JOB_FILTERS);
-  const [isSearching, setIsSearching] = useState(false);
+  const [jobs, setJobs] = useState<Job[]>([]);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
     if (route.params?.segment) {
@@ -116,22 +110,51 @@ export default function JobsScreen() {
     Poppins_600SemiBold,
   });
 
-  const baseJobs = useMemo(() => {
-    if (segment === 'forYou') return RECOMMENDED_JOBS;
-    if (segment === 'recent') return RECENT_JOBS;
-    if (segment === 'saved') return ALL_JOBS.filter((job) => bookmarkedIds.has(job.id));
-    return ALL_JOBS.filter((job) => Boolean(job.applicationStatus));
-  }, [segment, bookmarkedIds]);
+  const loadJobs = useCallback(async () => {
+    if (segment === 'applied') {
+      setJobs([]);
+      setFetching(false);
+      return;
+    }
 
-  const filteredSortedJobs = useMemo(() => {
-    const filtered = applyFilters(baseJobs, query, filters);
-    return [...filtered].sort((a, b) => bySort(a, b, sort));
-  }, [baseJobs, query, filters, sort]);
+    if (segment === 'saved' && bookmarkedIds.size === 0) {
+      setJobs([]);
+      setFetching(false);
+      return;
+    }
+
+    setFetching(true);
+    try {
+      const response = await listJobs(
+        buildListParams(segment, query, filters, sort)
+      );
+      let nextJobs = mapApiJobsToJobs(response.jobs);
+
+      if (segment === 'saved') {
+        nextJobs = nextJobs.filter((job) => bookmarkedIds.has(job.id));
+      }
+
+      setJobs(nextJobs);
+    } catch {
+      setJobs([]);
+    } finally {
+      setFetching(false);
+    }
+  }, [segment, query, filters, sort, bookmarkedIds]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadJobs();
+    }, SEARCH_LOADING_DELAY_MS);
+
+    return () => clearTimeout(timer);
+  }, [loadJobs]);
+
+  const isLoading = fetching;
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
-    setIsSearching(true);
-    setTimeout(() => setIsSearching(false), SEARCH_LOADING_DELAY_MS);
+    setFetching(true);
   };
 
   if (!fontsLoaded) {
@@ -152,13 +175,13 @@ export default function JobsScreen() {
       <SegmentTabs value={segment} onChange={setSegment} />
 
       <View style={styles.content}>
-        {isSearching ? (
+        {isLoading ? (
           <JobsLoadingState />
-        ) : filteredSortedJobs.length === 0 ? (
+        ) : jobs.length === 0 ? (
           <JobsEmptyState />
         ) : (
           <JobsResultsList
-            jobs={filteredSortedJobs}
+            jobs={jobs}
             onJobPress={(jobId) => navigation.navigate('JobDetails', { jobId })}
             bookmarkedIds={bookmarkedIds}
             onBookmarkPress={toggleBookmark}
