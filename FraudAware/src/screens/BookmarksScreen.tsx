@@ -22,9 +22,10 @@ import {
 } from '@expo-google-fonts/poppins';
 import JobCard from '../components/jobs/JobCard';
 import type { Job } from '../../data/jobs';
-import { listJobs } from '../api/jobApi';
+import { getSavedJobs } from '../api/jobApi';
 import { mapApiJobsToJobs } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
+import { useUser } from '../context/UserContext';
 import type { RootStackParamList } from '../navigation/rootStackParams';
 
 const NAVY = '#202871';
@@ -33,6 +34,7 @@ const MUTED = '#858BBD';
 export default function BookmarksScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
+  const { token } = useUser();
   const [savedJobs, setSavedJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,7 +45,7 @@ export default function BookmarksScreen() {
   });
 
   const loadSavedJobs = useCallback(async () => {
-    if (bookmarkedIds.size === 0) {
+    if (!token) {
       setSavedJobs([]);
       setLoading(false);
       return;
@@ -51,17 +53,14 @@ export default function BookmarksScreen() {
 
     setLoading(true);
     try {
-      const response = await listJobs({ limit: 50 });
-      const bookmarked = mapApiJobsToJobs(response.jobs).filter((job) =>
-        bookmarkedIds.has(job.id)
-      );
-      setSavedJobs(bookmarked);
+      const response = await getSavedJobs(token, { limit: 50 });
+      setSavedJobs(mapApiJobsToJobs(response.jobs));
     } catch {
       setSavedJobs([]);
     } finally {
       setLoading(false);
     }
-  }, [bookmarkedIds]);
+  }, [token]);
 
   useFocusEffect(
     useCallback(() => {

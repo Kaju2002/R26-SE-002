@@ -31,10 +31,10 @@ import {
   NOTIFICATIONS,
   type AppNotification,
 } from '../../data/notifications';
-import {
-  APPLICATION_NOTIFICATIONS,
-  type ApplicationListItem,
-} from '../../data/applicationNotifications';
+import type { ApplicationListItem } from '../../data/applicationNotifications';
+import { getAppliedJobs } from '../api/jobApi';
+import { mapApiApplicationsToListItems } from '../utils/applicationMapper';
+import { useUser } from '../context/UserContext';
 
 if (
   Platform.OS === 'android' &&
@@ -48,6 +48,7 @@ const NAVY = '#202871';
 export default function NotificationsScreen() {
   const navigation = useNavigation();
   const route = useRoute<RouteProp<RootStackParamList, 'Notifications'>>();
+  const { token } = useUser();
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -58,9 +59,26 @@ export default function NotificationsScreen() {
   const [generalItems, setGeneralItems] = useState<AppNotification[]>(() =>
     NOTIFICATIONS.filter((n) => n.category === 'general')
   );
-  const [applicationItems, setApplicationItems] = useState<ApplicationListItem[]>(
-    () => [...APPLICATION_NOTIFICATIONS]
-  );
+  const [applicationItems, setApplicationItems] = useState<ApplicationListItem[]>([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(false);
+
+  const loadApplications = useCallback(async () => {
+    if (!token) {
+      setApplicationItems([]);
+      setApplicationsLoading(false);
+      return;
+    }
+
+    setApplicationsLoading(true);
+    try {
+      const response = await getAppliedJobs(token, { limit: 50 });
+      setApplicationItems(mapApiApplicationsToListItems(response.applications));
+    } catch {
+      setApplicationItems([]);
+    } finally {
+      setApplicationsLoading(false);
+    }
+  }, [token]);
 
   useFocusEffect(
     useCallback(() => {
@@ -68,7 +86,8 @@ export default function NotificationsScreen() {
       if (tab === 'applications' || tab === 'general') {
         setActiveTab(tab);
       }
-    }, [route.params?.initialTab])
+      loadApplications();
+    }, [route.params?.initialTab, loadApplications])
   );
 
   if (!fontsLoaded) {
@@ -155,6 +174,10 @@ export default function NotificationsScreen() {
             items={generalItems}
             onItemDelete={handleDeleteGeneral}
           />
+        ) : applicationsLoading ? (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator color={NAVY} size="small" />
+          </View>
         ) : (
           <ApplicationsNotificationsList
             items={applicationItems}
@@ -179,5 +202,10 @@ const styles = StyleSheet.create({
   },
   body: {
     flex: 1,
+  },
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
