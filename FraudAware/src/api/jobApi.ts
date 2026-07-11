@@ -1,6 +1,127 @@
 import { authHeaders, getJobManagementBaseUrl } from './apiConfig';
-import type { Job } from '../../data/jobs';
+import type { ApplicationStatus } from '../../data/applicationNotifications';
+import type { Job, JobContact, JobMode, JobType } from '../../data/jobs';
+import type { LogoFallbackData } from '../types/profile';
 import { appendDocumentField, appendFormField, appendImageField } from '../utils/formDataHelpers';
+import type { SortOption } from '../components/jobs/search/types';
+
+/** Raw job shape returned by job-management `formatJob()`. */
+export type ApiJob = {
+  id: string;
+  title: string;
+  companyName: string;
+  companyLogoUri?: string;
+  companyFallback?: LogoFallbackData;
+  isVerified?: boolean;
+  location: string;
+  postedAt: string;
+  endsAt?: string;
+  salaryMin: number;
+  salaryMax: number;
+  salaryCurrency: string;
+  salaryPeriod?: string;
+  type: JobType;
+  mode: JobMode;
+  matchScore?: number;
+  applicationStatus?: ApplicationStatus;
+  applicants?: number;
+  description?: string[];
+  requirements?: string[];
+  benefits?: string[];
+  skills?: string[];
+  perks?: string[];
+  jobLevel?: string;
+  education?: string;
+  experience?: string;
+  about?: string;
+  contact?: JobContact;
+  status?: string;
+  postedBy?: string;
+};
+
+export type ListJobsParams = {
+  q?: string;
+  mode?: JobMode;
+  type?: JobType;
+  types?: JobType[];
+  location?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  sort?: SortOption;
+  page?: number;
+  limit?: number;
+};
+
+export type ListJobsResponse = {
+  success: boolean;
+  message: string;
+  jobs: ApiJob[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type GetJobResponse = {
+  success: boolean;
+  message: string;
+  job: ApiJob;
+};
+
+function buildJobsQuery(params: ListJobsParams = {}): string {
+  const search = new URLSearchParams();
+
+  if (params.q?.trim()) search.set('q', params.q.trim());
+  if (params.mode) search.set('mode', params.mode);
+  if (params.types?.length) search.set('types', params.types.join(','));
+  else if (params.type) search.set('type', params.type);
+  if (params.location?.trim()) search.set('location', params.location.trim());
+  if (params.salaryMin !== undefined) search.set('salaryMin', String(params.salaryMin));
+  if (params.salaryMax !== undefined) search.set('salaryMax', String(params.salaryMax));
+  if (params.sort) search.set('sort', params.sort);
+  if (params.page !== undefined) search.set('page', String(params.page));
+  if (params.limit !== undefined) search.set('limit', String(params.limit));
+
+  const query = search.toString();
+  return query ? `?${query}` : '';
+}
+
+export async function listJobs(
+  params: ListJobsParams = {},
+  token?: string | null
+): Promise<ListJobsResponse> {
+  const query = buildJobsQuery(params);
+  const headers: HeadersInit = token ? authHeaders(token) : {};
+
+  const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs${query}`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    await parseError(response, 'Failed to fetch jobs');
+  }
+
+  return response.json();
+}
+
+export async function getJobById(
+  jobId: string,
+  token?: string | null
+): Promise<GetJobResponse> {
+  const headers: HeadersInit = token ? authHeaders(token) : {};
+
+  const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/${jobId}`, {
+    headers,
+  });
+
+  if (!response.ok) {
+    await parseError(response, 'Failed to fetch job');
+  }
+
+  return response.json();
+}
 
 export interface CreateJobRequest {
   title: string;
@@ -31,10 +152,7 @@ export interface CreateJobRequest {
 export interface CreateJobResponse {
   success: boolean;
   message: string;
-  job: Job & {
-    status?: string;
-    postedBy?: string;
-  };
+  job: ApiJob;
 }
 
 async function parseError(response: Response, fallback: string): Promise<never> {

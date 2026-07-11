@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -26,13 +26,15 @@ import {
 import LogoFallback from '../components/profile/LogoFallback';
 import JobTagChip from '../components/jobs/JobTagChip';
 import {
-  findJobById,
   formatLongDate,
   formatShortDate,
   formatSalary,
   type Job,
 } from '../../data/jobs';
+import { getJobById } from '../api/jobApi';
+import { mapApiJobToJob } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
+import { useUser } from '../context/UserContext';
 
 const NAVY = '#202871';
 const DEEP = '#42498A';
@@ -48,11 +50,45 @@ type Tab = 'overview' | 'company';
 export default function JobDetailsScreen() {
   const navigation = useNavigation<NavigationProp<DetailNavParams>>();
   const route = useRoute<RouteProp<RouteParams, 'JobDetails'>>();
+  const { token } = useUser();
   const jobId = route.params?.jobId;
-  const job = jobId ? findJobById(jobId) : undefined;
 
+  const [job, setJob] = useState<Job | undefined>();
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<Tab>('overview');
   const { isBookmarked, toggleBookmark } = useBookmarks();
+
+  useEffect(() => {
+    if (!jobId) {
+      setJob(undefined);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    (async () => {
+      setLoading(true);
+      try {
+        const response = await getJobById(jobId, token);
+        if (!cancelled) {
+          setJob(mapApiJobToJob(response.job));
+        }
+      } catch {
+        if (!cancelled) {
+          setJob(undefined);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [jobId, token]);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -65,6 +101,21 @@ export default function JobDetailsScreen() {
       <View style={styles.splash}>
         <ActivityIndicator color={NAVY} size="large" />
       </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        <DetailHeader
+          onBack={() => navigation.goBack()}
+          isBookmarked={false}
+          onBookmark={() => {}}
+        />
+        <View style={styles.empty}>
+          <ActivityIndicator color={NAVY} size="large" />
+        </View>
+      </SafeAreaView>
     );
   }
 

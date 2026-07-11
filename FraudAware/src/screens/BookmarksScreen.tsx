@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import {
+  useFocusEffect,
   useNavigation,
   type NavigationProp,
 } from '@react-navigation/native';
@@ -20,29 +21,55 @@ import {
   Poppins_600SemiBold,
 } from '@expo-google-fonts/poppins';
 import JobCard from '../components/jobs/JobCard';
-import { RECENT_JOBS, RECOMMENDED_JOBS, type Job } from '../../data/jobs';
+import type { Job } from '../../data/jobs';
+import { listJobs } from '../api/jobApi';
+import { mapApiJobsToJobs } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
 import type { RootStackParamList } from '../navigation/rootStackParams';
 
 const NAVY = '#202871';
 const MUTED = '#858BBD';
 
-const ALL_JOBS = [...RECOMMENDED_JOBS, ...RECENT_JOBS];
-
-function getBookmarkedJobs(bookmarkedIds: Set<string>): Job[] {
-  return ALL_JOBS.filter((job) => bookmarkedIds.has(job.id));
-}
-
 export default function BookmarksScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
-  const savedJobs = getBookmarkedJobs(bookmarkedIds);
+  const [savedJobs, setSavedJobs] = useState<Job[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
+
+  const loadSavedJobs = useCallback(async () => {
+    if (bookmarkedIds.size === 0) {
+      setSavedJobs([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await listJobs({ limit: 50 });
+      const bookmarked = mapApiJobsToJobs(response.jobs).filter((job) =>
+        bookmarkedIds.has(job.id)
+      );
+      setSavedJobs(bookmarked);
+    } catch {
+      setSavedJobs([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [bookmarkedIds]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadSavedJobs();
+    }, [loadSavedJobs])
+  );
+
+  const visibleSavedJobs = savedJobs.filter((job) => bookmarkedIds.has(job.id));
 
   if (!fontsLoaded) {
     return (
@@ -68,7 +95,11 @@ export default function BookmarksScreen() {
         <View style={styles.headerSpacer} />
       </View>
 
-      {savedJobs.length === 0 ? (
+      {loading ? (
+        <View style={styles.emptyWrap}>
+          <ActivityIndicator color={NAVY} size="small" />
+        </View>
+      ) : visibleSavedJobs.length === 0 ? (
         <View style={styles.emptyWrap}>
           <Ionicons name="bookmark-outline" size={28} color={MUTED} />
           <Text style={styles.emptyTitle}>No saved jobs yet</Text>
@@ -90,7 +121,7 @@ export default function BookmarksScreen() {
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
         >
-          {savedJobs.map((job) => (
+          {visibleSavedJobs.map((job) => (
             <JobCard
               key={job.id}
               job={job}
