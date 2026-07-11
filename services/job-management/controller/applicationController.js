@@ -1,9 +1,17 @@
 import Job from "../model/jobModel.js";
 import Application from "../model/applicationModel.js";
 import { getFileUrl } from "../utils/cloudinaryHelper.js";
-import { formatApplication } from "../utils/applicationFormatter.js";
+import { formatApplication, formatApplicationList } from "../utils/applicationFormatter.js";
+import { formatJob } from "../utils/jobFormatter.js";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
+
+const parsePagination = (query) => {
+  const page = Math.max(Number(query.page) || 1, 1);
+  const limit = Math.min(Math.max(Number(query.limit) || 20, 1), 50);
+  const skip = (page - 1) * limit;
+  return { page, limit, skip };
+};
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -131,6 +139,53 @@ export const applyToJob = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error submitting application",
+      error: error.message,
+    });
+  }
+};
+
+// ============ GET APPLIED JOBS ============
+export const getAppliedJobs = async (req, res) => {
+  try {
+    const { page, limit, skip } = parsePagination(req.query);
+
+    const [applications, total] = await Promise.all([
+      Application.find({ applicantId: req.userId })
+        .sort({ appliedAt: -1 })
+        .skip(skip)
+        .limit(limit),
+      Application.countDocuments({ applicantId: req.userId }),
+    ]);
+
+    const jobIds = applications.map((entry) => entry.jobId);
+    const jobs = await Job.find({ _id: { $in: jobIds } });
+    const jobsById = Object.fromEntries(jobs.map((job) => [String(job._id), job]));
+
+    const orderedJobs = applications
+      .map((application) => {
+        const job = jobsById[String(application.jobId)];
+        if (!job) return null;
+        return formatJob(job, { applicationStatus: application.status });
+      })
+      .filter(Boolean);
+
+    res.status(200).json({
+      success: true,
+      message: "Applied jobs fetched successfully",
+      jobs: orderedJobs,
+      applications: formatApplicationList(applications, jobsById),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Get applied jobs error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching applied jobs",
       error: error.message,
     });
   }

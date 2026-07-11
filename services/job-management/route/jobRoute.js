@@ -5,7 +5,7 @@ import {
 } from "../middleware/authMiddleware.js";
 import { optionalJobLogoUpload } from "../middleware/optionalJobLogoUpload.js";
 import { optionalResumeUpload } from "../middleware/optionalResumeUpload.js";
-import { applyToJob } from "../controller/applicationController.js";
+import { applyToJob, getAppliedJobs } from "../controller/applicationController.js";
 import {
   authPing,
   createJob,
@@ -27,6 +27,7 @@ const router = express.Router();
 router.get("/me/ping", authMiddleware, authPing);
 router.get("/mine", authMiddleware, getMyJobs);
 router.get("/saved", authMiddleware, getSavedJobs);
+router.get("/applied", authMiddleware, getAppliedJobs);
 router.post("/saved", authMiddleware, saveJob);
 router.delete("/saved/:jobId", authMiddleware, unsaveJob);
 

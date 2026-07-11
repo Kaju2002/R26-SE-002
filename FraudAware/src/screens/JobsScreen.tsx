@@ -22,9 +22,10 @@ import {
 } from '@expo-google-fonts/poppins';
 import type { Job } from '../../data/jobs';
 import type { RootStackParamList } from '../navigation/rootStackParams';
-import { listJobs, type ListJobsParams } from '../api/jobApi';
+import { getAppliedJobs, getSavedJobs, listJobs, type ListJobsParams } from '../api/jobApi';
 import { mapApiJobsToJobs } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
+import { useUser } from '../context/UserContext';
 import JobsSearchHeader from '../components/jobs/search/JobsSearchHeader';
 import JobsLoadingState from '../components/jobs/search/JobsLoadingState';
 import JobsEmptyState from '../components/jobs/search/JobsEmptyState';
@@ -70,10 +71,44 @@ function buildListParams(
   };
 }
 
+function sortJobs(jobs: Job[], sort: SortOption): Job[] {
+  const sorted = [...jobs];
+  sorted.sort((a, b) => {
+    if (sort === 'alphabetical') return a.title.localeCompare(b.title);
+    if (sort === 'highest_salary') return b.salaryMax - a.salaryMax;
+    if (sort === 'ending_soon') {
+      return new Date(a.endsAt ?? '').getTime() - new Date(b.endsAt ?? '').getTime();
+    }
+    return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
+  });
+  return sorted;
+}
+
+function filterJobs(jobs: Job[], query: string, filters: JobFilters): Job[] {
+  const q = query.trim().toLowerCase();
+  return jobs.filter((job) => {
+    const searchHit =
+      q.length === 0 ||
+      job.title.toLowerCase().includes(q) ||
+      job.companyName.toLowerCase().includes(q) ||
+      job.location.toLowerCase().includes(q);
+    const modeHit = !filters.mode || job.mode === filters.mode;
+    const typeHit =
+      filters.types.length === 0 || filters.types.includes(job.type);
+    const locationHit =
+      !filters.location.trim() ||
+      job.location.toLowerCase().includes(filters.location.trim().toLowerCase());
+    const salaryHit =
+      job.salaryMax >= filters.salaryMin && job.salaryMin <= filters.salaryMax;
+    return searchHit && modeHit && typeHit && locationHit && salaryHit;
+  });
+}
+
 export default function JobsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<JobsRouteParams, 'Jobs'>>();
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
+  const { token } = useUser();
   const [segment, setSegment] = useState<JobsSegment>(
     route.params?.segment ?? 'forYou'
   );
@@ -112,14 +147,42 @@ export default function JobsScreen() {
 
   const loadJobs = useCallback(async () => {
     if (segment === 'applied') {
-      setJobs([]);
-      setFetching(false);
+      if (!token) {
+        setJobs([]);
+        setFetching(false);
+        return;
+      }
+
+      setFetching(true);
+      try {
+        const response = await getAppliedJobs(token, { limit: 50 });
+        const appliedJobs = mapApiJobsToJobs(response.jobs);
+        setJobs(sortJobs(filterJobs(appliedJobs, query, filters), sort));
+      } catch {
+        setJobs([]);
+      } finally {
+        setFetching(false);
+      }
       return;
     }
 
-    if (segment === 'saved' && bookmarkedIds.size === 0) {
-      setJobs([]);
-      setFetching(false);
+    if (segment === 'saved') {
+      if (!token) {
+        setJobs([]);
+        setFetching(false);
+        return;
+      }
+
+      setFetching(true);
+      try {
+        const response = await getSavedJobs(token, { limit: 50 });
+        const savedJobs = mapApiJobsToJobs(response.jobs);
+        setJobs(sortJobs(filterJobs(savedJobs, query, filters), sort));
+      } catch {
+        setJobs([]);
+      } finally {
+        setFetching(false);
+      }
       return;
     }
 
@@ -128,19 +191,13 @@ export default function JobsScreen() {
       const response = await listJobs(
         buildListParams(segment, query, filters, sort)
       );
-      let nextJobs = mapApiJobsToJobs(response.jobs);
-
-      if (segment === 'saved') {
-        nextJobs = nextJobs.filter((job) => bookmarkedIds.has(job.id));
-      }
-
-      setJobs(nextJobs);
+      setJobs(mapApiJobsToJobs(response.jobs));
     } catch {
       setJobs([]);
     } finally {
       setFetching(false);
     }
-  }, [segment, query, filters, sort, bookmarkedIds]);
+  }, [segment, query, filters, sort, token]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -151,6 +208,10 @@ export default function JobsScreen() {
   }, [loadJobs]);
 
   const isLoading = fetching;
+  const visibleJobs =
+    segment === 'saved'
+      ? jobs.filter((job) => bookmarkedIds.has(job.id))
+      : jobs;
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
@@ -177,11 +238,11 @@ export default function JobsScreen() {
       <View style={styles.content}>
         {isLoading ? (
           <JobsLoadingState />
-        ) : jobs.length === 0 ? (
+        ) : visibleJobs.length === 0 ? (
           <JobsEmptyState />
         ) : (
           <JobsResultsList
-            jobs={jobs}
+            jobs={visibleJobs}
             onJobPress={(jobId) => navigation.navigate('JobDetails', { jobId })}
             bookmarkedIds={bookmarkedIds}
             onBookmarkPress={toggleBookmark}

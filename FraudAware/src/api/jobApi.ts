@@ -123,6 +123,140 @@ export async function getJobById(
   return response.json();
 }
 
+export type SavedJobsResponse = {
+  success: boolean;
+  message: string;
+  jobs: ApiJob[];
+  savedJobIds: string[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export type SaveJobResponse = {
+  success: boolean;
+  message: string;
+  jobId: string;
+};
+
+export async function getSavedJobs(
+  token: string,
+  params: { page?: number; limit?: number } = {}
+): Promise<SavedJobsResponse> {
+  const search = new URLSearchParams();
+  if (params.page !== undefined) search.set('page', String(params.page));
+  if (params.limit !== undefined) search.set('limit', String(params.limit));
+  const query = search.toString();
+
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/saved${query ? `?${query}` : ''}`,
+    {
+      headers: authHeaders(token),
+    }
+  );
+
+  if (!response.ok) {
+    await parseError(response, 'Failed to fetch saved jobs');
+  }
+
+  return response.json();
+}
+
+export async function saveJob(
+  token: string,
+  jobId: string
+): Promise<SaveJobResponse> {
+  const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/saved`, {
+    method: 'POST',
+    headers: {
+      ...authHeaders(token),
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ jobId }),
+  });
+
+  if (!response.ok) {
+    await parseError(response, 'Failed to save job');
+  }
+
+  return response.json();
+}
+
+export async function unsaveJob(
+  token: string,
+  jobId: string
+): Promise<SaveJobResponse> {
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/saved/${jobId}`,
+    {
+      method: 'DELETE',
+      headers: authHeaders(token),
+    }
+  );
+
+  if (!response.ok) {
+    await parseError(response, 'Failed to remove saved job');
+  }
+
+  return response.json();
+}
+
+/** Raw application shape returned by job-management `formatApplication()`. */
+export type ApiApplication = {
+  id: string;
+  jobId: string;
+  jobTitle: string;
+  companyName: string;
+  status: ApplicationStatus;
+  companyLogoUri?: string;
+  companyFallback?: LogoFallbackData;
+  fullName?: string;
+  email?: string;
+  resumeUrl?: string;
+  resumeName?: string;
+  motivation?: string;
+  appliedAt: string;
+};
+
+export type AppliedJobsResponse = {
+  success: boolean;
+  message: string;
+  jobs: ApiJob[];
+  applications: ApiApplication[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+};
+
+export async function getAppliedJobs(
+  token: string,
+  params: { page?: number; limit?: number } = {}
+): Promise<AppliedJobsResponse> {
+  const search = new URLSearchParams();
+  if (params.page !== undefined) search.set('page', String(params.page));
+  if (params.limit !== undefined) search.set('limit', String(params.limit));
+  const query = search.toString();
+
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/applied${query ? `?${query}` : ''}`,
+    {
+      headers: authHeaders(token),
+    }
+  );
+
+  if (!response.ok) {
+    await parseError(response, 'Failed to fetch applied jobs');
+  }
+
+  return response.json();
+}
+
 export interface CreateJobRequest {
   title: string;
   companyName: string;
