@@ -5,6 +5,13 @@ export function getUserManagementBaseUrl(): string {
   );
 }
 
+export function getJobManagementBaseUrl(): string {
+  return (
+    (process.env.EXPO_PUBLIC_JOB_MANAGEMENT_API_BASE_URL ?? '').trim().replace(/\/$/, '') ||
+    'http://127.0.0.1:5001'
+  );
+}
+
 export function authHeaders(token: string): HeadersInit {
   return {
     Authorization: `Bearer ${token}`,
