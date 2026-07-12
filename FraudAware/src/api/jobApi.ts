@@ -217,6 +217,7 @@ export type ApiApplication = {
   email?: string;
   resumeUrl?: string;
   resumeName?: string;
+  resumeDownloadUrl?: string;
   motivation?: string;
   appliedAt: string;
 };
@@ -255,6 +256,11 @@ export async function getAppliedJobs(
   }
 
   return response.json();
+}
+
+/** Authenticated download URL — use with Bearer token (recruiter/applicant). */
+export function getApplicationResumeDownloadEndpoint(applicationId: string): string {
+  return `${getJobManagementBaseUrl()}/api/jobs/applications/${applicationId}/resume`;
 }
 
 export interface CreateJobRequest {

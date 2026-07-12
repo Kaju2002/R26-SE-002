@@ -5,7 +5,7 @@ import {
 } from "../middleware/authMiddleware.js";
 import { optionalJobLogoUpload } from "../middleware/optionalJobLogoUpload.js";
 import { optionalResumeUpload } from "../middleware/optionalResumeUpload.js";
-import { applyToJob, getAppliedJobs } from "../controller/applicationController.js";
+import { applyToJob, downloadApplicationResume, getAppliedJobs } from "../controller/applicationController.js";
 import {
   authPing,
   createJob,
@@ -28,6 +28,11 @@ router.get("/me/ping", authMiddleware, authPing);
 router.get("/mine", authMiddleware, getMyJobs);
 router.get("/saved", authMiddleware, getSavedJobs);
 router.get("/applied", authMiddleware, getAppliedJobs);
+router.get(
+  "/applications/:applicationId/resume",
+  authMiddleware,
+  downloadApplicationResume
+);
 router.post("/saved", authMiddleware, saveJob);
 router.delete("/saved/:jobId", authMiddleware, unsaveJob);
 
