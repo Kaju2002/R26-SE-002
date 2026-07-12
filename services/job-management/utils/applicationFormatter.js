@@ -1,4 +1,5 @@
 import { buildLogoFallback } from "./jobFormatter.js";
+import { buildResumeDownloadUrl } from "./resumeUrlHelper.js";
 
 const toIsoString = (value) => {
   if (!value) return undefined;
@@ -14,6 +15,9 @@ export const formatApplication = (application, job = null) => {
   const companyName = job?.companyName || "";
   const companyLogo = job?.companyLogo || null;
 
+  const resumeUrl = application.resumeUrl || undefined;
+  const resumeName = application.resumeName || undefined;
+
   return {
     id: String(application._id),
     jobId: String(application.jobId),
@@ -25,8 +29,9 @@ export const formatApplication = (application, job = null) => {
     companyFallback: companyLogo ? undefined : buildLogoFallback(companyName),
     fullName: application.fullName,
     email: application.email,
-    resumeUrl: application.resumeUrl || undefined,
-    resumeName: application.resumeName || undefined,
+    resumeUrl,
+    resumeName,
+    resumeDownloadUrl: buildResumeDownloadUrl(resumeUrl, resumeName),
     motivation: application.motivation || undefined,
     appliedAt: toIsoString(application.appliedAt) || new Date().toISOString(),
   };

@@ -3,6 +3,7 @@ import Application from "../model/applicationModel.js";
 import { getFileUrl } from "../utils/cloudinaryHelper.js";
 import { formatApplication, formatApplicationList } from "../utils/applicationFormatter.js";
 import { formatJob } from "../utils/jobFormatter.js";
+import { buildResumeDownloadUrl, resolveResumeFilename } from "../utils/resumeUrlHelper.js";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
@@ -24,7 +25,7 @@ const validateApplyPayload = (body = {}, uploadedFile = null) => {
   const resumeUrl =
     uploadedUrl || body.resumeUrl?.trim() || body.resume?.trim() || "";
   const resumeName =
-    uploadedFile?.originalname?.trim() || body.resumeName?.trim() || "";
+    body.resumeName?.trim() || uploadedFile?.originalname?.trim() || "";
 
   if (!fullName) errors.push("Full name is required");
   if (!email) errors.push("Email is required");
@@ -186,6 +187,82 @@ export const getAppliedJobs = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching applied jobs",
+      error: error.message,
+    });
+  }
+};
+
+// ============ DOWNLOAD APPLICATION RESUME ============
+export const downloadApplicationResume = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    if (!isValidObjectId(applicationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application id",
+      });
+    }
+
+    const application = await Application.findById(applicationId);
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    if (!application.resumeUrl) {
+      return res.status(404).json({
+        success: false,
+        message: "Resume not found for this application",
+      });
+    }
+
+    const job = await Job.findById(application.jobId);
+    const isApplicant = application.applicantId === req.userId;
+    const isJobOwner = job?.postedBy === req.userId;
+
+    if (!isApplicant && !isJobOwner) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to download this resume",
+      });
+    }
+
+    const downloadUrl = buildResumeDownloadUrl(
+      application.resumeUrl,
+      application.resumeName
+    );
+    const filename = resolveResumeFilename(
+      application.resumeName,
+      application.resumeUrl
+    );
+
+    const fileResponse = await fetch(downloadUrl);
+    if (!fileResponse.ok) {
+      return res.status(502).json({
+        success: false,
+        message: "Could not fetch resume from storage",
+      });
+    }
+
+    const contentType =
+      fileResponse.headers.get("content-type") || "application/octet-stream";
+
+    res.setHeader("Content-Type", contentType);
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="${filename}"; filename*=UTF-8''${encodeURIComponent(filename)}`
+    );
+
+    const buffer = Buffer.from(await fileResponse.arrayBuffer());
+    return res.status(200).send(buffer);
+  } catch (error) {
+    console.error("Download application resume error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error downloading resume",
       error: error.message,
     });
   }
