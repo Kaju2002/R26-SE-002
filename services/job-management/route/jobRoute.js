@@ -11,6 +11,7 @@ import {
   createJob,
   deleteJob,
   getJobById,
+  getJobsByRecruiter,
   getMyJobs,
   listJobs,
   updateJob,
@@ -28,6 +29,7 @@ router.get("/me/ping", authMiddleware, authPing);
 router.get("/mine", authMiddleware, getMyJobs);
 router.get("/saved", authMiddleware, getSavedJobs);
 router.get("/applied", authMiddleware, getAppliedJobs);
+router.get("/recruiter/:userId", optionalAuthMiddleware, getJobsByRecruiter);
 router.get(
   "/applications/:applicationId/resume",
   authMiddleware,

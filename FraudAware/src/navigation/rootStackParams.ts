@@ -18,6 +18,7 @@ export type RootStackParamList = {
   Notifications: { initialTab?: 'general' | 'applications' };
   JobDetails: { jobId: string };
   ApplyJob: { jobId: string };
+  RecruiterProfile: { recruiterId: string; jobId?: string };
 
   SafeJobRecommendations: undefined;
 };

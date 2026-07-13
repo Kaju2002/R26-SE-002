@@ -34,6 +34,7 @@ export function mapApiJobToJob(apiJob: ApiJob): Job {
     experience: apiJob.experience,
     about: apiJob.about,
     contact: apiJob.contact,
+    postedBy: apiJob.postedBy,
   };
 }
 

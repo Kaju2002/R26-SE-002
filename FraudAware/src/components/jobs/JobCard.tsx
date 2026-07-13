@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import LogoFallback from '../profile/LogoFallback';
 import JobTagChip, { type ChipTone } from './JobTagChip';
+import ChatIcon from '../icons/ChatIcon';
 import {
   formatPostedAt,
   formatSalaryRange,
@@ -19,6 +20,7 @@ import {
   type JobType,
 } from '../../../data/jobs';
 import type { ApplicationStatus } from '../../../data/applicationNotifications';
+import { canMessageRecruiter } from '../../utils/recruiterHelpers';
 
 const NAVY = '#202871';
 const MUTED = '#858BBD';
@@ -73,6 +75,8 @@ type Props = {
   job: Job;
   onPress?: () => void;
   onBookmarkPress?: () => void;
+  onChatPress?: (params: { recruiterId: string; jobId: string }) => void;
+  currentUserId?: string | null;
   isBookmarked?: boolean;
   style?: StyleProp<ViewStyle>;
 };
@@ -81,50 +85,60 @@ export default function JobCard({
   job,
   onPress,
   onBookmarkPress,
+  onChatPress,
+  currentUserId,
   isBookmarked,
   style,
 }: Props) {
   const status = job.applicationStatus
     ? STATUS_META[job.applicationStatus]
     : null;
+  const canChat =
+    Boolean(onChatPress) && canMessageRecruiter(job.postedBy, currentUserId);
+
+  const handleChatPress = () => {
+    if (!canChat || !job.postedBy) return;
+    onChatPress?.({ recruiterId: job.postedBy, jobId: job.id });
+  };
 
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={`${job.title} at ${job.companyName}`}
-      style={({ pressed }) => [
-        styles.card,
-        pressed && styles.cardPressed,
-        style,
-      ]}
-    >
+    <View style={[styles.card, style]}>
       <View style={styles.top}>
-        <LogoFallback
-          source={job.companyLogo}
-          fallback={job.companyFallback}
-          size={56}
-          borderRadius={12}
-        />
+        <Pressable
+          onPress={onPress}
+          accessibilityRole="button"
+          accessibilityLabel={`${job.title} at ${job.companyName}`}
+          style={({ pressed }) => [
+            styles.topPressable,
+            pressed && styles.cardPressed,
+          ]}
+        >
+          <LogoFallback
+            source={job.companyLogo}
+            fallback={job.companyFallback}
+            size={56}
+            borderRadius={12}
+          />
 
-        <View style={styles.titleCol}>
-          <Text style={styles.title} numberOfLines={2}>
-            {job.title}
-          </Text>
-          <View style={styles.companyRow}>
-            <Text style={styles.company} numberOfLines={1}>
-              {job.companyName}
+          <View style={styles.titleCol}>
+            <Text style={styles.title} numberOfLines={2}>
+              {job.title}
             </Text>
-            {job.isVerified && (
-              <Ionicons
-                name="checkmark-circle"
-                size={14}
-                color={VERIFIED}
-                style={styles.verifiedIcon}
-              />
-            )}
+            <View style={styles.companyRow}>
+              <Text style={styles.company} numberOfLines={1}>
+                {job.companyName}
+              </Text>
+              {job.isVerified && (
+                <Ionicons
+                  name="checkmark-circle"
+                  size={14}
+                  color={VERIFIED}
+                  style={styles.verifiedIcon}
+                />
+              )}
+            </View>
           </View>
-        </View>
+        </Pressable>
 
         {status ? (
           <View
@@ -135,33 +149,54 @@ export default function JobCard({
             <Ionicons name={status.icon} size={14} color={status.color} />
           </View>
         ) : (
-          <Pressable
-            onPress={onBookmarkPress}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={
-              isBookmarked ? 'Remove bookmark' : 'Bookmark job'
-            }
-            style={({ pressed }) => [
-              styles.bookmarkBtn,
-              pressed && { opacity: 0.6 },
-            ]}
-          >
-            <Image
-              source={require('../../../assets/icons/Vector (1).png')}
-              style={[
-                styles.bookmarkIcon,
-                isBookmarked && { tintColor: VERIFIED },
+          <View style={styles.actionsCol}>
+            {canChat ? (
+              <Pressable
+                onPress={handleChatPress}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel="View recruiter profile"
+                style={({ pressed }) => [
+                  styles.iconActionBtn,
+                  pressed && { opacity: 0.6 },
+                ]}
+              >
+                <ChatIcon size={22} color={NAVY} />
+              </Pressable>
+            ) : null}
+            <Pressable
+              onPress={onBookmarkPress}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={
+                isBookmarked ? 'Remove bookmark' : 'Bookmark job'
+              }
+              style={({ pressed }) => [
+                styles.iconActionBtn,
+                pressed && { opacity: 0.6 },
               ]}
-              resizeMode="contain"
-            />
-          </Pressable>
+            >
+              <Image
+                source={require('../../../assets/icons/Vector (1).png')}
+                style={[
+                  styles.bookmarkIcon,
+                  isBookmarked && { tintColor: VERIFIED },
+                ]}
+                resizeMode="contain"
+              />
+            </Pressable>
+          </View>
         )}
       </View>
 
-      <View style={styles.divider} />
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        style={({ pressed }) => [pressed && styles.cardPressed]}
+      >
+        <View style={styles.divider} />
 
-      <View style={styles.bottom}>
+        <View style={styles.bottom}>
         <Text style={styles.metaLine} numberOfLines={1}>
           <Ionicons name="location-outline" size={13} color={MUTED} />
           <Text style={styles.metaText}> {job.location}</Text>
@@ -188,8 +223,21 @@ export default function JobCard({
             </View>
           )}
         </View>
-      </View>
-    </Pressable>
+
+        {status && canChat ? (
+          <Pressable
+            onPress={handleChatPress}
+            accessibilityRole="button"
+            accessibilityLabel="Message recruiter"
+            style={({ pressed }) => [styles.messageRow, pressed && { opacity: 0.85 }]}
+          >
+            <ChatIcon size={16} color={NAVY} />
+            <Text style={styles.messageText}>Message recruiter</Text>
+          </Pressable>
+        ) : null}
+        </View>
+      </Pressable>
+    </View>
   );
 }
 
@@ -215,6 +263,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 14,
+  },
+  topPressable: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
+    minWidth: 0,
   },
   titleCol: {
     flex: 1,
@@ -244,6 +299,18 @@ const styles = StyleSheet.create({
   },
   verifiedIcon: {
     marginTop: 1,
+  },
+  actionsCol: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginTop: -2,
+  },
+  iconActionBtn: {
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   bookmarkBtn: {
     width: 36,
@@ -322,6 +389,17 @@ const styles = StyleSheet.create({
   matchText: {
     fontFamily: 'Poppins_500Medium',
     fontSize: 11,
+    color: NAVY,
+  },
+  messageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 6,
+  },
+  messageText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 13,
     color: NAVY,
   },
 });
