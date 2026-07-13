@@ -414,3 +414,36 @@ export async function applyToJob(
 
   return response.json();
 }
+
+export type RecruiterJobsParams = {
+  status?: 'active' | 'closed' | 'draft';
+  page?: number;
+  limit?: number;
+  sort?: SortOption;
+};
+
+export async function getJobsByRecruiter(
+  recruiterId: string,
+  params: RecruiterJobsParams = {},
+  token?: string | null
+): Promise<ListJobsResponse> {
+  const search = new URLSearchParams();
+  if (params.status) search.set('status', params.status);
+  if (params.page !== undefined) search.set('page', String(params.page));
+  if (params.limit !== undefined) search.set('limit', String(params.limit));
+  if (params.sort) search.set('sort', params.sort);
+
+  const query = search.toString();
+  const headers: HeadersInit = token ? authHeaders(token) : {};
+
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/recruiter/${encodeURIComponent(recruiterId)}${query ? `?${query}` : ''}`,
+    { headers }
+  );
+
+  if (!response.ok) {
+    await parseError(response, 'Failed to fetch recruiter jobs');
+  }
+
+  return response.json();
+}

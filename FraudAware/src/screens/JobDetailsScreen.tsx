@@ -25,16 +25,22 @@ import {
 } from '@react-navigation/native';
 import LogoFallback from '../components/profile/LogoFallback';
 import JobTagChip from '../components/jobs/JobTagChip';
+import { HeroRecruiterSlot } from '../components/jobs/JobPostedByRow';
+import ChatIcon from '../components/icons/ChatIcon';
 import {
-  formatLongDate,
-  formatShortDate,
+  formatPostedAt,
   formatSalary,
+  formatShortDate,
   type Job,
 } from '../../data/jobs';
 import { getJobById } from '../api/jobApi';
+import { getPublicRecruiterProfile } from '../api/recruiterApi';
 import { mapApiJobToJob } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
 import { useUser } from '../context/UserContext';
+import type { RootStackParamList } from '../navigation/rootStackParams';
+import type { PublicRecruiterProfile } from '../types/recruiter';
+import { canMessageRecruiter } from '../utils/recruiterHelpers';
 
 const NAVY = '#202871';
 const DEEP = '#42498A';
@@ -43,18 +49,19 @@ const BORDER = '#D6DAEA';
 const CARD_BG = '#F7F8FE';
 const PAGE_BG = '#FFFFFF';
 
-type RouteParams = { JobDetails: { jobId: string } };
-type DetailNavParams = { ApplyJob: { jobId: string } };
+type RouteParams = RootStackParamList;
 type Tab = 'overview' | 'company';
 
 export default function JobDetailsScreen() {
-  const navigation = useNavigation<NavigationProp<DetailNavParams>>();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RouteParams, 'JobDetails'>>();
-  const { token } = useUser();
+  const { token, user } = useUser();
   const jobId = route.params?.jobId;
 
   const [job, setJob] = useState<Job | undefined>();
+  const [recruiter, setRecruiter] = useState<PublicRecruiterProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [recruiterLoading, setRecruiterLoading] = useState(false);
   const [tab, setTab] = useState<Tab>('overview');
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
@@ -89,6 +96,42 @@ export default function JobDetailsScreen() {
       cancelled = true;
     };
   }, [jobId, token]);
+
+  useEffect(() => {
+    if (!job?.postedBy || !token) {
+      setRecruiter(null);
+      return;
+    }
+
+    if (user?.id && job.postedBy === user.id) {
+      setRecruiter(null);
+      return;
+    }
+
+    let cancelled = false;
+    setRecruiterLoading(true);
+
+    (async () => {
+      try {
+        const response = await getPublicRecruiterProfile(job.postedBy!, token);
+        if (!cancelled) {
+          setRecruiter(response.recruiter);
+        }
+      } catch {
+        if (!cancelled) {
+          setRecruiter(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setRecruiterLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [job?.postedBy, token, user?.id]);
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -138,6 +181,17 @@ export default function JobDetailsScreen() {
     navigation.navigate('ApplyJob', { jobId: job.id });
   };
 
+  const isOwnJob = Boolean(user?.id && job.postedBy && job.postedBy === user.id);
+  const canChat = canMessageRecruiter(job.postedBy, user?.id);
+
+  const openRecruiterProfile = () => {
+    if (!job.postedBy) return;
+    navigation.navigate('RecruiterProfile', {
+      recruiterId: job.postedBy,
+      jobId: job.id,
+    });
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <DetailHeader
@@ -148,7 +202,14 @@ export default function JobDetailsScreen() {
         }}
       />
       <View style={styles.fixedTop}>
-        <HeroCard job={job} />
+        <HeroCard
+          job={job}
+          isOwnJob={isOwnJob}
+          recruiterLoading={recruiterLoading}
+          recruiter={recruiter}
+          showRecruiter={canChat}
+          onRecruiterPress={openRecruiterProfile}
+        />
         <Tabs active={tab} onChange={setTab} />
       </View>
       <ScrollView
@@ -169,6 +230,7 @@ export default function JobDetailsScreen() {
             }
             style={({ pressed }) => [
               styles.saveBtn,
+              canChat && !isOwnJob && styles.saveBtnCompact,
               pressed && { opacity: 0.85 },
             ]}
           >
@@ -176,12 +238,27 @@ export default function JobDetailsScreen() {
               {isBookmarked(job.id) ? 'Saved' : 'Save'}
             </Text>
           </Pressable>
+          {canChat && !isOwnJob ? (
+            <Pressable
+              onPress={openRecruiterProfile}
+              accessibilityRole="button"
+              accessibilityLabel="Message recruiter"
+              style={({ pressed }) => [
+                styles.messageBtn,
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <ChatIcon size={20} color={NAVY} />
+              <Text style={styles.messageText}>Message</Text>
+            </Pressable>
+          ) : null}
           <Pressable
             onPress={handleApply}
             accessibilityRole="button"
             accessibilityLabel="Apply to this job"
             style={({ pressed }) => [
               styles.applyBtn,
+              canChat && !isOwnJob && styles.applyBtnCompact,
               pressed && { opacity: 0.85 },
             ]}
           >
@@ -242,48 +319,90 @@ function DetailHeader({
   );
 }
 
-function HeroCard({ job }: { job: Job }) {
+function HeroCard({
+  job,
+  isOwnJob,
+  recruiterLoading,
+  recruiter,
+  showRecruiter,
+  onRecruiterPress,
+}: {
+  job: Job;
+  isOwnJob: boolean;
+  recruiterLoading: boolean;
+  recruiter: PublicRecruiterProfile | null;
+  showRecruiter: boolean;
+  onRecruiterPress: () => void;
+}) {
+  const postedLabel = job.postedAt ? formatPostedAt(job.postedAt) : '';
+  const endsLabel = job.endsAt ? `Ends ${formatShortDate(job.endsAt)}` : '';
+  const dateMeta = [postedLabel ? `Posted ${postedLabel}` : '', endsLabel]
+    .filter(Boolean)
+    .join(' · ');
+
+  const showRecruiterSection =
+    isOwnJob || recruiterLoading || (showRecruiter && Boolean(recruiter));
+
   return (
     <View style={styles.heroCard}>
-      <View style={styles.heroLogoWrap}>
+      <View style={styles.heroTopRow}>
         <LogoFallback
           source={job.companyLogo}
           fallback={job.companyFallback}
-          size={56}
-          borderRadius={12}
+          size={48}
+          borderRadius={10}
         />
-      </View>
 
-      <Text style={styles.heroTitle} numberOfLines={2}>
-        {job.title}
-      </Text>
-      <Text style={styles.heroCompany} numberOfLines={1}>
-        {job.companyName}
-      </Text>
-      {job.isVerified && (
-        <View style={styles.verifiedRow}>
-          <Ionicons name="checkmark-circle" size={14} color="#2E7DEB" />
-          <Text style={styles.verifiedText}>Verified Employer</Text>
+        <View style={styles.heroTitleCol}>
+          <Text style={styles.heroTitle} numberOfLines={2}>
+            {job.title}
+          </Text>
+
+          <View style={styles.heroCompanyRow}>
+            <Text style={styles.heroCompany} numberOfLines={1}>
+              {job.companyName}
+            </Text>
+            {job.isVerified ? (
+              <Ionicons name="checkmark-circle" size={14} color="#2E7DEB" />
+            ) : null}
+          </View>
+
+          <Text style={styles.heroMetaLine} numberOfLines={1}>
+            <Ionicons name="location-outline" size={13} color={MUTED} />
+            {'  '}
+            {job.location}
+            {'  ·  '}
+            {formatSalary(job)}
+          </Text>
+
+          <View style={styles.heroTags}>
+            <JobTagChip label={job.type} />
+            <JobTagChip label={job.mode} />
+          </View>
         </View>
-      )}
-
-      <View style={styles.heroDivider} />
-
-      <Text style={styles.heroLocation}>{job.location}</Text>
-      <Text style={styles.heroSalary}>{formatSalary(job)}</Text>
-
-      <View style={styles.heroTags}>
-        <JobTagChip label={job.type} />
-        <JobTagChip label={job.mode} />
       </View>
 
-      {(job.postedAt || job.endsAt) && (
-        <Text style={styles.heroMeta}>
-          {job.postedAt ? `Posted on ${formatLongDate(job.postedAt)}` : ''}
-          {job.postedAt && job.endsAt ? '   |   ' : ''}
-          {job.endsAt ? `Ends ${formatShortDate(job.endsAt)}` : ''}
+      {showRecruiterSection ? <View style={styles.heroDivider} /> : null}
+
+      <HeroRecruiterSlot
+        isOwnJob={isOwnJob}
+        recruiterLoading={recruiterLoading}
+        recruiter={recruiter}
+        showRecruiter={showRecruiter}
+        onRecruiterPress={onRecruiterPress}
+      />
+
+      {dateMeta ? (
+        <Text
+          style={[
+            styles.heroDateMeta,
+            !showRecruiterSection && styles.heroDateMetaTight,
+          ]}
+          numberOfLines={1}
+        >
+          {dateMeta}
         </Text>
-      )}
+      ) : null}
     </View>
   );
 }
@@ -565,80 +684,73 @@ const styles = StyleSheet.create({
   /** ----- HERO CARD ----- */
   heroCard: {
     backgroundColor: CARD_BG,
-    borderRadius: 18,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: BORDER,
-    paddingVertical: 20,
-    paddingHorizontal: 18,
-    alignItems: 'center',
-    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    alignSelf: 'stretch',
   },
-  heroLogoWrap: {
-    marginBottom: 6,
+  heroTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
   },
-  /** Job title — Poppins Medium 16 · #202871 */
+  heroTitleCol: {
+    flex: 1,
+    minWidth: 0,
+    gap: 4,
+  },
+  /** Job title — Poppins SemiBold 16 · #202871 */
   heroTitle: {
-    fontFamily: 'Poppins_500Medium',
+    fontFamily: 'Poppins_600SemiBold',
     fontSize: 16,
     color: NAVY,
-    textAlign: 'center',
+    lineHeight: 22,
   },
-  /** Company — Poppins Regular 14 · #858BBD */
-  heroCompany: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
-    color: MUTED,
-    textAlign: 'center',
-  },
-  verifiedRow: {
+  heroCompanyRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginTop: 4,
   },
-  verifiedText: {
-    fontFamily: 'Poppins_500Medium',
-    fontSize: 12,
-    color: '#2E7DEB',
+  /** Company — Poppins Regular 13 · #858BBD */
+  heroCompany: {
+    flexShrink: 1,
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 13,
+    color: MUTED,
+  },
+  heroMetaLine: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 13,
+    color: MUTED,
+    lineHeight: 18,
   },
   heroDivider: {
     alignSelf: 'stretch',
     height: 1,
     backgroundColor: BORDER,
-    marginVertical: 10,
-  },
-  /** Location — Poppins Regular 14 */
-  heroLocation: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
-    color: MUTED,
-    textAlign: 'center',
-  },
-  /** Salary — Poppins Medium 14 · #202871 */
-  heroSalary: {
-    fontFamily: 'Poppins_500Medium',
-    fontSize: 14,
-    color: NAVY,
-    textAlign: 'center',
-    marginTop: 2,
+    marginVertical: 8,
   },
   heroTags: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 10,
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
   },
-  /** Posted/Ends — Poppins Regular 12 · #858BBD */
-  heroMeta: {
+  heroDateMeta: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 11,
     color: MUTED,
-    marginTop: 12,
-    textAlign: 'center',
+    marginTop: 6,
+  },
+  heroDateMetaTight: {
+    marginTop: 8,
   },
   /** ----- TABS ----- */
   tabsRow: {
     flexDirection: 'row',
-    marginTop: 18,
+    marginTop: 12,
     marginBottom: 6,
     borderBottomWidth: 1,
     borderBottomColor: BORDER,
@@ -786,6 +898,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
   },
+  saveBtnCompact: {
+    flex: 0.34,
+  },
   saveText: {
     fontFamily: 'Poppins_500Medium',
     fontSize: 16,
@@ -799,6 +914,26 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  applyBtnCompact: {
+    flex: 0.34,
+  },
+  messageBtn: {
+    flex: 0.32,
+    borderWidth: 1,
+    borderColor: NAVY,
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+    flexDirection: 'row',
+    gap: 6,
+  },
+  messageText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 14,
+    color: NAVY,
   },
   /** Apply — Poppins Regular 16 · #FFFFFF */
   applyText: {

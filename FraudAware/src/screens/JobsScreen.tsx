@@ -108,7 +108,7 @@ export default function JobsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<JobsRouteParams, 'Jobs'>>();
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
-  const { token } = useUser();
+  const { token, user } = useUser();
   const [segment, setSegment] = useState<JobsSegment>(
     route.params?.segment ?? 'forYou'
   );
@@ -218,6 +218,13 @@ export default function JobsScreen() {
     setFetching(true);
   };
 
+  const openRecruiterProfile = useCallback(
+    ({ recruiterId, jobId }: { recruiterId: string; jobId: string }) => {
+      navigation.navigate('RecruiterProfile', { recruiterId, jobId });
+    },
+    [navigation]
+  );
+
   if (!fontsLoaded) {
     return (
       <View style={styles.splash}>
@@ -246,6 +253,8 @@ export default function JobsScreen() {
             onJobPress={(jobId) => navigation.navigate('JobDetails', { jobId })}
             bookmarkedIds={bookmarkedIds}
             onBookmarkPress={toggleBookmark}
+            onChatPress={openRecruiterProfile}
+            currentUserId={user?.id}
             onSortPress={(anchor) => {
               setSortAnchor(anchor);
               setShowSort(true);

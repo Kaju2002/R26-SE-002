@@ -47,6 +47,7 @@ export type Job = {
 
   about?: string;
   contact?: JobContact;
+  postedBy?: string;
 };
 
 const HOUR = 60 * 60 * 1000;

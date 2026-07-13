@@ -21,7 +21,6 @@ import SearchBar from '../components/SearchBar';
 import JobsSection from '../components/jobs/JobsSection';
 import HomeTrustTagline from '../components/home/HomeTrustTagline';
 import HomeTrustActions from '../components/home/HomeTrustActions';
-import HomeProfileCompletionCard from '../components/home/HomeProfileCompletionCard';
 import HomeCategoryChips, {
   type HomeCategory,
 } from '../components/home/HomeCategoryChips';
@@ -29,6 +28,7 @@ import type { Job } from '../../data/jobs';
 import { listJobs } from '../api/jobApi';
 import { mapApiJobsToJobs } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
+import { useUser } from '../context/UserContext';
 
 const NAVY = '#202871';
 
@@ -47,7 +47,7 @@ type HomeNavParams = {
     | undefined;
   Bookmarks: undefined;
   JobDetails: { jobId: string };
-  EditProfile: undefined;
+  RecruiterProfile: { recruiterId: string; jobId?: string };
 };
 
 export default function HomeScreen() {
@@ -56,6 +56,7 @@ export default function HomeScreen() {
   const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<HomeCategory>('All');
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
+  const { user } = useUser();
   const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
 
@@ -99,6 +100,13 @@ export default function HomeScreen() {
     [navigation],
   );
 
+  const openRecruiterProfile = useCallback(
+    ({ recruiterId, jobId }: { recruiterId: string; jobId: string }) => {
+      navigation.navigate('RecruiterProfile', { recruiterId, jobId });
+    },
+    [navigation],
+  );
+
   const renderJobFeedRow = useCallback(
     ({ item }: { item: (typeof HOME_JOB_FEED_ROWS)[number] }) => {
       if (item.key === 'recommended') {
@@ -110,6 +118,8 @@ export default function HomeScreen() {
             bookmarkedIds={bookmarkedIds}
             onBookmarkPress={toggleBookmark}
             onJobPress={openJobDetails}
+            onChatPress={openRecruiterProfile}
+            currentUserId={user?.id}
             onSeeAllPress={() =>
               navigation.navigate('Jobs', { segment: 'forYou' })
             }
@@ -124,6 +134,8 @@ export default function HomeScreen() {
           bookmarkedIds={bookmarkedIds}
           onBookmarkPress={toggleBookmark}
           onJobPress={openJobDetails}
+          onChatPress={openRecruiterProfile}
+          currentUserId={user?.id}
           onSeeAllPress={() =>
             navigation.navigate('Jobs', { segment: 'recent' })
           }
@@ -134,9 +146,11 @@ export default function HomeScreen() {
       bookmarkedIds,
       navigation,
       openJobDetails,
+      openRecruiterProfile,
       recentJobs,
       recommendedJobs,
       toggleBookmark,
+      user?.id,
     ],
   );
 
@@ -198,9 +212,6 @@ export default function HomeScreen() {
             segment: 'forYou',
           })
         }
-      />
-      <HomeProfileCompletionCard
-        onCompletePress={() => navigation.navigate('EditProfile')}
       />
       <HomeCategoryChips
         active={activeCategory}

@@ -260,6 +260,55 @@ export const getMyJobs = async (req, res) => {
   }
 };
 
+// ============ JOBS BY RECRUITER ============
+export const getJobsByRecruiter = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: "Recruiter user id is required",
+      });
+    }
+
+    const filter = { postedBy: userId.trim() };
+
+    if (req.query.status && JOB_STATUSES.includes(req.query.status)) {
+      filter.status = req.query.status;
+    } else {
+      filter.status = "active";
+    }
+
+    const sort = getSortOption(req.query.sort);
+    const { page, limit, skip } = parsePagination(req.query);
+
+    const [jobs, total] = await Promise.all([
+      Job.find(filter).sort(sort).skip(skip).limit(limit),
+      Job.countDocuments(filter),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Recruiter jobs fetched successfully",
+      jobs: formatJobList(jobs),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Get jobs by recruiter error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching recruiter jobs",
+      error: error.message,
+    });
+  }
+};
+
 // ============ JOB DETAILS ============
 export const getJobById = async (req, res) => {
   try {

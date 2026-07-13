@@ -9,6 +9,8 @@ type Props = {
   onJobPress: (id: string) => void;
   bookmarkedIds: Set<string>;
   onBookmarkPress: (id: string) => void;
+  onChatPress?: (params: { recruiterId: string; jobId: string }) => void;
+  currentUserId?: string | null;
   onSortPress: (anchor: { x: number; y: number }) => void;
 };
 
@@ -17,6 +19,8 @@ export default function JobsResultsList({
   onJobPress,
   bookmarkedIds,
   onBookmarkPress,
+  onChatPress,
+  currentUserId,
   onSortPress,
 }: Props) {
   return (
@@ -51,6 +55,8 @@ export default function JobsResultsList({
             onPress={() => onJobPress(job.id)}
             isBookmarked={bookmarkedIds.has(job.id)}
             onBookmarkPress={() => onBookmarkPress(job.id)}
+            onChatPress={onChatPress}
+            currentUserId={currentUserId}
           />
         ))}
       </ScrollView>

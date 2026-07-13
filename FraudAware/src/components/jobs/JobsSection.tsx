@@ -19,6 +19,8 @@ type Props = {
   layout?: 'horizontal' | 'vertical';
   onJobPress?: (id: string) => void;
   onBookmarkPress?: (id: string) => void;
+  onChatPress?: (params: { recruiterId: string; jobId: string }) => void;
+  currentUserId?: string | null;
   bookmarkedIds?: Set<string>;
   onSeeAllPress?: () => void;
 };
@@ -37,6 +39,8 @@ export default function JobsSection({
   layout = 'horizontal',
   onJobPress,
   onBookmarkPress,
+  onChatPress,
+  currentUserId,
   bookmarkedIds,
   onSeeAllPress,
 }: Props) {
@@ -73,6 +77,8 @@ export default function JobsSection({
                 isBookmarked={bookmarkedIds?.has(job.id)}
                 onPress={() => onJobPress?.(job.id)}
                 onBookmarkPress={() => onBookmarkPress?.(job.id)}
+                onChatPress={onChatPress}
+                currentUserId={currentUserId}
                 style={[
                   styles.hCard,
                   index < jobs.length - 1 ? styles.hCardSpacing : null,
@@ -98,6 +104,8 @@ export default function JobsSection({
               isBookmarked={bookmarkedIds?.has(job.id)}
               onPress={() => onJobPress?.(job.id)}
               onBookmarkPress={() => onBookmarkPress?.(job.id)}
+              onChatPress={onChatPress}
+              currentUserId={currentUserId}
             />
           ))}
         </View>

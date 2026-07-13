@@ -34,7 +34,7 @@ const MUTED = '#858BBD';
 export default function BookmarksScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
-  const { token } = useUser();
+  const { token, user } = useUser();
   const [savedJobs, setSavedJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -69,6 +69,13 @@ export default function BookmarksScreen() {
   );
 
   const visibleSavedJobs = savedJobs.filter((job) => bookmarkedIds.has(job.id));
+
+  const openRecruiterProfile = useCallback(
+    ({ recruiterId, jobId }: { recruiterId: string; jobId: string }) => {
+      navigation.navigate('RecruiterProfile', { recruiterId, jobId });
+    },
+    [navigation]
+  );
 
   if (!fontsLoaded) {
     return (
@@ -127,6 +134,8 @@ export default function BookmarksScreen() {
               isBookmarked
               onBookmarkPress={() => toggleBookmark(job.id)}
               onPress={() => navigation.navigate('JobDetails', { jobId: job.id })}
+              onChatPress={openRecruiterProfile}
+              currentUserId={user?.id}
             />
           ))}
         </ScrollView>

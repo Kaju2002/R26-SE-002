@@ -19,6 +19,7 @@ import EditEducationScreen from './src/screens/EditEducationScreen';
 import EditLanguageScreen from './src/screens/EditLanguageScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import JobDetailsScreen from './src/screens/JobDetailsScreen';
+import RecruiterProfileScreen from './src/screens/RecruiterProfileScreen';
 import ApplyJobScreen from './src/screens/ApplyJobScreen';
 import BookmarksScreen from './src/screens/BookmarksScreen';
 import { BookmarksProvider } from './src/context/BookmarksContext';
@@ -161,6 +162,12 @@ export default function App() {
                 animation: 'slide_from_right',
                 gestureEnabled: false,
               }}
+            />
+
+            <Stack.Screen
+              name="RecruiterProfile"
+              component={RecruiterProfileScreen}
+              options={{ animation: 'slide_from_right' }}
             />
 
             <Stack.Screen

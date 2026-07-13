@@ -1,5 +1,7 @@
+import mongoose from "mongoose";
 import User from "../model/userModel.js";
 import { deleteFile, getFileUrl } from "../utils/cloudinaryHelper.js";
+import { formatPublicRecruiterProfile } from "../utils/formatPublicRecruiterProfile.js";
 import { formatProfileResponse } from "../utils/profileFormatter.js";
 
 const findUserOr404 = async (userId, res) => {
@@ -57,6 +59,45 @@ export const getMyProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching profile",
+      error: error.message,
+    });
+  }
+};
+
+// ============ GET PUBLIC RECRUITER PROFILE ============
+export const getPublicRecruiterProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user id",
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "Recruiter not found",
+      });
+    }
+
+    const recruiter = formatPublicRecruiterProfile(user, {
+      viewerId: req.userId,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Recruiter profile fetched successfully",
+      recruiter,
+    });
+  } catch (error) {
+    console.error("Get public recruiter profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching recruiter profile",
       error: error.message,
     });
   }

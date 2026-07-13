@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 import { uploadAvatar, uploadCv, uploadLogo } from "../config/multer.js";
 import {
   getMyProfile,
+  getPublicRecruiterProfile,
   updateBasicProfile,
   updateSummary,
   updateSkills,
@@ -28,6 +29,7 @@ router.use(authMiddleware);
 
 // ============ CORE PROFILE ============
 router.get("/me", getMyProfile);
+router.get("/public/:userId", getPublicRecruiterProfile);
 router.patch("/basic", updateBasicProfile);
 router.patch("/summary", updateSummary);
 router.put("/skills", updateSkills);
