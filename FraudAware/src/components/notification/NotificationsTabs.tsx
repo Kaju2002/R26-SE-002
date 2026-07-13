@@ -59,24 +59,28 @@ const styles = StyleSheet.create({
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingTop: 8,
+    paddingTop: 10,
+    minHeight: 48,
+    justifyContent: 'center',
   },
-  /** Tab label — Poppins Regular 16 */
   label: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 16,
-    paddingBottom: 10,
+    fontSize: 17,
+    lineHeight: 24,
+    paddingBottom: 12,
     letterSpacing: 0.1,
   },
   labelActive: {
     color: NAVY,
+    fontFamily: 'Poppins_500Medium',
   },
   labelInactive: {
     color: INACTIVE,
   },
   underline: {
-    height: 2,
+    height: 3,
     width: '100%',
+    borderRadius: 2,
   },
   underlineActive: {
     backgroundColor: NAVY,

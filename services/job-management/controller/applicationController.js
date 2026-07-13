@@ -1,8 +1,10 @@
 import Job from "../model/jobModel.js";
 import Application from "../model/applicationModel.js";
+import { EVENT_TYPES } from "../constants/eventTypes.js";
 import { getFileUrl } from "../utils/cloudinaryHelper.js";
 import { formatApplication, formatApplicationList } from "../utils/applicationFormatter.js";
 import { formatJob } from "../utils/jobFormatter.js";
+import { publishEvent } from "../utils/publishEvent.js";
 import { buildResumeDownloadUrl, resolveResumeFilename } from "../utils/resumeUrlHelper.js";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
@@ -111,6 +113,17 @@ export const applyToJob = async (req, res) => {
 
     await Job.findByIdAndUpdate(job._id, {
       $inc: { applicantsCount: 1 },
+    });
+
+    await publishEvent(EVENT_TYPES.APPLICATION_CREATED, {
+      applicationId: String(application._id),
+      applicantId: req.userId,
+      recruiterId: job.postedBy,
+      jobId: String(job._id),
+      jobTitle: job.title,
+      companyName: job.companyName,
+      companyLogo: job.companyLogo || null,
+      status: application.status,
     });
 
     res.status(201).json({

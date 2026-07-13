@@ -1,10 +1,12 @@
 import User from "../model/userModel.js";
 import jwt from "jsonwebtoken";
 import transporter from "../config/nodemailer.js";
+import { EVENT_TYPES } from "../constants/eventTypes.js";
 import {
   EMAIL_VERIFY_TEMPLATE,
   PASSWORD_RESET_TEMPLATE,
 } from "../config/emailTemplate.js";
+import { publishEvent } from "../utils/publishEvent.js";
 
 const OTP_VALIDITY_MS = 24 * 60 * 60 * 1000;
 const RESET_OTP_VALIDITY_MS = 15 * 60 * 1000;
@@ -397,6 +399,11 @@ export const verifyEmailOtp = async (req, res) => {
     user.emailVerificationExpires = null;
     await user.save();
 
+    await publishEvent(EVENT_TYPES.AUTH_ACCOUNT_CREATED, {
+      userId: String(user._id),
+      email: user.email,
+    });
+
     res.status(200).json({
       success: true,
       message: "Email verified successfully",
@@ -671,6 +678,11 @@ export const resetPassword = async (req, res) => {
     user.passwordResetExpires = null;
     user.tokenVersion = (user.tokenVersion ?? 0) + 1;
     await user.save();
+
+    await publishEvent(EVENT_TYPES.AUTH_PASSWORD_UPDATED, {
+      userId: String(user._id),
+      email: user.email,
+    });
 
     res.status(200).json({
       success: true,

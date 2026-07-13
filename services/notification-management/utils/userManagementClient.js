@@ -1,0 +1,64 @@
+const getBaseUrl = () => {
+  const url = process.env.USER_MANAGEMENT_BASE_URL?.trim().replace(/\/$/, "");
+  if (!url) {
+    throw new Error("USER_MANAGEMENT_BASE_URL is not configured");
+  }
+  return url;
+};
+
+/**
+ * Validate session by calling user-management GET /api/auth/me.
+ */
+export const validateUserSession = async (authorizationHeader) => {
+  if (!authorizationHeader?.startsWith("Bearer ")) {
+    return {
+      ok: false,
+      status: 401,
+      message: "No token provided. Please login.",
+    };
+  }
+
+  try {
+    const response = await fetch(`${getBaseUrl()}/api/auth/me`, {
+      method: "GET",
+      headers: {
+        Authorization: authorizationHeader,
+      },
+    });
+
+    let data = {};
+    try {
+      data = await response.json();
+    } catch {
+      data = {};
+    }
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        message: data.message || "Authentication failed",
+      };
+    }
+
+    if (!data.user?.id) {
+      return {
+        ok: false,
+        status: 502,
+        message: "Invalid auth response from user management service",
+      };
+    }
+
+    return {
+      ok: true,
+      user: data.user,
+    };
+  } catch (error) {
+    console.error("User management auth validation error:", error.message);
+    return {
+      ok: false,
+      status: 503,
+      message: "User management service unavailable",
+    };
+  }
+};

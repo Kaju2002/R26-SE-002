@@ -51,15 +51,16 @@ export default function ApplicationStatusBadge({ status }: Props) {
 const styles = StyleSheet.create({
   wrap: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 999,
     borderWidth: 1,
+    marginTop: 2,
   },
-  /** Status — Poppins Regular 12 */
   label: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 13,
+    lineHeight: 18,
     letterSpacing: 0.1,
   },
 });

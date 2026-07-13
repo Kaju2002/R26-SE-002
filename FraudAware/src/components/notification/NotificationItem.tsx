@@ -28,7 +28,7 @@ export default function NotificationItem({
       <Text style={styles.title}>{item.title}</Text>
       <Text style={styles.meta}>
         {item.date}
-        <Text style={styles.metaSep}>{'  |  '}</Text>
+        <Text style={styles.metaSep}>{' · '}</Text>
         {item.time}
       </Text>
       <Text style={styles.body}>{item.body}</Text>
@@ -40,40 +40,40 @@ export default function NotificationItem({
 const styles = StyleSheet.create({
   row: {
     paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 12,
+    paddingTop: 18,
+    paddingBottom: 18,
+    minHeight: 96,
   },
   rowPressed: {
     backgroundColor: '#F7F8FE',
   },
-  /** Title — Poppins Medium 16 · #202871 */
   title: {
     fontFamily: 'Poppins_500Medium',
-    fontSize: 16,
+    fontSize: 18,
+    lineHeight: 24,
     color: TITLE,
-    marginBottom: 4,
+    marginBottom: 6,
   },
-  /** Date · Time — Poppins Regular 12 · #858BBD */
   meta: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 14,
+    lineHeight: 20,
     color: META,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   metaSep: {
-    color: META,
+    color: '#B0B6D4',
   },
-  /** Body — Poppins Regular 13 · #42498A */
   body: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 16,
+    lineHeight: 24,
     color: BODY,
   },
   divider: {
     height: 1,
     backgroundColor: DIVIDER,
-    marginTop: 12,
+    marginTop: 18,
     marginHorizontal: -20,
   },
 });
