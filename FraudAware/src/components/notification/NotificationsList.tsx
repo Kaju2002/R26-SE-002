@@ -39,7 +39,7 @@ export default function NotificationsList({
 
 const styles = StyleSheet.create({
   content: {
-    paddingTop: 4,
-    paddingBottom: 36,
+    paddingTop: 8,
+    paddingBottom: 40,
   },
 });

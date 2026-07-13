@@ -45,20 +45,19 @@ const styles = StyleSheet.create({
     height: 220,
     marginBottom: 24,
   },
-  /** "Empty" — Poppins Medium 18 · #202871 */
   title: {
     fontFamily: 'Poppins_500Medium',
-    fontSize: 18,
+    fontSize: 20,
+    lineHeight: 28,
     color: TITLE,
-    marginBottom: 6,
+    marginBottom: 8,
     textAlign: 'center',
   },
-  /** Subtitle — Poppins Regular 14 · #858BBD */
   subtitle: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
+    fontSize: 16,
     color: SUBTITLE,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 24,
   },
 });

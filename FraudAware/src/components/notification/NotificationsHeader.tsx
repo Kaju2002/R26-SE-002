@@ -72,11 +72,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  /** "Notifications" — Poppins Medium 18 · #202871 */
   title: {
     flex: 1,
     fontFamily: 'Poppins_500Medium',
-    fontSize: 18,
+    fontSize: 20,
+    lineHeight: 28,
     color: NAVY,
     marginLeft: 4,
   },

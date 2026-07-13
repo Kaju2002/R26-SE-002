@@ -27,13 +27,17 @@ import NotificationsTabs, {
 } from '../components/notification/NotificationsTabs';
 import NotificationsList from '../components/notification/NotificationsList';
 import ApplicationsNotificationsList from '../components/notification/ApplicationsNotificationsList';
-import {
-  NOTIFICATIONS,
-  type AppNotification,
-} from '../../data/notifications';
+import type { AppNotification } from '../../data/notifications';
 import type { ApplicationListItem } from '../../data/applicationNotifications';
-import { getAppliedJobs } from '../api/jobApi';
-import { mapApiApplicationsToListItems } from '../utils/applicationMapper';
+import {
+  clearNotifications,
+  deleteNotification,
+  listNotifications,
+} from '../api/notificationApi';
+import {
+  mapApiNotificationsToApplicationItems,
+  mapApiNotificationsToGeneralItems,
+} from '../utils/notificationMapper';
 import { useUser } from '../context/UserContext';
 
 if (
@@ -56,11 +60,31 @@ export default function NotificationsScreen() {
   });
 
   const [activeTab, setActiveTab] = useState<NotificationTabId>('general');
-  const [generalItems, setGeneralItems] = useState<AppNotification[]>(() =>
-    NOTIFICATIONS.filter((n) => n.category === 'general')
-  );
+  const [generalItems, setGeneralItems] = useState<AppNotification[]>([]);
   const [applicationItems, setApplicationItems] = useState<ApplicationListItem[]>([]);
+  const [generalLoading, setGeneralLoading] = useState(false);
   const [applicationsLoading, setApplicationsLoading] = useState(false);
+
+  const loadGeneralNotifications = useCallback(async () => {
+    if (!token) {
+      setGeneralItems([]);
+      setGeneralLoading(false);
+      return;
+    }
+
+    setGeneralLoading(true);
+    try {
+      const response = await listNotifications(token, {
+        category: 'general',
+        limit: 50,
+      });
+      setGeneralItems(mapApiNotificationsToGeneralItems(response.notifications));
+    } catch {
+      setGeneralItems([]);
+    } finally {
+      setGeneralLoading(false);
+    }
+  }, [token]);
 
   const loadApplications = useCallback(async () => {
     if (!token) {
@@ -71,8 +95,13 @@ export default function NotificationsScreen() {
 
     setApplicationsLoading(true);
     try {
-      const response = await getAppliedJobs(token, { limit: 50 });
-      setApplicationItems(mapApiApplicationsToListItems(response.applications));
+      const response = await listNotifications(token, {
+        category: 'applications',
+        limit: 50,
+      });
+      setApplicationItems(
+        mapApiNotificationsToApplicationItems(response.notifications)
+      );
     } catch {
       setApplicationItems([]);
     } finally {
@@ -80,14 +109,18 @@ export default function NotificationsScreen() {
     }
   }, [token]);
 
+  const loadNotifications = useCallback(async () => {
+    await Promise.all([loadGeneralNotifications(), loadApplications()]);
+  }, [loadGeneralNotifications, loadApplications]);
+
   useFocusEffect(
     useCallback(() => {
       const tab = route.params?.initialTab;
       if (tab === 'applications' || tab === 'general') {
         setActiveTab(tab);
       }
-      loadApplications();
-    }, [route.params?.initialTab, loadApplications])
+      loadNotifications();
+    }, [route.params?.initialTab, loadNotifications])
   );
 
   if (!fontsLoaded) {
@@ -106,22 +139,46 @@ export default function NotificationsScreen() {
     navigation.navigate('Home' as never);
   };
 
-  const handleDeleteGeneral = (id: string) => {
+  const handleDeleteGeneral = async (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setGeneralItems((prev) => prev.filter((n) => n.id !== id));
+
+    if (!token) return;
+
+    try {
+      await deleteNotification(token, id);
+    } catch {
+      loadGeneralNotifications();
+    }
   };
 
-  const handleDeleteApplication = (id: string) => {
+  const handleDeleteApplication = async (id: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setApplicationItems((prev) => prev.filter((n) => n.id !== id));
+
+    if (!token) return;
+
+    try {
+      await deleteNotification(token, id);
+    } catch {
+      loadApplications();
+    }
   };
 
-  const handleClearAllInActiveTab = () => {
+  const handleClearAllInActiveTab = async () => {
+    if (!token) return;
+
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     if (activeTab === 'general') {
       setGeneralItems([]);
     } else {
       setApplicationItems([]);
+    }
+
+    try {
+      await clearNotifications(token, activeTab);
+    } catch {
+      loadNotifications();
     }
   };
 
@@ -161,6 +218,9 @@ export default function NotificationsScreen() {
     );
   };
 
+  const isLoading =
+    activeTab === 'general' ? generalLoading : applicationsLoading;
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <NotificationsHeader
@@ -169,15 +229,15 @@ export default function NotificationsScreen() {
       />
       <NotificationsTabs active={activeTab} onChange={setActiveTab} />
       <View style={styles.body}>
-        {activeTab === 'general' ? (
+        {isLoading ? (
+          <View style={styles.loadingWrap}>
+            <ActivityIndicator color={NAVY} size="small" />
+          </View>
+        ) : activeTab === 'general' ? (
           <NotificationsList
             items={generalItems}
             onItemDelete={handleDeleteGeneral}
           />
-        ) : applicationsLoading ? (
-          <View style={styles.loadingWrap}>
-            <ActivityIndicator color={NAVY} size="small" />
-          </View>
         ) : (
           <ApplicationsNotificationsList
             items={applicationItems}

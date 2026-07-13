@@ -30,7 +30,7 @@ export default function ApplicationNotificationRow({
       <LogoFallback
         source={item.logo}
         fallback={item.fallback}
-        size={44}
+        size={48}
         borderRadius={10}
       />
 
@@ -57,8 +57,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    gap: 12,
+    paddingVertical: 18,
+    gap: 14,
+    minHeight: 96,
     backgroundColor: '#FFFFFF',
   },
   rowPressed: {
@@ -69,16 +70,16 @@ const styles = StyleSheet.create({
     minWidth: 0,
     gap: 6,
   },
-  /** Job title — Poppins Medium 14 · #202871 */
   jobTitle: {
     fontFamily: 'Poppins_500Medium',
-    fontSize: 14,
+    fontSize: 17,
+    lineHeight: 24,
     color: NAVY,
   },
-  /** Company — Poppins Regular 12 · #858BBD */
   company: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 15,
+    lineHeight: 22,
     color: COMPANY,
   },
   chevron: {
