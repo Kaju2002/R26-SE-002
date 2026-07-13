@@ -1,11 +1,14 @@
 import Job from "../model/jobModel.js";
-import Application from "../model/applicationModel.js";
+import Application, { APPLICATION_STATUSES } from "../model/applicationModel.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
 import { getFileUrl } from "../utils/cloudinaryHelper.js";
 import { formatApplication, formatApplicationList } from "../utils/applicationFormatter.js";
 import { formatJob } from "../utils/jobFormatter.js";
 import { publishEvent } from "../utils/publishEvent.js";
 import { buildResumeDownloadUrl, resolveResumeFilename } from "../utils/resumeUrlHelper.js";
+
+/** Statuses a recruiter can set via PATCH (not the initial "sent" state). */
+const RECRUITER_UPDATABLE_STATUSES = ["pending", "accepted", "rejected"];
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
@@ -200,6 +203,170 @@ export const getAppliedJobs = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching applied jobs",
+      error: error.message,
+    });
+  }
+};
+
+// ============ GET APPLICATIONS FOR A JOB (RECRUITER) ============
+export const getJobApplications = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job id",
+      });
+    }
+
+    const job = await Job.findById(id);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    if (String(job.postedBy) !== String(req.userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the job owner can view applications for this job",
+      });
+    }
+
+    const { page, limit, skip } = parsePagination(req.query);
+    const statusFilter = String(req.query.status || "").trim();
+    const filter = { jobId: job._id };
+
+    if (statusFilter) {
+      if (!APPLICATION_STATUSES.includes(statusFilter)) {
+        return res.status(400).json({
+          success: false,
+          message: `Invalid status. Use one of: ${APPLICATION_STATUSES.join(", ")}`,
+        });
+      }
+      filter.status = statusFilter;
+    }
+
+    const [applications, total] = await Promise.all([
+      Application.find(filter).sort({ appliedAt: -1 }).skip(skip).limit(limit),
+      Application.countDocuments(filter),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Job applications fetched successfully",
+      job: {
+        id: String(job._id),
+        title: job.title,
+        companyName: job.companyName,
+      },
+      applications: formatApplicationList(applications, {
+        [String(job._id)]: job,
+      }),
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 0,
+      },
+    });
+  } catch (error) {
+    console.error("Get job applications error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching job applications",
+      error: error.message,
+    });
+  }
+};
+
+// ============ UPDATE APPLICATION STATUS (RECRUITER) ============
+export const updateApplicationStatus = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+    const status = String(req.body?.status || "").trim();
+
+    if (!isValidObjectId(applicationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application id",
+      });
+    }
+
+    if (!RECRUITER_UPDATABLE_STATUSES.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Use one of: ${RECRUITER_UPDATABLE_STATUSES.join(", ")}`,
+      });
+    }
+
+    const application = await Application.findById(applicationId);
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    const job = await Job.findById(application.jobId);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found for this application",
+      });
+    }
+
+    if (String(job.postedBy) !== String(req.userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the job owner can update application status",
+      });
+    }
+
+    if (application.status === status) {
+      return res.status(200).json({
+        success: true,
+        message: "Application status unchanged",
+        application: formatApplication(application, job),
+      });
+    }
+
+    application.status = status;
+    await application.save();
+
+    await publishEvent(EVENT_TYPES.APPLICATION_STATUS_UPDATED, {
+      applicationId: String(application._id),
+      applicantId: application.applicantId,
+      recruiterId: job.postedBy,
+      jobId: String(job._id),
+      jobTitle: job.title,
+      companyName: job.companyName,
+      companyLogo: job.companyLogo || null,
+      status: application.status,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Application status updated successfully",
+      application: formatApplication(application, job),
+    });
+  } catch (error) {
+    console.error("Update application status error:", error);
+
+    if (error.name === "ValidationError") {
+      const messages = Object.values(error.errors).map((err) => err.message);
+      return res.status(400).json({
+        success: false,
+        message: messages[0] || "Validation error",
+        errors: messages,
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      message: "Error updating application status",
       error: error.message,
     });
   }

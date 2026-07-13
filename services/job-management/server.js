@@ -45,6 +45,8 @@ app.get("/", (req, res) => {
       savedJobs: "GET /api/jobs/saved",
       appliedJobs: "GET /api/jobs/applied",
       downloadApplicationResume: "GET /api/jobs/applications/:applicationId/resume",
+      updateApplicationStatus: "PATCH /api/jobs/applications/:applicationId/status",
+      getJobApplications: "GET /api/jobs/:id/applications",
       saveJob: "POST /api/jobs/saved",
       unsaveJob: "DELETE /api/jobs/saved/:jobId",
       applyToJob: "POST /api/jobs/:id/apply",
