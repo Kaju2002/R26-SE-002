@@ -1,26 +1,63 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import type { PortalConfig } from '@/lib/auth/portalConfig';
+import { useRouter } from 'next/navigation';
+import { login } from '@/lib/api/authApi';
+import type { PortalConfig, PortalType } from '@/lib/auth/portalConfig';
+import { canAccessPortal, saveSession } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
 
 type Props = {
   config: PortalConfig;
-  portalId: string;
+  portalType: PortalType;
 };
 
-export default function PortalLoginForm({ config, portalId }: Props) {
+export default function PortalLoginForm({ config, portalType }: Props) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const emailInputId = `${portalId}-email`;
-  const passwordInputId = `${portalId}-password`;
+  const emailInputId = `${portalType}-email`;
+  const passwordInputId = `${portalType}-password`;
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Backend wiring and role-based redirect come in the next step.
+    setError(null);
+
+    if (!email.trim()) {
+      setError('Please enter your email');
+      return;
+    }
+
+    if (!password) {
+      setError('Please enter your password');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await login({
+        email: email.trim(),
+        password,
+      });
+
+      if (!canAccessPortal(portalType, response.user.accountType)) {
+        setError(`This account cannot access the ${config.portalLabel}.`);
+        return;
+      }
+
+      saveSession(response.token, response.user, remember);
+      router.push(config.dashboardPath);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -40,6 +77,21 @@ export default function PortalLoginForm({ config, portalId }: Props) {
         </p>
       </div>
 
+      {error ? (
+        <div
+          className="mb-5 rounded-xl border px-4 py-3 text-sm"
+          style={{
+            borderColor: '#F5C6CA',
+            backgroundColor: '#FDEDEE',
+            color: '#C62828',
+            fontFamily: 'var(--font-poppins)',
+          }}
+          role="alert"
+        >
+          {error}
+        </div>
+      ) : null}
+
       <div className="space-y-5">
         <div>
           <label
@@ -56,7 +108,8 @@ export default function PortalLoginForm({ config, portalId }: Props) {
             placeholder={config.emailPlaceholder}
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="h-12 w-full rounded-xl border bg-white px-4 text-base outline-none transition focus:border-[#202871] focus:ring-2 focus:ring-[#20287133]"
+            disabled={isSubmitting}
+            className="h-12 w-full rounded-xl border bg-white px-4 text-base outline-none transition focus:border-[#202871] focus:ring-2 focus:ring-[#20287133] disabled:opacity-70"
             style={{
               borderColor: colors.inputBorder,
               color: colors.navy,
@@ -81,7 +134,8 @@ export default function PortalLoginForm({ config, portalId }: Props) {
               placeholder="Enter your password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              className="h-12 w-full rounded-xl border bg-white px-4 pr-12 text-base outline-none transition focus:border-[#202871] focus:ring-2 focus:ring-[#20287133]"
+              disabled={isSubmitting}
+              className="h-12 w-full rounded-xl border bg-white px-4 pr-12 text-base outline-none transition focus:border-[#202871] focus:ring-2 focus:ring-[#20287133] disabled:opacity-70"
               style={{
                 borderColor: colors.inputBorder,
                 color: colors.navy,
@@ -91,7 +145,8 @@ export default function PortalLoginForm({ config, portalId }: Props) {
             <button
               type="button"
               onClick={() => setShowPassword((value) => !value)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium"
+              disabled={isSubmitting}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium disabled:opacity-70"
               style={{ color: colors.periwinkle, fontFamily: 'var(--font-poppins)' }}
             >
               {showPassword ? 'Hide' : 'Show'}
@@ -106,6 +161,7 @@ export default function PortalLoginForm({ config, portalId }: Props) {
             type="checkbox"
             checked={remember}
             onChange={(event) => setRemember(event.target.checked)}
+            disabled={isSubmitting}
             className="h-4 w-4 rounded border"
             style={{ accentColor: colors.navy, borderColor: colors.inputBorder }}
           />
@@ -128,10 +184,11 @@ export default function PortalLoginForm({ config, portalId }: Props) {
 
       <button
         type="submit"
-        className="mt-8 h-12 w-full rounded-xl text-base font-medium text-white transition hover:opacity-95"
+        disabled={isSubmitting}
+        className="mt-8 h-12 w-full rounded-xl text-base font-medium text-white transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-70"
         style={{ backgroundColor: colors.navy, fontFamily: 'var(--font-poppins)' }}
       >
-        Sign In
+        {isSubmitting ? 'Signing in...' : 'Sign In'}
       </button>
 
       <p

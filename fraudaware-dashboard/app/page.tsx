@@ -9,7 +9,7 @@ export default function Home() {
           Portal entry points
         </h1>
         <p className="mt-3 text-base leading-relaxed text-[#42498A]">
-          UI-only setup for now. Backend login wiring comes next.
+          Sign in with your portal account. Backend auth is wired to user-management.
         </p>
 
         <div className="mt-8 flex flex-col gap-3">

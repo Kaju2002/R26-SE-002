@@ -389,6 +389,13 @@ const userSchema = new mongoose.Schema({
     enum: ["active", "inactive", "suspended", "deleted"],
     default: "active",
   },
+  accountType: {
+    type: String,
+    enum: ["jobseeker", "recruiter", "superadmin"],
+    default: "jobseeker",
+    index: true,
+    // Portal access: set to recruiter/superadmin manually in MongoDB (or via admin API later).
+  },
   lastLoginAt: {
     type: Date,
     default: null,
