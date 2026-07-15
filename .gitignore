@@ -4,6 +4,8 @@ services/scam-detection/data/
 phase2_metrics.json
 services/scam-detection/.env
 services/scam-detection/models/
+# UI template reference only — keep local, do not push
+modernize-next-js-admin-dashboard/
 
 # Ignore Python virtual environments
 .venv/
