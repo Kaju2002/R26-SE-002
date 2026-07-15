@@ -101,6 +101,7 @@ const formatAuthUser = (user) => ({
   role: user.role,
   location: user.location,
   accountStatus: user.accountStatus,
+  accountType: user.accountType || "jobseeker",
   emailVerified: user.emailVerified,
   isPremium: user.isPremium,
   lastLoginAt: user.lastLoginAt,
@@ -111,6 +112,7 @@ const signAuthToken = (user) =>
     {
       userId: user._id,
       email: user.email,
+      accountType: user.accountType || "jobseeker",
       tokenVersion: user.tokenVersion ?? 0,
     },
     JWT_SECRET(),
@@ -197,6 +199,7 @@ export const register = async (req, res) => {
       password, // Will be hashed by pre-save hook
       firstName: firstName.trim(),
       lastName: lastName.trim(),
+      accountType: "jobseeker",
       accountStatus: "active",
       emailVerified: false,
       emailVerificationToken: verificationOtp,

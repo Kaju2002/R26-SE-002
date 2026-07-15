@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function RecruiterLoginPage() {
   return (
     <SideAuthLayout config={config}>
-      <PortalLoginForm config={config} portalId="recruiter" />
+      <PortalLoginForm config={config} portalType="recruiter" />
     </SideAuthLayout>
   );
 }

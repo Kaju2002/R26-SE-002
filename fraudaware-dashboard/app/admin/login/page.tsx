@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function AdminLoginPage() {
   return (
     <SideAuthLayout config={config}>
-      <PortalLoginForm config={config} portalId="admin" />
+      <PortalLoginForm config={config} portalType="admin" />
     </SideAuthLayout>
   );
 }

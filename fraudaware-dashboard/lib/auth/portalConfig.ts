@@ -1,3 +1,5 @@
+import type { AccountType } from '@/lib/api/authTypes';
+
 export type PortalType = 'admin' | 'recruiter';
 
 export type PortalConfig = {
@@ -9,6 +11,9 @@ export type PortalConfig = {
   illustration: string;
   illustrationAlt: string;
   leftDescription: string;
+  requiredAccountType: AccountType;
+  loginPath: string;
+  dashboardPath: string;
 };
 
 export const portalConfigs: Record<PortalType, PortalConfig> = {
@@ -22,6 +27,9 @@ export const portalConfigs: Record<PortalType, PortalConfig> = {
     illustrationAlt: 'FraudAware admin portal',
     leftDescription:
       'Monitor platform activity, manage users, and keep FraudAware secure for job seekers and recruiters.',
+    requiredAccountType: 'superadmin',
+    loginPath: '/admin/login',
+    dashboardPath: '/admin/dashboard',
   },
   recruiter: {
     portalLabel: 'Recruiter Portal',
@@ -33,5 +41,8 @@ export const portalConfigs: Record<PortalType, PortalConfig> = {
     illustrationAlt: 'FraudAware recruiter portal',
     leftDescription:
       'Post jobs, review applications, and connect with candidates through FraudAware.',
+    requiredAccountType: 'recruiter',
+    loginPath: '/recruiter/login',
+    dashboardPath: '/recruiter/dashboard',
   },
 };
