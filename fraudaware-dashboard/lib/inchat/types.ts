@@ -24,6 +24,12 @@ export type InchatMessage = {
   timeLabel: string;
   createdAtIso?: string;
   unsent?: boolean;
+  scamAnalysis?: {
+    status: 'not_checked' | 'pending' | 'safe' | 'flagged' | 'error';
+    isScam: boolean;
+    score: number | null;
+    tactics: string[];
+  };
 };
 
 export const INCHAT_FILTER_OPTIONS: { id: InchatFilterId; label: string }[] = [

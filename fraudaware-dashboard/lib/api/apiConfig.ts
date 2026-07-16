@@ -10,6 +10,22 @@ export function getUserManagementBaseUrl(): string {
   );
 }
 
+export function getChatManagementBaseUrl(): string {
+  return (
+    (process.env.NEXT_PUBLIC_CHAT_MANAGEMENT_API_BASE_URL ?? '')
+      .trim()
+      .replace(/\/$/, '') || 'http://127.0.0.1:5003'
+  );
+}
+
+export function getJobManagementBaseUrl(): string {
+  return (
+    (process.env.NEXT_PUBLIC_JOB_MANAGEMENT_API_BASE_URL ?? '')
+      .trim()
+      .replace(/\/$/, '') || 'http://127.0.0.1:5001'
+  );
+}
+
 export function authHeaders(token: string): HeadersInit {
   return {
     Authorization: `Bearer ${token}`,

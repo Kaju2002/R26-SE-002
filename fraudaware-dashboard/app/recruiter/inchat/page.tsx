@@ -15,7 +15,6 @@ import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
 import type { AuthUser } from '@/lib/api/authTypes';
 import { getStoredUser } from '@/lib/auth/session';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
-import { getMockThreadById } from '@/lib/inchat/mockThreads';
 import { INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 import { INCHAT_FILTER_OPTIONS, type InchatFilterId, type InchatThread } from '@/lib/inchat/types';
 
@@ -38,7 +37,7 @@ function InchatWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const { loaded, threadsForList } = useInchat();
+  const { loaded, error, threadsForList } = useInchat();
   const [recruiter, setRecruiter] = useState<AuthUser | null>(null);
   const [query, setQuery] = useState('');
   const [filterId, setFilterId] = useState<InchatFilterId>('focused');
@@ -53,10 +52,12 @@ function InchatWorkspace() {
   );
 
   const selectedThreadId = searchParams.get('thread');
-  const selectedThread = selectedThreadId ? getMockThreadById(selectedThreadId) : undefined;
+  const selectedThread = selectedThreadId
+    ? threadsForList.find((thread) => thread.id === selectedThreadId)
+    : undefined;
 
   useEffect(() => {
-    setRecruiter(getStoredUser());
+    queueMicrotask(() => setRecruiter(getStoredUser()));
   }, []);
 
   useEffect(() => {
@@ -131,6 +132,13 @@ function InchatWorkspace() {
                 style={{ color: INCHAT_MUTED, fontFamily: 'var(--font-poppins)' }}
               >
                 Loading conversations...
+              </p>
+            ) : error ? (
+              <p
+                className="px-4 py-8 text-center text-sm text-red-600"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                {error}
               </p>
             ) : threads.length === 0 ? (
               <p
