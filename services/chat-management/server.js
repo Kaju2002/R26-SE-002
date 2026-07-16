@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import "dotenv/config";
 import connectDB from "./config/mongodb.js";
+import chatRoute from "./route/chatRoute.js";
 
 const app = express();
 const PORT = process.env.PORT || 5003;
@@ -12,6 +13,8 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/api/chat", chatRoute);
 
 app.get("/health", (req, res) => {
   const dbStates = ["disconnected", "connected", "connecting", "disconnecting"];
@@ -32,6 +35,7 @@ app.get("/", (req, res) => {
     version: "1.0.0",
     endpoints: {
       health: "GET /health",
+      me: "GET /api/chat/me (Bearer token required)",
       // Coming next: conversations + messages + Socket.io
     },
   });
@@ -55,6 +59,7 @@ app.use((err, req, res, next) => {
 const server = app.listen(PORT, () => {
   console.log(`Chat Management Service running on http://localhost:${PORT}`);
   console.log(`Health check: GET http://localhost:${PORT}/health`);
+  console.log(`Auth test: GET http://localhost:${PORT}/api/chat/me`);
 });
 
 const shutdown = async () => {
