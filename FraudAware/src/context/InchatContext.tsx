@@ -59,6 +59,10 @@ type InchatContextValue = {
   refreshConversations: () => Promise<void>;
   /** Create-or-get conversation for an application, refresh inbox, return thread id. */
   startConversationFromApplication: (applicationId: string) => Promise<string>;
+  /** True when the peer is currently typing in this thread. */
+  isPeerTyping: (threadId: string) => boolean;
+  /** Notify the peer that this user started/stopped typing. */
+  setTyping: (threadId: string, isTyping: boolean) => void;
 };
 
 const InchatContext = createContext<InchatContextValue | null>(null);
@@ -172,11 +176,13 @@ export function InchatProvider({ children }: { children: ReactNode }) {
   const [messagesByThread, setMessagesByThread] = useState<Record<string, InchatMessage[]>>({});
   const [incomingNotification, setIncomingNotification] =
     useState<InchatBannerNotification | null>(null);
+  const [typingByThread, setTypingByThread] = useState<Record<string, boolean>>({});
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const conversationsRef = useRef(conversations);
   const peerByConversationIdRef = useRef(peerByConversationId);
+  const typingTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   conversationsRef.current = conversations;
   peerByConversationIdRef.current = peerByConversationId;
 
@@ -189,6 +195,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       setConversations([]);
       setPeerByConversationId({});
       setIncomingNotification(null);
+      setTypingByThread({});
       setError(null);
       setLoaded(true);
       return;
@@ -254,6 +261,14 @@ export function InchatProvider({ children }: { children: ReactNode }) {
         [mapped.threadId]: appendUnique(previous[mapped.threadId] ?? [], mapped),
       }));
 
+      // Incoming message means peer finished typing.
+      if (chatMessage.senderId !== user.id) {
+        setTypingByThread((previous) => ({
+          ...previous,
+          [chatMessage.conversationId]: false,
+        }));
+      }
+
       const isIncomingRecruiterMessage =
         chatMessage.senderId !== user.id &&
         conversation?.myRole === 'jobseeker';
@@ -274,11 +289,46 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       void refreshConversations();
     });
 
+    socket.on(
+      'typing:update',
+      ({
+        conversationId,
+        userId,
+        isTyping,
+      }: {
+        conversationId?: string;
+        userId?: string;
+        isTyping?: boolean;
+      }) => {
+        if (!conversationId || !userId || !user?.id) return;
+        if (userId === user.id) return;
+
+        setTypingByThread((previous) => ({
+          ...previous,
+          [conversationId]: Boolean(isTyping),
+        }));
+
+        const existingTimeout = typingTimeoutRef.current[conversationId];
+        if (existingTimeout) clearTimeout(existingTimeout);
+
+        if (isTyping) {
+          typingTimeoutRef.current[conversationId] = setTimeout(() => {
+            setTypingByThread((previous) => ({
+              ...previous,
+              [conversationId]: false,
+            }));
+          }, 4000);
+        }
+      }
+    );
+
     socket.on('connect_error', (socketError) => {
       console.error('InChat socket connection failed:', socketError.message);
     });
 
     return () => {
+      Object.values(typingTimeoutRef.current).forEach(clearTimeout);
+      typingTimeoutRef.current = {};
       socket.disconnect();
       socketRef.current = null;
     };
@@ -330,6 +380,9 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       if (!trimmed) return;
       if (!conversations.some((entry) => entry.id === threadId)) return;
 
+      socketRef.current?.emit('typing:stop', { conversationId: threadId });
+      setTypingByThread((previous) => ({ ...previous, [threadId]: false }));
+
       const sent = await sendConversationMessage(token, threadId, trimmed);
       const mapped = formatMessage(sent, user.id);
       setMessagesByThread((previous) => ({
@@ -340,6 +393,18 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     },
     [conversations, refreshConversations, token, user?.id]
   );
+
+  const isPeerTyping = useCallback(
+    (threadId: string) => Boolean(typingByThread[threadId]),
+    [typingByThread]
+  );
+
+  const setTyping = useCallback((threadId: string, isTyping: boolean) => {
+    if (!threadId || !socketRef.current) return;
+    socketRef.current.emit(isTyping ? 'typing:start' : 'typing:stop', {
+      conversationId: threadId,
+    });
+  }, []);
 
   const editUserMessageState = useCallback(
     async (threadId: string, messageId: string, mode: 'delete' | 'unsend') => {
@@ -413,6 +478,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       loadMessages,
       refreshConversations,
       startConversationFromApplication,
+      isPeerTyping,
+      setTyping,
     }),
     [
       loaded,
@@ -427,6 +494,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       loadMessages,
       refreshConversations,
       startConversationFromApplication,
+      isPeerTyping,
+      setTyping,
     ]
   );
 

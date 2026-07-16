@@ -38,19 +38,38 @@ export default function InchatThreadPanel({
   showBack = false,
   hideHeader = false,
 }: Props) {
-  const { getCombinedMessages, appendRecruiterMessage, loadMessages } = useInchat();
+  const {
+    getCombinedMessages,
+    appendRecruiterMessage,
+    loadMessages,
+    isPeerTyping,
+    setTyping,
+  } = useInchat();
   const [draft, setDraft] = useState('');
   const [sendBusy, setSendBusy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const typingIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingActive = useRef(false);
 
   const messages = useMemo(
     () => getCombinedMessages(thread.id),
     [getCombinedMessages, thread.id]
   );
+  const peerTyping = isPeerTyping(thread.id);
 
   useEffect(() => {
     void loadMessages(thread.id);
   }, [loadMessages, thread.id]);
+
+  useEffect(() => {
+    return () => {
+      if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
+      if (isTypingActive.current) {
+        setTyping(thread.id, false);
+        isTypingActive.current = false;
+      }
+    };
+  }, [setTyping, thread.id]);
 
   const rows = useMemo<ThreadRow[]>(() => {
     const output: ThreadRow[] = [];
@@ -68,11 +87,42 @@ export default function InchatThreadPanel({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages.length]);
+  }, [messages.length, peerTyping]);
+
+  const onDraftChange = useCallback(
+    (value: string) => {
+      setDraft(value);
+      const hasText = value.trim().length > 0;
+
+      if (hasText) {
+        if (!isTypingActive.current) {
+          isTypingActive.current = true;
+          setTyping(thread.id, true);
+        }
+        if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
+        typingIdleTimer.current = setTimeout(() => {
+          if (isTypingActive.current) {
+            isTypingActive.current = false;
+            setTyping(thread.id, false);
+          }
+        }, 1500);
+      } else if (isTypingActive.current) {
+        if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
+        isTypingActive.current = false;
+        setTyping(thread.id, false);
+      }
+    },
+    [setTyping, thread.id]
+  );
 
   const onSend = useCallback(async () => {
     const text = draft.trim();
     if (!text.length || sendBusy) return;
+    if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
+    if (isTypingActive.current) {
+      isTypingActive.current = false;
+      setTyping(thread.id, false);
+    }
     setSendBusy(true);
     try {
       await appendRecruiterMessage(thread.id, text);
@@ -80,11 +130,17 @@ export default function InchatThreadPanel({
     } finally {
       setSendBusy(false);
     }
-  }, [appendRecruiterMessage, draft, sendBusy, thread.id]);
+  }, [appendRecruiterMessage, draft, sendBusy, setTyping, thread.id]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
-      {!hideHeader ? <InchatConversationHeader thread={thread} showBack={showBack} /> : null}
+      {!hideHeader ? (
+        <InchatConversationHeader
+          thread={thread}
+          showBack={showBack}
+          isTyping={peerTyping}
+        />
+      ) : null}
 
       <div className="min-h-0 flex-1 overflow-y-auto bg-[#FAFBFE] px-4 py-4">
         {rows.length === 0 ? (
@@ -115,12 +171,20 @@ export default function InchatThreadPanel({
             )
           )
         )}
+        {peerTyping ? (
+          <p
+            className="mt-2 text-xs font-semibold italic text-[#2563EB]"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            {thread.participantName} is typing…
+          </p>
+        ) : null}
         <div ref={bottomRef} />
       </div>
 
       <InchatComposer
         value={draft}
-        onChange={setDraft}
+        onChange={onDraftChange}
         onSend={() => void onSend()}
         sending={sendBusy}
       />

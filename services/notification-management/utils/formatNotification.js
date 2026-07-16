@@ -45,6 +45,7 @@ const formatDisplayTime = (value) => {
 
 export const formatGeneralNotification = (notification) => {
   const createdAt = notification.createdAt || new Date();
+  const metadata = notification.metadata || {};
 
   return {
     id: String(notification._id),
@@ -55,6 +56,10 @@ export const formatGeneralNotification = (notification) => {
     date: formatDisplayDate(createdAt),
     time: formatDisplayTime(createdAt),
     read: Boolean(notification.read),
+    conversationId: metadata.conversationId
+      ? String(metadata.conversationId)
+      : undefined,
+    flagged: Boolean(metadata.flagged),
   };
 };
 

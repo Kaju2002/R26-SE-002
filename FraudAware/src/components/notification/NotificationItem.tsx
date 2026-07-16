@@ -25,7 +25,14 @@ export default function NotificationItem({
       accessibilityLabel={item.title}
       style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
     >
-      <Text style={styles.title}>{item.title}</Text>
+      <Text
+        style={[
+          styles.title,
+          (item.type === 'scam' || item.flagged) && styles.scamTitle,
+        ]}
+      >
+        {item.title}
+      </Text>
       <Text style={styles.meta}>
         {item.date}
         <Text style={styles.metaSep}>{' · '}</Text>
@@ -53,6 +60,9 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: TITLE,
     marginBottom: 6,
+  },
+  scamTitle: {
+    color: '#B42318',
   },
   meta: {
     fontFamily: 'Poppins_400Regular',

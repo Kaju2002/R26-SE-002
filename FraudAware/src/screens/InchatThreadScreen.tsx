@@ -66,10 +66,14 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     editUserMessageState,
     loadMessages,
     loaded,
+    isPeerTyping,
+    setTyping,
   } = useInchat();
   const thread = getThreadById(threadId);
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<ThreadRow>>(null);
+  const typingIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isTypingActive = useRef(false);
 
   const [draft, setDraft] = useState('');
   const [sendBusy, setSendBusy] = useState(false);
@@ -88,6 +92,44 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     if (!loaded) return;
     void loadMessages(threadId);
   }, [loaded, loadMessages, threadId]);
+
+  useEffect(() => {
+    return () => {
+      if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
+      if (isTypingActive.current) {
+        setTyping(threadId, false);
+        isTypingActive.current = false;
+      }
+    };
+  }, [setTyping, threadId]);
+
+  const peerTyping = isPeerTyping(threadId);
+
+  const onDraftChange = useCallback(
+    (text: string) => {
+      setDraft(text);
+      const hasText = text.trim().length > 0;
+
+      if (hasText) {
+        if (!isTypingActive.current) {
+          isTypingActive.current = true;
+          setTyping(threadId, true);
+        }
+        if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
+        typingIdleTimer.current = setTimeout(() => {
+          if (isTypingActive.current) {
+            isTypingActive.current = false;
+            setTyping(threadId, false);
+          }
+        }, 1500);
+      } else if (isTypingActive.current) {
+        if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
+        isTypingActive.current = false;
+        setTyping(threadId, false);
+      }
+    },
+    [setTyping, threadId]
+  );
 
   const transcript = useMemo(() => transcriptFromMessages(messages), [messages]);
   const hasTranscript = transcript.trim().length > 0;
@@ -162,6 +204,11 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
   const onSend = useCallback(async () => {
     const text = draft.trim();
     if (!text.length || sendBusy) return;
+    if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
+    if (isTypingActive.current) {
+      isTypingActive.current = false;
+      setTyping(threadId, false);
+    }
     setSendBusy(true);
     try {
       await appendUserMessage(threadId, text);
@@ -169,7 +216,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     } finally {
       setSendBusy(false);
     }
-  }, [appendUserMessage, draft, sendBusy, threadId]);
+  }, [appendUserMessage, draft, sendBusy, setTyping, threadId]);
 
   const appendAttachmentNote = useCallback(
     async (line: string) => {
@@ -287,7 +334,11 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
           <Text style={styles.headerTitle} numberOfLines={1}>
             {thread?.participantName ?? 'Conversation'}
           </Text>
-          {thread?.subtitle ? (
+          {peerTyping ? (
+            <Text style={styles.typingSub} numberOfLines={1}>
+              typing…
+            </Text>
+          ) : thread?.subtitle ? (
             <Text style={styles.headerSub} numberOfLines={1}>
               {thread.subtitle}
             </Text>
@@ -346,7 +397,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         <View style={[styles.footerCol, { paddingBottom: Math.max(insets.bottom, 10) }]}>
           <InchatComposer
             value={draft}
-            onChangeText={setDraft}
+            onChangeText={onDraftChange}
             onSend={onSend}
             sending={sendBusy}
             onTakePhoto={onTakePhoto}
@@ -449,6 +500,13 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: INCHAT_MUTED,
+    marginTop: 2,
+  },
+  typingSub: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#2563EB',
+    fontStyle: 'italic',
     marginTop: 2,
   },
   headerActions: {

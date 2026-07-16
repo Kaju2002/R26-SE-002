@@ -5,7 +5,8 @@ export type NotificationType =
   | 'scam'
   | 'job'
   | 'application'
-  | 'system';
+  | 'system'
+  | 'chat';
 
 export type AppNotification = {
   id: string;
@@ -18,6 +19,9 @@ export type AppNotification = {
   /** Pre-formatted time e.g. "09:43 AM" */
   time: string;
   read?: boolean;
+  /** Present for InChat message notifications — tap opens the thread. */
+  conversationId?: string;
+  flagged?: boolean;
 };
 
 export const NOTIFICATIONS: AppNotification[] = [

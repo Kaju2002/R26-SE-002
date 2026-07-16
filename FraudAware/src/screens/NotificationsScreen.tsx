@@ -18,6 +18,7 @@ import {
   useFocusEffect,
   useNavigation,
   useRoute,
+  type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/rootStackParams';
@@ -39,6 +40,7 @@ import {
   mapApiNotificationsToGeneralItems,
 } from '../utils/notificationMapper';
 import { useUser } from '../context/UserContext';
+import { navigateToInchatThread } from '../navigation/navigateToInchatThread';
 
 if (
   Platform.OS === 'android' &&
@@ -50,7 +52,7 @@ if (
 const NAVY = '#202871';
 
 export default function NotificationsScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'Notifications'>>();
   const { token } = useUser();
 
@@ -182,6 +184,12 @@ export default function NotificationsScreen() {
     }
   };
 
+  const handleGeneralPress = (id: string) => {
+    const item = generalItems.find((entry) => entry.id === id);
+    if (!item?.conversationId) return;
+    navigateToInchatThread(navigation, item.conversationId);
+  };
+
   const openMoreMenu = () => {
     const visibleCount =
       activeTab === 'general' ? generalItems.length : applicationItems.length;
@@ -236,6 +244,7 @@ export default function NotificationsScreen() {
         ) : activeTab === 'general' ? (
           <NotificationsList
             items={generalItems}
+            onItemPress={handleGeneralPress}
             onItemDelete={handleDeleteGeneral}
           />
         ) : (

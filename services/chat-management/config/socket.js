@@ -39,9 +39,12 @@ const assertParticipant = async (conversationId, userId) => {
  * Client events:
  *   conversation:join  { conversationId }
  *   conversation:leave { conversationId }
+ *   typing:start       { conversationId }
+ *   typing:stop        { conversationId }
  *
  * Server events:
  *   message:new        { chatMessage }
+ *   typing:update      { conversationId, userId, isTyping }
  *   conversation:joined / conversation:error
  */
 export const initSocket = (httpServer) => {
@@ -108,7 +111,38 @@ export const initSocket = (httpServer) => {
     socket.on("conversation:leave", (payload = {}) => {
       const conversationId = String(payload.conversationId || "").trim();
       if (!conversationId) return;
+      socket
+        .to(conversationRoom(conversationId))
+        .emit("typing:update", {
+          conversationId,
+          userId: socket.userId,
+          isTyping: false,
+        });
       socket.leave(conversationRoom(conversationId));
+    });
+
+    const emitTyping = async (payload = {}, isTyping) => {
+      try {
+        const conversationId = String(payload.conversationId || "").trim();
+        const access = await assertParticipant(conversationId, socket.userId);
+        if (!access.ok) return;
+
+        socket.to(conversationRoom(conversationId)).emit("typing:update", {
+          conversationId,
+          userId: socket.userId,
+          isTyping: Boolean(isTyping),
+        });
+      } catch (error) {
+        console.error("typing event error:", error.message);
+      }
+    };
+
+    socket.on("typing:start", (payload) => {
+      void emitTyping(payload, true);
+    });
+
+    socket.on("typing:stop", (payload) => {
+      void emitTyping(payload, false);
     });
 
     socket.on("disconnect", () => {
