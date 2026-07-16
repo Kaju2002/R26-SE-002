@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Conversation from "../model/conversationModel.js";
 import Message from "../model/messageModel.js";
+import { emitNewMessage } from "../config/socket.js";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
@@ -126,8 +127,9 @@ const buildPreview = (body = "") => {
  * Body: { body: "Hello" }
  *
  * Saves a text message from the authenticated participant,
- * updates conversation lastMessage + peer unread count.
- * (Attachments / Socket.io / scam check come in later pieces.)
+ * updates conversation lastMessage + peer unread count,
+ * then broadcasts message:new over Socket.io.
+ * (Attachments / scam check come in later pieces.)
  */
 export const sendMessage = async (req, res) => {
   try {
@@ -193,10 +195,13 @@ export const sendMessage = async (req, res) => {
       $inc: { [unreadField]: 1 },
     });
 
+    const chatMessage = formatMessage(message);
+    emitNewMessage(conversationId, chatMessage);
+
     return res.status(201).json({
       success: true,
       message: "Message sent successfully",
-      chatMessage: formatMessage(message),
+      chatMessage,
     });
   } catch (error) {
     console.error("Send message error:", error);

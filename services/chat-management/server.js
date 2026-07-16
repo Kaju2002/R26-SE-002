@@ -1,8 +1,10 @@
+import http from "http";
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
 import "dotenv/config";
 import connectDB from "./config/mongodb.js";
+import { initSocket } from "./config/socket.js";
 import chatRoute from "./route/chatRoute.js";
 
 const app = express();
@@ -42,7 +44,8 @@ app.get("/", (req, res) => {
         "GET /api/chat/conversations/:conversationId/messages (Bearer token required)",
       sendMessage:
         "POST /api/chat/conversations/:conversationId/messages (Bearer token required)",
-      // Coming next: Socket.io real-time + scam detection
+      socket: "Socket.io on same port (JWT in auth.token)",
+      // Coming next: scam detection on send
     },
   });
 });
@@ -62,10 +65,14 @@ app.use((err, req, res, next) => {
   });
 });
 
-const server = app.listen(PORT, () => {
+const server = http.createServer(app);
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Chat Management Service running on http://localhost:${PORT}`);
   console.log(`Health check: GET http://localhost:${PORT}/health`);
   console.log(`Auth test: GET http://localhost:${PORT}/api/chat/me`);
+  console.log(`Socket.io: ws://localhost:${PORT} (auth.token = JWT)`);
 });
 
 const shutdown = async () => {
