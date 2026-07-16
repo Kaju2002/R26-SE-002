@@ -36,8 +36,13 @@ app.get("/", (req, res) => {
     endpoints: {
       health: "GET /health",
       me: "GET /api/chat/me (Bearer token required)",
+      listConversations: "GET /api/chat/conversations (Bearer token required)",
       createConversation: "POST /api/chat/conversations (Bearer token required)",
-      // Coming next: list conversations + messages + Socket.io
+      getMessages:
+        "GET /api/chat/conversations/:conversationId/messages (Bearer token required)",
+      sendMessage:
+        "POST /api/chat/conversations/:conversationId/messages (Bearer token required)",
+      // Coming next: Socket.io real-time + scam detection
     },
   });
 });
