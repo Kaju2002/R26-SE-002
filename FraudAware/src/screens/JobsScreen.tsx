@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -23,9 +24,11 @@ import {
 import type { Job } from '../../data/jobs';
 import type { RootStackParamList } from '../navigation/rootStackParams';
 import { getAppliedJobs, getSavedJobs, listJobs, type ListJobsParams } from '../api/jobApi';
-import { mapApiJobsToJobs } from '../utils/jobMapper';
+import { mapApiJobsToJobs, mapAppliedJobsToJobs } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
 import { useUser } from '../context/UserContext';
+import { useInchat } from '../context/InchatContext';
+import { navigateToInchatThread } from '../navigation/navigateToInchatThread';
 import JobsSearchHeader from '../components/jobs/search/JobsSearchHeader';
 import JobsLoadingState from '../components/jobs/search/JobsLoadingState';
 import JobsEmptyState from '../components/jobs/search/JobsEmptyState';
@@ -109,6 +112,7 @@ export default function JobsScreen() {
   const route = useRoute<RouteProp<JobsRouteParams, 'Jobs'>>();
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
   const { token, user } = useUser();
+  const { startConversationFromApplication } = useInchat();
   const [segment, setSegment] = useState<JobsSegment>(
     route.params?.segment ?? 'forYou'
   );
@@ -120,6 +124,7 @@ export default function JobsScreen() {
   const [filters, setFilters] = useState<JobFilters>(DEFAULT_JOB_FILTERS);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [fetching, setFetching] = useState(true);
+  const [startingChat, setStartingChat] = useState(false);
 
   useEffect(() => {
     if (route.params?.segment) {
@@ -156,7 +161,7 @@ export default function JobsScreen() {
       setFetching(true);
       try {
         const response = await getAppliedJobs(token, { limit: 50 });
-        const appliedJobs = mapApiJobsToJobs(response.jobs);
+        const appliedJobs = mapAppliedJobsToJobs(response.jobs, response.applications);
         setJobs(sortJobs(filterJobs(appliedJobs, query, filters), sort));
       } catch {
         setJobs([]);
@@ -225,6 +230,37 @@ export default function JobsScreen() {
     [navigation]
   );
 
+  const onChatPress = useCallback(
+    async ({
+      recruiterId,
+      jobId,
+      applicationId,
+    }: {
+      recruiterId: string;
+      jobId: string;
+      applicationId?: string;
+    }) => {
+      if (!applicationId) {
+        openRecruiterProfile({ recruiterId, jobId });
+        return;
+      }
+      if (startingChat) return;
+      setStartingChat(true);
+      try {
+        const threadId = await startConversationFromApplication(applicationId);
+        navigateToInchatThread(navigation, threadId);
+      } catch (err) {
+        Alert.alert(
+          'Could not start chat',
+          err instanceof Error ? err.message : 'Please try again.'
+        );
+      } finally {
+        setStartingChat(false);
+      }
+    },
+    [navigation, openRecruiterProfile, startConversationFromApplication, startingChat]
+  );
+
   if (!fontsLoaded) {
     return (
       <View style={styles.splash}>
@@ -253,7 +289,7 @@ export default function JobsScreen() {
             onJobPress={(jobId) => navigation.navigate('JobDetails', { jobId })}
             bookmarkedIds={bookmarkedIds}
             onBookmarkPress={toggleBookmark}
-            onChatPress={openRecruiterProfile}
+            onChatPress={onChatPress}
             currentUserId={user?.id}
             onSortPress={(anchor) => {
               setSortAnchor(anchor);

@@ -4,7 +4,7 @@ import {
   createConversation,
   listConversations,
 } from "../controller/conversationController.js";
-import { getMessages, sendMessage } from "../controller/messageController.js";
+import { getMessages, sendMessage, markConversationRead } from "../controller/messageController.js";
 
 const router = Router();
 
@@ -54,6 +54,16 @@ router.post(
   "/conversations/:conversationId/messages",
   authMiddleware,
   sendMessage
+);
+
+/**
+ * PATCH /api/chat/conversations/:conversationId/read
+ * Mark conversation as read for the caller (clears unread badge).
+ */
+router.patch(
+  "/conversations/:conversationId/read",
+  authMiddleware,
+  markConversationRead
 );
 
 export default router;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Image,
   Linking,
   Pressable,
@@ -33,11 +34,13 @@ import {
   formatShortDate,
   type Job,
 } from '../../data/jobs';
-import { getJobById } from '../api/jobApi';
+import { getAppliedJobs, getJobById } from '../api/jobApi';
 import { getPublicRecruiterProfile } from '../api/recruiterApi';
 import { mapApiJobToJob } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
 import { useUser } from '../context/UserContext';
+import { useInchat } from '../context/InchatContext';
+import { navigateToInchatThread } from '../navigation/navigateToInchatThread';
 import type { RootStackParamList } from '../navigation/rootStackParams';
 import type { PublicRecruiterProfile } from '../types/recruiter';
 import { canMessageRecruiter } from '../utils/recruiterHelpers';
@@ -56,18 +59,22 @@ export default function JobDetailsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RouteParams, 'JobDetails'>>();
   const { token, user } = useUser();
+  const { startConversationFromApplication } = useInchat();
   const jobId = route.params?.jobId;
 
   const [job, setJob] = useState<Job | undefined>();
+  const [applicationId, setApplicationId] = useState<string | undefined>();
   const [recruiter, setRecruiter] = useState<PublicRecruiterProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [recruiterLoading, setRecruiterLoading] = useState(false);
+  const [startingChat, setStartingChat] = useState(false);
   const [tab, setTab] = useState<Tab>('overview');
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
   useEffect(() => {
     if (!jobId) {
       setJob(undefined);
+      setApplicationId(undefined);
       setLoading(false);
       return;
     }
@@ -81,9 +88,26 @@ export default function JobDetailsScreen() {
         if (!cancelled) {
           setJob(mapApiJobToJob(response.job));
         }
+
+        if (token) {
+          try {
+            const applied = await getAppliedJobs(token, { limit: 100 });
+            const match = applied.applications.find((entry) => entry.jobId === jobId);
+            if (!cancelled) {
+              setApplicationId(match?.id);
+            }
+          } catch {
+            if (!cancelled) {
+              setApplicationId(undefined);
+            }
+          }
+        } else if (!cancelled) {
+          setApplicationId(undefined);
+        }
       } catch {
         if (!cancelled) {
           setJob(undefined);
+          setApplicationId(undefined);
         }
       } finally {
         if (!cancelled) {
@@ -192,6 +216,26 @@ export default function JobDetailsScreen() {
     });
   };
 
+  const onMessagePress = async () => {
+    if (!applicationId) {
+      openRecruiterProfile();
+      return;
+    }
+    if (startingChat) return;
+    setStartingChat(true);
+    try {
+      const threadId = await startConversationFromApplication(applicationId);
+      navigateToInchatThread(navigation, threadId);
+    } catch (err) {
+      Alert.alert(
+        'Could not start chat',
+        err instanceof Error ? err.message : 'Please try again.'
+      );
+    } finally {
+      setStartingChat(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <DetailHeader
@@ -240,7 +284,8 @@ export default function JobDetailsScreen() {
           </Pressable>
           {canChat && !isOwnJob ? (
             <Pressable
-              onPress={openRecruiterProfile}
+              onPress={() => void onMessagePress()}
+              disabled={startingChat}
               accessibilityRole="button"
               accessibilityLabel="Message recruiter"
               style={({ pressed }) => [
@@ -249,7 +294,9 @@ export default function JobDetailsScreen() {
               ]}
             >
               <ChatIcon size={20} color={NAVY} />
-              <Text style={styles.messageText}>Message</Text>
+              <Text style={styles.messageText}>
+                {startingChat ? 'Opening…' : 'Message'}
+              </Text>
             </Pressable>
           ) : null}
           <Pressable

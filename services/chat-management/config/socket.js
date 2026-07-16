@@ -123,10 +123,22 @@ export const initSocket = (httpServer) => {
 export const getIO = () => io;
 
 /**
- * Broadcast a new message to everyone in that conversation room.
+ * Broadcast a new message to the conversation and both participants' personal rooms.
+ * Socket.io unions the rooms, so a socket present in more than one receives one event.
  * Safe no-op if Socket.io is not initialized yet.
  */
-export const emitNewMessage = (conversationId, chatMessage) => {
+export const emitNewMessage = (
+  conversationId,
+  chatMessage,
+  participantIds = [],
+) => {
   if (!io) return;
-  io.to(conversationRoom(conversationId)).emit("message:new", { chatMessage });
+
+  let target = io.to(conversationRoom(conversationId));
+  for (const participantId of participantIds) {
+    if (participantId) {
+      target = target.to(`user:${String(participantId)}`);
+    }
+  }
+  target.emit("message:new", { chatMessage });
 };

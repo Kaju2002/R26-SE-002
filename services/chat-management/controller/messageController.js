@@ -209,7 +209,10 @@ export const sendMessage = async (req, res) => {
     });
 
     const chatMessage = formatMessage(message);
-    emitNewMessage(conversationId, chatMessage);
+    emitNewMessage(conversationId, chatMessage, [
+      conversation.recruiterId,
+      conversation.jobseekerId,
+    ]);
 
     return res.status(201).json({
       success: true,
@@ -231,6 +234,68 @@ export const sendMessage = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error sending message",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * PATCH /api/chat/conversations/:conversationId/read
+ *
+ * Marks the conversation as read for the caller:
+ * - resets their unread count to 0
+ * - sets peer messages to status "read"
+ */
+export const markConversationRead = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const access = await getParticipantConversation(conversationId, req.userId);
+
+    if (!access.ok) {
+      return res.status(access.status).json({
+        success: false,
+        message: access.message,
+      });
+    }
+
+    const conversation = access.conversation;
+    const isRecruiter = String(conversation.recruiterId) === String(req.userId);
+    const unreadField = isRecruiter
+      ? "unreadCounts.recruiter"
+      : "unreadCounts.jobseeker";
+
+    const now = new Date();
+
+    await Promise.all([
+      Conversation.findByIdAndUpdate(conversation._id, {
+        $set: { [unreadField]: 0 },
+      }),
+      Message.updateMany(
+        {
+          conversationId: conversation._id,
+          senderId: { $ne: String(req.userId) },
+          status: { $ne: "read" },
+        },
+        {
+          $set: {
+            status: "read",
+            readAt: now,
+          },
+        }
+      ),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: "Conversation marked as read",
+      conversationId,
+      myUnread: 0,
+    });
+  } catch (error) {
+    console.error("Mark conversation read error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error marking conversation as read",
       error: error.message,
     });
   }

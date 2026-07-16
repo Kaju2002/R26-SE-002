@@ -28,8 +28,10 @@ import LogoFallback from '../components/profile/LogoFallback';
 import RecruiterPostedJobCard from '../components/recruiter/RecruiterPostedJobCard';
 import ChatIcon from '../components/icons/ChatIcon';
 import { getPublicRecruiterProfile } from '../api/recruiterApi';
-import { getJobById, getJobsByRecruiter } from '../api/jobApi';
+import { getAppliedJobs, getJobById, getJobsByRecruiter } from '../api/jobApi';
 import { useUser } from '../context/UserContext';
+import { useInchat } from '../context/InchatContext';
+import { navigateToInchatThread } from '../navigation/navigateToInchatThread';
 import type { RootStackParamList } from '../navigation/rootStackParams';
 import type { PublicRecruiterProfile } from '../types/recruiter';
 import type { Job } from '../../data/jobs';
@@ -55,13 +57,16 @@ export default function RecruiterProfileScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteParams>();
   const { token } = useUser();
+  const { startConversationFromApplication } = useInchat();
   const { recruiterId, jobId } = route.params;
 
   const [recruiter, setRecruiter] = useState<PublicRecruiterProfile | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [activeJobsCount, setActiveJobsCount] = useState(0);
   const [contextJob, setContextJob] = useState<Job | undefined>();
+  const [applicationId, setApplicationId] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
+  const [startingChat, setStartingChat] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [fontsLoaded] = useFonts({
@@ -81,10 +86,13 @@ export default function RecruiterProfileScreen() {
     setError(null);
 
     try {
-      const [profileRes, jobsRes, jobRes] = await Promise.all([
+      const [profileRes, jobsRes, jobRes, appliedRes] = await Promise.all([
         getPublicRecruiterProfile(recruiterId, token),
         getJobsByRecruiter(recruiterId, { status: 'active', limit: 20 }, token),
         jobId ? getJobById(jobId, token).catch(() => null) : Promise.resolve(null),
+        jobId
+          ? getAppliedJobs(token, { limit: 100 }).catch(() => null)
+          : Promise.resolve(null),
       ]);
 
       setRecruiter(profileRes.recruiter);
@@ -95,10 +103,13 @@ export default function RecruiterProfileScreen() {
       } else {
         setContextJob(undefined);
       }
+      const match = appliedRes?.applications.find((entry) => entry.jobId === jobId);
+      setApplicationId(match?.id);
     } catch (err) {
       setRecruiter(null);
       setJobs([]);
       setContextJob(undefined);
+      setApplicationId(undefined);
       setError(err instanceof Error ? err.message : 'Failed to load recruiter profile');
     } finally {
       setLoading(false);
@@ -114,13 +125,29 @@ export default function RecruiterProfileScreen() {
     return jobs.filter((job) => job.id !== jobId);
   }, [jobId, jobs]);
 
-  const onChatPress = useCallback(() => {
-    Alert.alert(
-      'InChat coming soon',
-      'Live recruiter chat will be available when the InChat module is connected. You can still review this profile and check the employer first.',
-      [{ text: 'OK' }]
-    );
-  }, []);
+  const onChatPress = useCallback(async () => {
+    if (!applicationId) {
+      Alert.alert(
+        'Apply to message',
+        'Message the recruiter after you apply to this job. Your chat is linked to your application.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+    if (startingChat) return;
+    setStartingChat(true);
+    try {
+      const threadId = await startConversationFromApplication(applicationId);
+      navigateToInchatThread(navigation, threadId);
+    } catch (err) {
+      Alert.alert(
+        'Could not start chat',
+        err instanceof Error ? err.message : 'Please try again.'
+      );
+    } finally {
+      setStartingChat(false);
+    }
+  }, [applicationId, navigation, startConversationFromApplication, startingChat]);
 
   if (!fontsLoaded) {
     return (
@@ -329,13 +356,18 @@ export default function RecruiterProfileScreen() {
           {!recruiter.isSelf && recruiter.allowMessages ? (
             <View style={styles.footer}>
               <Pressable
-                onPress={onChatPress}
+                onPress={() => void onChatPress()}
+                disabled={startingChat}
                 accessibilityRole="button"
                 accessibilityLabel={`Chat with ${recruiter.fullName}`}
                 style={({ pressed }) => [styles.chatBtn, pressed && { opacity: 0.9 }]}
               >
                 <ChatIcon size={20} color="#FFFFFF" />
-                <Text style={styles.chatBtnText}>Chat with {recruiter.fullName.split(' ')[0]}</Text>
+                <Text style={styles.chatBtnText}>
+                  {startingChat
+                    ? 'Opening…'
+                    : `Chat with ${recruiter.fullName.split(' ')[0]}`}
+                </Text>
               </Pressable>
             </View>
           ) : null}

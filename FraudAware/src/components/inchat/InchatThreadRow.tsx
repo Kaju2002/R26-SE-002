@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { InchatThread } from '../../../data/inchatThreads';
 import { INCHAT_BLUE_DOT, INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from './inchatStyles';
@@ -18,7 +18,16 @@ export default function InchatThreadRow({ thread, onPress }: Props) {
       accessibilityLabel={`${thread.participantName}. ${thread.lastMessagePreview}`}
     >
       <View style={styles.avatarWrap}>
-        {thread.avatarKind === 'company' ? (
+        {thread.avatarUrl ? (
+          <Image
+            source={{ uri: thread.avatarUrl }}
+            style={[
+              styles.avatar,
+              thread.avatarKind === 'company' ? styles.avatarCompany : styles.avatarPerson,
+            ]}
+            resizeMode="cover"
+          />
+        ) : thread.avatarKind === 'company' ? (
           <View style={[styles.avatar, styles.avatarCompany]}>
             <MaterialCommunityIcons name="domain" size={22} color={INCHAT_NAVY} />
           </View>

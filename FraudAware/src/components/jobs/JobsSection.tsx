@@ -19,7 +19,11 @@ type Props = {
   layout?: 'horizontal' | 'vertical';
   onJobPress?: (id: string) => void;
   onBookmarkPress?: (id: string) => void;
-  onChatPress?: (params: { recruiterId: string; jobId: string }) => void;
+  onChatPress?: (params: {
+    recruiterId: string;
+    jobId: string;
+    applicationId?: string;
+  }) => void;
   currentUserId?: string | null;
   bookmarkedIds?: Set<string>;
   onSeeAllPress?: () => void;

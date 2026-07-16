@@ -1,8 +1,8 @@
 import type { Job } from '../../data/jobs';
-import type { ApiJob } from '../api/jobApi';
+import type { ApiApplication, ApiJob } from '../api/jobApi';
 
 /** Map job-management API shape to frontend Job (used by cards & detail screens). */
-export function mapApiJobToJob(apiJob: ApiJob): Job {
+export function mapApiJobToJob(apiJob: ApiJob, applicationId?: string): Job {
   return {
     id: apiJob.id,
     title: apiJob.title,
@@ -35,9 +35,22 @@ export function mapApiJobToJob(apiJob: ApiJob): Job {
     about: apiJob.about,
     contact: apiJob.contact,
     postedBy: apiJob.postedBy,
+    applicationId,
   };
 }
 
 export function mapApiJobsToJobs(apiJobs: ApiJob[]): Job[] {
-  return apiJobs.map(mapApiJobToJob);
+  return apiJobs.map((job) => mapApiJobToJob(job));
+}
+
+/** Join applied jobs with their application ids (needed to open InChat). */
+export function mapAppliedJobsToJobs(
+  apiJobs: ApiJob[],
+  applications: ApiApplication[]
+): Job[] {
+  const applicationIdByJobId = Object.fromEntries(
+    applications.map((application) => [application.jobId, application.id])
+  );
+
+  return apiJobs.map((job) => mapApiJobToJob(job, applicationIdByJobId[job.id]));
 }

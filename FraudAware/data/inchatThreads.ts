@@ -15,6 +15,8 @@ export type InchatThread = {
   avatarKind: InchatAvatarKind;
   /** Shown in circular avatar when avatarKind is person */
   initials?: string;
+  /** Remote avatar / company logo URL; when set, rendered as an image. */
+  avatarUrl?: string;
   lastMessagePreview: string;
   /** Short label for the top-right of the row (e.g. Thu, Apr 22) */
   timestampLabel: string;

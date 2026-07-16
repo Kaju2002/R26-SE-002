@@ -75,7 +75,11 @@ type Props = {
   job: Job;
   onPress?: () => void;
   onBookmarkPress?: () => void;
-  onChatPress?: (params: { recruiterId: string; jobId: string }) => void;
+  onChatPress?: (params: {
+    recruiterId: string;
+    jobId: string;
+    applicationId?: string;
+  }) => void;
   currentUserId?: string | null;
   isBookmarked?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -98,7 +102,11 @@ export default function JobCard({
 
   const handleChatPress = () => {
     if (!canChat || !job.postedBy) return;
-    onChatPress?.({ recruiterId: job.postedBy, jobId: job.id });
+    onChatPress?.({
+      recruiterId: job.postedBy,
+      jobId: job.id,
+      applicationId: job.applicationId,
+    });
   };
 
   return (
