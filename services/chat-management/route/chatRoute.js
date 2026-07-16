@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware } from "../middleware/authMiddleware.js";
+import { createConversation } from "../controller/conversationController.js";
 
 const router = Router();
 
@@ -18,5 +19,11 @@ router.get("/me", authMiddleware, (req, res) => {
     },
   });
 });
+
+/**
+ * POST /api/chat/conversations
+ * Create (or return) the conversation for a job application.
+ */
+router.post("/conversations", authMiddleware, createConversation);
 
 export default router;
