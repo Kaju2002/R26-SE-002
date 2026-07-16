@@ -16,6 +16,7 @@ export default function InchatMessageBubble({
 }: Props) {
   const mine = message.role === 'recruiter';
   const isUnsent = message.unsent === true;
+  const isFlagged = message.scamAnalysis?.status === 'flagged';
 
   return (
     <div className={`mb-4 flex max-w-[88%] gap-2.5 ${mine ? 'ml-auto justify-end' : 'mr-auto'}`}>
@@ -39,16 +40,35 @@ export default function InchatMessageBubble({
         </p>
         <div
           className={`inline-block max-w-full rounded-md px-3.5 py-2.5 text-left ${
-            mine ? 'bg-[#EEF0F8]' : 'border bg-[#F3F5F8]'
+            isFlagged
+              ? 'border border-red-300 bg-red-50'
+              : mine
+                ? 'bg-[#EEF0F8]'
+                : 'border bg-[#F3F5F8]'
           }`}
-          style={!mine ? { borderColor: INCHAT_BORDER } : undefined}
+          style={!mine && !isFlagged ? { borderColor: INCHAT_BORDER } : undefined}
         >
+          {isFlagged ? (
+            <div className="mb-2 flex items-center gap-1.5 text-xs font-bold text-red-700">
+              <span aria-hidden>⚠</span>
+              Potential scam
+              {message.scamAnalysis?.score !== null &&
+              message.scamAnalysis?.score !== undefined
+                ? ` • ${Math.round(message.scamAnalysis.score * 100)}% risk`
+                : ''}
+            </div>
+          ) : null}
           <p
             className={`text-sm leading-5 text-[#1F2937] ${isUnsent ? 'italic opacity-80' : ''}`}
             style={{ fontFamily: 'var(--font-poppins)' }}
           >
             {message.body}
           </p>
+          {isFlagged && message.scamAnalysis?.tactics.length ? (
+            <p className="mt-2 text-[11px] font-medium text-red-600">
+              Detected: {message.scamAnalysis.tactics.join(', ')}
+            </p>
+          ) : null}
         </div>
       </div>
     </div>

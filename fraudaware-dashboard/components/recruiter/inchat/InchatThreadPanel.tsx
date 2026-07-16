@@ -38,7 +38,7 @@ export default function InchatThreadPanel({
   showBack = false,
   hideHeader = false,
 }: Props) {
-  const { getCombinedMessages, appendRecruiterMessage } = useInchat();
+  const { getCombinedMessages, appendRecruiterMessage, loadMessages } = useInchat();
   const [draft, setDraft] = useState('');
   const [sendBusy, setSendBusy] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -47,6 +47,10 @@ export default function InchatThreadPanel({
     () => getCombinedMessages(thread.id),
     [getCombinedMessages, thread.id]
   );
+
+  useEffect(() => {
+    void loadMessages(thread.id);
+  }, [loadMessages, thread.id]);
 
   const rows = useMemo<ThreadRow[]>(() => {
     const output: ThreadRow[] = [];
