@@ -3,6 +3,9 @@ import Conversation from "../model/conversationModel.js";
 import Message from "../model/messageModel.js";
 import { emitNewMessage } from "../config/socket.js";
 import { analyzeMessageForScam } from "../utils/scamDetectionClient.js";
+import { fetchApplication } from "../utils/jobManagementClient.js";
+import { publishEvent } from "../utils/publishEvent.js";
+import { EVENT_TYPES } from "../constants/eventTypes.js";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
@@ -213,6 +216,39 @@ export const sendMessage = async (req, res) => {
       conversation.recruiterId,
       conversation.jobseekerId,
     ]);
+
+    // Notify the jobseeker in Notifications → General (banner already covers live toast).
+    if (isRecruiterSender) {
+      let companyName = "Recruiter";
+      let jobTitle = "";
+      const applicationResult = await fetchApplication(
+        conversation.applicationId,
+        req.headers.authorization
+      );
+      if (applicationResult.ok) {
+        companyName =
+          applicationResult.application.companyName || companyName;
+        jobTitle = applicationResult.application.jobTitle || "";
+      }
+
+      const flagged =
+        scamAnalysis.status === "flagged" || scamAnalysis.isScam === true;
+      const preview =
+        body.length > 140 ? `${body.slice(0, 137).trim()}…` : body;
+
+      void publishEvent(EVENT_TYPES.CHAT_MESSAGE_CREATED, {
+        recipientId: conversation.jobseekerId,
+        conversationId: String(conversation._id),
+        messageId: String(message._id),
+        applicationId: conversation.applicationId,
+        jobId: conversation.jobId,
+        companyName,
+        jobTitle,
+        preview,
+        flagged,
+        senderId: String(req.userId),
+      });
+    }
 
     return res.status(201).json({
       success: true,

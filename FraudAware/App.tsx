@@ -31,6 +31,7 @@ import { UserProvider } from './src/context/UserContext';
 import { ProfileProvider } from './src/context/ProfileContext';
 import { InchatProvider, useInchat } from './src/context/InchatContext';
 import InchatNotificationBanner from './src/components/inchat/InchatNotificationBanner';
+import PushNotificationBootstrap from './src/notifications/PushNotificationBootstrap';
 
 import type { RootStackParamList } from './src/navigation/rootStackParams';
 
@@ -261,6 +262,7 @@ export default function App() {
           <StatusBar style="auto" />
           </NavigationContainer>
           <InchatBannerHost activeThreadId={activeThreadId} />
+          <PushNotificationBootstrap navigationRef={navigationRef} />
           </InchatProvider>
         </BookmarksProvider>
         </ProfileProvider>

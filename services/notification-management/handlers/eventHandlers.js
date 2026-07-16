@@ -4,6 +4,7 @@ import {
   findApplicationNotification,
   hasProcessedEvent,
 } from "../utils/idempotency.js";
+import { sendExpoPushToUser } from "../utils/expoPushClient.js";
 
 const STATUS_TITLES = {
   sent: "Application Submitted",
@@ -194,6 +195,71 @@ const handleAuthAccountCreated = async (event) => {
   return { created: Boolean(notification) };
 };
 
+const handleChatMessageCreated = async (event) => {
+  const payload = event.payload || {};
+  const {
+    recipientId,
+    conversationId,
+    messageId,
+    applicationId,
+    jobId,
+    companyName = "Recruiter",
+    jobTitle = "",
+    preview = "",
+    flagged = false,
+  } = payload;
+
+  if (!recipientId || !conversationId) {
+    throw new Error(
+      "chat.message.created payload missing recipientId or conversationId"
+    );
+  }
+
+  if (await hasProcessedEvent(event.eventId)) {
+    return { skipped: true, reason: "duplicate-event" };
+  }
+
+  const company = String(companyName || "Recruiter").trim() || "Recruiter";
+  const messagePreview = String(preview || "").trim() || "New chat message";
+  const roleHint = jobTitle ? ` · ${jobTitle}` : "";
+
+  const title = flagged ? "Possible scam message" : `New message from ${company}`;
+  const body = flagged
+    ? `${company}${roleHint}: ${messagePreview}`
+    : messagePreview;
+
+  const notification = await createNotification({
+    userId: String(recipientId),
+    category: "general",
+    type: flagged ? "scam" : "chat",
+    title,
+    body,
+    metadata: {
+      conversationId: String(conversationId),
+      messageId: messageId ? String(messageId) : undefined,
+      applicationId: applicationId ? String(applicationId) : undefined,
+      jobId: jobId ? String(jobId) : undefined,
+      companyName: company,
+      jobTitle,
+      flagged: Boolean(flagged),
+    },
+    sourceEventId: event.eventId,
+  });
+
+  const pushResult = await sendExpoPushToUser(recipientId, {
+    title,
+    body,
+    data: {
+      type: flagged ? "scam_chat" : "chat",
+      conversationId: String(conversationId),
+      messageId: messageId ? String(messageId) : undefined,
+      flagged: Boolean(flagged),
+    },
+  });
+
+  return { created: Boolean(notification), push: pushResult };
+};
+
 export const handleEvent = async (event) => {
   if (!event?.eventType) {
     throw new Error("Event envelope missing eventType");
@@ -208,6 +274,8 @@ export const handleEvent = async (event) => {
       return handleAuthPasswordUpdated(event);
     case EVENT_TYPES.AUTH_ACCOUNT_CREATED:
       return handleAuthAccountCreated(event);
+    case EVENT_TYPES.CHAT_MESSAGE_CREATED:
+      return handleChatMessageCreated(event);
     default:
       return { skipped: true, reason: "unsupported-event" };
   }

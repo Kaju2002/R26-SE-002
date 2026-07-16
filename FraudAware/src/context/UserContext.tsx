@@ -14,6 +14,7 @@ import {
   type LoginRequest,
   type LoginResponse,
 } from '../api/userApi';
+import { clearPushRegistration } from '../notifications/pushRegistration';
 
 const AUTH_TOKEN_KEY = '@fraudaware/auth_token';
 const USER_DATA_KEY = '@fraudaware/user_data';
@@ -128,6 +129,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
       setError(null);
 
       if (token) {
+        await clearPushRegistration(token);
         await logoutUser(token);
       }
 

@@ -37,7 +37,7 @@ function InchatWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const { loaded, error, threadsForList } = useInchat();
+  const { loaded, error, threadsForList, isPeerTyping } = useInchat();
   const [recruiter, setRecruiter] = useState<AuthUser | null>(null);
   const [query, setQuery] = useState('');
   const [filterId, setFilterId] = useState<InchatFilterId>('focused');
@@ -167,7 +167,10 @@ function InchatWorkspace() {
         <div className="hidden min-h-0 min-w-0 flex-1 flex-col lg:flex">
           {selectedThread ? (
             <div className="flex min-h-0 flex-1 flex-col">
-              <InchatConversationHeader thread={selectedThread} />
+              <InchatConversationHeader
+                thread={selectedThread}
+                isTyping={isPeerTyping(selectedThread.id)}
+              />
               <div className="flex min-h-0 flex-1">
                 <InchatThreadPanel thread={selectedThread} hideHeader />
                 <InchatThreadDetailsPanel thread={selectedThread} hideHeaderSpacer />

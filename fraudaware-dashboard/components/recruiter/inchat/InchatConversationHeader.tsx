@@ -12,9 +12,14 @@ import type { InchatThread } from '@/lib/inchat/types';
 type Props = {
   thread: InchatThread;
   showBack?: boolean;
+  isTyping?: boolean;
 };
 
-export default function InchatConversationHeader({ thread, showBack = false }: Props) {
+export default function InchatConversationHeader({
+  thread,
+  showBack = false,
+  isTyping = false,
+}: Props) {
   return (
     <header
       className="flex h-[72px] shrink-0 items-center gap-2 border-b bg-white px-4"
@@ -56,10 +61,13 @@ export default function InchatConversationHeader({ thread, showBack = false }: P
             {thread.participantName}
           </p>
           <p
-            className="truncate text-xs font-medium"
-            style={{ color: INCHAT_MUTED, fontFamily: 'var(--font-poppins)' }}
+            className={`truncate text-xs font-medium ${isTyping ? 'italic' : ''}`}
+            style={{
+              color: isTyping ? '#2563EB' : INCHAT_MUTED,
+              fontFamily: 'var(--font-poppins)',
+            }}
           >
-            online
+            {isTyping ? 'typing…' : 'online'}
           </p>
         </div>
       </div>

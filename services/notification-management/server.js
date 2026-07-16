@@ -41,6 +41,8 @@ app.get("/", (req, res) => {
       markAllRead: "PATCH /api/notifications/read-all?category=general|applications",
       deleteNotification: "DELETE /api/notifications/:id",
       clearNotifications: "DELETE /api/notifications?category=general|applications",
+      registerPushToken: "POST /api/notifications/push-token",
+      unregisterPushToken: "DELETE /api/notifications/push-token",
     },
   });
 });

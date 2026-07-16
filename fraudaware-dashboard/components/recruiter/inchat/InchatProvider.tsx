@@ -37,6 +37,8 @@ type InchatContextValue = {
   appendRecruiterMessage: (threadId: string, body: string) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
+  isPeerTyping: (threadId: string) => boolean;
+  setTyping: (threadId: string, isTyping: boolean) => void;
 };
 
 const InchatContext = createContext<InchatContextValue | null>(null);
@@ -150,9 +152,13 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     {}
   );
   const [messagesByThread, setMessagesByThread] = useState<Record<string, InchatMessage[]>>({});
+  const [typingByThread, setTypingByThread] = useState<Record<string, boolean>>({});
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
+  const conversationsRef = useRef(conversations);
+  const typingTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  conversationsRef.current = conversations;
 
   const refreshConversations = useCallback(async () => {
     const token = getStoredToken();
@@ -212,26 +218,79 @@ export function InchatProvider({ children }: { children: ReactNode }) {
 
     socket.on('message:new', ({ chatMessage }: { chatMessage?: ChatMessage }) => {
       if (!chatMessage) return;
-      const conversation = conversations.find((entry) => entry.id === chatMessage.conversationId);
-      if (!conversation) return;
+      const conversation = conversationsRef.current.find(
+        (entry) => entry.id === chatMessage.conversationId
+      );
+      if (!conversation) {
+        void refreshConversations();
+        return;
+      }
 
       const mapped = formatMessage(chatMessage, conversation.recruiterId);
       setMessagesByThread((previous) => ({
         ...previous,
         [mapped.threadId]: appendUnique(previous[mapped.threadId] ?? [], mapped),
       }));
+
+      if (chatMessage.senderId !== conversation.recruiterId) {
+        setTypingByThread((previous) => ({
+          ...previous,
+          [chatMessage.conversationId]: false,
+        }));
+      }
+
       void refreshConversations();
     });
+
+    socket.on(
+      'typing:update',
+      ({
+        conversationId,
+        userId,
+        isTyping,
+      }: {
+        conversationId?: string;
+        userId?: string;
+        isTyping?: boolean;
+      }) => {
+        if (!conversationId || !userId) return;
+        const conversation = conversationsRef.current.find(
+          (entry) => entry.id === conversationId
+        );
+        if (!conversation) return;
+        // Ignore our own typing echoes if any.
+        if (String(userId) === String(conversation.recruiterId)) return;
+
+        setTypingByThread((previous) => ({
+          ...previous,
+          [conversationId]: Boolean(isTyping),
+        }));
+
+        const existingTimeout = typingTimeoutRef.current[conversationId];
+        if (existingTimeout) clearTimeout(existingTimeout);
+
+        if (isTyping) {
+          typingTimeoutRef.current[conversationId] = setTimeout(() => {
+            setTypingByThread((previous) => ({
+              ...previous,
+              [conversationId]: false,
+            }));
+          }, 4000);
+        }
+      }
+    );
 
     socket.on('connect_error', (socketError) => {
       console.error('InChat socket connection failed:', socketError.message);
     });
 
     return () => {
+      Object.values(typingTimeoutRef.current).forEach(clearTimeout);
+      typingTimeoutRef.current = {};
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [conversations, refreshConversations]);
+  }, [refreshConversations]);
 
   const loadMessages = useCallback(
     async (threadId: string) => {
@@ -281,6 +340,9 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       const trimmed = body.trim();
       if (!token || !conversation || !trimmed) return;
 
+      socketRef.current?.emit('typing:stop', { conversationId: threadId });
+      setTypingByThread((previous) => ({ ...previous, [threadId]: false }));
+
       const sent = await sendConversationMessage(token, threadId, trimmed);
       const mapped = formatMessage(sent, conversation.recruiterId);
       setMessagesByThread((previous) => ({
@@ -297,6 +359,18 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [messagesByThread]
   );
 
+  const isPeerTyping = useCallback(
+    (threadId: string) => Boolean(typingByThread[threadId]),
+    [typingByThread]
+  );
+
+  const setTyping = useCallback((threadId: string, isTyping: boolean) => {
+    if (!threadId || !socketRef.current) return;
+    socketRef.current.emit(isTyping ? 'typing:start' : 'typing:stop', {
+      conversationId: threadId,
+    });
+  }, []);
+
   const threadsForList = useMemo(
     () => conversations.map((conversation) => formatThread(conversation, peerByConversationId)),
     [conversations, peerByConversationId]
@@ -310,8 +384,19 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       appendRecruiterMessage,
       getCombinedMessages,
       loadMessages,
+      isPeerTyping,
+      setTyping,
     }),
-    [loaded, error, threadsForList, appendRecruiterMessage, getCombinedMessages, loadMessages]
+    [
+      loaded,
+      error,
+      threadsForList,
+      appendRecruiterMessage,
+      getCombinedMessages,
+      loadMessages,
+      isPeerTyping,
+      setTyping,
+    ]
   );
 
   return <InchatContext.Provider value={value}>{children}</InchatContext.Provider>;

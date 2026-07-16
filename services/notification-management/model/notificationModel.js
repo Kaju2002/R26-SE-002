@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const NOTIFICATION_CATEGORIES = ["general", "applications"];
-const NOTIFICATION_TYPES = ["auth", "scam", "job", "application", "system"];
+const NOTIFICATION_TYPES = ["auth", "scam", "job", "application", "system", "chat"];
 const APPLICATION_STATUSES = ["sent", "pending", "accepted", "rejected"];
 
 const metadataSchema = new mongoose.Schema(
@@ -15,6 +15,9 @@ const metadataSchema = new mongoose.Schema(
       type: String,
       enum: APPLICATION_STATUSES,
     },
+    conversationId: { type: String, trim: true },
+    messageId: { type: String, trim: true },
+    flagged: { type: Boolean, default: false },
   },
   { _id: false }
 );
