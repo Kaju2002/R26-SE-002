@@ -16,7 +16,8 @@ export default function InchatMessageBubble({
 }: Props) {
   const mine = message.role === 'recruiter';
   const isUnsent = message.unsent === true;
-  const isFlagged = message.scamAnalysis?.status === 'flagged';
+  // Recruiter portal: never show scam badges (warnings are for jobseekers on mobile).
+  const isFlagged = false;
 
   return (
     <div className={`mb-4 flex max-w-[88%] gap-2.5 ${mine ? 'ml-auto justify-end' : 'mr-auto'}`}>

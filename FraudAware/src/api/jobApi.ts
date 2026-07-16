@@ -263,6 +263,44 @@ export function getApplicationResumeDownloadEndpoint(applicationId: string): str
   return `${getJobManagementBaseUrl()}/api/jobs/applications/${applicationId}/resume`;
 }
 
+export type ApplicationDetail = {
+  id: string;
+  applicantId: string;
+  recruiterId: string;
+  jobId: string;
+  jobTitle: string;
+  companyName: string;
+  companyLogo: string | null;
+  status: string;
+  applicantName: string;
+  applicantEmail: string;
+};
+
+type ApplicationDetailResponse = {
+  success: boolean;
+  application: ApplicationDetail;
+};
+
+export async function getApplicationById(
+  token: string,
+  applicationId: string
+): Promise<ApplicationDetail> {
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/applications/${applicationId}`,
+    {
+      method: 'GET',
+      headers: authHeaders(token),
+    }
+  );
+
+  if (!response.ok) {
+    await parseError(response, 'Failed to fetch application');
+  }
+
+  const data = (await response.json()) as ApplicationDetailResponse;
+  return data.application;
+}
+
 export interface CreateJobRequest {
   title: string;
   companyName: string;

@@ -41,7 +41,7 @@ function matchesQuery(thread: InchatThread, q: string): boolean {
 }
 
 export default function InchatInboxScreen({ navigation }: Props) {
-  const { threadsForList } = useInchat();
+  const { threadsForList, loaded, error } = useInchat();
   const [query, setQuery] = useState('');
   const [filterId, setFilterId] = useState<InchatFilterId>('focused');
   const showBack = navigation.canGoBack();
@@ -87,8 +87,16 @@ export default function InchatInboxScreen({ navigation }: Props) {
         renderItem={renderItem}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>No conversations</Text>
-            <Text style={styles.emptySub}>Try another filter or search.</Text>
+            <Text style={styles.emptyTitle}>
+              {!loaded ? 'Loading conversations...' : error ? 'Could not load chats' : 'No conversations'}
+            </Text>
+            <Text style={styles.emptySub}>
+              {error
+                ? error
+                : !loaded
+                  ? 'Fetching your InChat threads.'
+                  : 'Start a chat from an application, or try another filter.'}
+            </Text>
           </View>
         }
         contentContainerStyle={styles.listContent}

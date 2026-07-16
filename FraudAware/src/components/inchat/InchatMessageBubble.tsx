@@ -10,19 +10,48 @@ type Props = {
 export default function InchatMessageBubble({ message }: Props) {
   const mine = message.role === 'user';
   const isUnsent = message.unsent === true;
+  // FraudAware: warn jobseekers on inbound recruiter messages only.
+  const isFlagged = !mine && message.scamAnalysis?.status === 'flagged';
+
   return (
     <View style={[styles.wrap, mine ? styles.wrapMine : styles.wrapTheirs]}>
-      <View style={[styles.bubble, mine ? styles.bubbleMine : styles.bubbleTheirs]}>
+      <View
+        style={[
+          styles.bubble,
+          mine ? styles.bubbleMine : styles.bubbleTheirs,
+          isFlagged && styles.bubbleFlagged,
+        ]}
+      >
+        {isFlagged ? (
+          <Text style={styles.flagTitle}>
+            ⚠ Potential scam
+            {message.scamAnalysis?.score !== null && message.scamAnalysis?.score !== undefined
+              ? ` · ${Math.round(message.scamAnalysis.score * 100)}% risk`
+              : ''}
+          </Text>
+        ) : null}
         <Text
           style={[
             styles.body,
-            mine ? styles.bodyMine : styles.bodyTheirs,
+            mine && !isFlagged ? styles.bodyMine : styles.bodyTheirs,
             isUnsent && styles.bodyUnsent,
+            isFlagged && styles.bodyFlagged,
           ]}
         >
           {message.body}
         </Text>
-        <Text style={[styles.time, mine ? styles.timeMine : styles.timeTheirs]}>{message.timeLabel}</Text>
+        {isFlagged && message.scamAnalysis?.tactics?.length ? (
+          <Text style={styles.flagTactics}>Detected: {message.scamAnalysis.tactics.join(', ')}</Text>
+        ) : null}
+        <Text
+          style={[
+            styles.time,
+            mine && !isFlagged ? styles.timeMine : styles.timeTheirs,
+            isFlagged && styles.timeFlagged,
+          ]}
+        >
+          {message.timeLabel}
+        </Text>
       </View>
     </View>
   );
@@ -54,6 +83,25 @@ const styles = StyleSheet.create({
     borderColor: INCHAT_BORDER,
     borderBottomLeftRadius: 4,
   },
+  bubbleFlagged: {
+    backgroundColor: '#FEF2F2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderBottomLeftRadius: 4,
+    borderBottomRightRadius: 4,
+  },
+  flagTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#B91C1C',
+    marginBottom: 6,
+  },
+  flagTactics: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#DC2626',
+    marginTop: 6,
+  },
   body: {
     fontSize: 15,
     lineHeight: 21,
@@ -62,6 +110,9 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   bodyTheirs: {
+    color: '#1F2937',
+  },
+  bodyFlagged: {
     color: '#1F2937',
   },
   bodyUnsent: {
@@ -79,5 +130,8 @@ const styles = StyleSheet.create({
   },
   timeTheirs: {
     color: INCHAT_MUTED,
+  },
+  timeFlagged: {
+    color: '#B91C1C',
   },
 });

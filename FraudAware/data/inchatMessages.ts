@@ -15,6 +15,12 @@ export type InchatMessage = {
   createdAtIso?: string;
   /** True when sender unsent the message in this demo UI. */
   unsent?: boolean;
+  scamAnalysis?: {
+    status: 'not_checked' | 'pending' | 'safe' | 'flagged' | 'error';
+    isScam: boolean;
+    score: number | null;
+    tactics: string[];
+  };
 };
 
 export const INCHAT_MESSAGES_BY_THREAD: Record<string, InchatMessage[]> = {
