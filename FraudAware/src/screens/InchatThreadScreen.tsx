@@ -24,7 +24,6 @@ import { readClassifyError } from '../utils/readClassifyError';
 import { promptAnalysisServerReady } from '../utils/analysisServerGate';
 import { useInchat } from '../context/InchatContext';
 import type { InchatMessage } from '../../data/inchatMessages';
-import { getInchatThreadById } from '../../data/inchatThreads';
 import InchatMessageBubble from '../components/inchat/InchatMessageBubble';
 import InchatComposer from '../components/inchat/InchatComposer';
 import ConversationAnalysisSheet from '../components/analysis/ConversationAnalysisSheet';
@@ -38,7 +37,7 @@ type ThreadRow =
 
 function transcriptFromMessages(messages: InchatMessage[]): string {
   return messages
-    .map((m) => `${m.role === 'user' ? 'You' : 'Recruiter'}: ${m.body}`)
+    .map((m) => `${m.role === 'user' ? 'You' : 'Contact'}: ${m.body}`)
     .join('\n\n');
 }
 
@@ -59,8 +58,15 @@ function dateLabelForMessage(message: InchatMessage): string {
 
 export default function InchatThreadScreen({ navigation, route }: Props) {
   const { threadId } = route.params;
-  const thread = getInchatThreadById(threadId);
-  const { getCombinedMessages, appendUserMessage, editUserMessageState } = useInchat();
+  const {
+    getThreadById,
+    getCombinedMessages,
+    appendUserMessage,
+    editUserMessageState,
+    loadMessages,
+    loaded,
+  } = useInchat();
+  const thread = getThreadById(threadId);
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<ThreadRow>>(null);
 
@@ -76,6 +82,11 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
   const [threadMenuVisible, setThreadMenuVisible] = useState(false);
 
   const messages = useMemo(() => getCombinedMessages(threadId), [getCombinedMessages, threadId]);
+
+  useEffect(() => {
+    if (!loaded) return;
+    void loadMessages(threadId);
+  }, [loaded, loadMessages, threadId]);
 
   const transcript = useMemo(() => transcriptFromMessages(messages), [messages]);
   const hasTranscript = transcript.trim().length > 0;

@@ -128,8 +128,8 @@ const buildPreview = (body = "") => {
  * Body: { body: "Hello" }
  *
  * Saves a text message from the authenticated participant,
- * runs scam-detection (FraudAware), updates lastMessage + unread,
- * then broadcasts message:new over Socket.io.
+ * runs scam-detection for recruiter messages only (FraudAware),
+ * updates lastMessage + unread, then broadcasts message:new over Socket.io.
  */
 export const sendMessage = async (req, res) => {
   try {
@@ -167,8 +167,20 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    // FraudAware: classify before save. If ML is down → status "error", chat still works.
-    const scamAnalysis = await analyzeMessageForScam(body, req.userId);
+    // FraudAware: only classify recruiter → jobseeker messages.
+    // Jobseeker replies stay not_checked (protect applicants, not scan their chat).
+    const isRecruiterSender =
+      String(conversation.recruiterId) === String(req.userId);
+
+    const scamAnalysis = isRecruiterSender
+      ? await analyzeMessageForScam(body, req.userId)
+      : {
+          status: "not_checked",
+          isScam: false,
+          score: null,
+          tactics: [],
+          analyzedAt: null,
+        };
 
     const message = await Message.create({
       conversationId: conversation._id,
@@ -179,8 +191,6 @@ export const sendMessage = async (req, res) => {
       scamAnalysis,
     });
 
-    const isRecruiterSender =
-      String(conversation.recruiterId) === String(req.userId);
     const unreadField = isRecruiterSender
       ? "unreadCounts.jobseeker"
       : "unreadCounts.recruiter";
