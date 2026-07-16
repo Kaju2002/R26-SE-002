@@ -9,6 +9,7 @@ import {
   applyToJob,
   downloadApplicationResume,
   getAppliedJobs,
+  getApplicationById,
   getJobApplications,
   updateApplicationStatus,
 } from "../controller/applicationController.js";
@@ -41,6 +42,7 @@ router.get(
   authMiddleware,
   downloadApplicationResume
 );
+router.get("/applications/:applicationId", authMiddleware, getApplicationById);
 router.patch(
   "/applications/:applicationId/status",
   authMiddleware,

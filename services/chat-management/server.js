@@ -36,7 +36,8 @@ app.get("/", (req, res) => {
     endpoints: {
       health: "GET /health",
       me: "GET /api/chat/me (Bearer token required)",
-      // Coming next: conversations + messages + Socket.io
+      createConversation: "POST /api/chat/conversations (Bearer token required)",
+      // Coming next: list conversations + messages + Socket.io
     },
   });
 });

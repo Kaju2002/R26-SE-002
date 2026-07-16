@@ -282,6 +282,73 @@ export const getJobApplications = async (req, res) => {
   }
 };
 
+// ============ GET SINGLE APPLICATION (OWNER OR APPLICANT) ============
+// Used by chat-management to validate a conversation before creating it.
+export const getApplicationById = async (req, res) => {
+  try {
+    const { applicationId } = req.params;
+
+    if (!isValidObjectId(applicationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid application id",
+      });
+    }
+
+    const application = await Application.findById(applicationId);
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    const job = await Job.findById(application.jobId);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found for this application",
+      });
+    }
+
+    const recruiterId = String(job.postedBy);
+    const applicantId = String(application.applicantId);
+    const isJobOwner = recruiterId === String(req.userId);
+    const isApplicant = applicantId === String(req.userId);
+
+    if (!isJobOwner && !isApplicant) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to view this application",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Application fetched successfully",
+      application: {
+        id: String(application._id),
+        applicantId,
+        recruiterId,
+        jobId: String(job._id),
+        jobTitle: job.title,
+        companyName: job.companyName,
+        companyLogo: job.companyLogo || null,
+        status: application.status,
+        applicantName: application.fullName,
+        applicantEmail: application.email,
+      },
+    });
+  } catch (error) {
+    console.error("Get application by id error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching application",
+      error: error.message,
+    });
+  }
+};
+
 // ============ UPDATE APPLICATION STATUS (RECRUITER) ============
 export const updateApplicationStatus = async (req, res) => {
   try {
