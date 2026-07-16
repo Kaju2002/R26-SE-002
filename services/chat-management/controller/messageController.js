@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Conversation from "../model/conversationModel.js";
 import Message from "../model/messageModel.js";
 import { emitNewMessage } from "../config/socket.js";
+import { analyzeMessageForScam } from "../utils/scamDetectionClient.js";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
@@ -127,9 +128,8 @@ const buildPreview = (body = "") => {
  * Body: { body: "Hello" }
  *
  * Saves a text message from the authenticated participant,
- * updates conversation lastMessage + peer unread count,
+ * runs scam-detection (FraudAware), updates lastMessage + unread,
  * then broadcasts message:new over Socket.io.
- * (Attachments / scam check come in later pieces.)
  */
 export const sendMessage = async (req, res) => {
   try {
@@ -167,13 +167,16 @@ export const sendMessage = async (req, res) => {
       });
     }
 
+    // FraudAware: classify before save. If ML is down → status "error", chat still works.
+    const scamAnalysis = await analyzeMessageForScam(body, req.userId);
+
     const message = await Message.create({
       conversationId: conversation._id,
       senderId: String(req.userId),
       messageType: "text",
       body,
       status: "sent",
-      scamAnalysis: { status: "not_checked" },
+      scamAnalysis,
     });
 
     const isRecruiterSender =

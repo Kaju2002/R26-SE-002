@@ -45,7 +45,7 @@ app.get("/", (req, res) => {
       sendMessage:
         "POST /api/chat/conversations/:conversationId/messages (Bearer token required)",
       socket: "Socket.io on same port (JWT in auth.token)",
-      // Coming next: scam detection on send
+      // Coming next: wire dashboard / mobile UI to these APIs
     },
   });
 });
