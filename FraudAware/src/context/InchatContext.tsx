@@ -10,8 +10,10 @@ import React, {
 } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import {
+  createChatConversation,
   listChatConversations,
   listConversationMessages,
+  markConversationRead,
   sendConversationMessage,
   type ChatConversation,
   type ChatMessage,
@@ -26,12 +28,25 @@ type PeerMeta = {
   name: string;
   initials: string;
   subtitle: string;
+  avatarKind: 'person' | 'company';
+  avatarUrl?: string;
+};
+
+export type InchatBannerNotification = {
+  id: string;
+  threadId: string;
+  senderName: string;
+  body: string;
+  flagged: boolean;
+  avatarUrl?: string;
 };
 
 type InchatContextValue = {
   loaded: boolean;
   error: string | null;
   threadsForList: InchatThread[];
+  incomingNotification: InchatBannerNotification | null;
+  dismissIncomingNotification: () => void;
   getThreadById: (threadId: string) => InchatThread | undefined;
   appendUserMessage: (threadId: string, body: string) => Promise<void>;
   editUserMessageState: (
@@ -42,6 +57,8 @@ type InchatContextValue = {
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
   refreshConversations: () => Promise<void>;
+  /** Create-or-get conversation for an application, refresh inbox, return thread id. */
+  startConversationFromApplication: (applicationId: string) => Promise<string>;
 };
 
 const InchatContext = createContext<InchatContextValue | null>(null);
@@ -70,8 +87,9 @@ function formatThread(
     id: conversation.id,
     participantName: peer?.name || (conversation.myRole === 'jobseeker' ? 'Recruiter' : 'Applicant'),
     subtitle: peer?.subtitle || `Application · ${conversation.applicationId.slice(-6)}`,
-    avatarKind: 'person',
+    avatarKind: peer?.avatarKind ?? (conversation.myRole === 'jobseeker' ? 'company' : 'person'),
     initials: peer?.initials || '?',
+    avatarUrl: peer?.avatarUrl,
     lastMessagePreview: conversation.lastMessage?.preview || 'No messages yet',
     timestampLabel: formatTime(conversation.lastMessage?.sentAt || conversation.updatedAt),
     unreadCount: conversation.myUnread || 0,
@@ -105,16 +123,15 @@ async function loadPeerMetaForConversations(
   const settled = await Promise.allSettled(
     conversations.map(async (conversation) => {
       const application = await getApplicationById(token, conversation.applicationId);
-      const name =
-        conversation.myRole === 'jobseeker'
-          ? application.companyName || 'Company'
-          : application.applicantName || 'Applicant';
-      const subtitle =
-        conversation.myRole === 'jobseeker'
-          ? application.jobTitle || 'Job conversation'
-          : application.jobTitle
-            ? `Applied · ${application.jobTitle}`
-            : `Application · ${conversation.applicationId.slice(-6)}`;
+      const isJobseeker = conversation.myRole === 'jobseeker';
+      const name = isJobseeker
+        ? application.companyName || 'Company'
+        : application.applicantName || 'Applicant';
+      const subtitle = isJobseeker
+        ? application.jobTitle || 'Job conversation'
+        : application.jobTitle
+          ? `Applied · ${application.jobTitle}`
+          : `Application · ${conversation.applicationId.slice(-6)}`;
 
       return [
         conversation.id,
@@ -122,6 +139,9 @@ async function loadPeerMetaForConversations(
           name,
           initials: initialsFromName(name),
           subtitle,
+          // Jobseeker sees the company (logo); recruiter sees the applicant (initials).
+          avatarKind: isJobseeker ? 'company' : 'person',
+          avatarUrl: isJobseeker ? application.companyLogo ?? undefined : undefined,
         } satisfies PeerMeta,
       ] as const;
     })
@@ -150,16 +170,25 @@ export function InchatProvider({ children }: { children: ReactNode }) {
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [peerByConversationId, setPeerByConversationId] = useState<Record<string, PeerMeta>>({});
   const [messagesByThread, setMessagesByThread] = useState<Record<string, InchatMessage[]>>({});
+  const [incomingNotification, setIncomingNotification] =
+    useState<InchatBannerNotification | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const conversationsRef = useRef(conversations);
+  const peerByConversationIdRef = useRef(peerByConversationId);
   conversationsRef.current = conversations;
+  peerByConversationIdRef.current = peerByConversationId;
+
+  const dismissIncomingNotification = useCallback(() => {
+    setIncomingNotification(null);
+  }, []);
 
   const refreshConversations = useCallback(async () => {
     if (!token) {
       setConversations([]);
       setPeerByConversationId({});
+      setIncomingNotification(null);
       setError(null);
       setLoaded(true);
       return;
@@ -196,14 +225,27 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     });
     socketRef.current = socket;
 
-    socket.on('message:new', ({ chatMessage }: { chatMessage?: ChatMessage }) => {
+    socket.on('message:new', async ({ chatMessage }: { chatMessage?: ChatMessage }) => {
       if (!chatMessage || !user?.id) return;
-      const exists = conversationsRef.current.some(
+      let conversation = conversationsRef.current.find(
         (entry) => entry.id === chatMessage.conversationId
       );
-      if (!exists) {
-        void refreshConversations();
-        return;
+
+      // A recruiter may create the conversation while this app is already open.
+      // Hydrate it before deciding whether to show the jobseeker notification.
+      if (!conversation) {
+        try {
+          const items = await listChatConversations(token);
+          const peers = await loadPeerMetaForConversations(token, items);
+          setConversations(items);
+          setPeerByConversationId(peers);
+          conversation = items.find(
+            (entry) => entry.id === chatMessage.conversationId
+          );
+          peerByConversationIdRef.current = peers;
+        } catch {
+          void refreshConversations();
+        }
       }
 
       const mapped = formatMessage(chatMessage, user.id);
@@ -211,6 +253,24 @@ export function InchatProvider({ children }: { children: ReactNode }) {
         ...previous,
         [mapped.threadId]: appendUnique(previous[mapped.threadId] ?? [], mapped),
       }));
+
+      const isIncomingRecruiterMessage =
+        chatMessage.senderId !== user.id &&
+        conversation?.myRole === 'jobseeker';
+      if (isIncomingRecruiterMessage) {
+        const peer = peerByConversationIdRef.current[chatMessage.conversationId];
+        setIncomingNotification({
+          id: chatMessage.id,
+          threadId: chatMessage.conversationId,
+          senderName: peer?.name || 'Recruiter',
+          body: chatMessage.body,
+          flagged:
+            chatMessage.scamAnalysis?.status === 'flagged' ||
+            chatMessage.scamAnalysis?.isScam === true,
+          avatarUrl: peer?.avatarUrl,
+        });
+      }
+
       void refreshConversations();
     });
 
@@ -238,6 +298,24 @@ export function InchatProvider({ children }: { children: ReactNode }) {
           ...previous,
           [threadId]: messages.map((message) => formatMessage(message, user.id)),
         }));
+
+        if (conversation.myUnread > 0) {
+          await markConversationRead(token, threadId);
+          setConversations((previous) =>
+            previous.map((entry) =>
+              entry.id === threadId
+                ? {
+                    ...entry,
+                    myUnread: 0,
+                    unreadCounts: {
+                      ...entry.unreadCounts,
+                      [entry.myRole]: 0,
+                    },
+                  }
+                : entry
+            )
+          );
+        }
       } catch (requestError) {
         setError(requestError instanceof Error ? requestError.message : 'Could not load messages.');
       }
@@ -309,28 +387,46 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [threadsForList]
   );
 
+  const startConversationFromApplication = useCallback(
+    async (applicationId: string) => {
+      if (!token) {
+        throw new Error('Sign in to start a chat.');
+      }
+      const conversation = await createChatConversation(token, applicationId);
+      await refreshConversations();
+      return conversation.id;
+    },
+    [refreshConversations, token]
+  );
+
   const value = useMemo(
     () => ({
       loaded,
       error,
       threadsForList,
+      incomingNotification,
+      dismissIncomingNotification,
       getThreadById,
       appendUserMessage,
       editUserMessageState,
       getCombinedMessages,
       loadMessages,
       refreshConversations,
+      startConversationFromApplication,
     }),
     [
       loaded,
       error,
       threadsForList,
+      incomingNotification,
+      dismissIncomingNotification,
       getThreadById,
       appendUserMessage,
       editUserMessageState,
       getCombinedMessages,
       loadMessages,
       refreshConversations,
+      startConversationFromApplication,
     ]
   );
 

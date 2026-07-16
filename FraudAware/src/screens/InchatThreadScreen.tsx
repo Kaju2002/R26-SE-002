@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   ListRenderItem,
   Modal,
@@ -279,6 +280,9 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         >
           <MaterialCommunityIcons name="arrow-left" size={24} color={INCHAT_NAVY} />
         </Pressable>
+        {thread?.avatarUrl ? (
+          <Image source={{ uri: thread.avatarUrl }} style={styles.headerAvatar} resizeMode="cover" />
+        ) : null}
         <View style={styles.headerCenter}>
           <Text style={styles.headerTitle} numberOfLines={1}>
             {thread?.participantName ?? 'Conversation'}
@@ -425,6 +429,12 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: '#F3F5F8',
   },
   headerCenter: {
     flex: 1,

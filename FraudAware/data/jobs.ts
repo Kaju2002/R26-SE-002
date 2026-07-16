@@ -48,6 +48,8 @@ export type Job = {
   about?: string;
   contact?: JobContact;
   postedBy?: string;
+  /** Present when this job was loaded from the user's applied-jobs list. */
+  applicationId?: string;
 };
 
 const HOUR = 60 * 60 * 1000;

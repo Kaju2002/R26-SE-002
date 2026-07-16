@@ -44,8 +44,9 @@ app.get("/", (req, res) => {
         "GET /api/chat/conversations/:conversationId/messages (Bearer token required)",
       sendMessage:
         "POST /api/chat/conversations/:conversationId/messages (Bearer token required)",
+      markRead:
+        "PATCH /api/chat/conversations/:conversationId/read (Bearer token required)",
       socket: "Socket.io on same port (JWT in auth.token)",
-      // Coming next: wire dashboard / mobile UI to these APIs
     },
   });
 });

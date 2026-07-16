@@ -1,5 +1,9 @@
+import { useCallback, useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { NavigationContainer } from '@react-navigation/native';
+import {
+  NavigationContainer,
+  createNavigationContainerRef,
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import BottomTabNavigator from './src/navigation/BottomTabNavigator';
@@ -25,6 +29,8 @@ import BookmarksScreen from './src/screens/BookmarksScreen';
 import { BookmarksProvider } from './src/context/BookmarksContext';
 import { UserProvider } from './src/context/UserContext';
 import { ProfileProvider } from './src/context/ProfileContext';
+import { InchatProvider, useInchat } from './src/context/InchatContext';
+import InchatNotificationBanner from './src/components/inchat/InchatNotificationBanner';
 
 import type { RootStackParamList } from './src/navigation/rootStackParams';
 
@@ -33,14 +39,83 @@ import SafeJobRecommendationsScreen from './src/screens/screens/SafeJobRecommend
 export type { RootStackParamList };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+function InchatBannerHost({
+  activeThreadId,
+}: {
+  activeThreadId: string | undefined;
+}) {
+  const { incomingNotification, dismissIncomingNotification } = useInchat();
+
+  useEffect(() => {
+    if (
+      incomingNotification &&
+      activeThreadId === incomingNotification.threadId
+    ) {
+      dismissIncomingNotification();
+    }
+  }, [
+    activeThreadId,
+    dismissIncomingNotification,
+    incomingNotification,
+  ]);
+
+  // The open thread already displays the incoming message in real time.
+  if (
+    !incomingNotification ||
+    activeThreadId === incomingNotification.threadId
+  ) {
+    return null;
+  }
+
+  const openThread = () => {
+    if (!navigationRef.isReady()) return;
+    navigationRef.navigate(
+      'MainTabs',
+      {
+        screen: 'Chat',
+        params: {
+          screen: 'InchatThread',
+          params: { threadId: incomingNotification.threadId },
+        },
+      } as never
+    );
+  };
+
+  return (
+    <InchatNotificationBanner
+      key={incomingNotification.id}
+      notification={incomingNotification}
+      onOpen={openThread}
+      onDismiss={dismissIncomingNotification}
+    />
+  );
+}
 
 export default function App() {
+  const [activeThreadId, setActiveThreadId] = useState<string>();
+
+  const syncActiveThread = useCallback(() => {
+    const route = navigationRef.getCurrentRoute();
+    setActiveThreadId(
+      String(route?.name) === 'InchatThread'
+        ? (route?.params as { threadId?: string } | undefined)?.threadId
+        : undefined
+    );
+  }, []);
+
   return (
     <SafeAreaProvider>
       <UserProvider>
         <ProfileProvider>
         <BookmarksProvider>
-          <NavigationContainer>
+          <InchatProvider>
+          <NavigationContainer
+            ref={navigationRef}
+            onReady={syncActiveThread}
+            onStateChange={syncActiveThread}
+          >
           <Stack.Navigator
             initialRouteName="Onboarding"
             screenOptions={{ headerShown: false }}
@@ -185,6 +260,8 @@ export default function App() {
 
           <StatusBar style="auto" />
           </NavigationContainer>
+          <InchatBannerHost activeThreadId={activeThreadId} />
+          </InchatProvider>
         </BookmarksProvider>
         </ProfileProvider>
       </UserProvider>

@@ -9,7 +9,7 @@ import PostTabScreen from './PostTabScreen';
 import ChatNavigator from './ChatNavigator';
 import JobsScreen from '../screens/JobsScreen';
 import ChatIcon from '../components/icons/ChatIcon';
-import { InchatProvider } from '../context/InchatContext';
+import { useInchat } from '../context/InchatContext';
 
 const Tab = createBottomTabNavigator();
 
@@ -20,16 +20,19 @@ const NotificationBadge = ({ count }: { count?: number }) => {
   if (!count || count === 0) return null;
   return (
     <View style={styles.badge}>
-      <Text style={styles.badgeText}>{count}</Text>
+      <Text style={styles.badgeText}>{count > 99 ? '99+' : count}</Text>
     </View>
   );
 };
 
 export default function BottomTabNavigator() {
-  const unreadChatCount = 4;
+  const { threadsForList } = useInchat();
+  const unreadChatCount = threadsForList.reduce(
+    (total, thread) => total + thread.unreadCount,
+    0
+  );
 
   return (
-    <InchatProvider>
       <Tab.Navigator
         screenOptions={{
           headerShown: false,
@@ -123,7 +126,6 @@ export default function BottomTabNavigator() {
         }}
       />
       </Tab.Navigator>
-    </InchatProvider>
   );
 }
 
@@ -176,8 +178,9 @@ const styles = StyleSheet.create({
     right: -4,
     backgroundColor: '#E63946',
     borderRadius: 12,
-    width: 20,
+    minWidth: 20,
     height: 20,
+    paddingHorizontal: 4,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,

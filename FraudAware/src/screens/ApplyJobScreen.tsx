@@ -29,6 +29,8 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/rootStackParams';
 import { applyToJob } from '../api/jobApi';
 import { useUser } from '../context/UserContext';
+import { useInchat } from '../context/InchatContext';
+import { navigateToInchatThread } from '../navigation/navigateToInchatThread';
 
 const NAVY = '#202871';
 const NAVY_DISABLED = '#A1A6CC';
@@ -65,6 +67,7 @@ export default function ApplyJobScreen() {
   const navigation = useNavigation<ApplyNav>();
   const route = useRoute<RouteProp<RouteParams, 'ApplyJob'>>();
   const { token } = useUser();
+  const { startConversationFromApplication } = useInchat();
   const jobId = route.params?.jobId;
 
   const [fontsLoaded] = useFonts({
@@ -79,6 +82,10 @@ export default function ApplyJobScreen() {
   const [focused, setFocused] = useState<string | null>(null);
   const [successVisible, setSuccessVisible] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [submittedApplicationId, setSubmittedApplicationId] = useState<string | null>(
+    null
+  );
+  const [startingChat, setStartingChat] = useState(false);
 
   if (!fontsLoaded) {
     return (
@@ -138,7 +145,7 @@ export default function ApplyJobScreen() {
 
     setSubmitting(true);
     try {
-      await applyToJob(token, jobId, {
+      const result = await applyToJob(token, jobId, {
         fullName: fullName.trim(),
         email: email.trim(),
         motivation: motivation.trim() || undefined,
@@ -146,6 +153,7 @@ export default function ApplyJobScreen() {
         resumeName: resume.name,
         resumeMimeType: resume.mimeType,
       });
+      setSubmittedApplicationId(result.application?.id ?? null);
       setSuccessVisible(true);
     } catch (err) {
       Alert.alert(
@@ -161,6 +169,23 @@ export default function ApplyJobScreen() {
     setSuccessVisible(false);
     navigation.pop(2);
     navigation.navigate('Notifications', { initialTab: 'applications' });
+  };
+
+  const handleMessageRecruiter = async () => {
+    if (!submittedApplicationId || startingChat) return;
+    setStartingChat(true);
+    try {
+      const threadId = await startConversationFromApplication(submittedApplicationId);
+      setSuccessVisible(false);
+      navigateToInchatThread(navigation, threadId);
+    } catch (err) {
+      Alert.alert(
+        'Could not start chat',
+        err instanceof Error ? err.message : 'Please try again.'
+      );
+    } finally {
+      setStartingChat(false);
+    }
   };
 
   const handleDismissSuccess = () => {
@@ -364,19 +389,43 @@ export default function ApplyJobScreen() {
               <Text style={styles.successTitle}>Applied Successfully!</Text>
               <Text style={styles.successBody}>
                 You have successfully applied for the job.{'\n\n'}
-                You can track your application progress through{'\n'}
-                the application menu.
+                You can message the recruiter in InChat, or track your
+                application from the applications menu.
               </Text>
+              {submittedApplicationId ? (
+                <Pressable
+                  onPress={() => void handleMessageRecruiter()}
+                  disabled={startingChat}
+                  accessibilityRole="button"
+                  accessibilityLabel="Message recruiter"
+                  style={({ pressed }) => [
+                    styles.goApplicationsBtn,
+                    pressed && { opacity: 0.9 },
+                  ]}
+                >
+                  <Text style={styles.goApplicationsText}>
+                    {startingChat ? 'Opening chat…' : 'Message recruiter'}
+                  </Text>
+                </Pressable>
+              ) : null}
               <Pressable
                 onPress={handleGoToApplications}
                 accessibilityRole="button"
                 accessibilityLabel="Go to Applications"
                 style={({ pressed }) => [
-                  styles.goApplicationsBtn,
+                  submittedApplicationId
+                    ? styles.goApplicationsSecondaryBtn
+                    : styles.goApplicationsBtn,
                   pressed && { opacity: 0.9 },
                 ]}
               >
-                <Text style={styles.goApplicationsText}>
+                <Text
+                  style={
+                    submittedApplicationId
+                      ? styles.goApplicationsSecondaryText
+                      : styles.goApplicationsText
+                  }
+                >
                   Go to Applications
                 </Text>
               </Pressable>
@@ -631,11 +680,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  goApplicationsSecondaryBtn: {
+    alignSelf: 'stretch',
+    backgroundColor: '#FFFFFF',
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: BORDER,
+    marginTop: 10,
+  },
   /** Go to Applications — Poppins Regular 16 · #FFFFFF */
   goApplicationsText: {
     fontFamily: 'Poppins_400Regular',
     fontSize: 16,
     color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
+  goApplicationsSecondaryText: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 16,
+    color: NAVY,
     letterSpacing: 0.2,
   },
 });

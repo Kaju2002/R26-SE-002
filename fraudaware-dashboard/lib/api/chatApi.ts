@@ -152,3 +152,21 @@ export async function sendConversationMessage(
 
   return (await parseJson<SendMessageResponse>(response)).chatMessage;
 }
+
+/**
+ * Clear unread badge for the logged-in participant.
+ */
+export async function markConversationRead(
+  token: string,
+  conversationId: string
+): Promise<void> {
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/read`,
+    {
+      method: 'PATCH',
+      headers: authHeaders(token),
+    }
+  );
+
+  await parseJson<{ success: boolean; message: string }>(response);
+}

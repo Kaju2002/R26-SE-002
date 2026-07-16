@@ -9,7 +9,11 @@ type Props = {
   onJobPress: (id: string) => void;
   bookmarkedIds: Set<string>;
   onBookmarkPress: (id: string) => void;
-  onChatPress?: (params: { recruiterId: string; jobId: string }) => void;
+  onChatPress?: (params: {
+    recruiterId: string;
+    jobId: string;
+    applicationId?: string;
+  }) => void;
   currentUserId?: string | null;
   onSortPress: (anchor: { x: number; y: number }) => void;
 };

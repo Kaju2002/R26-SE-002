@@ -14,6 +14,7 @@ import { io, type Socket } from 'socket.io-client';
 import {
   listChatConversations,
   listConversationMessages,
+  markConversationRead,
   sendConversationMessage,
   type ChatConversation,
   type ChatMessage,
@@ -248,6 +249,24 @@ export function InchatProvider({ children }: { children: ReactNode }) {
             formatMessage(message, conversation.recruiterId)
           ),
         }));
+
+        if (conversation.myUnread > 0) {
+          await markConversationRead(token, threadId);
+          setConversations((previous) =>
+            previous.map((entry) =>
+              entry.id === threadId
+                ? {
+                    ...entry,
+                    myUnread: 0,
+                    unreadCounts: {
+                      ...entry.unreadCounts,
+                      [entry.myRole]: 0,
+                    },
+                  }
+                : entry
+            )
+          );
+        }
       } catch (requestError) {
         setError(requestError instanceof Error ? requestError.message : 'Could not load messages.');
       }
