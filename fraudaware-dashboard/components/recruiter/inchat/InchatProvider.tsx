@@ -21,6 +21,7 @@ import {
 } from '@/lib/api/chatApi';
 import { getChatManagementBaseUrl } from '@/lib/api/apiConfig';
 import { getApplicationById } from '@/lib/api/jobApi';
+import { getPublicUserAvatar } from '@/lib/api/userApi';
 import { getStoredToken } from '@/lib/auth/session';
 import type { InchatMessage, InchatThread } from '@/lib/inchat/types';
 
@@ -28,6 +29,12 @@ type PeerMeta = {
   name: string;
   initials: string;
   subtitle: string;
+  avatarUrl?: string;
+};
+
+export type PeerPresence = {
+  isOnline: boolean;
+  lastSeenAt: string | null;
 };
 
 type InchatContextValue = {
@@ -37,7 +44,9 @@ type InchatContextValue = {
   appendRecruiterMessage: (threadId: string, body: string) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
+  leaveThread: (threadId: string) => void;
   isPeerTyping: (threadId: string) => boolean;
+  getPeerPresence: (threadId: string) => PeerPresence;
   setTyping: (threadId: string, isTyping: boolean) => void;
 };
 
@@ -70,6 +79,7 @@ function formatThread(
     subtitle: peer?.subtitle || `Application • ${conversation.applicationId.slice(-6)}`,
     avatarKind: 'person',
     initials: peer?.initials || 'A',
+    avatarUrl: peer?.avatarUrl,
     lastMessagePreview: conversation.lastMessage?.preview || 'No messages yet',
     timestampLabel: formatTime(conversation.lastMessage?.sentAt || conversation.updatedAt),
     unreadCount: conversation.myUnread || 0,
@@ -85,6 +95,9 @@ function formatMessage(message: ChatMessage, recruiterId: string): InchatMessage
     body: message.body,
     timeLabel: formatTime(message.createdAt),
     createdAtIso: message.createdAt,
+    status: message.status,
+    deliveredAt: message.deliveredAt,
+    readAt: message.readAt,
     scamAnalysis: message.scamAnalysis,
   };
 }
@@ -117,12 +130,18 @@ async function loadPeerMetaForConversations(
             ? `Applied · ${application.jobTitle}`
             : `Application · ${conversation.applicationId.slice(-6)}`;
 
+      const avatarUrl =
+        conversation.myRole === 'jobseeker'
+          ? application.companyLogo || undefined
+          : await getPublicUserAvatar(token, application.applicantId);
+
       return [
         conversation.id,
         {
           name,
           initials: initialsFromName(name),
           subtitle,
+          avatarUrl,
         } satisfies PeerMeta,
       ] as const;
     })
@@ -153,12 +172,17 @@ export function InchatProvider({ children }: { children: ReactNode }) {
   );
   const [messagesByThread, setMessagesByThread] = useState<Record<string, InchatMessage[]>>({});
   const [typingByThread, setTypingByThread] = useState<Record<string, boolean>>({});
+  const [presenceByUserId, setPresenceByUserId] = useState<Record<string, PeerPresence>>({});
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const conversationsRef = useRef(conversations);
   const typingTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-  conversationsRef.current = conversations;
+  const activeThreadRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
 
   const refreshConversations = useCallback(async () => {
     const token = getStoredToken();
@@ -237,10 +261,97 @@ export function InchatProvider({ children }: { children: ReactNode }) {
           ...previous,
           [chatMessage.conversationId]: false,
         }));
+        if (activeThreadRef.current === chatMessage.conversationId) {
+          void markConversationRead(token, chatMessage.conversationId);
+          setConversations((previous) =>
+            previous.map((entry) =>
+              entry.id === chatMessage.conversationId ? { ...entry, myUnread: 0 } : entry
+            )
+          );
+        }
       }
 
       void refreshConversations();
     });
+
+    socket.on(
+      'conversation:joined',
+      ({
+        peerPresence,
+      }: {
+        conversationId?: string;
+        peerPresence?: { userId?: string; isOnline?: boolean; lastSeenAt?: string | null };
+      }) => {
+        if (!peerPresence?.userId) return;
+        setPresenceByUserId((previous) => ({
+          ...previous,
+          [peerPresence.userId as string]: {
+            isOnline: Boolean(peerPresence.isOnline),
+            lastSeenAt: peerPresence.lastSeenAt ?? null,
+          },
+        }));
+      }
+    );
+
+    socket.on(
+      'presence:update',
+      ({
+        userId,
+        isOnline,
+        lastSeenAt,
+      }: {
+        userId?: string;
+        isOnline?: boolean;
+        lastSeenAt?: string | null;
+      }) => {
+        if (!userId) return;
+        setPresenceByUserId((previous) => ({
+          ...previous,
+          [userId]: { isOnline: Boolean(isOnline), lastSeenAt: lastSeenAt ?? null },
+        }));
+      }
+    );
+
+    socket.on(
+      'messages:status',
+      ({
+        conversationId,
+        readerId,
+        recipientId,
+        status,
+        readAt,
+        deliveredAt,
+      }: {
+        conversationId?: string;
+        readerId?: string;
+        recipientId?: string;
+        status?: 'delivered' | 'read';
+        readAt?: string | null;
+        deliveredAt?: string | null;
+      }) => {
+        if (!conversationId || !status) return;
+        const conversation = conversationsRef.current.find((entry) => entry.id === conversationId);
+        if (!conversation) return;
+        const peerActorId = status === 'read' ? readerId : recipientId;
+        if (!peerActorId || String(peerActorId) === String(conversation.recruiterId)) return;
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [conversationId]: (previous[conversationId] ?? []).map((message) =>
+            message.role === 'recruiter' && message.status !== 'read'
+              ? {
+                  ...message,
+                  status,
+                  readAt: status === 'read' ? readAt ?? null : message.readAt,
+                  deliveredAt:
+                    status === 'delivered'
+                      ? deliveredAt ?? null
+                      : message.deliveredAt ?? readAt ?? null,
+                }
+              : message
+          ),
+        }));
+      }
+    );
 
     socket.on(
       'typing:update',
@@ -289,6 +400,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       typingTimeoutRef.current = {};
       socket.disconnect();
       socketRef.current = null;
+      activeThreadRef.current = null;
     };
   }, [refreshConversations]);
 
@@ -299,6 +411,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       if (!token || !conversation) return;
 
       socketRef.current?.emit('conversation:join', { conversationId: threadId });
+      activeThreadRef.current = threadId;
 
       try {
         const messages = await listConversationMessages(token, threadId);
@@ -309,8 +422,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
           ),
         }));
 
+        await markConversationRead(token, threadId);
         if (conversation.myUnread > 0) {
-          await markConversationRead(token, threadId);
           setConversations((previous) =>
             previous.map((entry) =>
               entry.id === threadId
@@ -332,6 +445,11 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     },
     [conversations]
   );
+
+  const leaveThread = useCallback((threadId: string) => {
+    socketRef.current?.emit('conversation:leave', { conversationId: threadId });
+    if (activeThreadRef.current === threadId) activeThreadRef.current = null;
+  }, []);
 
   const appendRecruiterMessage = useCallback(
     async (threadId: string, body: string) => {
@@ -364,6 +482,15 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [typingByThread]
   );
 
+  const getPeerPresence = useCallback(
+    (threadId: string): PeerPresence => {
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!conversation) return { isOnline: false, lastSeenAt: null };
+      return presenceByUserId[conversation.peerId] ?? { isOnline: false, lastSeenAt: null };
+    },
+    [conversations, presenceByUserId]
+  );
+
   const setTyping = useCallback((threadId: string, isTyping: boolean) => {
     if (!threadId || !socketRef.current) return;
     socketRef.current.emit(isTyping ? 'typing:start' : 'typing:stop', {
@@ -384,7 +511,9 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       appendRecruiterMessage,
       getCombinedMessages,
       loadMessages,
+      leaveThread,
       isPeerTyping,
+      getPeerPresence,
       setTyping,
     }),
     [
@@ -394,7 +523,9 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       appendRecruiterMessage,
       getCombinedMessages,
       loadMessages,
+      leaveThread,
       isPeerTyping,
+      getPeerPresence,
       setTyping,
     ]
   );

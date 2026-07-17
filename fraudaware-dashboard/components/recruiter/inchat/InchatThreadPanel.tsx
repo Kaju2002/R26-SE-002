@@ -42,7 +42,9 @@ export default function InchatThreadPanel({
     getCombinedMessages,
     appendRecruiterMessage,
     loadMessages,
+    leaveThread,
     isPeerTyping,
+    getPeerPresence,
     setTyping,
   } = useInchat();
   const [draft, setDraft] = useState('');
@@ -56,6 +58,7 @@ export default function InchatThreadPanel({
     [getCombinedMessages, thread.id]
   );
   const peerTyping = isPeerTyping(thread.id);
+  const peerPresence = getPeerPresence(thread.id);
 
   useEffect(() => {
     void loadMessages(thread.id);
@@ -68,8 +71,9 @@ export default function InchatThreadPanel({
         setTyping(thread.id, false);
         isTypingActive.current = false;
       }
+      leaveThread(thread.id);
     };
-  }, [setTyping, thread.id]);
+  }, [leaveThread, setTyping, thread.id]);
 
   const rows = useMemo<ThreadRow[]>(() => {
     const output: ThreadRow[] = [];
@@ -139,6 +143,8 @@ export default function InchatThreadPanel({
           thread={thread}
           showBack={showBack}
           isTyping={peerTyping}
+          isOnline={peerPresence.isOnline}
+          lastSeenAt={peerPresence.lastSeenAt}
         />
       ) : null}
 
@@ -167,6 +173,7 @@ export default function InchatThreadPanel({
                 message={row.message}
                 participantName={thread.participantName}
                 participantInitials={thread.initials}
+                participantAvatarUrl={thread.avatarUrl}
               />
             )
           )

@@ -34,12 +34,30 @@ function ThreadRowContent({ thread }: { thread: InchatThread }) {
     <>
       <div className="shrink-0">
         {thread.avatarKind === 'company' ? (
-          <div
-            className="flex h-12 w-12 items-center justify-center rounded-xl border"
-            style={{ borderColor: INCHAT_BORDER, backgroundColor: '#F3F5F8' }}
-          >
-            <CompanyIcon />
-          </div>
+          thread.avatarUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={thread.avatarUrl}
+              alt=""
+              className="h-12 w-12 rounded-xl border object-cover"
+              style={{ borderColor: INCHAT_BORDER, backgroundColor: '#F3F5F8' }}
+            />
+          ) : (
+            <div
+              className="flex h-12 w-12 items-center justify-center rounded-xl border"
+              style={{ borderColor: INCHAT_BORDER, backgroundColor: '#F3F5F8' }}
+            >
+              <CompanyIcon />
+            </div>
+          )
+        ) : thread.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thread.avatarUrl}
+            alt=""
+            className="h-12 w-12 rounded-full object-cover"
+            style={{ backgroundColor: '#EEF0F8' }}
+          />
         ) : (
           <div
             className="flex h-12 w-12 items-center justify-center rounded-full"

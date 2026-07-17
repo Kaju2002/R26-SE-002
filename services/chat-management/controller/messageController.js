@@ -1,7 +1,11 @@
 import mongoose from "mongoose";
 import Conversation from "../model/conversationModel.js";
 import Message from "../model/messageModel.js";
-import { emitNewMessage } from "../config/socket.js";
+import {
+  emitMessageStatus,
+  emitNewMessage,
+  isUserOnline,
+} from "../config/socket.js";
 import { analyzeMessageForScam } from "../utils/scamDetectionClient.js";
 import { fetchApplication } from "../utils/jobManagementClient.js";
 import { publishEvent } from "../utils/publishEvent.js";
@@ -174,6 +178,10 @@ export const sendMessage = async (req, res) => {
     // Jobseeker replies stay not_checked (protect applicants, not scan their chat).
     const isRecruiterSender =
       String(conversation.recruiterId) === String(req.userId);
+    const recipientId = isRecruiterSender
+      ? String(conversation.jobseekerId)
+      : String(conversation.recruiterId);
+    const deliveredAt = isUserOnline(recipientId) ? new Date() : null;
 
     const scamAnalysis = isRecruiterSender
       ? await analyzeMessageForScam(body, req.userId)
@@ -190,7 +198,8 @@ export const sendMessage = async (req, res) => {
       senderId: String(req.userId),
       messageType: "text",
       body,
-      status: "sent",
+      status: deliveredAt ? "delivered" : "sent",
+      deliveredAt,
       scamAnalysis,
     });
 
@@ -320,6 +329,16 @@ export const markConversationRead = async (req, res) => {
         }
       ),
     ]);
+
+    emitMessageStatus(
+      conversationId,
+      {
+        readerId: String(req.userId),
+        status: "read",
+        readAt: now,
+      },
+      [conversation.recruiterId, conversation.jobseekerId]
+    );
 
     return res.status(200).json({
       success: true,

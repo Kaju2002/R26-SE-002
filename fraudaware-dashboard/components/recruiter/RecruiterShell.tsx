@@ -128,23 +128,45 @@ export default function RecruiterShell({ children, fullBleed = false }: Props) {
           </nav>
 
           <div className="border-t border-[#EEF0F8] p-4">
-            <p
-              className="truncate text-sm font-medium"
-              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-            >
-              {user.fullName}
-            </p>
-            <p
-              className="truncate text-xs"
-              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-            >
-              {user.email}
-            </p>
+            <div className="mb-2 flex items-center gap-3">
+              {user.avatar ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={user.avatar}
+                  alt=""
+                  className="h-10 w-10 shrink-0 rounded-full object-cover"
+                  style={{ backgroundColor: '#EEF0F8' }}
+                />
+              ) : (
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#EEF0F8]">
+                  <span
+                    className="text-xs font-bold"
+                    style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {`${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.toUpperCase() || 'R'}
+                  </span>
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <p
+                  className="truncate text-sm font-medium"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  {user.fullName}
+                </p>
+                <p
+                  className="truncate text-xs"
+                  style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                >
+                  {user.email}
+                </p>
+              </div>
+            </div>
             <button
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="mt-3 w-full rounded-xl border border-[#E5E7EE] px-3 py-2 text-sm font-medium transition hover:bg-[#F7F8FE] disabled:opacity-70"
+              className="mt-1 w-full rounded-xl border border-[#E5E7EE] px-3 py-2 text-sm font-medium transition hover:bg-[#F7F8FE] disabled:opacity-70"
               style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
             >
               {isLoggingOut ? 'Signing out...' : 'Sign out'}
@@ -152,7 +174,13 @@ export default function RecruiterShell({ children, fullBleed = false }: Props) {
           </div>
         </aside>
 
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col">
+        <div
+          className={
+            fullBleed
+              ? 'flex h-screen min-w-0 flex-1 flex-col overflow-hidden'
+              : 'flex min-h-screen min-w-0 flex-1 flex-col'
+          }
+        >
           <header className="border-b border-[#EEF0F8] bg-white px-4 py-3 md:hidden">
             <div className="flex items-center justify-between gap-3">
               <p
@@ -194,7 +222,7 @@ export default function RecruiterShell({ children, fullBleed = false }: Props) {
           <main
             className={
               fullBleed
-                ? 'flex min-h-0 flex-1 flex-col'
+                ? 'flex min-h-0 flex-1 flex-col overflow-hidden'
                 : 'mx-auto w-full max-w-6xl flex-1 px-4 py-6 md:px-6 md:py-8'
             }
           >

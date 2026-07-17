@@ -41,6 +41,11 @@ export type InchatBannerNotification = {
   avatarUrl?: string;
 };
 
+export type PeerPresence = {
+  isOnline: boolean;
+  lastSeenAt: string | null;
+};
+
 type InchatContextValue = {
   loaded: boolean;
   error: string | null;
@@ -56,11 +61,13 @@ type InchatContextValue = {
   ) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
+  leaveThread: (threadId: string) => void;
   refreshConversations: () => Promise<void>;
   /** Create-or-get conversation for an application, refresh inbox, return thread id. */
   startConversationFromApplication: (applicationId: string) => Promise<string>;
   /** True when the peer is currently typing in this thread. */
   isPeerTyping: (threadId: string) => boolean;
+  getPeerPresence: (threadId: string) => PeerPresence;
   /** Notify the peer that this user started/stopped typing. */
   setTyping: (threadId: string, isTyping: boolean) => void;
 };
@@ -109,6 +116,9 @@ function formatMessage(message: ChatMessage, currentUserId: string): InchatMessa
     body: message.body,
     timeLabel: formatTime(message.createdAt),
     createdAtIso: message.createdAt,
+    status: message.status,
+    deliveredAt: message.deliveredAt,
+    readAt: message.readAt,
     scamAnalysis: message.scamAnalysis,
   };
 }
@@ -177,14 +187,19 @@ export function InchatProvider({ children }: { children: ReactNode }) {
   const [incomingNotification, setIncomingNotification] =
     useState<InchatBannerNotification | null>(null);
   const [typingByThread, setTypingByThread] = useState<Record<string, boolean>>({});
+  const [presenceByUserId, setPresenceByUserId] = useState<Record<string, PeerPresence>>({});
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<Socket | null>(null);
   const conversationsRef = useRef(conversations);
   const peerByConversationIdRef = useRef(peerByConversationId);
   const typingTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-  conversationsRef.current = conversations;
-  peerByConversationIdRef.current = peerByConversationId;
+  const activeThreadRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    conversationsRef.current = conversations;
+    peerByConversationIdRef.current = peerByConversationId;
+  }, [conversations, peerByConversationId]);
 
   const dismissIncomingNotification = useCallback(() => {
     setIncomingNotification(null);
@@ -196,6 +211,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       setPeerByConversationId({});
       setIncomingNotification(null);
       setTypingByThread({});
+      setPresenceByUserId({});
+      activeThreadRef.current = null;
       setError(null);
       setLoaded(true);
       return;
@@ -267,6 +284,14 @@ export function InchatProvider({ children }: { children: ReactNode }) {
           ...previous,
           [chatMessage.conversationId]: false,
         }));
+        if (activeThreadRef.current === chatMessage.conversationId) {
+          void markConversationRead(token, chatMessage.conversationId);
+          setConversations((previous) =>
+            previous.map((entry) =>
+              entry.id === chatMessage.conversationId ? { ...entry, myUnread: 0 } : entry
+            )
+          );
+        }
       }
 
       const isIncomingRecruiterMessage =
@@ -288,6 +313,84 @@ export function InchatProvider({ children }: { children: ReactNode }) {
 
       void refreshConversations();
     });
+
+    socket.on(
+      'conversation:joined',
+      ({
+        conversationId,
+        peerPresence,
+      }: {
+        conversationId?: string;
+        peerPresence?: { userId?: string; isOnline?: boolean; lastSeenAt?: string | null };
+      }) => {
+        if (!conversationId || !peerPresence?.userId) return;
+        setPresenceByUserId((previous) => ({
+          ...previous,
+          [peerPresence.userId as string]: {
+            isOnline: Boolean(peerPresence.isOnline),
+            lastSeenAt: peerPresence.lastSeenAt ?? null,
+          },
+        }));
+      }
+    );
+
+    socket.on(
+      'presence:update',
+      ({
+        userId,
+        isOnline,
+        lastSeenAt,
+      }: {
+        userId?: string;
+        isOnline?: boolean;
+        lastSeenAt?: string | null;
+      }) => {
+        if (!userId || userId === user.id) return;
+        setPresenceByUserId((previous) => ({
+          ...previous,
+          [userId]: { isOnline: Boolean(isOnline), lastSeenAt: lastSeenAt ?? null },
+        }));
+      }
+    );
+
+    socket.on(
+      'messages:status',
+      ({
+        conversationId,
+        readerId,
+        recipientId,
+        status,
+        readAt,
+        deliveredAt,
+      }: {
+        conversationId?: string;
+        readerId?: string;
+        recipientId?: string;
+        status?: 'delivered' | 'read';
+        readAt?: string | null;
+        deliveredAt?: string | null;
+      }) => {
+        if (!conversationId || !status) return;
+        const peerActorId = status === 'read' ? readerId : recipientId;
+        if (!peerActorId || peerActorId === user.id) return;
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [conversationId]: (previous[conversationId] ?? []).map((message) =>
+            message.role === 'user' && message.status !== 'read'
+              ? {
+                  ...message,
+                  status,
+                  readAt: status === 'read' ? readAt ?? null : message.readAt,
+                  deliveredAt:
+                    status === 'delivered'
+                      ? deliveredAt ?? null
+                      : message.deliveredAt ?? readAt ?? null,
+                }
+              : message
+          ),
+        }));
+      }
+    );
 
     socket.on(
       'typing:update',
@@ -331,6 +434,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       typingTimeoutRef.current = {};
       socket.disconnect();
       socketRef.current = null;
+      activeThreadRef.current = null;
     };
   }, [token, user?.id, refreshConversations]);
 
@@ -341,6 +445,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       if (!conversation) return;
 
       socketRef.current?.emit('conversation:join', { conversationId: threadId });
+      activeThreadRef.current = threadId;
 
       try {
         const messages = await listConversationMessages(token, threadId);
@@ -349,8 +454,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
           [threadId]: messages.map((message) => formatMessage(message, user.id)),
         }));
 
+        await markConversationRead(token, threadId);
         if (conversation.myUnread > 0) {
-          await markConversationRead(token, threadId);
           setConversations((previous) =>
             previous.map((entry) =>
               entry.id === threadId
@@ -372,6 +477,11 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     },
     [conversations, token, user?.id]
   );
+
+  const leaveThread = useCallback((threadId: string) => {
+    socketRef.current?.emit('conversation:leave', { conversationId: threadId });
+    if (activeThreadRef.current === threadId) activeThreadRef.current = null;
+  }, []);
 
   const appendUserMessage = useCallback(
     async (threadId: string, body: string) => {
@@ -397,6 +507,15 @@ export function InchatProvider({ children }: { children: ReactNode }) {
   const isPeerTyping = useCallback(
     (threadId: string) => Boolean(typingByThread[threadId]),
     [typingByThread]
+  );
+
+  const getPeerPresence = useCallback(
+    (threadId: string): PeerPresence => {
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!conversation) return { isOnline: false, lastSeenAt: null };
+      return presenceByUserId[conversation.peerId] ?? { isOnline: false, lastSeenAt: null };
+    },
+    [conversations, presenceByUserId]
   );
 
   const setTyping = useCallback((threadId: string, isTyping: boolean) => {
@@ -476,9 +595,11 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       editUserMessageState,
       getCombinedMessages,
       loadMessages,
+      leaveThread,
       refreshConversations,
       startConversationFromApplication,
       isPeerTyping,
+      getPeerPresence,
       setTyping,
     }),
     [
@@ -492,9 +613,11 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       editUserMessageState,
       getCombinedMessages,
       loadMessages,
+      leaveThread,
       refreshConversations,
       startConversationFromApplication,
       isPeerTyping,
+      getPeerPresence,
       setTyping,
     ]
   );
