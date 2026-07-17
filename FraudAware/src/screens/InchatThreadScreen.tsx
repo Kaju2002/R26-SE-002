@@ -57,6 +57,17 @@ function dateLabelForMessage(message: InchatMessage): string {
   return /\d{1,2}:\d{2}/.test(message.timeLabel) ? 'Today' : message.timeLabel;
 }
 
+function presenceLabel(isOnline: boolean, lastSeenAt: string | null): string {
+  if (isOnline) return 'online';
+  if (!lastSeenAt) return 'offline';
+  const date = new Date(lastSeenAt);
+  if (Number.isNaN(date.getTime())) return 'offline';
+  return `last seen ${date.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  })}`;
+}
+
 export default function InchatThreadScreen({ navigation, route }: Props) {
   const { threadId } = route.params;
   const {
@@ -65,8 +76,10 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     appendUserMessage,
     editUserMessageState,
     loadMessages,
+    leaveThread,
     loaded,
     isPeerTyping,
+    getPeerPresence,
     setTyping,
   } = useInchat();
   const thread = getThreadById(threadId);
@@ -100,10 +113,12 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         setTyping(threadId, false);
         isTypingActive.current = false;
       }
+      leaveThread(threadId);
     };
-  }, [setTyping, threadId]);
+  }, [leaveThread, setTyping, threadId]);
 
   const peerTyping = isPeerTyping(threadId);
+  const peerPresence = getPeerPresence(threadId);
 
   const onDraftChange = useCallback(
     (text: string) => {
@@ -338,11 +353,11 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             <Text style={styles.typingSub} numberOfLines={1}>
               typing…
             </Text>
-          ) : thread?.subtitle ? (
+          ) : (
             <Text style={styles.headerSub} numberOfLines={1}>
-              {thread.subtitle}
+              {presenceLabel(peerPresence.isOnline, peerPresence.lastSeenAt)}
             </Text>
-          ) : null}
+          )}
         </View>
         <View style={styles.headerActions}>
           <Pressable

@@ -10,6 +10,8 @@ export type InchatThread = {
   subtitle?: string;
   avatarKind: InchatAvatarKind;
   initials?: string;
+  /** Profile photo URL when available; initials used as fallback. */
+  avatarUrl?: string;
   lastMessagePreview: string;
   timestampLabel: string;
   unreadCount: number;
@@ -23,6 +25,9 @@ export type InchatMessage = {
   body: string;
   timeLabel: string;
   createdAtIso?: string;
+  status?: 'sent' | 'delivered' | 'read';
+  deliveredAt?: string | null;
+  readAt?: string | null;
   unsent?: boolean;
   scamAnalysis?: {
     status: 'not_checked' | 'pending' | 'safe' | 'flagged' | 'error';

@@ -13,6 +13,10 @@ export type InchatMessage = {
   timeLabel: string;
   /** Optional machine timestamp for grouping and sorting local messages. */
   createdAtIso?: string;
+  /** Delivery receipt shown only on messages sent by the current user. */
+  status?: 'sent' | 'delivered' | 'read';
+  deliveredAt?: string | null;
+  readAt?: string | null;
   /** True when sender unsent the message in this demo UI. */
   unsent?: boolean;
   scamAnalysis?: {

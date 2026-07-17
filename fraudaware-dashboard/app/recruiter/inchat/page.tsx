@@ -37,7 +37,7 @@ function InchatWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const { loaded, error, threadsForList, isPeerTyping } = useInchat();
+  const { loaded, error, threadsForList, isPeerTyping, getPeerPresence } = useInchat();
   const [recruiter, setRecruiter] = useState<AuthUser | null>(null);
   const [query, setQuery] = useState('');
   const [filterId, setFilterId] = useState<InchatFilterId>('focused');
@@ -55,6 +55,9 @@ function InchatWorkspace() {
   const selectedThread = selectedThreadId
     ? threadsForList.find((thread) => thread.id === selectedThreadId)
     : undefined;
+  const selectedPresence = selectedThread
+    ? getPeerPresence(selectedThread.id)
+    : { isOnline: false, lastSeenAt: null };
 
   useEffect(() => {
     queueMicrotask(() => setRecruiter(getStoredUser()));
@@ -74,21 +77,31 @@ function InchatWorkspace() {
   const rowMode = isDesktop ? 'split' : 'stack';
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col lg:m-4 lg:overflow-hidden lg:rounded-xl lg:border lg:border-[#EEF0F8] lg:bg-white lg:shadow-sm">
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:m-4 lg:rounded-xl lg:border lg:border-[#EEF0F8] lg:bg-white lg:shadow-sm">
+      <div className="flex min-h-0 flex-1 overflow-hidden flex-col lg:flex-row">
         {/* Conversation list */}
-        <div className="flex min-h-0 w-full flex-col border-[#EEF0F8] bg-white lg:w-[320px] lg:shrink-0 lg:border-r">
+        <div className="flex min-h-0 w-full flex-col overflow-hidden border-[#EEF0F8] bg-white lg:w-[320px] lg:shrink-0 lg:border-r">
           <div className="flex h-[72px] shrink-0 items-center gap-3 border-b border-[#EEF0F8] px-5">
-            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EEF0F8]">
-              <span
-                className="text-sm font-bold"
-                style={{ color: INCHAT_NAVY, fontFamily: 'var(--font-poppins)' }}
-              >
-                {recruiter
-                  ? `${recruiter.firstName?.[0] ?? ''}${recruiter.lastName?.[0] ?? ''}`
-                  : 'R'}
-              </span>
-            </div>
+            {recruiter?.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={recruiter.avatar}
+                alt=""
+                className="h-11 w-11 shrink-0 rounded-full object-cover"
+                style={{ backgroundColor: '#EEF0F8' }}
+              />
+            ) : (
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EEF0F8]">
+                <span
+                  className="text-sm font-bold"
+                  style={{ color: INCHAT_NAVY, fontFamily: 'var(--font-poppins)' }}
+                >
+                  {recruiter
+                    ? `${recruiter.firstName?.[0] ?? ''}${recruiter.lastName?.[0] ?? ''}`
+                    : 'R'}
+                </span>
+              </div>
+            )}
             <div className="min-w-0">
               <p
                 className="truncate text-sm font-semibold"
@@ -164,14 +177,16 @@ function InchatWorkspace() {
         </div>
 
         {/* Active conversation — desktop split pane */}
-        <div className="hidden min-h-0 min-w-0 flex-1 flex-col lg:flex">
+        <div className="hidden min-h-0 min-w-0 flex-1 overflow-hidden flex-col lg:flex">
           {selectedThread ? (
-            <div className="flex min-h-0 flex-1 flex-col">
+            <div className="flex min-h-0 flex-1 overflow-hidden flex-col">
               <InchatConversationHeader
                 thread={selectedThread}
                 isTyping={isPeerTyping(selectedThread.id)}
+                isOnline={selectedPresence.isOnline}
+                lastSeenAt={selectedPresence.lastSeenAt}
               />
-              <div className="flex min-h-0 flex-1">
+              <div className="flex min-h-0 flex-1 overflow-hidden">
                 <InchatThreadPanel thread={selectedThread} hideHeader />
                 <InchatThreadDetailsPanel thread={selectedThread} hideHeaderSpacer />
               </div>

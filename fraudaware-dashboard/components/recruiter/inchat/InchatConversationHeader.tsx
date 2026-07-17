@@ -13,13 +13,27 @@ type Props = {
   thread: InchatThread;
   showBack?: boolean;
   isTyping?: boolean;
+  isOnline?: boolean;
+  lastSeenAt?: string | null;
 };
 
 export default function InchatConversationHeader({
   thread,
   showBack = false,
   isTyping = false,
+  isOnline = false,
+  lastSeenAt = null,
 }: Props) {
+  const lastSeen = lastSeenAt ? new Date(lastSeenAt) : null;
+  const presenceLabel = isOnline
+    ? 'online'
+    : lastSeen && !Number.isNaN(lastSeen.getTime())
+      ? `last seen ${lastSeen.toLocaleTimeString(undefined, {
+          hour: 'numeric',
+          minute: '2-digit',
+        })}`
+      : 'offline';
+
   return (
     <header
       className="flex h-[72px] shrink-0 items-center gap-2 border-b bg-white px-4"
@@ -36,22 +50,37 @@ export default function InchatConversationHeader({
       ) : null}
 
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <div
-          className={`flex h-10 w-10 shrink-0 items-center justify-center ${
-            thread.avatarKind === 'person' ? 'rounded-full' : 'rounded-xl border'
-          }`}
-          style={{
-            backgroundColor: '#EEF0F8',
-            borderColor: thread.avatarKind === 'company' ? INCHAT_BORDER : undefined,
-          }}
-        >
-          <span
-            className="text-sm font-bold"
-            style={{ color: INCHAT_NAVY, fontFamily: 'var(--font-poppins)' }}
+        {thread.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={thread.avatarUrl}
+            alt=""
+            className={`h-10 w-10 shrink-0 object-cover ${
+              thread.avatarKind === 'person' ? 'rounded-full' : 'rounded-xl border'
+            }`}
+            style={{
+              backgroundColor: '#EEF0F8',
+              borderColor: thread.avatarKind === 'company' ? INCHAT_BORDER : undefined,
+            }}
+          />
+        ) : (
+          <div
+            className={`flex h-10 w-10 shrink-0 items-center justify-center ${
+              thread.avatarKind === 'person' ? 'rounded-full' : 'rounded-xl border'
+            }`}
+            style={{
+              backgroundColor: '#EEF0F8',
+              borderColor: thread.avatarKind === 'company' ? INCHAT_BORDER : undefined,
+            }}
           >
-            {thread.avatarKind === 'person' ? thread.initials ?? '?' : 'FA'}
-          </span>
-        </div>
+            <span
+              className="text-sm font-bold"
+              style={{ color: INCHAT_NAVY, fontFamily: 'var(--font-poppins)' }}
+            >
+              {thread.avatarKind === 'person' ? thread.initials ?? '?' : 'FA'}
+            </span>
+          </div>
+        )}
 
         <div className="min-w-0">
           <p
@@ -67,7 +96,7 @@ export default function InchatConversationHeader({
               fontFamily: 'var(--font-poppins)',
             }}
           >
-            {isTyping ? 'typing…' : 'online'}
+            {isTyping ? 'typing…' : presenceLabel}
           </p>
         </div>
       </div>
