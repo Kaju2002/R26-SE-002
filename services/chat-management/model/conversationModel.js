@@ -89,6 +89,20 @@ const conversationSchema = new mongoose.Schema(
       type: unreadCountsSchema,
       default: () => ({}),
     },
+    /**
+     * Per-participant "Clear chat" timestamp.
+     * Messages at/before this time are treated as cleared for that viewer.
+     */
+    clearedAt: {
+      recruiter: {
+        type: Date,
+        default: null,
+      },
+      jobseeker: {
+        type: Date,
+        default: null,
+      },
+    },
   },
   { timestamps: true }
 );

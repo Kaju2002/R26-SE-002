@@ -4,7 +4,7 @@ import {
   createConversation,
   listConversations,
 } from "../controller/conversationController.js";
-import { getMessages, sendMessage, markConversationRead } from "../controller/messageController.js";
+import { getMessages, sendMessage, markConversationRead, deleteMessage, clearConversation } from "../controller/messageController.js";
 
 const router = Router();
 
@@ -54,6 +54,28 @@ router.post(
   "/conversations/:conversationId/messages",
   authMiddleware,
   sendMessage
+);
+
+/**
+ * POST /api/chat/conversations/:conversationId/clear
+ * Clear all chat for the caller only (peer unchanged).
+ */
+router.post(
+  "/conversations/:conversationId/clear",
+  authMiddleware,
+  clearConversation
+);
+
+/**
+ * DELETE /api/chat/conversations/:conversationId/messages/:messageId
+ * Body: { mode: "me" | "everyone" }
+ * - me: delete for caller only
+ * - everyone: sender deletes for both sides
+ */
+router.delete(
+  "/conversations/:conversationId/messages/:messageId",
+  authMiddleware,
+  deleteMessage
 );
 
 /**

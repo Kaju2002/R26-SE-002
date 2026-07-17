@@ -63,7 +63,7 @@ export default function InchatComposer({ value, onChange, onSend, sending }: Pro
           placeholder="Write a message…"
           rows={1}
           disabled={sending}
-          className="max-h-[120px] min-h-[44px] flex-1 resize-none rounded-[22px] bg-[#F0F2F5] px-4 py-2.5 text-base font-medium text-[#111827] outline-none disabled:opacity-70"
+          className="scrollbar-hide max-h-[120px] min-h-[44px] flex-1 resize-none overflow-y-auto rounded-[22px] bg-[#F0F2F5] px-4 py-2.5 text-base font-medium text-[#111827] outline-none disabled:opacity-70"
           style={{ fontFamily: 'var(--font-poppins)' }}
         />
 

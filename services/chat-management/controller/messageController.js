@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import Conversation from "../model/conversationModel.js";
 import Message from "../model/messageModel.js";
 import {
+  emitConversationCleared,
+  emitMessageDeleted,
   emitMessageStatus,
   emitNewMessage,
   isUserOnline,
@@ -10,6 +12,8 @@ import { analyzeMessageForScam } from "../utils/scamDetectionClient.js";
 import { fetchApplication } from "../utils/jobManagementClient.js";
 import { publishEvent } from "../utils/publishEvent.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
+
+const DELETED_EVERYONE_PREVIEW = "This message was deleted";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
@@ -20,20 +24,28 @@ const parsePagination = (query) => {
   return { page, limit, skip };
 };
 
-const formatMessage = (message) => ({
-  id: String(message._id),
-  conversationId: String(message.conversationId),
-  senderId: message.senderId,
-  messageType: message.messageType,
-  body: message.body || "",
-  attachments: message.attachments || [],
-  status: message.status,
-  deliveredAt: message.deliveredAt,
-  readAt: message.readAt,
-  scamAnalysis: message.scamAnalysis || { status: "not_checked", isScam: false },
-  createdAt: message.createdAt,
-  updatedAt: message.updatedAt,
-});
+const formatMessage = (message) => {
+  const deletedForEveryone = Boolean(message.deletedForEveryone);
+  return {
+    id: String(message._id),
+    conversationId: String(message.conversationId),
+    senderId: message.senderId,
+    messageType: deletedForEveryone ? "system" : message.messageType,
+    body: deletedForEveryone ? DELETED_EVERYONE_PREVIEW : message.body || "",
+    attachments: deletedForEveryone ? [] : message.attachments || [],
+    status: message.status,
+    deliveredAt: message.deliveredAt,
+    readAt: message.readAt,
+    scamAnalysis: deletedForEveryone
+      ? { status: "not_checked", isScam: false, score: null, tactics: [], analyzedAt: null }
+      : message.scamAnalysis || { status: "not_checked", isScam: false },
+    deletedForEveryone,
+    deletedAt: message.deletedAt ?? null,
+    deletedBy: message.deletedBy ?? null,
+    createdAt: message.createdAt,
+    updatedAt: message.updatedAt,
+  };
+};
 
 /**
  * Load a conversation and ensure the caller is a participant.
@@ -95,6 +107,7 @@ export const getMessages = async (req, res) => {
     const { page, limit, skip } = parsePagination(req.query);
     const filter = {
       conversationId: new mongoose.Types.ObjectId(conversationId),
+      deletedFor: { $ne: String(req.userId) },
     };
 
     const [messages, total] = await Promise.all([
@@ -119,6 +132,290 @@ export const getMessages = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error fetching messages",
+      error: error.message,
+    });
+  }
+};
+
+const refreshConversationLastMessage = async (conversation) => {
+  const latest = await Message.findOne({
+    conversationId: conversation._id,
+    deletedForEveryone: { $ne: true },
+  }).sort({ createdAt: -1 });
+
+  if (!latest) {
+    await Conversation.findByIdAndUpdate(conversation._id, {
+      $set: {
+        lastMessage: {
+          messageId: null,
+          senderId: null,
+          preview: "",
+          messageType: "text",
+          sentAt: null,
+        },
+      },
+    });
+    return;
+  }
+
+  const previewSource = latest.deletedForEveryone
+    ? DELETED_EVERYONE_PREVIEW
+    : latest.body || "";
+  const trimmed = String(previewSource).trim();
+  const preview =
+    trimmed.length > 160 ? `${trimmed.slice(0, 157)}...` : trimmed;
+
+  await Conversation.findByIdAndUpdate(conversation._id, {
+    $set: {
+      lastMessage: {
+        messageId: latest._id,
+        senderId: latest.senderId,
+        preview,
+        messageType: latest.messageType || "text",
+        sentAt: latest.createdAt,
+      },
+    },
+  });
+};
+
+/**
+ * DELETE /api/chat/conversations/:conversationId/messages/:messageId
+ * Body/query: { mode: "me" | "everyone" }
+ *
+ * - me: hide message for the caller only (soft delete)
+ * - everyone: sender tombstones the message for both participants
+ */
+export const deleteMessage = async (req, res) => {
+  try {
+    const { conversationId, messageId } = req.params;
+    const mode = String(req.body?.mode || req.query?.mode || "")
+      .trim()
+      .toLowerCase();
+
+    if (mode !== "me" && mode !== "everyone") {
+      return res.status(400).json({
+        success: false,
+        message: 'mode is required and must be "me" or "everyone"',
+      });
+    }
+
+    if (!isValidObjectId(messageId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid message id",
+      });
+    }
+
+    const access = await getParticipantConversation(conversationId, req.userId);
+    if (!access.ok) {
+      return res.status(access.status).json({
+        success: false,
+        message: access.message,
+      });
+    }
+
+    const conversation = access.conversation;
+    const message = await Message.findOne({
+      _id: messageId,
+      conversationId: conversation._id,
+    });
+
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        message: "Message not found in this conversation",
+      });
+    }
+
+    // Already hidden for this user.
+    if ((message.deletedFor || []).map(String).includes(String(req.userId))) {
+      return res.status(200).json({
+        success: true,
+        message: "Message already deleted for you",
+        mode: "me",
+        conversationId,
+        messageId: String(message._id),
+      });
+    }
+
+    const now = new Date();
+
+    if (mode === "me") {
+      await Message.findByIdAndUpdate(message._id, {
+        $addToSet: { deletedFor: String(req.userId) },
+        $set: {
+          deletedAt: message.deletedAt || now,
+          deletedBy: message.deletedBy || String(req.userId),
+        },
+      });
+
+      emitMessageDeleted(
+        conversationId,
+        {
+          messageId: String(message._id),
+          deletedBy: String(req.userId),
+          deletedAt: now,
+        },
+        { mode: "me", userId: String(req.userId) }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Message deleted for you",
+        mode: "me",
+        conversationId,
+        messageId: String(message._id),
+      });
+    }
+
+    // mode === "everyone"
+    if (String(message.senderId) !== String(req.userId)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only the sender can delete this message for everyone",
+      });
+    }
+
+    if (message.deletedForEveryone) {
+      return res.status(200).json({
+        success: true,
+        message: "Message already deleted for everyone",
+        mode: "everyone",
+        conversationId,
+        chatMessage: formatMessage(message),
+      });
+    }
+
+    message.deletedForEveryone = true;
+    message.deletedAt = now;
+    message.deletedBy = String(req.userId);
+    message.body = DELETED_EVERYONE_PREVIEW;
+    message.attachments = [];
+    message.messageType = "system";
+    message.scamAnalysis = {
+      status: "not_checked",
+      isScam: false,
+      score: null,
+      tactics: [],
+      analyzedAt: null,
+    };
+    await message.save();
+
+    const wasLastMessage =
+      conversation.lastMessage?.messageId &&
+      String(conversation.lastMessage.messageId) === String(message._id);
+
+    if (wasLastMessage) {
+      await Conversation.findByIdAndUpdate(conversation._id, {
+        $set: {
+          "lastMessage.preview": DELETED_EVERYONE_PREVIEW,
+          "lastMessage.messageType": "system",
+        },
+      });
+    } else {
+      await refreshConversationLastMessage(conversation);
+    }
+
+    const chatMessage = formatMessage(message);
+    emitMessageDeleted(
+      conversationId,
+      {
+        messageId: String(message._id),
+        deletedBy: String(req.userId),
+        deletedAt: now,
+        chatMessage,
+      },
+      {
+        mode: "everyone",
+        participantIds: [conversation.recruiterId, conversation.jobseekerId],
+      }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Message deleted for everyone",
+      mode: "everyone",
+      conversationId,
+      chatMessage,
+    });
+  } catch (error) {
+    console.error("Delete message error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting message",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * POST /api/chat/conversations/:conversationId/clear
+ *
+ * WhatsApp-style "Clear chat" for the caller only:
+ * - soft-hides all existing messages for this user (deletedFor)
+ * - sets clearedAt for this participant (inbox preview)
+ * - resets their unread count to 0
+ * Peer conversation is unchanged.
+ */
+export const clearConversation = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const access = await getParticipantConversation(conversationId, req.userId);
+
+    if (!access.ok) {
+      return res.status(access.status).json({
+        success: false,
+        message: access.message,
+      });
+    }
+
+    const conversation = access.conversation;
+    const isRecruiter = String(conversation.recruiterId) === String(req.userId);
+    const clearedAtField = isRecruiter ? "clearedAt.recruiter" : "clearedAt.jobseeker";
+    const unreadField = isRecruiter
+      ? "unreadCounts.recruiter"
+      : "unreadCounts.jobseeker";
+    const now = new Date();
+    const userId = String(req.userId);
+
+    const updateResult = await Message.updateMany(
+      {
+        conversationId: conversation._id,
+        deletedFor: { $ne: userId },
+      },
+      {
+        $addToSet: { deletedFor: userId },
+      }
+    );
+
+    await Conversation.findByIdAndUpdate(conversation._id, {
+      $set: {
+        [clearedAtField]: now,
+        [unreadField]: 0,
+      },
+    });
+
+    emitConversationCleared(conversationId, userId, {
+      clearedBy: userId,
+      clearedAt: now,
+      clearedCount: updateResult.modifiedCount ?? 0,
+      mode: "me",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Conversation cleared for you",
+      mode: "me",
+      conversationId,
+      clearedAt: now,
+      clearedCount: updateResult.modifiedCount ?? 0,
+      myUnread: 0,
+    });
+  } catch (error) {
+    console.error("Clear conversation error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error clearing conversation",
       error: error.message,
     });
   }

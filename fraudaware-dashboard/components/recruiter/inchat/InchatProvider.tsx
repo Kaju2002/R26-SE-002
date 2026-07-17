@@ -12,12 +12,15 @@ import {
 } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import {
+  clearConversation as clearConversationApi,
+  deleteConversationMessage,
   listChatConversations,
   listConversationMessages,
   markConversationRead,
   sendConversationMessage,
   type ChatConversation,
   type ChatMessage,
+  type DeleteMessageMode,
 } from '@/lib/api/chatApi';
 import { getChatManagementBaseUrl } from '@/lib/api/apiConfig';
 import { getApplicationById } from '@/lib/api/jobApi';
@@ -42,6 +45,12 @@ type InchatContextValue = {
   error: string | null;
   threadsForList: InchatThread[];
   appendRecruiterMessage: (threadId: string, body: string) => Promise<void>;
+  deleteMessage: (
+    threadId: string,
+    messageId: string,
+    mode: DeleteMessageMode
+  ) => Promise<void>;
+  clearConversation: (threadId: string) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
   leaveThread: (threadId: string) => void;
@@ -88,17 +97,20 @@ function formatThread(
 }
 
 function formatMessage(message: ChatMessage, recruiterId: string): InchatMessage {
+  const deletedForEveryone = Boolean(message.deletedForEveryone);
   return {
     id: message.id,
     threadId: message.conversationId,
     role: message.senderId === recruiterId ? 'recruiter' : 'applicant',
-    body: message.body,
+    body: deletedForEveryone ? 'This message was deleted' : message.body,
     timeLabel: formatTime(message.createdAt),
     createdAtIso: message.createdAt,
     status: message.status,
     deliveredAt: message.deliveredAt,
     readAt: message.readAt,
-    scamAnalysis: message.scamAnalysis,
+    unsent: deletedForEveryone,
+    deletedForEveryone,
+    scamAnalysis: deletedForEveryone ? undefined : message.scamAnalysis,
   };
 }
 
@@ -354,6 +366,87 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     );
 
     socket.on(
+      'message:deleted',
+      ({
+        conversationId,
+        messageId,
+        mode,
+        chatMessage,
+      }: {
+        conversationId?: string;
+        messageId?: string;
+        mode?: DeleteMessageMode;
+        chatMessage?: ChatMessage;
+      }) => {
+        if (!conversationId || !messageId || !mode) return;
+        const conversation = conversationsRef.current.find((entry) => entry.id === conversationId);
+
+        if (mode === 'me') {
+          setMessagesByThread((previous) => ({
+            ...previous,
+            [conversationId]: (previous[conversationId] ?? []).filter(
+              (message) => message.id !== messageId
+            ),
+          }));
+        } else if (chatMessage && conversation) {
+          const mapped = formatMessage(chatMessage, conversation.recruiterId);
+          setMessagesByThread((previous) => ({
+            ...previous,
+            [conversationId]: (previous[conversationId] ?? []).map((message) =>
+              message.id === messageId ? mapped : message
+            ),
+          }));
+        } else {
+          setMessagesByThread((previous) => ({
+            ...previous,
+            [conversationId]: (previous[conversationId] ?? []).map((message) =>
+              message.id === messageId
+                ? {
+                    ...message,
+                    body: 'This message was deleted',
+                    unsent: true,
+                    deletedForEveryone: true,
+                    scamAnalysis: undefined,
+                  }
+                : message
+            ),
+          }));
+        }
+
+        void refreshConversations();
+      }
+    );
+
+    socket.on(
+      'conversation:cleared',
+      ({ conversationId }: { conversationId?: string }) => {
+        if (!conversationId) return;
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [conversationId]: [],
+        }));
+        setConversations((previous) =>
+          previous.map((entry) =>
+            entry.id === conversationId
+              ? {
+                  ...entry,
+                  myUnread: 0,
+                  lastMessage: {
+                    messageId: null,
+                    senderId: null,
+                    preview: '',
+                    messageType: 'text',
+                    sentAt: null,
+                  },
+                }
+              : entry
+          )
+        );
+        void refreshConversations();
+      }
+    );
+
+    socket.on(
       'typing:update',
       ({
         conversationId,
@@ -472,6 +565,82 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [conversations, refreshConversations]
   );
 
+  const deleteMessage = useCallback(
+    async (threadId: string, messageId: string, mode: DeleteMessageMode) => {
+      const token = getStoredToken();
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!token || !conversation) return;
+
+      const result = await deleteConversationMessage(token, threadId, messageId, mode);
+
+      if (mode === 'me') {
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [threadId]: (previous[threadId] ?? []).filter((message) => message.id !== messageId),
+        }));
+      } else if (result.chatMessage) {
+        const mapped = formatMessage(result.chatMessage, conversation.recruiterId);
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [threadId]: (previous[threadId] ?? []).map((message) =>
+            message.id === messageId ? mapped : message
+          ),
+        }));
+      } else {
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [threadId]: (previous[threadId] ?? []).map((message) =>
+            message.id === messageId
+              ? {
+                  ...message,
+                  body: 'This message was deleted',
+                  unsent: true,
+                  deletedForEveryone: true,
+                  scamAnalysis: undefined,
+                }
+              : message
+          ),
+        }));
+      }
+
+      await refreshConversations();
+    },
+    [conversations, refreshConversations]
+  );
+
+  const clearConversation = useCallback(
+    async (threadId: string) => {
+      const token = getStoredToken();
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!token || !conversation) return;
+
+      await clearConversationApi(token, threadId);
+      setMessagesByThread((previous) => ({
+        ...previous,
+        [threadId]: [],
+      }));
+      setConversations((previous) =>
+        previous.map((entry) =>
+          entry.id === threadId
+            ? {
+                ...entry,
+                myUnread: 0,
+                lastMessage: {
+                  messageId: null,
+                  senderId: null,
+                  preview: '',
+                  messageType: 'text',
+                  sentAt: null,
+                },
+              }
+            : entry
+        )
+      );
+      await refreshConversations();
+    },
+    [conversations, refreshConversations]
+  );
+
   const getCombinedMessages = useCallback(
     (threadId: string) => messagesByThread[threadId] ?? [],
     [messagesByThread]
@@ -509,6 +678,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       error,
       threadsForList,
       appendRecruiterMessage,
+      deleteMessage,
+      clearConversation,
       getCombinedMessages,
       loadMessages,
       leaveThread,
@@ -521,6 +692,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       error,
       threadsForList,
       appendRecruiterMessage,
+      deleteMessage,
+      clearConversation,
       getCombinedMessages,
       loadMessages,
       leaveThread,

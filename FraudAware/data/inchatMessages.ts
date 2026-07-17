@@ -17,8 +17,9 @@ export type InchatMessage = {
   status?: 'sent' | 'delivered' | 'read';
   deliveredAt?: string | null;
   readAt?: string | null;
-  /** True when sender unsent the message in this demo UI. */
+  /** True when sender deleted the message for everyone. */
   unsent?: boolean;
+  deletedForEveryone?: boolean;
   scamAnalysis?: {
     status: 'not_checked' | 'pending' | 'safe' | 'flagged' | 'error';
     isScam: boolean;

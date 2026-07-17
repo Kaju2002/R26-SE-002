@@ -74,7 +74,8 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     getThreadById,
     getCombinedMessages,
     appendUserMessage,
-    editUserMessageState,
+    deleteMessage,
+    clearConversation,
     loadMessages,
     leaveThread,
     loaded,
@@ -170,26 +171,46 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
 
   const onMessageLongPress = useCallback(
     (message: InchatMessage) => {
-      const isLocalUser = message.role === 'user' && message.id.startsWith('local-');
-      if (!isLocalUser) return;
-      Alert.alert('Message options', 'Choose an action for your message.', [
+      if (message.deletedForEveryone || message.unsent) return;
+
+      const options: {
+        text: string;
+        style?: 'destructive' | 'cancel' | 'default';
+        onPress?: () => void;
+      }[] = [
         {
           text: 'Delete for me',
           style: 'destructive',
           onPress: () => {
-            void editUserMessageState(threadId, message.id, 'delete');
+            void deleteMessage(threadId, message.id, 'me').catch((error: unknown) => {
+              Alert.alert(
+                'Could not delete',
+                error instanceof Error ? error.message : 'Please try again.'
+              );
+            });
           },
         },
-        {
-          text: 'Unsend',
+      ];
+
+      if (message.role === 'user') {
+        options.push({
+          text: 'Delete for everyone',
           onPress: () => {
-            void editUserMessageState(threadId, message.id, 'unsend');
+            void deleteMessage(threadId, message.id, 'everyone').catch((error: unknown) => {
+              Alert.alert(
+                'Could not delete',
+                error instanceof Error ? error.message : 'Please try again.'
+              );
+            });
           },
-        },
-        { text: 'Cancel', style: 'cancel' },
-      ]);
+        });
+      }
+
+      options.push({ text: 'Cancel', style: 'cancel' });
+
+      Alert.alert('Message options', 'Choose an action for this message.', options);
     },
-    [editUserMessageState, threadId]
+    [deleteMessage, threadId]
   );
 
   const renderItem: ListRenderItem<ThreadRow> = useCallback(
@@ -201,7 +222,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
           </View>
         );
       }
-      const canOpenMenu = item.message.role === 'user' && item.message.id.startsWith('local-');
+      const canOpenMenu = !item.message.deletedForEveryone && !item.message.unsent;
       if (!canOpenMenu) {
         return <InchatMessageBubble message={item.message} />;
       }
@@ -330,6 +351,29 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     closeThreadMenu();
     navigateToMessageAnalyzer(navigation);
   }, [closeThreadMenu, navigation]);
+
+  const onMenuClearChat = useCallback(() => {
+    closeThreadMenu();
+    Alert.alert(
+      'Clear chat?',
+      'This clears messages for you only. The other person still keeps the chat.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Clear chat',
+          style: 'destructive',
+          onPress: () => {
+            void clearConversation(threadId).catch((error: unknown) => {
+              Alert.alert(
+                'Could not clear chat',
+                error instanceof Error ? error.message : 'Please try again.'
+              );
+            });
+          },
+        },
+      ]
+    );
+  }, [clearConversation, closeThreadMenu, threadId]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -465,6 +509,16 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             >
               <MaterialCommunityIcons name="shield-search" size={22} color={INCHAT_NAVY} />
               <Text style={styles.menuRowLabel}>Message Analyzer</Text>
+            </Pressable>
+            <View style={styles.menuDivider} />
+            <Pressable
+              style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
+              onPress={onMenuClearChat}
+              accessibilityRole="button"
+              accessibilityLabel="Clear chat"
+            >
+              <MaterialCommunityIcons name="broom" size={22} color="#B91C1C" />
+              <Text style={[styles.menuRowLabel, styles.menuRowDanger]}>Clear chat</Text>
             </Pressable>
           </View>
         </View>
@@ -605,6 +659,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: INCHAT_NAVY,
+  },
+  menuRowDanger: {
+    color: '#B91C1C',
   },
   menuDivider: {
     height: StyleSheet.hairlineWidth,
