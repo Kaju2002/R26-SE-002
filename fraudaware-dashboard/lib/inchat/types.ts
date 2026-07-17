@@ -29,6 +29,7 @@ export type InchatMessage = {
   deliveredAt?: string | null;
   readAt?: string | null;
   unsent?: boolean;
+  deletedForEveryone?: boolean;
   scamAnalysis?: {
     status: 'not_checked' | 'pending' | 'safe' | 'flagged' | 'error';
     isScam: boolean;

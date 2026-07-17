@@ -110,11 +110,33 @@ const messageSchema = new mongoose.Schema(
       type: scamAnalysisSchema,
       default: () => ({}),
     },
+    /** User ids who hid this message for themselves only (Delete for me). */
+    deletedFor: {
+      type: [String],
+      default: [],
+    },
+    /** Sender removed the message for both participants (Delete for everyone). */
+    deletedForEveryone: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    deletedBy: {
+      type: String,
+      default: null,
+      trim: true,
+    },
   },
   { timestamps: true }
 );
 
 messageSchema.pre("validate", function () {
+  // Tombstone messages from delete-for-everyone may keep a placeholder body.
+  if (this.deletedForEveryone) return;
+
   const hasBody = Boolean(this.body?.trim());
   const hasAttachments = this.attachments?.length > 0;
 
@@ -126,6 +148,7 @@ messageSchema.pre("validate", function () {
 messageSchema.index({ conversationId: 1, createdAt: 1 });
 messageSchema.index({ senderId: 1, createdAt: -1 });
 messageSchema.index({ "scamAnalysis.status": 1, createdAt: -1 });
+messageSchema.index({ conversationId: 1, deletedFor: 1 });
 
 const Message = mongoose.model("Message", messageSchema);
 

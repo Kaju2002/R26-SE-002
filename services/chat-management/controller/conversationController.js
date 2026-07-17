@@ -13,6 +13,26 @@ const formatConversation = (conversation, viewerId = null) => {
     recruiter: 0,
     jobseeker: 0,
   };
+  const clearedAt = conversation.clearedAt || {};
+
+  let lastMessage = conversation.lastMessage || null;
+
+  if (viewerId && lastMessage?.sentAt) {
+    const isRecruiter = String(conversation.recruiterId) === String(viewerId);
+    const viewerClearedAt = isRecruiter ? clearedAt.recruiter : clearedAt.jobseeker;
+    if (
+      viewerClearedAt &&
+      new Date(lastMessage.sentAt).getTime() <= new Date(viewerClearedAt).getTime()
+    ) {
+      lastMessage = {
+        messageId: null,
+        senderId: null,
+        preview: "",
+        messageType: "text",
+        sentAt: null,
+      };
+    }
+  }
 
   const base = {
     id: String(conversation._id),
@@ -22,7 +42,7 @@ const formatConversation = (conversation, viewerId = null) => {
     jobId: conversation.jobId,
     status: conversation.status,
     startedBy: conversation.startedBy,
-    lastMessage: conversation.lastMessage || null,
+    lastMessage,
     unreadCounts,
     createdAt: conversation.createdAt,
     updatedAt: conversation.updatedAt,
@@ -38,6 +58,7 @@ const formatConversation = (conversation, viewerId = null) => {
     myRole,
     myUnread: isRecruiter ? unreadCounts.recruiter : unreadCounts.jobseeker,
     peerId: isRecruiter ? conversation.jobseekerId : conversation.recruiterId,
+    clearedAt: isRecruiter ? clearedAt.recruiter ?? null : clearedAt.jobseeker ?? null,
   };
 };
 

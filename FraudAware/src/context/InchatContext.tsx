@@ -10,13 +10,16 @@ import React, {
 } from 'react';
 import { io, type Socket } from 'socket.io-client';
 import {
+  clearConversation as clearConversationApi,
   createChatConversation,
+  deleteConversationMessage,
   listChatConversations,
   listConversationMessages,
   markConversationRead,
   sendConversationMessage,
   type ChatConversation,
   type ChatMessage,
+  type DeleteMessageMode,
 } from '../api/chatApi';
 import { getChatManagementBaseUrl } from '../api/apiConfig';
 import { getApplicationById } from '../api/jobApi';
@@ -54,11 +57,14 @@ type InchatContextValue = {
   dismissIncomingNotification: () => void;
   getThreadById: (threadId: string) => InchatThread | undefined;
   appendUserMessage: (threadId: string, body: string) => Promise<void>;
-  editUserMessageState: (
+  /** Delete for me (any message) or delete for everyone (own messages only). */
+  deleteMessage: (
     threadId: string,
     messageId: string,
-    mode: 'delete' | 'unsend'
+    mode: DeleteMessageMode
   ) => Promise<void>;
+  /** Clear all messages in a thread for the current user only. */
+  clearConversation: (threadId: string) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
   leaveThread: (threadId: string) => void;
@@ -109,17 +115,20 @@ function formatThread(
 }
 
 function formatMessage(message: ChatMessage, currentUserId: string): InchatMessage {
+  const deletedForEveryone = Boolean(message.deletedForEveryone);
   return {
     id: message.id,
     threadId: message.conversationId,
     role: message.senderId === currentUserId ? 'user' : 'contact',
-    body: message.body,
+    body: deletedForEveryone ? 'This message was deleted' : message.body,
     timeLabel: formatTime(message.createdAt),
     createdAtIso: message.createdAt,
     status: message.status,
     deliveredAt: message.deliveredAt,
     readAt: message.readAt,
-    scamAnalysis: message.scamAnalysis,
+    unsent: deletedForEveryone,
+    deletedForEveryone,
+    scamAnalysis: deletedForEveryone ? undefined : message.scamAnalysis,
   };
 }
 
@@ -393,6 +402,86 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     );
 
     socket.on(
+      'message:deleted',
+      ({
+        conversationId,
+        messageId,
+        mode,
+        chatMessage,
+      }: {
+        conversationId?: string;
+        messageId?: string;
+        mode?: DeleteMessageMode;
+        chatMessage?: ChatMessage;
+      }) => {
+        if (!conversationId || !messageId || !mode) return;
+
+        if (mode === 'me') {
+          setMessagesByThread((previous) => ({
+            ...previous,
+            [conversationId]: (previous[conversationId] ?? []).filter(
+              (message) => message.id !== messageId
+            ),
+          }));
+        } else if (chatMessage && user?.id) {
+          const mapped = formatMessage(chatMessage, user.id);
+          setMessagesByThread((previous) => ({
+            ...previous,
+            [conversationId]: (previous[conversationId] ?? []).map((message) =>
+              message.id === messageId ? mapped : message
+            ),
+          }));
+        } else {
+          setMessagesByThread((previous) => ({
+            ...previous,
+            [conversationId]: (previous[conversationId] ?? []).map((message) =>
+              message.id === messageId
+                ? {
+                    ...message,
+                    body: 'This message was deleted',
+                    unsent: true,
+                    deletedForEveryone: true,
+                    scamAnalysis: undefined,
+                  }
+                : message
+            ),
+          }));
+        }
+
+        void refreshConversations();
+      }
+    );
+
+    socket.on(
+      'conversation:cleared',
+      ({ conversationId }: { conversationId?: string }) => {
+        if (!conversationId) return;
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [conversationId]: [],
+        }));
+        setConversations((previous) =>
+          previous.map((entry) =>
+            entry.id === conversationId
+              ? {
+                  ...entry,
+                  myUnread: 0,
+                  lastMessage: {
+                    messageId: null,
+                    senderId: null,
+                    preview: '',
+                    messageType: 'text',
+                    sentAt: null,
+                  },
+                }
+              : entry
+          )
+        );
+        void refreshConversations();
+      }
+    );
+
+    socket.on(
       'typing:update',
       ({
         conversationId,
@@ -525,35 +614,78 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const editUserMessageState = useCallback(
-    async (threadId: string, messageId: string, mode: 'delete' | 'unsend') => {
-      // Server unsend/delete is not implemented yet — only allow local-prefixed drafts.
-      if (!messageId.startsWith('local-')) return;
+  const deleteMessage = useCallback(
+    async (threadId: string, messageId: string, mode: DeleteMessageMode) => {
+      if (!token || !user?.id) return;
+      if (!conversations.some((entry) => entry.id === threadId)) return;
 
-      setMessagesByThread((prev) => {
-        const existing = prev[threadId] ?? [];
-        if (!existing.some((m) => m.id === messageId && m.role === 'user')) {
-          return prev;
-        }
-        const updated =
-          mode === 'delete'
-            ? existing.filter((m) => m.id !== messageId)
-            : existing.map((m) =>
-                m.id === messageId
-                  ? {
-                      ...m,
-                      body: 'You unsent a message',
-                      unsent: true,
-                    }
-                  : m
-              );
-        return {
-          ...prev,
-          [threadId]: updated,
-        };
-      });
+      const result = await deleteConversationMessage(token, threadId, messageId, mode);
+
+      if (mode === 'me') {
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [threadId]: (previous[threadId] ?? []).filter((message) => message.id !== messageId),
+        }));
+      } else if (result.chatMessage) {
+        const mapped = formatMessage(result.chatMessage, user.id);
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [threadId]: (previous[threadId] ?? []).map((message) =>
+            message.id === messageId ? mapped : message
+          ),
+        }));
+      } else {
+        setMessagesByThread((previous) => ({
+          ...previous,
+          [threadId]: (previous[threadId] ?? []).map((message) =>
+            message.id === messageId
+              ? {
+                  ...message,
+                  body: 'This message was deleted',
+                  unsent: true,
+                  deletedForEveryone: true,
+                  scamAnalysis: undefined,
+                }
+              : message
+          ),
+        }));
+      }
+
+      await refreshConversations();
     },
-    []
+    [conversations, refreshConversations, token, user?.id]
+  );
+
+  const clearConversation = useCallback(
+    async (threadId: string) => {
+      if (!token || !user?.id) return;
+      if (!conversations.some((entry) => entry.id === threadId)) return;
+
+      await clearConversationApi(token, threadId);
+      setMessagesByThread((previous) => ({
+        ...previous,
+        [threadId]: [],
+      }));
+      setConversations((previous) =>
+        previous.map((entry) =>
+          entry.id === threadId
+            ? {
+                ...entry,
+                myUnread: 0,
+                lastMessage: {
+                  messageId: null,
+                  senderId: null,
+                  preview: '',
+                  messageType: 'text',
+                  sentAt: null,
+                },
+              }
+            : entry
+        )
+      );
+      await refreshConversations();
+    },
+    [conversations, refreshConversations, token, user?.id]
   );
 
   const getCombinedMessages = useCallback(
@@ -592,7 +724,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       dismissIncomingNotification,
       getThreadById,
       appendUserMessage,
-      editUserMessageState,
+      deleteMessage,
+      clearConversation,
       getCombinedMessages,
       loadMessages,
       leaveThread,
@@ -610,7 +743,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       dismissIncomingNotification,
       getThreadById,
       appendUserMessage,
-      editUserMessageState,
+      deleteMessage,
+      clearConversation,
       getCombinedMessages,
       loadMessages,
       leaveThread,

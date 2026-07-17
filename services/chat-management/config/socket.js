@@ -130,6 +130,8 @@ const assertParticipant = async (conversationId, userId) => {
  *
  * Server events:
  *   message:new        { chatMessage }
+ *   message:deleted    { conversationId, messageId, mode, deletedBy, ... }
+ *   conversation:cleared { conversationId, clearedBy, clearedAt, mode: "me" }
  *   typing:update      { conversationId, userId, isTyping }
  *   presence:update    { userId, isOnline, lastSeenAt }
  *   messages:status    { conversationId, recipientId|readerId, status, ... }
@@ -295,4 +297,47 @@ export const emitNewMessage = (
     }
   }
   target.emit("message:new", { chatMessage });
+};
+
+/**
+ * Notify clients that a message was deleted.
+ * - mode "me": only the caller's personal room (peer should not hide it)
+ * - mode "everyone": conversation room + both participant rooms
+ */
+export const emitMessageDeleted = (
+  conversationId,
+  payload,
+  { mode, userId, participantIds = [] } = {}
+) => {
+  if (!io) return;
+
+  const eventPayload = {
+    conversationId: String(conversationId),
+    ...payload,
+    mode,
+  };
+
+  if (mode === "me") {
+    if (userId) {
+      io.to(userRoom(userId)).emit("message:deleted", eventPayload);
+    }
+    return;
+  }
+
+  let target = io.to(conversationRoom(conversationId));
+  for (const participantId of participantIds) {
+    if (participantId) target = target.to(userRoom(participantId));
+  }
+  target.emit("message:deleted", eventPayload);
+};
+
+/**
+ * Notify the caller that they cleared a conversation (delete-for-me on all messages).
+ */
+export const emitConversationCleared = (conversationId, userId, payload = {}) => {
+  if (!io || !userId) return;
+  io.to(userRoom(userId)).emit("conversation:cleared", {
+    conversationId: String(conversationId),
+    ...payload,
+  });
 };

@@ -37,7 +37,8 @@ function InchatWorkspace() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const { loaded, error, threadsForList, isPeerTyping, getPeerPresence } = useInchat();
+  const { loaded, error, threadsForList, isPeerTyping, getPeerPresence, clearConversation } =
+    useInchat();
   const [recruiter, setRecruiter] = useState<AuthUser | null>(null);
   const [query, setQuery] = useState('');
   const [filterId, setFilterId] = useState<InchatFilterId>('focused');
@@ -138,7 +139,7 @@ function InchatWorkspace() {
             </button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto">
+          <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
             {!loaded ? (
               <p
                 className="px-4 py-8 text-center text-sm"
@@ -185,6 +186,7 @@ function InchatWorkspace() {
                 isTyping={isPeerTyping(selectedThread.id)}
                 isOnline={selectedPresence.isOnline}
                 lastSeenAt={selectedPresence.lastSeenAt}
+                onClearChat={() => clearConversation(selectedThread.id)}
               />
               <div className="flex min-h-0 flex-1 overflow-hidden">
                 <InchatThreadPanel thread={selectedThread} hideHeader />

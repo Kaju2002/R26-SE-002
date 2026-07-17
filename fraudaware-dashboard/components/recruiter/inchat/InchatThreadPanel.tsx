@@ -5,7 +5,7 @@ import InchatComposer from '@/components/recruiter/inchat/InchatComposer';
 import InchatConversationHeader from '@/components/recruiter/inchat/InchatConversationHeader';
 import InchatMessageBubble from '@/components/recruiter/inchat/InchatMessageBubble';
 import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
-import { INCHAT_MUTED } from '@/lib/inchat/inchatStyles';
+import { INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 import type { InchatMessage, InchatThread } from '@/lib/inchat/types';
 
 type ThreadRow =
@@ -41,6 +41,8 @@ export default function InchatThreadPanel({
   const {
     getCombinedMessages,
     appendRecruiterMessage,
+    deleteMessage,
+    clearConversation,
     loadMessages,
     leaveThread,
     isPeerTyping,
@@ -49,6 +51,8 @@ export default function InchatThreadPanel({
   } = useInchat();
   const [draft, setDraft] = useState('');
   const [sendBusy, setSendBusy] = useState(false);
+  const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingActive = useRef(false);
@@ -136,6 +140,19 @@ export default function InchatThreadPanel({
     }
   }, [appendRecruiterMessage, draft, sendBusy, setTyping, thread.id]);
 
+  const onDelete = useCallback(
+    async (message: InchatMessage, mode: 'me' | 'everyone') => {
+      setDeleteError(null);
+      setMenuMessageId(null);
+      try {
+        await deleteMessage(thread.id, message.id, mode);
+      } catch (error) {
+        setDeleteError(error instanceof Error ? error.message : 'Could not delete message.');
+      }
+    },
+    [deleteMessage, thread.id]
+  );
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
       {!hideHeader ? (
@@ -145,10 +162,19 @@ export default function InchatThreadPanel({
           isTyping={peerTyping}
           isOnline={peerPresence.isOnline}
           lastSeenAt={peerPresence.lastSeenAt}
+          onClearChat={() => clearConversation(thread.id)}
         />
       ) : null}
 
-      <div className="min-h-0 flex-1 overflow-y-auto bg-[#FAFBFE] px-4 py-4">
+      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto bg-[#FAFBFE] px-4 py-4">
+        {deleteError ? (
+          <p
+            className="mb-3 text-center text-xs font-semibold text-red-600"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            {deleteError}
+          </p>
+        ) : null}
         {rows.length === 0 ? (
           <p
             className="py-10 text-center text-sm font-semibold"
@@ -168,13 +194,62 @@ export default function InchatThreadPanel({
                 </span>
               </div>
             ) : (
-              <InchatMessageBubble
-                key={row.id}
-                message={row.message}
-                participantName={thread.participantName}
-                participantInitials={thread.initials}
-                participantAvatarUrl={thread.avatarUrl}
-              />
+              <div key={row.id} className="relative">
+                <button
+                  type="button"
+                  className="w-full text-left"
+                  onContextMenu={(event) => {
+                    if (row.message.deletedForEveryone || row.message.unsent) return;
+                    event.preventDefault();
+                    setMenuMessageId(row.message.id);
+                  }}
+                  onClick={() => {
+                    if (menuMessageId === row.message.id) setMenuMessageId(null);
+                  }}
+                >
+                  <InchatMessageBubble
+                    message={row.message}
+                    participantName={thread.participantName}
+                    participantInitials={thread.initials}
+                    participantAvatarUrl={thread.avatarUrl}
+                  />
+                </button>
+                {menuMessageId === row.message.id ? (
+                  <div
+                    className={`absolute z-20 mt-[-8px] min-w-[180px] rounded-xl border bg-white py-1 shadow-lg ${
+                      row.message.role === 'recruiter' ? 'right-0' : 'left-10'
+                    }`}
+                    style={{ borderColor: '#EEF0F8' }}
+                  >
+                    <button
+                      type="button"
+                      className="block w-full px-3 py-2 text-left text-sm font-semibold text-red-600 hover:bg-[#F7F8FE]"
+                      style={{ fontFamily: 'var(--font-poppins)' }}
+                      onClick={() => void onDelete(row.message, 'me')}
+                    >
+                      Delete for me
+                    </button>
+                    {row.message.role === 'recruiter' ? (
+                      <button
+                        type="button"
+                        className="block w-full px-3 py-2 text-left text-sm font-semibold hover:bg-[#F7F8FE]"
+                        style={{ color: INCHAT_NAVY, fontFamily: 'var(--font-poppins)' }}
+                        onClick={() => void onDelete(row.message, 'everyone')}
+                      >
+                        Delete for everyone
+                      </button>
+                    ) : null}
+                    <button
+                      type="button"
+                      className="block w-full px-3 py-2 text-left text-sm font-medium hover:bg-[#F7F8FE]"
+                      style={{ color: INCHAT_MUTED, fontFamily: 'var(--font-poppins)' }}
+                      onClick={() => setMenuMessageId(null)}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             )
           )
         )}

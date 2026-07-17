@@ -46,6 +46,10 @@ app.get("/", (req, res) => {
         "POST /api/chat/conversations/:conversationId/messages (Bearer token required)",
       markRead:
         "PATCH /api/chat/conversations/:conversationId/read (Bearer token required)",
+      deleteMessage:
+        "DELETE /api/chat/conversations/:conversationId/messages/:messageId (Bearer token required, body: { mode: \"me\" | \"everyone\" })",
+      clearConversation:
+        "POST /api/chat/conversations/:conversationId/clear (Bearer token required) — clear chat for caller only",
       socket: "Socket.io on same port (JWT in auth.token)",
     },
   });

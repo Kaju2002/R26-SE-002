@@ -70,7 +70,7 @@ export default function InchatThreadDetailsPanel({
         <div className="h-[72px] shrink-0 border-b" style={{ borderColor: INCHAT_BORDER }} />
       ) : null}
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+      <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto px-5 py-5">
         <h3
           className="text-[15px] font-semibold"
           style={{ color: INCHAT_NAVY, fontFamily: 'var(--font-poppins)' }}
