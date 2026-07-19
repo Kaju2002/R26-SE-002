@@ -105,7 +105,157 @@ const formatAuthUser = (user) => ({
   emailVerified: user.emailVerified,
   isPremium: user.isPremium,
   lastLoginAt: user.lastLoginAt,
+  company: user.company
+    ? {
+        name: user.company.name || "",
+        logo: user.company.logo || null,
+        website: user.company.website || null,
+        industry: user.company.industry || null,
+        address: user.company.address || null,
+        description: user.company.description || null,
+        registrationNumber: user.company.registrationNumber || null,
+        isVerified: user.company.isVerified ?? false,
+      }
+    : null,
+  nylasEmail: user.nylasEmail || null,
+  nylasConnected: Boolean(user.nylasEmail && user.nylasConnectedAt),
+  nylasConnectedAt: user.nylasConnectedAt || null,
 });
+
+const parseFullNameParts = (fullName) => {
+  const nameTrimed = String(fullName || "").trim();
+  if (nameTrimed.length < 2) {
+    return { ok: false, message: "Full name must be at least 2 characters" };
+  }
+
+  const nameParts = nameTrimed.split(/\s+/).filter(Boolean);
+  if (nameParts.length < 2) {
+    return {
+      ok: false,
+      message: "Please enter full name (first and last name)",
+    };
+  }
+
+  return {
+    ok: true,
+    firstName: nameParts[0],
+    lastName: nameParts.slice(1).join(" "),
+    fullName: nameTrimed,
+  };
+};
+
+const validateRegistrationCredentials = ({
+  fullName,
+  email,
+  password,
+  confirmPassword,
+}) => {
+  if (!fullName || !email || !password || !confirmPassword) {
+    return {
+      ok: false,
+      message: "Full name, email, password, and confirm password are required",
+    };
+  }
+
+  const parsedName = parseFullNameParts(fullName);
+  if (!parsedName.ok) return parsedName;
+
+  if (!isValidEmail(email)) {
+    return { ok: false, message: "Please enter a valid email address" };
+  }
+
+  if (password.length < 8) {
+    return {
+      ok: false,
+      message: "Password must be at least 8 characters long",
+    };
+  }
+
+  if (password !== confirmPassword) {
+    return { ok: false, message: "Passwords do not match" };
+  }
+
+  return {
+    ok: true,
+    firstName: parsedName.firstName,
+    lastName: parsedName.lastName,
+    email: normalizeEmail(email),
+  };
+};
+
+const createPortalUser = async ({
+  firstName,
+  lastName,
+  email,
+  password,
+  accountType,
+  headline,
+  company,
+}) => {
+  const verificationOtp = generateOtp();
+  const verificationExpiry = new Date(Date.now() + OTP_VALIDITY_MS);
+
+  const newUser = await User.create({
+    email,
+    password,
+    firstName,
+    lastName,
+    headline: headline || "",
+    company: company || undefined,
+    accountType,
+    accountStatus: "active",
+    emailVerified: false,
+    emailVerificationToken: verificationOtp,
+    emailVerificationExpires: verificationExpiry,
+  });
+
+  await sendVerificationEmail(newUser.email, verificationOtp);
+
+  return newUser;
+};
+
+const registrationSuccessResponse = (res, newUser, message) =>
+  res.status(201).json({
+    success: true,
+    message,
+    requiresEmailVerification: true,
+    user: {
+      id: newUser._id,
+      email: newUser.email,
+      firstName: newUser.firstName,
+      lastName: newUser.lastName,
+      fullName: `${newUser.firstName} ${newUser.lastName}`,
+      accountType: newUser.accountType,
+      createdAt: newUser.createdAt,
+    },
+  });
+
+const handleRegistrationError = (res, error, label = "Registration") => {
+  console.error(`${label} error:`, error);
+
+  if (error.name === "ValidationError") {
+    const messages = Object.values(error.errors).map((err) => err.message);
+    return res.status(400).json({
+      success: false,
+      message: "Validation error",
+      errors: messages,
+    });
+  }
+
+  if (error.code === 11000) {
+    const field = Object.keys(error.keyPattern)[0];
+    return res.status(409).json({
+      success: false,
+      message: `${field} already exists`,
+    });
+  }
+
+  return res.status(500).json({
+    success: false,
+    message: `Error during ${label.toLowerCase()}`,
+    error: error.message,
+  });
+};
 
 const signAuthToken = (user) =>
   jwt.sign(
@@ -247,6 +397,210 @@ export const register = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error during registration",
+      error: error.message,
+    });
+  }
+};
+
+// ============ REGISTER RECRUITER (dashboard) ============
+export const registerRecruiter = async (req, res) => {
+  try {
+    const { fullName, email, password, confirmPassword, agencyName, headline } =
+      req.body;
+
+    const credentials = validateRegistrationCredentials({
+      fullName,
+      email,
+      password,
+      confirmPassword,
+    });
+    if (!credentials.ok) {
+      return res.status(400).json({ success: false, message: credentials.message });
+    }
+
+    const userExists = await User.findOne({ email: credentials.email });
+    if (userExists) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already registered",
+      });
+    }
+
+    const agency = String(agencyName || "").trim();
+    const newUser = await createPortalUser({
+      firstName: credentials.firstName,
+      lastName: credentials.lastName,
+      email: credentials.email,
+      password,
+      accountType: "recruiter",
+      headline: String(headline || agency || "").trim(),
+      company: agency
+        ? {
+            name: agency,
+            website: null,
+            isVerified: false,
+          }
+        : undefined,
+    });
+
+    return registrationSuccessResponse(
+      res,
+      newUser,
+      "Recruiter registered successfully. Verification OTP sent to email."
+    );
+  } catch (error) {
+    return handleRegistrationError(res, error, "Recruiter registration");
+  }
+};
+
+// ============ REGISTER COMPANY (dashboard) ============
+export const registerCompany = async (req, res) => {
+  try {
+    const {
+      fullName,
+      email,
+      password,
+      confirmPassword,
+      companyName,
+      website,
+      industry,
+      address,
+      description,
+      registrationNumber,
+    } = req.body;
+
+    const credentials = validateRegistrationCredentials({
+      fullName,
+      email,
+      password,
+      confirmPassword,
+    });
+    if (!credentials.ok) {
+      return res.status(400).json({ success: false, message: credentials.message });
+    }
+
+    const name = String(companyName || "").trim();
+    if (!name) {
+      return res.status(400).json({
+        success: false,
+        message: "Company name is required",
+      });
+    }
+
+    const userExists = await User.findOne({ email: credentials.email });
+    if (userExists) {
+      return res.status(409).json({
+        success: false,
+        message: "Email already registered",
+      });
+    }
+
+    const newUser = await createPortalUser({
+      firstName: credentials.firstName,
+      lastName: credentials.lastName,
+      email: credentials.email,
+      password,
+      accountType: "company",
+      headline: name,
+      company: {
+        name,
+        website: website?.trim() || null,
+        industry: industry?.trim() || null,
+        address: address?.trim() || null,
+        description: description?.trim() || null,
+        registrationNumber: registrationNumber?.trim() || null,
+        isVerified: false,
+      },
+    });
+
+    return registrationSuccessResponse(
+      res,
+      newUser,
+      "Company registered successfully. Verification OTP sent to email."
+    );
+  } catch (error) {
+    return handleRegistrationError(res, error, "Company registration");
+  }
+};
+
+// ============ NYLAS CONNECTION (used by email-management) ============
+export const updateNylasConnection = async (req, res) => {
+  try {
+    const { grantId, email: nylasEmail, clear } = req.body ?? {};
+    const user = await User.findById(req.userId).select("+nylasGrantId");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (clear === true) {
+      user.nylasGrantId = null;
+      user.nylasEmail = null;
+      user.nylasConnectedAt = null;
+      await user.save();
+      return res.status(200).json({
+        success: true,
+        message: "Nylas connection cleared",
+        user: formatAuthUser(user),
+      });
+    }
+
+    if (!grantId || !nylasEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "grantId and email are required",
+      });
+    }
+
+    user.nylasGrantId = String(grantId).trim();
+    user.nylasEmail = String(nylasEmail).trim().toLowerCase();
+    user.nylasConnectedAt = new Date();
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Nylas connection saved",
+      user: formatAuthUser(user),
+    });
+  } catch (error) {
+    console.error("Update Nylas connection error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating Nylas connection",
+      error: error.message,
+    });
+  }
+};
+
+export const getNylasGrant = async (req, res) => {
+  try {
+    const user = await User.findById(req.userId).select(
+      "+nylasGrantId nylasEmail nylasConnectedAt accountType"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      connected: Boolean(user.nylasGrantId),
+      grantId: user.nylasGrantId || null,
+      email: user.nylasEmail || null,
+      connectedAt: user.nylasConnectedAt || null,
+      accountType: user.accountType,
+    });
+  } catch (error) {
+    console.error("Get Nylas grant error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error fetching Nylas grant",
       error: error.message,
     });
   }

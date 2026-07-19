@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use, useEffect } from 'react';
-import RecruiterShell from '@/components/recruiter/RecruiterShell';
+import EmployerShell from '@/components/employer/EmployerShell';
 import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
 import InchatThreadPanel from '@/components/recruiter/inchat/InchatThreadPanel';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
+import { useInchatBasePath } from '@/lib/inchat/InchatBasePathContext';
 import { INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 
 type PageProps = {
@@ -15,15 +16,16 @@ type PageProps = {
 
 function MobileThreadContent({ threadId }: { threadId: string }) {
   const router = useRouter();
+  const basePath = useInchatBasePath();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const { loaded, threadsForList } = useInchat();
   const thread = threadsForList.find((entry) => entry.id === threadId);
 
   useEffect(() => {
     if (isDesktop) {
-      router.replace(`/recruiter/inchat?thread=${threadId}`);
+      router.replace(`${basePath}/inchat?thread=${threadId}`);
     }
-  }, [isDesktop, router, threadId]);
+  }, [basePath, isDesktop, router, threadId]);
 
   if (!loaded) {
     return (
@@ -42,7 +44,7 @@ function MobileThreadContent({ threadId }: { threadId: string }) {
           Conversation not found.
         </p>
         <Link
-          href="/recruiter/inchat"
+          href={`${basePath}/inchat`}
           className="mt-4 inline-block text-sm font-medium text-[#2563EB]"
           style={{ fontFamily: 'var(--font-poppins)' }}
         >
@@ -73,8 +75,8 @@ export default function RecruiterInchatThreadPage({ params }: PageProps) {
   const { threadId } = use(params);
 
   return (
-    <RecruiterShell fullBleed>
+    <EmployerShell portal="recruiter" fullBleed>
       <MobileThreadContent threadId={threadId} />
-    </RecruiterShell>
+    </EmployerShell>
   );
 }

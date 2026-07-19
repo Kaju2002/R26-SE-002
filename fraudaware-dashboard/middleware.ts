@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const PUBLIC_AUTH_PATHS = new Set([
+  '/recruiter/login',
+  '/recruiter/register',
+  '/company/login',
+  '/company/register',
+  '/admin/login',
+]);
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('fa_auth_token')?.value;
   const accountType = request.cookies.get('fa_account_type')?.value;
 
-  if (pathname === '/recruiter/login' || pathname === '/admin/login') {
+  if (PUBLIC_AUTH_PATHS.has(pathname)) {
     return NextResponse.next();
   }
 
@@ -16,14 +24,26 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/recruiter/inchat') ||
     pathname.startsWith('/recruiter/jobs') ||
     pathname.startsWith('/recruiter/applicants') ||
-    pathname.startsWith('/recruiter/profile');
+    pathname.startsWith('/recruiter/profile') ||
+    pathname.startsWith('/recruiter/email');
+  const isCompanyArea =
+    pathname.startsWith('/company/dashboard') ||
+    pathname.startsWith('/company/inchat') ||
+    pathname.startsWith('/company/jobs') ||
+    pathname.startsWith('/company/applicants') ||
+    pathname.startsWith('/company/profile') ||
+    pathname.startsWith('/company/email');
 
-  if (!isAdminArea && !isRecruiterArea) {
+  if (!isAdminArea && !isRecruiterArea && !isCompanyArea) {
     return NextResponse.next();
   }
 
   if (!token) {
-    const loginPath = isAdminArea ? '/admin/login' : '/recruiter/login';
+    const loginPath = isAdminArea
+      ? '/admin/login'
+      : isCompanyArea
+        ? '/company/login'
+        : '/recruiter/login';
     return NextResponse.redirect(new URL(loginPath, request.url));
   }
 
@@ -33,6 +53,10 @@ export function middleware(request: NextRequest) {
 
   if (isRecruiterArea && accountType !== 'recruiter') {
     return NextResponse.redirect(new URL('/recruiter/login', request.url));
+  }
+
+  if (isCompanyArea && accountType !== 'company') {
+    return NextResponse.redirect(new URL('/company/login', request.url));
   }
 
   return NextResponse.next();
@@ -46,5 +70,12 @@ export const config = {
     '/recruiter/jobs/:path*',
     '/recruiter/applicants/:path*',
     '/recruiter/profile/:path*',
+    '/recruiter/email/:path*',
+    '/company/dashboard/:path*',
+    '/company/inchat/:path*',
+    '/company/jobs/:path*',
+    '/company/applicants/:path*',
+    '/company/profile/:path*',
+    '/company/email/:path*',
   ],
 };

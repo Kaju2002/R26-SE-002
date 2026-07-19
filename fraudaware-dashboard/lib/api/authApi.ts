@@ -4,6 +4,10 @@ import type {
   LoginRequest,
   LoginResponse,
   LogoutResponse,
+  RegisterCompanyRequest,
+  RegisterRecruiterRequest,
+  RegisterResponse,
+  VerifyEmailRequest,
 } from './authTypes';
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -31,6 +35,49 @@ export async function login(credentials: LoginRequest): Promise<LoginResponse> {
   });
 
   return parseJson<LoginResponse>(response);
+}
+
+export async function registerRecruiter(
+  payload: RegisterRecruiterRequest
+): Promise<RegisterResponse> {
+  const response = await fetch(
+    `${getUserManagementBaseUrl()}/api/auth/register-recruiter`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return parseJson<RegisterResponse>(response);
+}
+
+export async function registerCompany(
+  payload: RegisterCompanyRequest
+): Promise<RegisterResponse> {
+  const response = await fetch(
+    `${getUserManagementBaseUrl()}/api/auth/register-company`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return parseJson<RegisterResponse>(response);
+}
+
+export async function verifyEmail(payload: VerifyEmailRequest): Promise<{
+  success: boolean;
+  message: string;
+}> {
+  const response = await fetch(`${getUserManagementBaseUrl()}/api/auth/verify-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  return parseJson(response);
 }
 
 export async function getCurrentUser(token: string): Promise<CurrentUserResponse> {

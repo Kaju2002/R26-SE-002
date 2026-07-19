@@ -151,13 +151,36 @@ export const updateBasicProfile = async (req, res) => {
           name: company.trim(),
           logo: user.company?.logo ?? null,
           website: user.company?.website ?? null,
+          industry: user.company?.industry ?? null,
+          address: user.company?.address ?? null,
+          description: user.company?.description ?? null,
+          registrationNumber: user.company?.registrationNumber ?? null,
           isVerified: user.company?.isVerified ?? false,
         };
       } else {
         user.company = {
           name: company.name?.trim() || user.company?.name || "",
           logo: company.logo ?? user.company?.logo ?? null,
-          website: company.website ?? user.company?.website ?? null,
+          website:
+            company.website !== undefined
+              ? company.website
+              : user.company?.website ?? null,
+          industry:
+            company.industry !== undefined
+              ? company.industry
+              : user.company?.industry ?? null,
+          address:
+            company.address !== undefined
+              ? company.address
+              : user.company?.address ?? null,
+          description:
+            company.description !== undefined
+              ? company.description
+              : user.company?.description ?? null,
+          registrationNumber:
+            company.registrationNumber !== undefined
+              ? company.registrationNumber
+              : user.company?.registrationNumber ?? null,
           isVerified: company.isVerified ?? user.company?.isVerified ?? false,
         };
       }
@@ -576,6 +599,10 @@ export const updateCompanyLogo = async (req, res) => {
       name: user.company?.name || "",
       logo: uploadedLogo,
       website: user.company?.website ?? null,
+      industry: user.company?.industry ?? null,
+      address: user.company?.address ?? null,
+      description: user.company?.description ?? null,
+      registrationNumber: user.company?.registrationNumber ?? null,
       isVerified: user.company?.isVerified ?? false,
     };
 

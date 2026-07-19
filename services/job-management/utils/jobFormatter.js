@@ -94,6 +94,7 @@ export const formatJob = (job, extras = {}) => {
     contact: formatContact(job.contact),
     status: job.status,
     postedBy: job.postedBy,
+    posterType: job.posterType || "recruiter",
     ...extras,
   };
 };

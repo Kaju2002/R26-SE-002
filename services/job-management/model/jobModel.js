@@ -114,6 +114,12 @@ const jobSchema = new mongoose.Schema(
       required: [true, "Posted by user id is required"],
       index: true,
     },
+    posterType: {
+      type: String,
+      enum: ["recruiter", "company"],
+      default: "recruiter",
+      index: true,
+    },
     postedAt: {
       type: Date,
       default: Date.now,

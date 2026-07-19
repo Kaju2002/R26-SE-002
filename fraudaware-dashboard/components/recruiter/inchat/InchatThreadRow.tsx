@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useInchatBasePath } from '@/lib/inchat/InchatBasePathContext';
 import type { InchatThread } from '@/lib/inchat/types';
 import {
   INCHAT_BLUE_DOT,
@@ -120,6 +121,7 @@ function ThreadRowContent({ thread }: { thread: InchatThread }) {
 }
 
 export default function InchatThreadRow({ thread, isActive = false, mode, onSelect }: Props) {
+  const basePath = useInchatBasePath();
   const className = `flex w-full items-stretch gap-3 border-b px-4 py-3 text-left transition ${
     isActive ? 'bg-[#EEF0F8]' : 'hover:bg-[#FAFBFE]'
   }`;
@@ -140,7 +142,7 @@ export default function InchatThreadRow({ thread, isActive = false, mode, onSele
 
   return (
     <Link
-      href={`/recruiter/inchat/${thread.id}`}
+      href={`${basePath}/inchat/${thread.id}`}
       className={className}
       style={{ borderColor: INCHAT_BORDER }}
     >
