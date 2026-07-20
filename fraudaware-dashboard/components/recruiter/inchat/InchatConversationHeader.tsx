@@ -17,6 +17,8 @@ type Props = {
   isOnline?: boolean;
   lastSeenAt?: string | null;
   onClearChat?: () => void | Promise<void>;
+  onBlock?: () => void | Promise<void>;
+  onUnblock?: () => void | Promise<void>;
 };
 
 export default function InchatConversationHeader({
@@ -26,20 +28,26 @@ export default function InchatConversationHeader({
   isOnline = false,
   lastSeenAt = null,
   onClearChat,
+  onBlock,
+  onUnblock,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
+  const [statusBusy, setStatusBusy] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const isBlocked = Boolean(thread.iBlocked);
 
   const lastSeen = lastSeenAt ? new Date(lastSeenAt) : null;
-  const presenceLabel = isOnline
-    ? 'online'
-    : lastSeen && !Number.isNaN(lastSeen.getTime())
-      ? `last seen ${lastSeen.toLocaleTimeString(undefined, {
-          hour: 'numeric',
-          minute: '2-digit',
-        })}`
-      : 'offline';
+  const presenceLabel = isBlocked
+    ? 'Blocked'
+    : isOnline
+      ? 'online'
+      : lastSeen && !Number.isNaN(lastSeen.getTime())
+        ? `last seen ${lastSeen.toLocaleTimeString(undefined, {
+            hour: 'numeric',
+            minute: '2-digit',
+          })}`
+        : 'offline';
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -64,6 +72,38 @@ export default function InchatConversationHeader({
       setMenuOpen(false);
     } finally {
       setClearing(false);
+    }
+  };
+
+  const handleToggleBlock = async () => {
+    if (statusBusy) return;
+    if (isBlocked) {
+      if (!onUnblock) return;
+      const confirmed = window.confirm(
+        'Unblock this conversation? You will be able to message again.'
+      );
+      if (!confirmed) return;
+      setStatusBusy(true);
+      try {
+        await onUnblock();
+        setMenuOpen(false);
+      } finally {
+        setStatusBusy(false);
+      }
+      return;
+    }
+
+    if (!onBlock) return;
+    const confirmed = window.confirm(
+      'Block this conversation? They will not be told. Their messages will not be delivered to you.'
+    );
+    if (!confirmed) return;
+    setStatusBusy(true);
+    try {
+      await onBlock();
+      setMenuOpen(false);
+    } finally {
+      setStatusBusy(false);
     }
   };
 
@@ -123,13 +163,13 @@ export default function InchatConversationHeader({
             {thread.participantName}
           </p>
           <p
-            className={`truncate text-xs font-medium ${isTyping ? 'italic' : ''}`}
+            className={`truncate text-xs font-medium ${isTyping && !isBlocked ? 'italic' : ''}`}
             style={{
-              color: isTyping ? '#2563EB' : INCHAT_MUTED,
+              color: isBlocked ? '#B42318' : isTyping ? '#2563EB' : INCHAT_MUTED,
               fontFamily: 'var(--font-poppins)',
             }}
           >
-            {isTyping ? 'typing…' : presenceLabel}
+            {isTyping && !isBlocked ? 'typing…' : presenceLabel}
           </p>
         </div>
       </div>
@@ -165,6 +205,17 @@ export default function InchatConversationHeader({
             className="absolute right-0 top-11 z-30 min-w-[180px] rounded-xl border bg-white py-1 shadow-lg"
             style={{ borderColor: INCHAT_BORDER }}
           >
+            <button
+              type="button"
+              disabled={statusBusy || (isBlocked ? !onUnblock : !onBlock)}
+              onClick={() => void handleToggleBlock()}
+              className={`block w-full px-3 py-2 text-left text-sm font-semibold transition hover:bg-[#F7F8FE] disabled:opacity-50 ${
+                isBlocked ? 'text-[#202871]' : 'text-red-600'
+              }`}
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {statusBusy ? 'Updating…' : isBlocked ? 'Unblock' : 'Block'}
+            </button>
             <button
               type="button"
               disabled={!onClearChat || clearing}

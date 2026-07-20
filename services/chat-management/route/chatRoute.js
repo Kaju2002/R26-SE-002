@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 import {
   createConversation,
   listConversations,
+  updateConversationStatus,
 } from "../controller/conversationController.js";
 import { getMessages, sendMessage, markConversationRead, deleteMessage, clearConversation } from "../controller/messageController.js";
 
@@ -86,6 +87,17 @@ router.patch(
   "/conversations/:conversationId/read",
   authMiddleware,
   markConversationRead
+);
+
+/**
+ * PATCH /api/chat/conversations/:conversationId/status
+ * Body: { status: "active" | "blocked" }
+ * Block or unblock a conversation (participants only).
+ */
+router.patch(
+  "/conversations/:conversationId/status",
+  authMiddleware,
+  updateConversationStatus
 );
 
 export default router;

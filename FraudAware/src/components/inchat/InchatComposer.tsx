@@ -31,6 +31,8 @@ type Props = {
   onChangeText: (text: string) => void;
   onSend: () => void;
   sending?: boolean;
+  /** When true, composer cannot send (e.g. conversation blocked). */
+  disabled?: boolean;
   placeholder?: string;
   /** Camera capture — parent handles permissions + append. */
   onTakePhoto?: () => void | Promise<void>;
@@ -43,6 +45,7 @@ export default function InchatComposer({
   onChangeText,
   onSend,
   sending,
+  disabled = false,
   placeholder = 'Write a message…',
   onTakePhoto,
   onPickFromLibrary,
@@ -50,8 +53,9 @@ export default function InchatComposer({
   const [menuOpen, setMenuOpen] = useState(false);
 
   const trimmedLen = value.trim().length;
-  const sendDisabled = sending || trimmedLen === 0;
-  const showSend = trimmedLen > 0;
+  const sendDisabled = disabled || sending || trimmedLen === 0;
+  const showSend = !disabled && trimmedLen > 0;
+  const resolvedPlaceholder = disabled ? 'You blocked this conversation' : placeholder;
 
   const clampText = useCallback((t: string) => (t.length <= MAX_CHARS ? t : t.slice(0, MAX_CHARS)), []);
 
@@ -138,6 +142,7 @@ export default function InchatComposer({
     <TouchableOpacity
       style={styles.iconHit}
       onPress={toggleMenu}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel="Attachments"
     >
@@ -163,6 +168,7 @@ export default function InchatComposer({
     <TouchableOpacity
       style={styles.iconHit}
       onPress={onMicPress}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel="Record voice message"
     >
@@ -178,17 +184,17 @@ export default function InchatComposer({
           style={styles.inputPill}
           value={value}
           onChangeText={(t) => onChangeText(clampText(t))}
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           placeholderTextColor="#9CA3AF"
           multiline
           maxLength={MAX_CHARS}
-          editable={!sending}
+          editable={!sending && !disabled}
           onFocus={() => setMenuOpen(false)}
         />
         {RightAction}
       </View>
 
-      {menuOpen ? (
+      {menuOpen && !disabled ? (
         <View style={styles.menuBlock}>
           {attachmentRows.map((row) => (
             <TouchableOpacity
