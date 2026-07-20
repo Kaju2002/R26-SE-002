@@ -7,7 +7,7 @@ import profileRoute from "./route/profileRoute.js";
 
 // ==== APP CONFIG ====
 const app = express();
-const PORT = process.env.PORT || 5005;
+const PORT = process.env.PORT || 5000;
 
 // ==== DATABASE CONNECTION ====
 connectDB();
