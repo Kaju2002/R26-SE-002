@@ -6,6 +6,14 @@ export type JobSummary = {
   companyName: string;
   status: string;
   applicants: number;
+  location?: string;
+  type?: string;
+  mode?: string;
+  salaryMin?: number;
+  salaryMax?: number;
+  salaryCurrency?: string;
+  posterType?: 'recruiter' | 'company';
+  description?: string[];
 };
 
 export type JobApplication = {
@@ -32,9 +40,30 @@ export type ApplicationDetail = {
   applicantEmail: string;
 };
 
+export type CreateJobPayload = {
+  title: string;
+  companyName?: string;
+  location: string;
+  mode: 'On-Site' | 'Remote' | 'Hybrid';
+  type: 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship';
+  salaryMin: number;
+  salaryMax: number;
+  salaryCurrency?: string;
+  description: string;
+  requirements?: string;
+  skills?: string;
+  status?: 'active' | 'draft' | 'closed';
+};
+
 type MyJobsResponse = {
   success: boolean;
   jobs: JobSummary[];
+};
+
+type JobResponse = {
+  success: boolean;
+  job: JobSummary;
+  message?: string;
 };
 
 type JobApplicationsResponse = {
@@ -74,6 +103,42 @@ export async function listMyJobs(token: string): Promise<JobSummary[]> {
   return (await parseJson<MyJobsResponse>(response)).jobs;
 }
 
+export async function createJob(
+  token: string,
+  payload: CreateJobPayload
+): Promise<JobSummary> {
+  const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+  return (await parseJson<JobResponse>(response)).job;
+}
+
+export async function updateJob(
+  token: string,
+  jobId: string,
+  payload: Partial<CreateJobPayload>
+): Promise<JobSummary> {
+  const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/${jobId}`, {
+    method: 'PUT',
+    headers: authHeaders(token),
+    body: JSON.stringify(payload),
+  });
+
+  return (await parseJson<JobResponse>(response)).job;
+}
+
+export async function deleteJob(token: string, jobId: string): Promise<void> {
+  const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/${jobId}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+
+  await parseJson<{ success: boolean }>(response);
+}
+
 export async function listJobApplications(
   token: string,
   jobId: string
@@ -104,4 +169,21 @@ export async function getApplicationById(
   );
 
   return (await parseJson<ApplicationDetailResponse>(response)).application;
+}
+
+export async function updateApplicationStatus(
+  token: string,
+  applicationId: string,
+  status: string
+): Promise<void> {
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/applications/${applicationId}/status`,
+    {
+      method: 'PATCH',
+      headers: authHeaders(token),
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  await parseJson<{ success: boolean }>(response);
 }

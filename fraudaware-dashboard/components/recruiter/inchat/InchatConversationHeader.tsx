@@ -7,6 +7,7 @@ import {
   PhoneIcon,
   VideoIcon,
 } from '@/components/recruiter/inchat/InchatIcons';
+import { useInchatBasePath } from '@/lib/inchat/InchatBasePathContext';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 import type { InchatThread } from '@/lib/inchat/types';
 
@@ -31,6 +32,7 @@ export default function InchatConversationHeader({
   onBlock,
   onUnblock,
 }: Props) {
+  const basePath = useInchatBasePath();
   const [menuOpen, setMenuOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
@@ -114,7 +116,7 @@ export default function InchatConversationHeader({
     >
       {showBack ? (
         <Link
-          href="/recruiter/inchat"
+          href={`${basePath}/inchat`}
           className="flex h-10 w-10 items-center justify-center rounded-full text-[#202871] transition hover:bg-[#EEF0F8] lg:hidden"
           aria-label="Back to inbox"
         >

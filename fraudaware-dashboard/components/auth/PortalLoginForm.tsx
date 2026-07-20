@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { login } from '@/lib/api/authApi';
@@ -191,8 +192,23 @@ export default function PortalLoginForm({ config, portalType }: Props) {
         {isSubmitting ? 'Signing in...' : 'Sign In'}
       </button>
 
+      {portalType === 'recruiter' || portalType === 'company' ? (
+        <p
+          className="mt-6 text-center text-sm"
+          style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+        >
+          Need an account?{' '}
+          <Link
+            href={config.registerPath}
+            className="font-medium text-[#202871] underline"
+          >
+            Register here
+          </Link>
+        </p>
+      ) : null}
+
       <p
-        className="mt-6 text-center text-sm"
+        className="mt-4 text-center text-sm"
         style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
       >
         {config.footerNote}

@@ -9,7 +9,8 @@ export default function Home() {
           Portal entry points
         </h1>
         <p className="mt-3 text-base leading-relaxed text-[#42498A]">
-          Sign in with your portal account. Backend auth is wired to user-management.
+          Recruiters and companies can register, post jobs, review applications, and
+          email applicants from their connected mailbox.
         </p>
 
         <div className="mt-8 flex flex-col gap-3">
@@ -18,6 +19,24 @@ export default function Home() {
             className="inline-flex h-12 items-center justify-center rounded-xl bg-[#202871] px-5 text-base font-medium text-white transition hover:opacity-95"
           >
             Recruiter Login
+          </Link>
+          <Link
+            href="/recruiter/register"
+            className="inline-flex h-12 items-center justify-center rounded-xl border border-[#E5E7EE] bg-white px-5 text-base font-medium text-[#202871] transition hover:bg-[#F7F8FE]"
+          >
+            Recruiter Register
+          </Link>
+          <Link
+            href="/company/login"
+            className="inline-flex h-12 items-center justify-center rounded-xl bg-[#202871] px-5 text-base font-medium text-white transition hover:opacity-95"
+          >
+            Company Login
+          </Link>
+          <Link
+            href="/company/register"
+            className="inline-flex h-12 items-center justify-center rounded-xl border border-[#E5E7EE] bg-white px-5 text-base font-medium text-[#202871] transition hover:bg-[#F7F8FE]"
+          >
+            Company Register
           </Link>
           <Link
             href="/admin/login"

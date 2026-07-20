@@ -63,5 +63,6 @@ export function canAccessPortal(
 ): boolean {
   if (portal === 'admin') return accountType === 'superadmin';
   if (portal === 'recruiter') return accountType === 'recruiter';
+  if (portal === 'company') return accountType === 'company';
   return false;
 }

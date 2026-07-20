@@ -7,13 +7,21 @@ import profileRoute from "./route/profileRoute.js";
 
 // ==== APP CONFIG ====
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5005;
 
 // ==== DATABASE CONNECTION ====
 connectDB();
 
 // ==== MIDDLEWARE ====
-app.use(cors());
+app.use(
+  cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+    exposedHeaders: ["Content-Range", "X-Content-Range"],
+  })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -39,8 +47,11 @@ app.get("/", (req, res) => {
     endpoints: {
       auth: {
         register: "POST /api/auth/register",
+        registerRecruiter: "POST /api/auth/register-recruiter",
+        registerCompany: "POST /api/auth/register-company",
         login: "POST /api/auth/login",
         verifyEmail: "POST /api/auth/verify-email",
+        nylas: "GET|PATCH /api/auth/nylas",
       },
       profile: {
         getMe: "GET /api/profile/me",

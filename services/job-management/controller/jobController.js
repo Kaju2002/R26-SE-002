@@ -137,10 +137,62 @@ export const authPing = async (req, res) => {
   });
 };
 
+const EMPLOYER_ACCOUNT_TYPES = new Set(["recruiter", "company"]);
+
+const getPosterType = (user) => {
+  const accountType = user?.accountType;
+  if (accountType === "company" || accountType === "recruiter") {
+    return accountType;
+  }
+  return null;
+};
+
+const applyCompanyBranding = (document, user) => {
+  const companyName = user?.company?.name?.trim();
+  if (!companyName) {
+    return {
+      ok: false,
+      message: "Company profile name is required before posting jobs",
+    };
+  }
+
+  return {
+    ok: true,
+    document: {
+      ...document,
+      companyName,
+      companyLogo: user?.company?.logo || document.companyLogo || null,
+    },
+  };
+};
+
 // ============ CREATE JOB ============
 export const createJob = async (req, res) => {
   try {
+    const posterType = getPosterType(req.user);
+    if (!posterType || !EMPLOYER_ACCOUNT_TYPES.has(posterType)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only recruiters and companies can post jobs",
+      });
+    }
+
     const body = req.body ?? {};
+    // Company accounts: inject locked company name before validation.
+    if (posterType === "company") {
+      const companyName = req.user?.company?.name?.trim();
+      if (!companyName) {
+        return res.status(400).json({
+          success: false,
+          message: "Company profile name is required before posting jobs",
+        });
+      }
+      body.companyName = companyName;
+      if (req.user?.company?.logo) {
+        body.companyLogo = req.user.company.logo;
+      }
+    }
+
     const normalized = normalizeJobCreateInput(body, getFileUrl(req.file));
 
     if (!normalized.errors?.length) {
@@ -151,13 +203,29 @@ export const createJob = async (req, res) => {
         });
       }
 
-      const job = await Job.create({
+      let document = {
         ...normalized.document,
+        posterType,
+      };
+
+      if (posterType === "company") {
+        const branded = applyCompanyBranding(document, req.user);
+        if (!branded.ok) {
+          return res.status(400).json({
+            success: false,
+            message: branded.message,
+          });
+        }
+        document = branded.document;
+      }
+
+      const job = await Job.create({
+        ...document,
         postedBy: req.userId,
       });
 
       const message =
-        normalized.document.status === "draft"
+        document.status === "draft"
           ? "Job submitted for review"
           : "Job created successfully";
 
@@ -357,6 +425,19 @@ export const updateJob = async (req, res) => {
     if (!job) return;
 
     const body = req.body ?? {};
+    const posterType = job.posterType || getPosterType(req.user) || "recruiter";
+
+    // Company posters cannot rename the employer brand on their jobs.
+    if (posterType === "company") {
+      delete body.companyName;
+      if (req.user?.company?.name) {
+        body.companyName = req.user.company.name;
+      }
+      if (req.user?.company?.logo) {
+        body.companyLogo = req.user.company.logo;
+      }
+    }
+
     const normalized = normalizeJobUpdateInput(body, getFileUrl(req.file), job);
 
     if (normalized.errors?.length) {
@@ -368,6 +449,14 @@ export const updateJob = async (req, res) => {
     }
 
     Object.assign(job, normalized.patch);
+
+    if (posterType === "company" && req.user?.company?.name) {
+      job.companyName = req.user.company.name;
+      if (req.user.company.logo) {
+        job.companyLogo = req.user.company.logo;
+      }
+    }
+
     await job.save();
 
     sendJob(res, job, "Job updated successfully");

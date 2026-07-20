@@ -1,6 +1,8 @@
 import express from "express";
 import {
   register,
+  registerRecruiter,
+  registerCompany,
   login,
   logout,
   verifyEmailOtp,
@@ -10,14 +12,22 @@ import {
   resetPassword,
   resendResetOtp,
   getCurrentUser,
+  updateNylasConnection,
+  getNylasGrant,
 } from "../controller/userController.js";
 import { authMiddleware } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // ============ REGISTER ROUTE ============
-// POST /api/auth/register
+// POST /api/auth/register (jobseeker / mobile)
 router.post("/register", register);
+
+// POST /api/auth/register-recruiter (dashboard)
+router.post("/register-recruiter", registerRecruiter);
+
+// POST /api/auth/register-company (dashboard)
+router.post("/register-company", registerCompany);
 
 // ============ LOGIN ROUTE ============
 // POST /api/auth/login
@@ -46,6 +56,10 @@ router.post("/resend-reset-otp", resendResetOtp);
 // ============ SESSION ROUTE ============
 // GET /api/auth/me (Protected - validates token + returns user)
 router.get("/me", authMiddleware, getCurrentUser);
+
+// ============ NYLAS CONNECTION ============
+router.get("/nylas", authMiddleware, getNylasGrant);
+router.patch("/nylas", authMiddleware, updateNylasConnection);
 
 // ============ LOGOUT ROUTE ============
 // POST /api/auth/logout (Protected - requires token)

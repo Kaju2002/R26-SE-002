@@ -162,6 +162,27 @@ const companySchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  industry: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  address: {
+    type: String,
+    trim: true,
+    default: null,
+  },
+  description: {
+    type: String,
+    trim: true,
+    maxlength: [2000, "Company description cannot exceed 2000 characters"],
+    default: null,
+  },
+  registrationNumber: {
+    type: String,
+    trim: true,
+    default: null,
+  },
   isVerified: {
     type: Boolean,
     default: false,
@@ -391,12 +412,27 @@ const userSchema = new mongoose.Schema({
   },
   accountType: {
     type: String,
-    enum: ["jobseeker", "recruiter", "superadmin"],
+    enum: ["jobseeker", "recruiter", "company", "superadmin"],
     default: "jobseeker",
     index: true,
-    // Portal access: set to recruiter/superadmin manually in MongoDB (or via admin API later).
   },
   lastLoginAt: {
+    type: Date,
+    default: null,
+  },
+
+  // ==== Nylas mailbox connection (grant id is server-only) ====
+  nylasGrantId: {
+    type: String,
+    default: null,
+    select: false,
+  },
+  nylasEmail: {
+    type: String,
+    default: null,
+    trim: true,
+  },
+  nylasConnectedAt: {
     type: Date,
     default: null,
   },

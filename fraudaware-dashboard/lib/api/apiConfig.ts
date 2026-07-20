@@ -1,12 +1,12 @@
 /**
  * Set `NEXT_PUBLIC_USER_MANAGEMENT_API_BASE_URL` in `.env.local`
- * (e.g. `http://localhost:5000`, no trailing slash).
+ * (e.g. `http://localhost:5005`, no trailing slash).
  */
 export function getUserManagementBaseUrl(): string {
   return (
     (process.env.NEXT_PUBLIC_USER_MANAGEMENT_API_BASE_URL ?? '')
       .trim()
-      .replace(/\/$/, '') || 'http://127.0.0.1:5000'
+      .replace(/\/$/, '') || 'http://127.0.0.1:5005'
   );
 }
 
@@ -23,6 +23,14 @@ export function getJobManagementBaseUrl(): string {
     (process.env.NEXT_PUBLIC_JOB_MANAGEMENT_API_BASE_URL ?? '')
       .trim()
       .replace(/\/$/, '') || 'http://127.0.0.1:5001'
+  );
+}
+
+export function getEmailManagementBaseUrl(): string {
+  return (
+    (process.env.NEXT_PUBLIC_EMAIL_MANAGEMENT_API_BASE_URL ?? '')
+      .trim()
+      .replace(/\/$/, '') || 'http://127.0.0.1:5004'
   );
 }
 
