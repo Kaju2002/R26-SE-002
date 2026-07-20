@@ -76,6 +76,15 @@ const conversationSchema = new mongoose.Schema(
       enum: CONVERSATION_STATUSES,
       default: "active",
     },
+    /**
+     * User id who blocked the conversation (WhatsApp-style asymmetric block).
+     * Only this user should see "Blocked" UI and be allowed to unblock.
+     */
+    blockedBy: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     startedBy: {
       type: String,
       enum: ["recruiter", "jobseeker", "system"],

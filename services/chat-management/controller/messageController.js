@@ -42,6 +42,7 @@ const formatMessage = (message) => {
     deletedForEveryone,
     deletedAt: message.deletedAt ?? null,
     deletedBy: message.deletedBy ?? null,
+    suppressedForPeer: Boolean(message.suppressedForPeer),
     createdAt: message.createdAt,
     updatedAt: message.updatedAt,
   };
@@ -105,9 +106,14 @@ export const getMessages = async (req, res) => {
     }
 
     const { page, limit, skip } = parsePagination(req.query);
+    // Peer must not see undelivered messages from someone they blocked.
     const filter = {
       conversationId: new mongoose.Types.ObjectId(conversationId),
       deletedFor: { $ne: String(req.userId) },
+      $or: [
+        { suppressedForPeer: { $ne: true } },
+        { senderId: String(req.userId) },
+      ],
     };
 
     const [messages, total] = await Promise.all([
@@ -141,6 +147,7 @@ const refreshConversationLastMessage = async (conversation) => {
   const latest = await Message.findOne({
     conversationId: conversation._id,
     deletedForEveryone: { $ne: true },
+    suppressedForPeer: { $ne: true },
   }).sort({ createdAt: -1 });
 
   if (!latest) {
@@ -448,11 +455,22 @@ export const sendMessage = async (req, res) => {
     }
 
     const conversation = access.conversation;
+    const blockedBy = conversation.blockedBy
+      ? String(conversation.blockedBy)
+      : null;
+    const isBlocked = conversation.status === "blocked";
+    // Legacy rows without blockedBy act as mutual block for both sides.
+    const iAmBlocker =
+      isBlocked && (!blockedBy || blockedBy === String(req.userId));
+    const silentUndelivered =
+      isBlocked && Boolean(blockedBy) && blockedBy !== String(req.userId);
 
-    if (conversation.status === "blocked") {
+    // Blocker cannot message until they unblock (WhatsApp-style).
+    if (iAmBlocker) {
       return res.status(403).json({
         success: false,
-        message: "This conversation is blocked. You cannot send messages.",
+        code: "BLOCKED_BY_YOU",
+        message: "You blocked this conversation. Unblock to send messages.",
       });
     }
 
@@ -478,17 +496,20 @@ export const sendMessage = async (req, res) => {
     const recipientId = isRecruiterSender
       ? String(conversation.jobseekerId)
       : String(conversation.recruiterId);
-    const deliveredAt = isUserOnline(recipientId) ? new Date() : null;
 
-    const scamAnalysis = isRecruiterSender
-      ? await analyzeMessageForScam(body, req.userId)
-      : {
-          status: "not_checked",
-          isScam: false,
-          score: null,
-          tactics: [],
-          analyzedAt: null,
-        };
+    const deliveredAt =
+      silentUndelivered || !isUserOnline(recipientId) ? null : new Date();
+
+    const scamAnalysis =
+      isRecruiterSender && !silentUndelivered
+        ? await analyzeMessageForScam(body, req.userId)
+        : {
+            status: "not_checked",
+            isScam: false,
+            score: null,
+            tactics: [],
+            analyzedAt: null,
+          };
 
     const message = await Message.create({
       conversationId: conversation._id,
@@ -498,68 +519,79 @@ export const sendMessage = async (req, res) => {
       status: deliveredAt ? "delivered" : "sent",
       deliveredAt,
       scamAnalysis,
+      suppressedForPeer: silentUndelivered,
     });
 
-    const unreadField = isRecruiterSender
-      ? "unreadCounts.jobseeker"
-      : "unreadCounts.recruiter";
+    if (!silentUndelivered) {
+      const unreadField = isRecruiterSender
+        ? "unreadCounts.jobseeker"
+        : "unreadCounts.recruiter";
 
-    await Conversation.findByIdAndUpdate(conversation._id, {
-      $set: {
-        lastMessage: {
-          messageId: message._id,
-          senderId: String(req.userId),
-          preview: buildPreview(body),
-          messageType: "text",
-          sentAt: message.createdAt,
+      await Conversation.findByIdAndUpdate(conversation._id, {
+        $set: {
+          lastMessage: {
+            messageId: message._id,
+            senderId: String(req.userId),
+            preview: buildPreview(body),
+            messageType: "text",
+            sentAt: message.createdAt,
+          },
         },
-      },
-      $inc: { [unreadField]: 1 },
-    });
+        $inc: { [unreadField]: 1 },
+      });
 
-    const chatMessage = formatMessage(message);
-    emitNewMessage(conversationId, chatMessage, [
-      conversation.recruiterId,
-      conversation.jobseekerId,
-    ]);
+      const chatMessage = formatMessage(message);
+      emitNewMessage(conversationId, chatMessage, [
+        conversation.recruiterId,
+        conversation.jobseekerId,
+      ]);
 
-    // Notify the jobseeker in Notifications → General (banner already covers live toast).
-    if (isRecruiterSender) {
-      let companyName = "Recruiter";
-      let jobTitle = "";
-      const applicationResult = await fetchApplication(
-        conversation.applicationId,
-        req.headers.authorization
-      );
-      if (applicationResult.ok) {
-        companyName =
-          applicationResult.application.companyName || companyName;
-        jobTitle = applicationResult.application.jobTitle || "";
+      // Notify the jobseeker in Notifications → General (banner already covers live toast).
+      if (isRecruiterSender) {
+        let companyName = "Recruiter";
+        let jobTitle = "";
+        const applicationResult = await fetchApplication(
+          conversation.applicationId,
+          req.headers.authorization
+        );
+        if (applicationResult.ok) {
+          companyName =
+            applicationResult.application.companyName || companyName;
+          jobTitle = applicationResult.application.jobTitle || "";
+        }
+
+        const flagged =
+          scamAnalysis.status === "flagged" || scamAnalysis.isScam === true;
+        const preview =
+          body.length > 140 ? `${body.slice(0, 137).trim()}…` : body;
+
+        void publishEvent(EVENT_TYPES.CHAT_MESSAGE_CREATED, {
+          recipientId: conversation.jobseekerId,
+          conversationId: String(conversation._id),
+          messageId: String(message._id),
+          applicationId: conversation.applicationId,
+          jobId: conversation.jobId,
+          companyName,
+          jobTitle,
+          preview,
+          flagged,
+          senderId: String(req.userId),
+        });
       }
 
-      const flagged =
-        scamAnalysis.status === "flagged" || scamAnalysis.isScam === true;
-      const preview =
-        body.length > 140 ? `${body.slice(0, 137).trim()}…` : body;
-
-      void publishEvent(EVENT_TYPES.CHAT_MESSAGE_CREATED, {
-        recipientId: conversation.jobseekerId,
-        conversationId: String(conversation._id),
-        messageId: String(message._id),
-        applicationId: conversation.applicationId,
-        jobId: conversation.jobId,
-        companyName,
-        jobTitle,
-        preview,
-        flagged,
-        senderId: String(req.userId),
+      return res.status(201).json({
+        success: true,
+        message: "Message sent successfully",
+        chatMessage: formatMessage(message),
       });
     }
 
+    // Silent path: only the sender gets the message back (peer never notified).
     return res.status(201).json({
       success: true,
       message: "Message sent successfully",
-      chatMessage,
+      chatMessage: formatMessage(message),
+      silentUndelivered: true,
     });
   } catch (error) {
     console.error("Send message error:", error);

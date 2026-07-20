@@ -43,6 +43,7 @@ export default function InchatThreadPanel({
     appendRecruiterMessage,
     deleteMessage,
     clearConversation,
+    setConversationStatus,
     loadMessages,
     leaveThread,
     isPeerTyping,
@@ -53,6 +54,7 @@ export default function InchatThreadPanel({
   const [sendBusy, setSendBusy] = useState(false);
   const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const typingIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isTypingActive = useRef(false);
@@ -63,6 +65,7 @@ export default function InchatThreadPanel({
   );
   const peerTyping = isPeerTyping(thread.id);
   const peerPresence = getPeerPresence(thread.id);
+  const isBlocked = Boolean(thread.iBlocked);
 
   useEffect(() => {
     void loadMessages(thread.id);
@@ -100,6 +103,7 @@ export default function InchatThreadPanel({
   const onDraftChange = useCallback(
     (value: string) => {
       setDraft(value);
+      if (isBlocked) return;
       const hasText = value.trim().length > 0;
 
       if (hasText) {
@@ -120,12 +124,12 @@ export default function InchatThreadPanel({
         setTyping(thread.id, false);
       }
     },
-    [setTyping, thread.id]
+    [isBlocked, setTyping, thread.id]
   );
 
   const onSend = useCallback(async () => {
     const text = draft.trim();
-    if (!text.length || sendBusy) return;
+    if (!text.length || sendBusy || isBlocked) return;
     if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
     if (isTypingActive.current) {
       isTypingActive.current = false;
@@ -138,7 +142,7 @@ export default function InchatThreadPanel({
     } finally {
       setSendBusy(false);
     }
-  }, [appendRecruiterMessage, draft, sendBusy, setTyping, thread.id]);
+  }, [appendRecruiterMessage, draft, isBlocked, sendBusy, setTyping, thread.id]);
 
   const onDelete = useCallback(
     async (message: InchatMessage, mode: 'me' | 'everyone') => {
@@ -153,6 +157,24 @@ export default function InchatThreadPanel({
     [deleteMessage, thread.id]
   );
 
+  const onBlock = useCallback(async () => {
+    setStatusError(null);
+    try {
+      await setConversationStatus(thread.id, 'blocked');
+    } catch (error) {
+      setStatusError(error instanceof Error ? error.message : 'Could not block conversation.');
+    }
+  }, [setConversationStatus, thread.id]);
+
+  const onUnblock = useCallback(async () => {
+    setStatusError(null);
+    try {
+      await setConversationStatus(thread.id, 'active');
+    } catch (error) {
+      setStatusError(error instanceof Error ? error.message : 'Could not unblock conversation.');
+    }
+  }, [setConversationStatus, thread.id]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
       {!hideHeader ? (
@@ -163,10 +185,20 @@ export default function InchatThreadPanel({
           isOnline={peerPresence.isOnline}
           lastSeenAt={peerPresence.lastSeenAt}
           onClearChat={() => clearConversation(thread.id)}
+          onBlock={onBlock}
+          onUnblock={onUnblock}
         />
       ) : null}
 
       <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto bg-[#FAFBFE] px-4 py-4">
+        {statusError ? (
+          <p
+            className="mb-3 text-center text-xs font-semibold text-red-600"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            {statusError}
+          </p>
+        ) : null}
         {deleteError ? (
           <p
             className="mb-3 text-center text-xs font-semibold text-red-600"
@@ -264,12 +296,23 @@ export default function InchatThreadPanel({
         <div ref={bottomRef} />
       </div>
 
-      <InchatComposer
-        value={draft}
-        onChange={onDraftChange}
-        onSend={() => void onSend()}
-        sending={sendBusy}
-      />
+      <div className="shrink-0">
+        {isBlocked ? (
+          <p
+            className="border-t bg-[#FEF3F2] px-4 py-2 text-center text-xs font-semibold text-[#B42318]"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            You blocked this conversation. Unblock to message again.
+          </p>
+        ) : null}
+        <InchatComposer
+          value={draft}
+          onChange={onDraftChange}
+          onSend={() => void onSend()}
+          sending={sendBusy}
+          disabled={isBlocked}
+        />
+      </div>
     </div>
   );
 }

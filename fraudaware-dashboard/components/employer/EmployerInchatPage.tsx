@@ -40,11 +40,19 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
   const basePath = useInchatBasePath();
   const searchParams = useSearchParams();
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const { loaded, error, threadsForList, isPeerTyping, getPeerPresence, clearConversation } =
-    useInchat();
+  const {
+    loaded,
+    error,
+    threadsForList,
+    isPeerTyping,
+    getPeerPresence,
+    clearConversation,
+    setConversationStatus,
+  } = useInchat();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [query, setQuery] = useState('');
   const [filterId, setFilterId] = useState<InchatFilterId>('focused');
+  const [statusError, setStatusError] = useState<string | null>(null);
 
   const threads = useMemo(
     () =>
@@ -194,7 +202,35 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
                 isOnline={selectedPresence.isOnline}
                 lastSeenAt={selectedPresence.lastSeenAt}
                 onClearChat={() => clearConversation(selectedThread.id)}
+                onBlock={async () => {
+                  setStatusError(null);
+                  try {
+                    await setConversationStatus(selectedThread.id, 'blocked');
+                  } catch (err) {
+                    setStatusError(
+                      err instanceof Error ? err.message : 'Could not block conversation.'
+                    );
+                  }
+                }}
+                onUnblock={async () => {
+                  setStatusError(null);
+                  try {
+                    await setConversationStatus(selectedThread.id, 'active');
+                  } catch (err) {
+                    setStatusError(
+                      err instanceof Error ? err.message : 'Could not unblock conversation.'
+                    );
+                  }
+                }}
               />
+              {statusError ? (
+                <p
+                  className="border-b bg-[#FEF3F2] px-4 py-2 text-center text-xs font-semibold text-[#B42318]"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  {statusError}
+                </p>
+              ) : null}
               <div className="flex min-h-0 flex-1 overflow-hidden">
                 <InchatThreadPanel thread={selectedThread} hideHeader />
                 <InchatThreadDetailsPanel thread={selectedThread} hideHeaderSpacer />

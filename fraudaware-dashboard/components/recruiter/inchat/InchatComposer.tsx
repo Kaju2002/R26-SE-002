@@ -16,13 +16,20 @@ type Props = {
   onChange: (value: string) => void;
   onSend: () => void;
   sending?: boolean;
+  disabled?: boolean;
 };
 
-export default function InchatComposer({ value, onChange, onSend, sending }: Props) {
+export default function InchatComposer({
+  value,
+  onChange,
+  onSend,
+  sending,
+  disabled = false,
+}: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const trimmedLen = value.trim().length;
-  const sendDisabled = sending || trimmedLen === 0;
-  const showSend = trimmedLen > 0;
+  const sendDisabled = disabled || sending || trimmedLen === 0;
+  const showSend = !disabled && trimmedLen > 0;
 
   const handleSend = useCallback(() => {
     if (!sendDisabled) {
@@ -44,7 +51,8 @@ export default function InchatComposer({ value, onChange, onSend, sending }: Pro
         <button
           type="button"
           onClick={() => setMenuOpen((open) => !open)}
-          className="mb-0.5 flex h-11 w-10 items-center justify-center text-[#5F6368]"
+          disabled={disabled}
+          className="mb-0.5 flex h-11 w-10 items-center justify-center text-[#5F6368] disabled:opacity-50"
           aria-label={menuOpen ? 'Close attachment menu' : 'Attachments'}
         >
           {menuOpen ? <XIcon /> : <PaperclipIcon />}
@@ -60,9 +68,9 @@ export default function InchatComposer({ value, onChange, onSend, sending }: Pro
             )
           }
           onKeyDown={handleKeyDown}
-          placeholder="Write a message…"
+          placeholder={disabled ? 'You blocked this conversation' : 'Write a message…'}
           rows={1}
-          disabled={sending}
+          disabled={sending || disabled}
           className="scrollbar-hide max-h-[120px] min-h-[44px] flex-1 resize-none overflow-y-auto rounded-[22px] bg-[#F0F2F5] px-4 py-2.5 text-base font-medium text-[#111827] outline-none disabled:opacity-70"
           style={{ fontFamily: 'var(--font-poppins)' }}
         />
@@ -80,8 +88,9 @@ export default function InchatComposer({ value, onChange, onSend, sending }: Pro
         ) : (
           <button
             type="button"
+            disabled={disabled}
             onClick={() => alert('Voice messages will be available when chat service is connected.')}
-            className="mb-0.5 flex h-11 w-10 items-center justify-center text-[#5F6368]"
+            className="mb-0.5 flex h-11 w-10 items-center justify-center text-[#5F6368] disabled:opacity-50"
             aria-label="Record voice message"
           >
             <MicrophoneIcon />
@@ -89,7 +98,7 @@ export default function InchatComposer({ value, onChange, onSend, sending }: Pro
         )}
       </div>
 
-      {menuOpen ? (
+      {menuOpen && !disabled ? (
         <div className="mt-3 space-y-1 pb-1">
           {[
             'Send a document',

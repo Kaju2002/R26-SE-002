@@ -23,6 +23,11 @@ export type InchatThread = {
   unreadCount: number;
   /** Which filter chips include this thread */
   filterTags: InchatFilterId[];
+  /** Conversation moderation status from chat-management. */
+  status?: 'active' | 'archived' | 'blocked';
+  blockedBy?: string | null;
+  /** True when the logged-in user blocked this thread. */
+  iBlocked?: boolean;
 };
 
 /** Chips shown under the search bar (LinkedIn-style filters, FraudAware copy). */

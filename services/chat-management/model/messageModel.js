@@ -129,6 +129,14 @@ const messageSchema = new mongoose.Schema(
       default: null,
       trim: true,
     },
+    /**
+     * When true, this outgoing message was kept only for the sender because
+     * the peer blocked them (silent undelivered / single-tick style).
+     */
+    suppressedForPeer: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

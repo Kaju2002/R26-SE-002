@@ -16,6 +16,11 @@ export type InchatThread = {
   timestampLabel: string;
   unreadCount: number;
   filterTags: InchatFilterId[];
+  /** Conversation moderation status from chat-management. */
+  status?: 'active' | 'archived' | 'blocked';
+  blockedBy?: string | null;
+  /** True when the logged-in user blocked this thread. */
+  iBlocked?: boolean;
 };
 
 export type InchatMessage = {
