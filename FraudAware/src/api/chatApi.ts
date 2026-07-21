@@ -33,6 +33,9 @@ export type ChatConversation = {
   applicationId: string;
   jobId: string;
   status: 'active' | 'archived' | 'blocked';
+  blockedBy?: string | null;
+  /** True when the current user is the one who blocked (WhatsApp-style). */
+  iBlocked?: boolean;
   startedBy: 'recruiter' | 'jobseeker' | 'system';
   lastMessage: {
     messageId: string | null;
@@ -230,4 +233,33 @@ export async function clearConversation(
   );
 
   return parseJson<ClearConversationResponse>(response);
+}
+
+export type ConversationStatus = 'active' | 'blocked';
+
+type UpdateConversationStatusResponse = {
+  success: boolean;
+  message: string;
+  conversation: ChatConversation;
+};
+
+/** Block or unblock a conversation (participants only). */
+export async function updateConversationStatus(
+  token: string,
+  conversationId: string,
+  status: ConversationStatus
+): Promise<ChatConversation> {
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/status`,
+    {
+      method: 'PATCH',
+      headers: {
+        ...authHeaders(token),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    }
+  );
+
+  return (await parseJson<UpdateConversationStatusResponse>(response)).conversation;
 }

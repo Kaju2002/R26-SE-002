@@ -1,5 +1,6 @@
 import Conversation from "../model/conversationModel.js";
 import { fetchApplication } from "../utils/jobManagementClient.js";
+import { emitConversationStatus } from "../config/socket.js";
 
 const parsePagination = (query) => {
   const page = Math.max(Number(query.page) || 1, 1);
@@ -41,6 +42,7 @@ const formatConversation = (conversation, viewerId = null) => {
     applicationId: conversation.applicationId,
     jobId: conversation.jobId,
     status: conversation.status,
+    blockedBy: conversation.blockedBy ? String(conversation.blockedBy) : null,
     startedBy: conversation.startedBy,
     lastMessage,
     unreadCounts,
@@ -52,6 +54,11 @@ const formatConversation = (conversation, viewerId = null) => {
 
   const isRecruiter = String(conversation.recruiterId) === String(viewerId);
   const myRole = isRecruiter ? "recruiter" : "jobseeker";
+  const blockedBy = base.blockedBy;
+  // Legacy rows may be status=blocked without blockedBy — treat as mutual for both.
+  const iBlocked =
+    conversation.status === "blocked" &&
+    (blockedBy ? blockedBy === String(viewerId) : true);
 
   return {
     ...base,
@@ -59,6 +66,7 @@ const formatConversation = (conversation, viewerId = null) => {
     myUnread: isRecruiter ? unreadCounts.recruiter : unreadCounts.jobseeker,
     peerId: isRecruiter ? conversation.jobseekerId : conversation.recruiterId,
     clearedAt: isRecruiter ? clearedAt.recruiter ?? null : clearedAt.jobseeker ?? null,
+    iBlocked,
   };
 };
 
@@ -217,6 +225,130 @@ export const listConversations = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error fetching conversations",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * PATCH /api/chat/conversations/:conversationId/status
+ * Body: { status: "active" | "blocked" }
+ *
+ * WhatsApp-style asymmetric block:
+ * - Block: sets status=blocked and blockedBy=caller
+ * - Unblock: only the blocker (blockedBy) may restore active
+ * - Peer is not shown a "you were blocked" UI (client uses iBlocked)
+ */
+export const updateConversationStatus = async (req, res) => {
+  try {
+    const conversationId = String(req.params.conversationId || "").trim();
+    const status = String(req.body?.status || "").trim();
+    const allowed = ["active", "blocked"];
+
+    if (!/^[a-fA-F0-9]{24}$/.test(conversationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid conversation id",
+      });
+    }
+
+    if (!allowed.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid status. Use one of: ${allowed.join(", ")}`,
+      });
+    }
+
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found",
+      });
+    }
+
+    const isParticipant =
+      String(conversation.recruiterId) === String(req.userId) ||
+      String(conversation.jobseekerId) === String(req.userId);
+
+    if (!isParticipant) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not a participant of this conversation",
+      });
+    }
+
+    const callerId = String(req.userId);
+    const existingBlockedBy = conversation.blockedBy
+      ? String(conversation.blockedBy)
+      : null;
+
+    if (status === "blocked") {
+      conversation.status = "blocked";
+      conversation.blockedBy = callerId;
+      await conversation.save();
+
+      emitConversationStatus(
+        conversationId,
+        {
+          status: "blocked",
+          blockedBy: callerId,
+          updatedBy: callerId,
+          updatedAt: new Date(),
+        },
+        [conversation.recruiterId, conversation.jobseekerId]
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Conversation blocked successfully",
+        conversation: formatConversation(conversation, req.userId),
+      });
+    }
+
+    // Unblock → active
+    if (conversation.status !== "blocked") {
+      return res.status(200).json({
+        success: true,
+        message: "Conversation is already active",
+        conversation: formatConversation(conversation, req.userId),
+      });
+    }
+
+    // Only the blocker can unblock (legacy: no blockedBy → either participant).
+    if (existingBlockedBy && existingBlockedBy !== callerId) {
+      return res.status(403).json({
+        success: false,
+        code: "NOT_BLOCKER",
+        message: "Only the person who blocked can unblock this conversation",
+      });
+    }
+
+    conversation.status = "active";
+    conversation.blockedBy = null;
+    await conversation.save();
+
+    emitConversationStatus(
+      conversationId,
+      {
+        status: "active",
+        blockedBy: null,
+        updatedBy: callerId,
+        updatedAt: new Date(),
+      },
+      [conversation.recruiterId, conversation.jobseekerId]
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "Conversation unblocked successfully",
+      conversation: formatConversation(conversation, req.userId),
+    });
+  } catch (error) {
+    console.error("Update conversation status error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating conversation status",
       error: error.message,
     });
   }

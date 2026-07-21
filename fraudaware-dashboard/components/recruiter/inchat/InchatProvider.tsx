@@ -18,14 +18,16 @@ import {
   listConversationMessages,
   markConversationRead,
   sendConversationMessage,
+  updateConversationStatus as updateConversationStatusApi,
   type ChatConversation,
   type ChatMessage,
+  type ConversationStatus,
   type DeleteMessageMode,
 } from '@/lib/api/chatApi';
 import { getChatManagementBaseUrl } from '@/lib/api/apiConfig';
 import { getApplicationById } from '@/lib/api/jobApi';
 import { getPublicUserAvatar } from '@/lib/api/userApi';
-import { getStoredToken } from '@/lib/auth/session';
+import { getStoredToken, getStoredUser } from '@/lib/auth/session';
 import type { InchatMessage, InchatThread } from '@/lib/inchat/types';
 
 type PeerMeta = {
@@ -51,6 +53,7 @@ type InchatContextValue = {
     mode: DeleteMessageMode
   ) => Promise<void>;
   clearConversation: (threadId: string) => Promise<void>;
+  setConversationStatus: (threadId: string, status: ConversationStatus) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
   leaveThread: (threadId: string) => void;
@@ -93,6 +96,9 @@ function formatThread(
     timestampLabel: formatTime(conversation.lastMessage?.sentAt || conversation.updatedAt),
     unreadCount: conversation.myUnread || 0,
     filterTags: conversation.myUnread > 0 ? ['focused', 'jobs', 'unread'] : ['focused', 'jobs'],
+    status: conversation.status,
+    blockedBy: conversation.blockedBy ?? null,
+    iBlocked: Boolean(conversation.iBlocked),
   };
 }
 
@@ -447,6 +453,46 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     );
 
     socket.on(
+      'conversation:status',
+      ({
+        conversationId,
+        status,
+        blockedBy,
+      }: {
+        conversationId?: string;
+        status?: ChatConversation['status'];
+        blockedBy?: string | null;
+      }) => {
+        if (!conversationId || (status !== 'active' && status !== 'blocked' && status !== 'archived')) {
+          return;
+        }
+        const myId = getStoredUser()?.id;
+        setConversations((previous) =>
+          previous.map((entry) => {
+            if (entry.id !== conversationId) return entry;
+            const nextBlockedBy =
+              status === 'blocked'
+                ? blockedBy !== undefined
+                  ? blockedBy
+                  : entry.blockedBy ?? null
+                : null;
+            const iBlocked =
+              status === 'blocked' &&
+              (nextBlockedBy
+                ? Boolean(myId && nextBlockedBy === String(myId))
+                : true);
+            return {
+              ...entry,
+              status,
+              blockedBy: nextBlockedBy,
+              iBlocked,
+            };
+          })
+        );
+      }
+    );
+
+    socket.on(
       'typing:update',
       ({
         conversationId,
@@ -641,6 +687,29 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [conversations, refreshConversations]
   );
 
+  const setConversationStatus = useCallback(
+    async (threadId: string, status: ConversationStatus) => {
+      const token = getStoredToken();
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!token || !conversation) return;
+
+      const updated = await updateConversationStatusApi(token, threadId, status);
+      setConversations((previous) =>
+        previous.map((entry) =>
+          entry.id === threadId
+            ? {
+                ...entry,
+                status: updated.status,
+                blockedBy: updated.blockedBy ?? null,
+                iBlocked: Boolean(updated.iBlocked),
+              }
+            : entry
+        )
+      );
+    },
+    [conversations]
+  );
+
   const getCombinedMessages = useCallback(
     (threadId: string) => messagesByThread[threadId] ?? [],
     [messagesByThread]
@@ -680,6 +749,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       appendRecruiterMessage,
       deleteMessage,
       clearConversation,
+      setConversationStatus,
       getCombinedMessages,
       loadMessages,
       leaveThread,
@@ -694,6 +764,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       appendRecruiterMessage,
       deleteMessage,
       clearConversation,
+      setConversationStatus,
       getCombinedMessages,
       loadMessages,
       leaveThread,

@@ -132,6 +132,7 @@ const assertParticipant = async (conversationId, userId) => {
  *   message:new        { chatMessage }
  *   message:deleted    { conversationId, messageId, mode, deletedBy, ... }
  *   conversation:cleared { conversationId, clearedBy, clearedAt, mode: "me" }
+ *   conversation:status  { conversationId, status, updatedBy, updatedAt }
  *   typing:update      { conversationId, userId, isTyping }
  *   presence:update    { userId, isOnline, lastSeenAt }
  *   messages:status    { conversationId, recipientId|readerId, status, ... }
@@ -340,4 +341,26 @@ export const emitConversationCleared = (conversationId, userId, payload = {}) =>
     conversationId: String(conversationId),
     ...payload,
   });
+};
+
+/**
+ * Broadcast conversation status change (block / unblock) to both participants.
+ */
+export const emitConversationStatus = (
+  conversationId,
+  payload = {},
+  participantIds = []
+) => {
+  if (!io) return;
+
+  const eventPayload = {
+    conversationId: String(conversationId),
+    ...payload,
+  };
+
+  let target = io.to(conversationRoom(conversationId));
+  for (const participantId of participantIds) {
+    if (participantId) target = target.to(userRoom(participantId));
+  }
+  target.emit("conversation:status", eventPayload);
 };

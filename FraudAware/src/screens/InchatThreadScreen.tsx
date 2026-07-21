@@ -76,6 +76,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     appendUserMessage,
     deleteMessage,
     clearConversation,
+    setConversationStatus,
     loadMessages,
     leaveThread,
     loaded,
@@ -124,6 +125,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
   const onDraftChange = useCallback(
     (text: string) => {
       setDraft(text);
+      if (thread?.iBlocked) return;
       const hasText = text.trim().length > 0;
 
       if (hasText) {
@@ -144,7 +146,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         setTyping(threadId, false);
       }
     },
-    [setTyping, threadId]
+    [setTyping, thread?.iBlocked, threadId]
   );
 
   const transcript = useMemo(() => transcriptFromMessages(messages), [messages]);
@@ -239,7 +241,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
 
   const onSend = useCallback(async () => {
     const text = draft.trim();
-    if (!text.length || sendBusy) return;
+    if (!text.length || sendBusy || thread?.iBlocked) return;
     if (typingIdleTimer.current) clearTimeout(typingIdleTimer.current);
     if (isTypingActive.current) {
       isTypingActive.current = false;
@@ -252,7 +254,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     } finally {
       setSendBusy(false);
     }
-  }, [appendUserMessage, draft, sendBusy, setTyping, threadId]);
+  }, [appendUserMessage, draft, sendBusy, setTyping, thread?.iBlocked, threadId]);
 
   const appendAttachmentNote = useCallback(
     async (line: string) => {
@@ -375,6 +377,49 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     );
   }, [clearConversation, closeThreadMenu, threadId]);
 
+  const isBlocked = Boolean(thread?.iBlocked);
+
+  const onMenuToggleBlock = useCallback(() => {
+    closeThreadMenu();
+    if (isBlocked) {
+      Alert.alert('Unblock conversation?', 'You will be able to message again.', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Unblock',
+          onPress: () => {
+            void setConversationStatus(threadId, 'active').catch((error: unknown) => {
+              Alert.alert(
+                'Could not unblock',
+                error instanceof Error ? error.message : 'Please try again.'
+              );
+            });
+          },
+        },
+      ]);
+      return;
+    }
+
+    Alert.alert(
+      'Block this conversation?',
+      'They will not be told you blocked them. Their messages will not be delivered to you.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Block',
+          style: 'destructive',
+          onPress: () => {
+            void setConversationStatus(threadId, 'blocked').catch((error: unknown) => {
+              Alert.alert(
+                'Could not block',
+                error instanceof Error ? error.message : 'Please try again.'
+              );
+            });
+          },
+        },
+      ]
+    );
+  }, [closeThreadMenu, isBlocked, setConversationStatus, threadId]);
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <View style={styles.header}>
@@ -399,7 +444,9 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             </Text>
           ) : (
             <Text style={styles.headerSub} numberOfLines={1}>
-              {presenceLabel(peerPresence.isOnline, peerPresence.lastSeenAt)}
+              {isBlocked
+                ? 'Blocked'
+                : presenceLabel(peerPresence.isOnline, peerPresence.lastSeenAt)}
             </Text>
           )}
         </View>
@@ -454,11 +501,19 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         />
 
         <View style={[styles.footerCol, { paddingBottom: Math.max(insets.bottom, 10) }]}>
+          {isBlocked ? (
+            <View style={styles.blockedBanner}>
+              <Text style={styles.blockedBannerText}>
+                You blocked this conversation. Unblock to message again.
+              </Text>
+            </View>
+          ) : null}
           <InchatComposer
             value={draft}
             onChangeText={onDraftChange}
             onSend={onSend}
             sending={sendBusy}
+            disabled={isBlocked}
             onTakePhoto={onTakePhoto}
             onPickFromLibrary={onPickFromLibrary}
           />
@@ -509,6 +564,22 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             >
               <MaterialCommunityIcons name="shield-search" size={22} color={INCHAT_NAVY} />
               <Text style={styles.menuRowLabel}>Message Analyzer</Text>
+            </Pressable>
+            <View style={styles.menuDivider} />
+            <Pressable
+              style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
+              onPress={onMenuToggleBlock}
+              accessibilityRole="button"
+              accessibilityLabel={isBlocked ? 'Unblock conversation' : 'Block conversation'}
+            >
+              <MaterialCommunityIcons
+                name={isBlocked ? 'lock-open-outline' : 'block-helper'}
+                size={22}
+                color={isBlocked ? INCHAT_NAVY : '#B91C1C'}
+              />
+              <Text style={[styles.menuRowLabel, !isBlocked && styles.menuRowDanger]}>
+                {isBlocked ? 'Unblock' : 'Block'}
+              </Text>
             </Pressable>
             <View style={styles.menuDivider} />
             <Pressable
@@ -667,5 +738,21 @@ const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: INCHAT_BORDER,
     marginHorizontal: 10,
+  },
+  blockedBanner: {
+    marginHorizontal: 12,
+    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#FEF3F2',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#FECDCA',
+  },
+  blockedBannerText: {
+    color: '#B42318',
+    fontSize: 13,
+    fontWeight: '600',
+    textAlign: 'center',
   },
 });
