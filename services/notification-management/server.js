@@ -37,6 +37,7 @@ app.get("/", (req, res) => {
     endpoints: {
       health: "GET /health",
       listNotifications: "GET /api/notifications?category=general|applications",
+      unreadCount: "GET /api/notifications/unread-count",
       markRead: "PATCH /api/notifications/:id/read",
       markAllRead: "PATCH /api/notifications/read-all?category=general|applications",
       deleteNotification: "DELETE /api/notifications/:id",

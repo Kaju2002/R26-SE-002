@@ -74,6 +74,40 @@ export async function listNotifications(
   return parseJson<ListNotificationsResponse>(response);
 }
 
+export async function getUnreadNotificationCount(
+  token: string
+): Promise<{ success: boolean; message: string; unreadCount: number }> {
+  const response = await fetch(
+    `${getNotificationBaseUrl()}/api/notifications/unread-count`,
+    {
+      method: 'GET',
+      headers: {
+        ...authHeaders(token),
+      },
+    }
+  );
+
+  return parseJson(response);
+}
+
+export async function markAllNotificationsRead(
+  token: string,
+  category?: 'general' | 'applications'
+): Promise<{ success: boolean; message: string; updatedCount?: number }> {
+  const query = category ? `?category=${category}` : '';
+  const response = await fetch(
+    `${getNotificationBaseUrl()}/api/notifications/read-all${query}`,
+    {
+      method: 'PATCH',
+      headers: {
+        ...authHeaders(token),
+      },
+    }
+  );
+
+  return parseJson(response);
+}
+
 export async function deleteNotification(
   token: string,
   notificationId: string

@@ -4,7 +4,6 @@ import { Ionicons } from '@expo/vector-icons';
 
 const NAVY = '#202871';
 const MUTED = '#858BBD';
-const BORDER = '#D6DAEA';
 
 type Props = {
   onScanMessage: () => void;
@@ -12,27 +11,28 @@ type Props = {
   onSaferJobs: () => void;
 };
 
-function ActionTile({
+function QuickAction({
   icon,
-  title,
-  subtitle,
+  label,
   onPress,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
-  title: string;
-  subtitle: string;
+  label: string;
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.tile, pressed && { opacity: 0.9 }]}>
-      <View style={styles.iconWrap}>
-        <Ionicons name={icon} size={17} color={NAVY} />
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.action, pressed && styles.actionPressed]}
+    >
+      <View style={styles.iconCircle}>
+        <Ionicons name={icon} size={18} color={NAVY} />
       </View>
-      <View style={styles.textCol}>
-        <Text style={styles.tileTitle}>{title}</Text>
-        <Text style={styles.tileSubtitle}>{subtitle}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={16} color={MUTED} />
+      <Text style={styles.actionLabel} numberOfLines={1}>
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -44,24 +44,32 @@ export default function HomeTrustActions({
 }: Props) {
   return (
     <View style={styles.wrap}>
-      <ActionTile
-        icon="chatbox-ellipses-outline"
-        title="Scan message"
-        subtitle="Check recruiter conversation risk"
-        onPress={onScanMessage}
-      />
-      <ActionTile
-        icon="business-outline"
-        title="Check employer"
-        subtitle="Verify company legitimacy signals"
-        onPress={onCheckEmployer}
-      />
-      <ActionTile
-        icon="shield-checkmark-outline"
-        title="Safer jobs"
-        subtitle="Browse lower-risk recommendations"
-        onPress={onSaferJobs}
-      />
+      <View style={styles.panel}>
+        <View style={styles.headingRow}>
+          <Ionicons name="shield-checkmark" size={14} color={NAVY} />
+          <Text style={styles.heading}>Stay protected</Text>
+        </View>
+        <Text style={styles.subheading}>Quick checks before you apply or reply</Text>
+        <View style={styles.actions}>
+          <QuickAction
+            icon="chatbox-ellipses-outline"
+            label="Scan"
+            onPress={onScanMessage}
+          />
+          <View style={styles.divider} />
+          <QuickAction
+            icon="business-outline"
+            label="Employer"
+            onPress={onCheckEmployer}
+          />
+          <View style={styles.divider} />
+          <QuickAction
+            icon="sparkles-outline"
+            label="Safer jobs"
+            onPress={onSaferJobs}
+          />
+        </View>
+      </View>
     </View>
   );
 }
@@ -69,42 +77,65 @@ export default function HomeTrustActions({
 const styles = StyleSheet.create({
   wrap: {
     paddingHorizontal: 16,
-    gap: 10,
-    paddingBottom: 14,
+    paddingTop: 2,
+    paddingBottom: 8,
   },
-  tile: {
-    borderWidth: 1,
-    borderColor: BORDER,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    minHeight: 64,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+  panel: {
+    backgroundColor: '#F4F5FB',
+    borderRadius: 14,
+    paddingTop: 12,
+    paddingBottom: 10,
+    paddingHorizontal: 4,
+  },
+  headingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 6,
+    paddingHorizontal: 12,
   },
-  iconWrap: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    backgroundColor: '#EEF0F8',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  textCol: {
-    flex: 1,
-    minWidth: 0,
-  },
-  tileTitle: {
-    fontFamily: 'Poppins_500Medium',
+  heading: {
+    fontFamily: 'Poppins_600SemiBold',
     fontSize: 13,
     color: NAVY,
   },
-  tileSubtitle: {
+  subheading: {
     fontFamily: 'Poppins_400Regular',
     fontSize: 11,
     color: MUTED,
-    marginTop: 1,
+    paddingHorizontal: 12,
+    marginTop: 2,
+    marginBottom: 10,
+  },
+  actions: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  action: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    gap: 6,
+  },
+  actionPressed: {
+    opacity: 0.75,
+  },
+  iconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionLabel: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 11,
+    color: NAVY,
+  },
+  divider: {
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: '#D8DCEF',
+    marginVertical: 8,
   },
 });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
   Image,
   Pressable,
@@ -13,12 +13,14 @@ import {
   Poppins_500Medium,
   Poppins_600SemiBold,
 } from '@expo-google-fonts/poppins';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ProfileDrawer from './ProfileDrawer';
 import { useProfile } from '../context/ProfileContext';
+import { useNotificationsUnread } from '../context/NotificationsUnreadContext';
 
 const NAVY = '#202871';
 const GREETING_GREY = '#8A93B0';
+const BADGE_RED = '#E53935';
 
 type HeaderProps = {
   onProfilePress?: () => void;
@@ -41,11 +43,18 @@ export default function Header({
   const navigation = useNavigation();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { profile } = useProfile();
+  const { unreadCount, refreshUnreadCount } = useNotificationsUnread();
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
     Poppins_500Medium,
     Poppins_600SemiBold,
   });
+
+  useFocusEffect(
+    useCallback(() => {
+      void refreshUnreadCount();
+    }, [refreshUnreadCount])
+  );
 
   const handleProfilePress = () => {
     if (onProfilePress) {
@@ -72,6 +81,8 @@ export default function Header({
 
   const greetingFont = fontsLoaded ? 'Poppins_400Regular' : undefined;
   const nameFont = fontsLoaded ? 'Poppins_500Medium' : undefined;
+  const badgeLabel =
+    unreadCount > 99 ? '99+' : unreadCount > 0 ? String(unreadCount) : null;
 
   return (
     <>
@@ -133,7 +144,11 @@ export default function Header({
           <Pressable
             onPress={handleNotificationsPress}
             accessibilityRole="button"
-            accessibilityLabel="Notifications"
+            accessibilityLabel={
+              badgeLabel
+                ? `Notifications, ${unreadCount} unread`
+                : 'Notifications'
+            }
             hitSlop={10}
             style={({ pressed }) => [
               styles.iconBtn,
@@ -145,6 +160,11 @@ export default function Header({
               style={styles.icon}
               resizeMode="contain"
             />
+            {badgeLabel ? (
+              <View style={styles.badge}>
+                <Text style={styles.badgeText}>{badgeLabel}</Text>
+              </View>
+            ) : null}
           </Pressable>
         </View>
       </SafeAreaView>
@@ -195,13 +215,11 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0,
   },
-  /** "Good Morning," — Poppins Regular 14 · muted */
   greeting: {
     fontSize: 14,
     color: GREETING_GREY,
     lineHeight: 20,
   },
-  /** Full name — Poppins Medium 18 · #202871 */
   userName: {
     fontSize: 18,
     color: NAVY,
@@ -218,5 +236,25 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     tintColor: NAVY,
+  },
+  badge: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: BADGE_RED,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 9,
+    fontFamily: 'Poppins_600SemiBold',
+    lineHeight: 11,
   },
 });

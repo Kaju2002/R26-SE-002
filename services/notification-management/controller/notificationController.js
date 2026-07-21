@@ -61,6 +61,28 @@ export const listNotifications = async (req, res) => {
   }
 };
 
+export const getUnreadNotificationCount = async (req, res) => {
+  try {
+    const unreadCount = await Notification.countDocuments({
+      userId: String(req.userId),
+      read: false,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Unread notification count fetched",
+      unreadCount,
+    });
+  } catch (error) {
+    console.error("Unread notification count error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error while fetching unread count",
+      error: error.message,
+    });
+  }
+};
+
 export const markNotificationRead = async (req, res) => {
   try {
     const notification = await Notification.findOneAndUpdate(

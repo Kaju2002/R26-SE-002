@@ -15,6 +15,7 @@ import {
   type LoginResponse,
 } from '../api/userApi';
 import { clearPushRegistration } from '../notifications/pushRegistration';
+import { clearHomeHeroDismissed } from '../utils/homeHeroStorage';
 
 const AUTH_TOKEN_KEY = '@fraudaware/auth_token';
 const USER_DATA_KEY = '@fraudaware/user_data';
@@ -134,10 +135,12 @@ export function UserProvider({ children }: { children: ReactNode }) {
       }
 
       await clearSession();
+      await clearHomeHeroDismissed();
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Logout failed';
       setError(errorMessage);
       await clearSession();
+      await clearHomeHeroDismissed();
     } finally {
       setIsLoading(false);
     }
