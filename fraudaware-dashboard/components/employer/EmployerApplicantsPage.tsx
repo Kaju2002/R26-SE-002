@@ -66,10 +66,10 @@ export default function EmployerApplicantsPage({
       return;
     }
 
-    Promise.all([listMyJobs(token), getEmailStatus(token).catch(() => null)])
-      .then(([items, status]) => {
-        setJobs(items);
-        if (items.length > 0) setSelectedJobId(items[0].id);
+    Promise.all([listMyJobs(token, { limit: 50 }), getEmailStatus(token).catch(() => null)])
+      .then(([result, status]) => {
+        setJobs(result.jobs);
+        if (result.jobs.length > 0) setSelectedJobId(result.jobs[0].id);
         if (status) setEmailConnected(status.connected);
       })
       .catch((requestError: unknown) => {

@@ -299,6 +299,15 @@ export const getMyJobs = async (req, res) => {
       filter.status = req.query.status;
     }
 
+    const q = req.query.q?.trim();
+    if (q) {
+      filter.$or = [
+        { title: { $regex: q, $options: "i" } },
+        { companyName: { $regex: q, $options: "i" } },
+        { location: { $regex: q, $options: "i" } },
+      ];
+    }
+
     const sort = getSortOption(req.query.sort);
     const { page, limit, skip } = parsePagination(req.query);
 

@@ -1,10 +1,16 @@
-import { authHeaders, getJobManagementBaseUrl } from './apiConfig';
+import {
+  authHeaders,
+  authHeadersMultipart,
+  getJobManagementBaseUrl,
+} from './apiConfig';
+
+export type JobStatus = 'active' | 'draft' | 'closed';
 
 export type JobSummary = {
   id: string;
   title: string;
   companyName: string;
-  status: string;
+  status: JobStatus | string;
   applicants: number;
   location?: string;
   type?: string;
@@ -13,7 +19,29 @@ export type JobSummary = {
   salaryMax?: number;
   salaryCurrency?: string;
   posterType?: 'recruiter' | 'company';
+  companyLogoUri?: string;
   description?: string[];
+  requirements?: string[];
+  skills?: string[];
+  postedAt?: string;
+  endsAt?: string;
+  about?: string;
+  jobLevel?: string;
+  education?: string;
+  experience?: string;
+  benefits?: string[];
+  perks?: string[];
+};
+
+export type JobDetail = JobSummary & {
+  postedBy?: string;
+  isVerified?: boolean;
+  contact?: {
+    location?: string;
+    email?: string;
+    phone?: string;
+    website?: string;
+  };
 };
 
 export type JobApplication = {
@@ -52,17 +80,38 @@ export type CreateJobPayload = {
   description: string;
   requirements?: string;
   skills?: string;
-  status?: 'active' | 'draft' | 'closed';
+  benefits?: string;
+  about?: string;
+  jobLevel?: string;
+  education?: string;
+  experience?: string;
+  status?: JobStatus;
+};
+
+export type ListMyJobsParams = {
+  page?: number;
+  limit?: number;
+  status?: JobStatus | 'all';
+  q?: string;
+  sort?: string;
+};
+
+export type PaginationInfo = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
 };
 
 type MyJobsResponse = {
   success: boolean;
   jobs: JobSummary[];
+  pagination?: PaginationInfo;
 };
 
 type JobResponse = {
   success: boolean;
-  job: JobSummary;
+  job: JobDetail;
   message?: string;
 };
 
@@ -93,20 +142,74 @@ async function parseJson<T>(response: Response): Promise<T> {
   return data as T;
 }
 
-export async function listMyJobs(token: string): Promise<JobSummary[]> {
-  const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/mine?limit=50`, {
+function appendPayloadFields(formData: FormData, payload: Partial<CreateJobPayload>) {
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    formData.append(key, String(value));
+  });
+}
+
+export async function listMyJobs(
+  token: string,
+  params: ListMyJobsParams = {}
+): Promise<{ jobs: JobSummary[]; pagination: PaginationInfo }> {
+  const search = new URLSearchParams();
+  search.set('page', String(params.page ?? 1));
+  search.set('limit', String(params.limit ?? 10));
+  if (params.status && params.status !== 'all') {
+    search.set('status', params.status);
+  }
+  if (params.q?.trim()) search.set('q', params.q.trim());
+  if (params.sort) search.set('sort', params.sort);
+
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/mine?${search.toString()}`,
+    {
+      method: 'GET',
+      headers: authHeaders(token),
+      cache: 'no-store',
+    }
+  );
+
+  const data = await parseJson<MyJobsResponse>(response);
+  return {
+    jobs: data.jobs,
+    pagination: data.pagination ?? {
+      page: params.page ?? 1,
+      limit: params.limit ?? 10,
+      total: data.jobs.length,
+      totalPages: 1,
+    },
+  };
+}
+
+export async function getJobById(token: string, jobId: string): Promise<JobDetail> {
+  const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/${jobId}`, {
     method: 'GET',
     headers: authHeaders(token),
     cache: 'no-store',
   });
 
-  return (await parseJson<MyJobsResponse>(response)).jobs;
+  return (await parseJson<JobResponse>(response)).job;
 }
 
 export async function createJob(
   token: string,
-  payload: CreateJobPayload
-): Promise<JobSummary> {
+  payload: CreateJobPayload,
+  logoFile?: File | null
+): Promise<JobDetail> {
+  if (logoFile) {
+    const formData = new FormData();
+    appendPayloadFields(formData, payload);
+    formData.append('logo', logoFile);
+    const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs`, {
+      method: 'POST',
+      headers: authHeadersMultipart(token),
+      body: formData,
+    });
+    return (await parseJson<JobResponse>(response)).job;
+  }
+
   const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs`, {
     method: 'POST',
     headers: authHeaders(token),
@@ -119,8 +222,21 @@ export async function createJob(
 export async function updateJob(
   token: string,
   jobId: string,
-  payload: Partial<CreateJobPayload>
-): Promise<JobSummary> {
+  payload: Partial<CreateJobPayload>,
+  logoFile?: File | null
+): Promise<JobDetail> {
+  if (logoFile) {
+    const formData = new FormData();
+    appendPayloadFields(formData, payload);
+    formData.append('logo', logoFile);
+    const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/${jobId}`, {
+      method: 'PUT',
+      headers: authHeadersMultipart(token),
+      body: formData,
+    });
+    return (await parseJson<JobResponse>(response)).job;
+  }
+
   const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/${jobId}`, {
     method: 'PUT',
     headers: authHeaders(token),
@@ -186,4 +302,20 @@ export async function updateApplicationStatus(
   );
 
   await parseJson<{ success: boolean }>(response);
+}
+
+export function descriptionToText(value?: string[] | string | null): string {
+  if (!value) return '';
+  if (Array.isArray(value)) return value.join('\n');
+  return value;
+}
+
+export function listToMultiline(value?: string[] | null): string {
+  if (!value?.length) return '';
+  return value.join('\n');
+}
+
+export function skillsToCsv(value?: string[] | null): string {
+  if (!value?.length) return '';
+  return value.join(', ');
 }

@@ -18,7 +18,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const isAdminArea = pathname.startsWith('/admin/dashboard');
+  const isAdminArea =
+    pathname.startsWith('/admin/dashboard') ||
+    pathname.startsWith('/admin/users') ||
+    pathname.startsWith('/admin/verification') ||
+    pathname.startsWith('/admin/jobs');
   const isRecruiterArea =
     pathname.startsWith('/recruiter/dashboard') ||
     pathname.startsWith('/recruiter/inchat') ||
@@ -65,6 +69,9 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     '/admin/dashboard/:path*',
+    '/admin/users/:path*',
+    '/admin/verification/:path*',
+    '/admin/jobs/:path*',
     '/recruiter/dashboard/:path*',
     '/recruiter/inchat/:path*',
     '/recruiter/jobs/:path*',

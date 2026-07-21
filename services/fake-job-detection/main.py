@@ -88,6 +88,78 @@ async def extract_text(image: UploadFile = File(...)):
     }
 
 
+def _run_text_inference(text: str) -> dict:
+    tokenizer = state["tokenizer"]
+    model = state["model"]
+
+    inputs = tokenizer(
+        text,
+        return_tensors="pt",
+        truncation=True,
+        max_length=512,
+        padding=True,
+    )
+
+    with torch.no_grad():
+        logits = model(**inputs).logits
+
+    probs = F.softmax(logits, dim=-1).squeeze()
+    fake_prob = float(probs[1])
+    legit_prob = float(probs[0])
+
+    # Calibrated threshold based on training distribution
+    # Training had 1191 legitimate vs 533 fake (69% vs 31%)
+    FAKE_THRESHOLD = 0.85
+
+    if fake_prob >= FAKE_THRESHOLD:
+        prediction = "fake"
+        confidence = round(fake_prob, 4)
+        message = (
+            f"This job post has been detected as FAKE with {round(fake_prob * 100)}% confidence"
+        )
+    elif fake_prob >= 0.50:
+        prediction = "suspicious"
+        confidence = round(fake_prob, 4)
+        message = (
+            f"This job post is SUSPICIOUS with {round(fake_prob * 100)}% confidence"
+        )
+    else:
+        prediction = "legitimate"
+        confidence = round(legit_prob, 4)
+        message = (
+            f"This job post has been detected as LEGITIMATE with {round(legit_prob * 100)}% confidence"
+        )
+
+    return {
+        "prediction": prediction,
+        "confidence": round(confidence, 4),
+        "legitimate_probability": round(legit_prob, 4),
+        "fake_probability": round(fake_prob, 4),
+        "message": message,
+    }
+
+
+@app.post("/predict-text")
+async def predict_text(payload: dict):
+    """Classify a job post from raw text (dashboard / API clients)."""
+    text = str(payload.get("text") or "").strip()
+    if len(text) < 15:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide at least 15 characters of job post text.",
+        )
+
+    try:
+        result = _run_text_inference(text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Model inference failed: {e}")
+
+    return {
+        **result,
+        "extracted_text": text[:300],
+    }
+
+
 @app.post("/predict")
 async def predict(image: UploadFile = File(...)):
     # --- Step 1: extract text from image via Claude Vision ---
@@ -98,49 +170,11 @@ async def predict(image: UploadFile = File(...)):
 
     # --- Step 2: run XLM-RoBERTa inference ---
     try:
-        tokenizer = state["tokenizer"]
-        model = state["model"]
-
-        inputs = tokenizer(
-            extracted_text,
-            return_tensors="pt",
-            truncation=True,
-            max_length=512,
-            padding=True,
-        )
-
-        with torch.no_grad():
-            logits = model(**inputs).logits
-
-        probs = F.softmax(logits, dim=-1).squeeze()
-        fake_prob = float(probs[1])
-        legit_prob = float(probs[0])
-
-        # Calibrated threshold based on training distribution
-        # Training had 1191 legitimate vs 533 fake (69% vs 31%)
-        # Adjust threshold to reduce false positives
-        FAKE_THRESHOLD = 0.85
-
-        if fake_prob >= FAKE_THRESHOLD:
-            prediction = "fake"
-            confidence = round(fake_prob, 4)
-            message = f"This job post has been detected as FAKE with {round(fake_prob * 100)}% confidence"
-        elif fake_prob >= 0.50:
-            prediction = "suspicious"
-            confidence = round(fake_prob, 4)
-            message = f"This job post is SUSPICIOUS with {round(fake_prob * 100)}% confidence"
-        else:
-            prediction = "legitimate"
-            confidence = round(legit_prob, 4)
-            message = f"This job post has been detected as LEGITIMATE with {round(legit_prob * 100)}% confidence"
+        result = _run_text_inference(extracted_text)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Model inference failed: {e}")
 
     return {
-        "prediction": prediction,
-        "confidence": round(confidence, 4),
-        "legitimate_probability": round(legit_prob, 4),
-        "fake_probability": round(fake_prob, 4),
+        **result,
         "extracted_text": extracted_text[:300],
-        "message": message,
     }

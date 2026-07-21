@@ -1,36 +1,65 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import EmployerJobForm, { emptyJobForm } from '@/components/employer/EmployerJobForm';
 import EmployerShell from '@/components/employer/EmployerShell';
+import type { AuthUser } from '@/lib/api/authTypes';
+import { buildJobRiskText, predictFakeJobFromText } from '@/lib/api/fakeJobApi';
 import {
   createJob,
   deleteJob,
+  descriptionToText,
   listMyJobs,
+  listToMultiline,
+  skillsToCsv,
+  updateJob,
   type CreateJobPayload,
+  type JobStatus,
   type JobSummary,
+  type PaginationInfo,
 } from '@/lib/api/jobApi';
-import type { AuthUser } from '@/lib/api/authTypes';
 import type { PortalType } from '@/lib/auth/portalConfig';
+import { portalConfigs } from '@/lib/auth/portalConfig';
 import { getStoredToken, getStoredUser } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
 
-const MODES = ['On-Site', 'Remote', 'Hybrid'] as const;
-const TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Internship'] as const;
+const PAGE_SIZE = 8;
 
-const emptyForm = (companyName = ''): CreateJobPayload => ({
-  title: '',
-  companyName,
-  location: '',
-  mode: 'On-Site',
-  type: 'Full-Time',
-  salaryMin: 0,
-  salaryMax: 0,
-  salaryCurrency: 'LKR',
-  description: '',
-  requirements: '',
-  skills: '',
-  status: 'active',
-});
+const STATUS_FILTERS: { value: JobStatus | 'all'; label: string }[] = [
+  { value: 'all', label: 'All statuses' },
+  { value: 'active', label: 'Active' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'closed', label: 'Closed' },
+];
+
+function statusStyles(status: string): { color: string; background: string } {
+  if (status === 'active') return { color: '#2E7D32', background: '#E8F5E9' };
+  if (status === 'draft') return { color: '#EF6C00', background: '#FFF3E0' };
+  return { color: '#C62828', background: '#FFEBEE' };
+}
+
+function jobToForm(job: JobSummary, fallbackCompany = ''): CreateJobPayload {
+  return {
+    title: job.title,
+    companyName: job.companyName || fallbackCompany,
+    location: job.location || '',
+    mode: (job.mode as CreateJobPayload['mode']) || 'On-Site',
+    type: (job.type as CreateJobPayload['type']) || 'Full-Time',
+    salaryMin: job.salaryMin ?? 0,
+    salaryMax: job.salaryMax ?? 0,
+    salaryCurrency: job.salaryCurrency || 'LKR',
+    description: descriptionToText(job.description),
+    requirements: listToMultiline(job.requirements),
+    skills: skillsToCsv(job.skills),
+    benefits: listToMultiline(job.benefits),
+    about: job.about || '',
+    jobLevel: job.jobLevel || '',
+    education: job.education || '',
+    experience: job.experience || '',
+    status: (job.status as JobStatus) || 'draft',
+  };
+}
 
 export default function EmployerJobsPage({
   portal,
@@ -38,15 +67,27 @@ export default function EmployerJobsPage({
   portal: Extract<PortalType, 'recruiter' | 'company'>;
 }) {
   const isCompany = portal === 'company';
+  const basePath = portalConfigs[portal].basePath;
   const [user, setUser] = useState<AuthUser | null>(null);
   const [jobs, setJobs] = useState<JobSummary[]>([]);
-  const [form, setForm] = useState<CreateJobPayload>(emptyForm());
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    limit: PAGE_SIZE,
+    total: 0,
+    totalPages: 0,
+  });
+  const [page, setPage] = useState(1);
+  const [queryInput, setQueryInput] = useState('');
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<JobStatus | 'all'>('all');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [mode, setMode] = useState<'list' | 'create' | 'edit'>('list');
+  const [editingJob, setEditingJob] = useState<JobSummary | null>(null);
 
-  const reload = async () => {
+  const reload = useCallback(async () => {
     const token = getStoredToken();
     if (!token) {
       setError('Your session has expired. Please sign in again.');
@@ -56,8 +97,15 @@ export default function EmployerJobsPage({
 
     setLoading(true);
     try {
-      const items = await listMyJobs(token);
-      setJobs(items);
+      const result = await listMyJobs(token, {
+        page,
+        limit: PAGE_SIZE,
+        status: statusFilter,
+        q: query,
+        sort: 'newly_posted',
+      });
+      setJobs(result.jobs);
+      setPagination(result.pagination);
       setError(null);
     } catch (requestError: unknown) {
       setError(
@@ -66,50 +114,127 @@ export default function EmployerJobsPage({
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, query, statusFilter]);
 
   useEffect(() => {
     const stored = getStoredUser();
     setUser(stored);
-    setForm(emptyForm(stored?.company?.name || ''));
-    void reload();
   }, []);
 
-  const handleSubmit = async (event: FormEvent) => {
-    event.preventDefault();
+  useEffect(() => {
+    void reload();
+  }, [reload]);
+
+  const formInitial = useMemo(() => {
+    if (mode === 'edit' && editingJob) {
+      return jobToForm(editingJob, user?.company?.name || '');
+    }
+    return emptyJobForm(user?.company?.name || '');
+  }, [mode, editingJob, user?.company?.name]);
+
+  const closeForm = () => {
+    setMode('list');
+    setEditingJob(null);
+  };
+
+  const handleCreateOrUpdate = async (
+    payload: CreateJobPayload,
+    logoFile: File | null
+  ) => {
     const token = getStoredToken();
     if (!token) return;
 
     setSaving(true);
     setError(null);
+    setMessage(null);
     try {
-      const payload: CreateJobPayload = {
-        ...form,
-        companyName: isCompany
-          ? user?.company?.name || form.companyName
-          : form.companyName,
-        description: form.description.trim(),
-      };
-      await createJob(token, payload);
-      setShowForm(false);
-      setForm(emptyForm(user?.company?.name || ''));
+      if (mode === 'edit' && editingJob) {
+        await updateJob(token, editingJob.id, payload, logoFile);
+        setMessage(`Updated “${payload.title}”.`);
+      } else {
+        await createJob(token, payload, logoFile);
+        setMessage(
+          payload.status === 'draft'
+            ? `Saved “${payload.title}” as draft.`
+            : `Published “${payload.title}”.`
+        );
+      }
+      closeForm();
       await reload();
     } catch (requestError: unknown) {
       setError(
-        requestError instanceof Error ? requestError.message : 'Could not create job.'
+        requestError instanceof Error ? requestError.message : 'Could not save job.'
       );
     } finally {
       setSaving(false);
     }
   };
 
+  const setJobStatus = async (job: JobSummary, status: JobStatus) => {
+    const token = getStoredToken();
+    if (!token) return;
+    setError(null);
+    setMessage(null);
+
+    if (status === 'active') {
+      try {
+        const text = buildJobRiskText({
+          title: job.title,
+          companyName: job.companyName,
+          location: job.location || '',
+          description: descriptionToText(job.description) || job.title,
+          requirements: listToMultiline(job.requirements),
+          skills: skillsToCsv(job.skills),
+        });
+        const risk = await predictFakeJobFromText(text);
+        const prediction = risk.prediction.toLowerCase();
+        if (prediction === 'fake' || prediction === 'suspicious') {
+          const proceed = window.confirm(
+            `${risk.message}\n\nPublish “${job.title}” anyway?`
+          );
+          if (!proceed) return;
+        } else {
+          setMessage(risk.message);
+        }
+      } catch (requestError: unknown) {
+        const proceed = window.confirm(
+          `${
+            requestError instanceof Error
+              ? requestError.message
+              : 'Fake-job check failed.'
+          }\n\nPublish without a completed risk check?`
+        );
+        if (!proceed) return;
+      }
+    }
+
+    try {
+      await updateJob(token, job.id, { status });
+      setMessage(
+        status === 'active'
+          ? `“${job.title}” is now active.`
+          : status === 'closed'
+            ? `“${job.title}” was closed.`
+            : `“${job.title}” moved to draft.`
+      );
+      await reload();
+    } catch (requestError: unknown) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Could not update job status.'
+      );
+    }
+  };
+
   const handleDelete = async (jobId: string) => {
     const token = getStoredToken();
     if (!token) return;
-    if (!window.confirm('Delete this job posting?')) return;
+    if (!window.confirm('Delete this job posting permanently?')) return;
 
     try {
       await deleteJob(token, jobId);
+      setMessage('Job deleted.');
       await reload();
     } catch (requestError: unknown) {
       setError(
@@ -134,247 +259,307 @@ export default function EmployerJobsPage({
                 className="mt-2 text-sm leading-relaxed"
                 style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
               >
-                {isCompany
-                  ? 'Post openings for your company. Company name is locked to your profile.'
-                  : 'Post jobs for any employer and manage your listings.'}
+                Create drafts, publish openings, edit listings, close or republish, and
+                review fake-job risk before going live.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={() => setShowForm((value) => !value)}
-              className="rounded-xl bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              {showForm ? 'Close form' : 'Post a job'}
-            </button>
+            {mode === 'list' ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingJob(null);
+                  setMode('create');
+                  setError(null);
+                  setMessage(null);
+                }}
+                className="rounded-xl bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                Post a job
+              </button>
+            ) : null}
           </div>
 
-          {showForm ? (
-            <form onSubmit={handleSubmit} className="mt-6 grid gap-4 md:grid-cols-2">
-              <TextField
-                label="Job title"
-                value={form.title}
-                onChange={(title) => setForm((prev) => ({ ...prev, title }))}
-                required
+          {mode !== 'list' ? (
+            <>
+              <h3
+                className="mt-6 text-base font-semibold"
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                {mode === 'edit' ? 'Edit job' : 'Create job'}
+              </h3>
+              <EmployerJobForm
+                isCompany={isCompany}
+                user={user}
+                initial={formInitial}
+                existingLogoUrl={editingJob?.companyLogoUri}
+                submitLabel={mode === 'edit' ? 'Save changes' : 'Save job'}
+                saving={saving}
+                onCancel={closeForm}
+                onSubmit={handleCreateOrUpdate}
               />
-              <TextField
-                label="Company name"
-                value={
-                  isCompany ? user?.company?.name || form.companyName || '' : form.companyName || ''
-                }
-                onChange={(companyName) => setForm((prev) => ({ ...prev, companyName }))}
-                required={!isCompany}
-                disabled={isCompany}
-              />
-              <TextField
-                label="Location"
-                value={form.location}
-                onChange={(location) => setForm((prev) => ({ ...prev, location }))}
-                required
-              />
-              <div className="grid grid-cols-2 gap-3">
-                <SelectField
-                  label="Mode"
-                  value={form.mode}
-                  options={MODES}
-                  onChange={(mode) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      mode: mode as CreateJobPayload['mode'],
-                    }))
-                  }
-                />
-                <SelectField
-                  label="Type"
-                  value={form.type}
-                  options={TYPES}
-                  onChange={(type) =>
-                    setForm((prev) => ({
-                      ...prev,
-                      type: type as CreateJobPayload['type'],
-                    }))
-                  }
-                />
-              </div>
-              <TextField
-                label="Salary min"
-                type="number"
-                value={String(form.salaryMin)}
-                onChange={(salaryMin) =>
-                  setForm((prev) => ({ ...prev, salaryMin: Number(salaryMin) || 0 }))
-                }
-                required
-              />
-              <TextField
-                label="Salary max"
-                type="number"
-                value={String(form.salaryMax)}
-                onChange={(salaryMax) =>
-                  setForm((prev) => ({ ...prev, salaryMax: Number(salaryMax) || 0 }))
-                }
-                required
-              />
-              <div className="md:col-span-2">
-                <label
-                  className="mb-2 block text-sm font-medium"
-                  style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
-                >
-                  Description
-                </label>
-                <textarea
-                  required
-                  minLength={15}
-                  value={form.description}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, description: event.target.value }))
-                  }
-                  rows={4}
-                  className="w-full rounded-xl border border-[#E5E7EE] px-3 py-2.5 text-sm outline-none focus:border-[#202871]"
+            </>
+          ) : (
+            <div className="mt-6 grid gap-3 md:grid-cols-[1fr_180px_auto]">
+              <form
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  setPage(1);
+                  setQuery(queryInput.trim());
+                }}
+              >
+                <input
+                  type="search"
+                  value={queryInput}
+                  onChange={(event) => setQueryInput(event.target.value)}
+                  placeholder="Search title, company, location…"
+                  className="h-11 w-full rounded-xl border border-[#E5E7EE] bg-[#F7F8FE] px-3 text-sm outline-none focus:border-[#202871]"
                   style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
                 />
-              </div>
-              <div className="md:col-span-2">
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="rounded-xl bg-[#202871] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-70"
-                  style={{ fontFamily: 'var(--font-poppins)' }}
-                >
-                  {saving ? 'Publishing...' : 'Publish job'}
-                </button>
-              </div>
-            </form>
-          ) : null}
-        </div>
+              </form>
+              <select
+                value={statusFilter}
+                onChange={(event) => {
+                  setPage(1);
+                  setStatusFilter(event.target.value as JobStatus | 'all');
+                }}
+                className="h-11 rounded-xl border border-[#E5E7EE] bg-[#F7F8FE] px-3 text-sm outline-none focus:border-[#202871]"
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                {STATUS_FILTERS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => {
+                  setPage(1);
+                  setQuery(queryInput.trim());
+                }}
+                className="h-11 rounded-xl border border-[#E5E7EE] px-4 text-sm font-semibold"
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                Search
+              </button>
+            </div>
+          )}
 
-        <div className="overflow-hidden rounded-2xl border border-[#EEF0F8] bg-white shadow-sm">
-          {loading ? (
-            <p
-              className="px-6 py-10 text-center text-sm"
-              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+          {message ? (
+            <div
+              className="mt-4 rounded-xl border border-[#C8E6C9] bg-[#E8F5E9] px-4 py-3 text-sm text-[#2E7D32]"
+              style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              Loading jobs...
-            </p>
-          ) : error ? (
-            <p
-              className="px-6 py-10 text-center text-sm text-red-600"
+              {message}
+            </div>
+          ) : null}
+          {error ? (
+            <div
+              className="mt-4 rounded-xl border border-[#FFCDD2] bg-[#FFEBEE] px-4 py-3 text-sm text-[#C62828]"
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
               {error}
-            </p>
-          ) : jobs.length === 0 ? (
-            <p
-              className="px-6 py-10 text-center text-sm"
-              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-            >
-              No jobs posted yet.
-            </p>
-          ) : (
-            <ul className="divide-y divide-[#EEF0F8]">
-              {jobs.map((job) => (
-                <li
-                  key={job.id}
-                  className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6"
+            </div>
+          ) : null}
+        </div>
+
+        {mode === 'list' ? (
+          <div className="overflow-hidden rounded-2xl border border-[#EEF0F8] bg-white shadow-sm">
+            {loading ? (
+              <p
+                className="px-6 py-10 text-center text-sm"
+                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+              >
+                Loading jobs...
+              </p>
+            ) : jobs.length === 0 ? (
+              <p
+                className="px-6 py-10 text-center text-sm"
+                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+              >
+                No jobs match your filters.
+              </p>
+            ) : (
+              <ul className="divide-y divide-[#EEF0F8]">
+                {jobs.map((job) => {
+                  const badge = statusStyles(job.status);
+                  return (
+                    <li
+                      key={job.id}
+                      className="flex flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6"
+                    >
+                      <div className="min-w-0 flex items-start gap-3">
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#EEF0F8]">
+                          {job.companyLogoUri ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={job.companyLogoUri}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <span
+                              className="text-xs font-bold"
+                              style={{
+                                color: colors.navy,
+                                fontFamily: 'var(--font-poppins)',
+                              }}
+                            >
+                              {(job.companyName || 'J').slice(0, 2).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p
+                              className="truncate text-sm font-semibold"
+                              style={{
+                                color: colors.navy,
+                                fontFamily: 'var(--font-poppins)',
+                              }}
+                            >
+                              {job.title}
+                            </p>
+                            <span
+                              className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize"
+                              style={{
+                                color: badge.color,
+                                backgroundColor: badge.background,
+                                fontFamily: 'var(--font-poppins)',
+                              }}
+                            >
+                              {job.status}
+                            </span>
+                          </div>
+                          <p
+                            className="mt-1 text-xs"
+                            style={{
+                              color: colors.muted,
+                              fontFamily: 'var(--font-poppins)',
+                            }}
+                          >
+                            {job.companyName}
+                            {job.location ? ` · ${job.location}` : ''}
+                            {` · ${job.applicants} applicants`}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        <Link
+                          href={`${basePath}/jobs/${job.id}`}
+                          className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold"
+                          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                        >
+                          Details
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingJob(job);
+                            setMode('edit');
+                            setMessage(null);
+                            setError(null);
+                          }}
+                          className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold"
+                          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                        >
+                          Edit
+                        </button>
+                        {job.status === 'draft' || job.status === 'closed' ? (
+                          <button
+                            type="button"
+                            onClick={() => void setJobStatus(job, 'active')}
+                            className="rounded-xl border border-[#C8E6C9] px-3 py-2 text-xs font-semibold text-[#2E7D32]"
+                            style={{ fontFamily: 'var(--font-poppins)' }}
+                          >
+                            {job.status === 'closed' ? 'Republish' : 'Publish'}
+                          </button>
+                        ) : null}
+                        {job.status === 'active' ? (
+                          <button
+                            type="button"
+                            onClick={() => void setJobStatus(job, 'closed')}
+                            className="rounded-xl border border-[#FFE0B2] px-3 py-2 text-xs font-semibold text-[#EF6C00]"
+                            style={{ fontFamily: 'var(--font-poppins)' }}
+                          >
+                            Close
+                          </button>
+                        ) : null}
+                        {job.status === 'active' ? (
+                          <button
+                            type="button"
+                            onClick={() => void setJobStatus(job, 'draft')}
+                            className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold"
+                            style={{
+                              color: colors.body,
+                              fontFamily: 'var(--font-poppins)',
+                            }}
+                          >
+                            Move to draft
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => void handleDelete(job.id)}
+                          className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold text-[#C62828]"
+                          style={{ fontFamily: 'var(--font-poppins)' }}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+
+            {pagination.totalPages > 1 ? (
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#EEF0F8] px-5 py-4 md:px-6">
+                <p
+                  className="text-xs"
+                  style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
                 >
-                  <div>
-                    <p
-                      className="text-sm font-semibold"
-                      style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-                    >
-                      {job.title}
-                    </p>
-                    <p
-                      className="mt-1 text-xs"
-                      style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-                    >
-                      {job.companyName} · {job.status} · {job.applicants} applicants
-                    </p>
-                  </div>
+                  Page {pagination.page} of {pagination.totalPages} · {pagination.total}{' '}
+                  jobs
+                </p>
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    onClick={() => void handleDelete(job.id)}
-                    className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold text-[#C62828]"
-                    style={{ fontFamily: 'var(--font-poppins)' }}
+                    disabled={page <= 1}
+                    onClick={() => setPage((value) => Math.max(1, value - 1))}
+                    className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold disabled:opacity-50"
+                    style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
                   >
-                    Delete
+                    Previous
                   </button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                  <button
+                    type="button"
+                    disabled={page >= pagination.totalPages}
+                    onClick={() =>
+                      setPage((value) => Math.min(pagination.totalPages, value + 1))
+                    }
+                    className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold disabled:opacity-50"
+                    style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="border-t border-[#EEF0F8] px-5 py-3 md:px-6">
+                <p
+                  className="text-xs"
+                  style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                >
+                  {pagination.total} job{pagination.total === 1 ? '' : 's'}
+                </p>
+              </div>
+            )}
+          </div>
+        ) : null}
       </div>
     </EmployerShell>
-  );
-}
-
-function TextField({
-  label,
-  value,
-  onChange,
-  required,
-  disabled,
-  type = 'text',
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  required?: boolean;
-  disabled?: boolean;
-  type?: string;
-}) {
-  return (
-    <div>
-      <label
-        className="mb-2 block text-sm font-medium"
-        style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
-      >
-        {label}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        required={required}
-        disabled={disabled}
-        className="h-11 w-full rounded-xl border border-[#E5E7EE] px-3 text-sm outline-none focus:border-[#202871] disabled:bg-[#F7F8FE]"
-        style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-      />
-    </div>
-  );
-}
-
-function SelectField({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: readonly string[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div>
-      <label
-        className="mb-2 block text-sm font-medium"
-        style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
-      >
-        {label}
-      </label>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-11 w-full rounded-xl border border-[#E5E7EE] bg-white px-3 text-sm outline-none focus:border-[#202871]"
-        style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-    </div>
   );
 }

@@ -34,9 +34,23 @@ export function getEmailManagementBaseUrl(): string {
   );
 }
 
+export function getFakeJobApiBaseUrl(): string {
+  return (
+    (process.env.NEXT_PUBLIC_FAKE_JOB_API_BASE_URL ?? '')
+      .trim()
+      .replace(/\/$/, '') || 'http://127.0.0.1:8003'
+  );
+}
+
 export function authHeaders(token: string): HeadersInit {
   return {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
+  };
+}
+
+export function authHeadersMultipart(token: string): HeadersInit {
+  return {
+    Authorization: `Bearer ${token}`,
   };
 }
