@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import JobCard from './JobCard';
+import JobCardSkeletonRow from './JobCardSkeletonRow';
 import type { Job } from '../../../data/jobs';
 
 const NAVY = '#202871';
@@ -17,6 +18,10 @@ type Props = {
   title: string;
   jobs: Job[];
   layout?: 'horizontal' | 'vertical';
+  loading?: boolean;
+  error?: boolean;
+  emptyMessage?: string;
+  onRetry?: () => void;
   onJobPress?: (id: string) => void;
   onBookmarkPress?: (id: string) => void;
   onChatPress?: (params: {
@@ -32,15 +37,17 @@ type Props = {
 const CARD_WIDTH = 320;
 const CARD_HEIGHT = 248;
 const CARD_GAP = 14;
-/** Vertical padding inside horizontal row (hContent) — keep in sync with styles.hContent */
 const H_SCROLL_PADDING_V = 4 + 12;
-/** Nested horizontal list must have bounded height or it expands inside parent scroll */
 const HORIZONTAL_SCROLL_HEIGHT = CARD_HEIGHT + H_SCROLL_PADDING_V;
 
 export default function JobsSection({
   title,
   jobs,
   layout = 'horizontal',
+  loading = false,
+  error = false,
+  emptyMessage = 'No jobs to show right now',
+  onRetry,
   onJobPress,
   onBookmarkPress,
   onChatPress,
@@ -48,11 +55,13 @@ export default function JobsSection({
   bookmarkedIds,
   onSeeAllPress,
 }: Props) {
+  const showSeeAll = onSeeAllPress && !loading && !error && jobs.length > 0;
+
   return (
     <View style={styles.section}>
       <View style={styles.titleRow}>
         <Text style={styles.title}>{title}</Text>
-        {onSeeAllPress && (
+        {showSeeAll && (
           <Pressable
             onPress={onSeeAllPress}
             hitSlop={8}
@@ -69,7 +78,34 @@ export default function JobsSection({
         )}
       </View>
 
-      {layout === 'horizontal' ? (
+      {loading ? (
+        <JobCardSkeletonRow
+          layout={layout}
+          count={layout === 'horizontal' ? 2 : 3}
+        />
+      ) : error ? (
+        <View style={styles.stateBox}>
+          <Text style={styles.stateText}>Couldn’t load jobs</Text>
+          <Text style={styles.stateHint}>Check your connection and try again</Text>
+          {onRetry && (
+            <Pressable
+              onPress={onRetry}
+              accessibilityRole="button"
+              accessibilityLabel="Retry loading jobs"
+              style={({ pressed }) => [
+                styles.retryBtn,
+                pressed && { opacity: 0.85 },
+              ]}
+            >
+              <Text style={styles.retryText}>Retry</Text>
+            </Pressable>
+          )}
+        </View>
+      ) : jobs.length === 0 ? (
+        <View style={styles.stateBox}>
+          <Text style={styles.stateText}>{emptyMessage}</Text>
+        </View>
+      ) : layout === 'horizontal' ? (
         <View style={styles.hScrollClip}>
           <FlatList
             data={jobs}
@@ -129,7 +165,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 10,
   },
-  /** Section title — Poppins Medium 16 · #202871 */
   title: {
     fontFamily: 'Poppins_500Medium',
     fontSize: 16,
@@ -147,7 +182,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: NAVY,
   },
-  /** Clip so FlatList cannot expand vertically inside parent scroll */
   hScrollClip: {
     height: HORIZONTAL_SCROLL_HEIGHT,
     overflow: 'hidden',
@@ -174,5 +208,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     gap: 14,
     paddingBottom: 4,
+  },
+  stateBox: {
+    marginHorizontal: 16,
+    paddingVertical: 28,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: '#F7F8FE',
+    alignItems: 'center',
+  },
+  stateText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 13,
+    color: NAVY,
+    textAlign: 'center',
+  },
+  stateHint: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 12,
+    color: MUTED,
+    textAlign: 'center',
+    marginTop: 4,
+  },
+  retryBtn: {
+    marginTop: 14,
+    backgroundColor: NAVY,
+    borderRadius: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  retryText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 13,
+    color: '#FFFFFF',
   },
 });

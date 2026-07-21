@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import {
+  useFonts,
+  Poppins_400Regular,
+  Poppins_500Medium,
+  Poppins_600SemiBold,
+} from '@expo-google-fonts/poppins';
 import {
   NavigationContainer,
   createNavigationContainerRef,
@@ -7,8 +14,10 @@ import {
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import BottomTabNavigator from './src/navigation/BottomTabNavigator';
+import LaunchScreen from './src/user_screen/LaunchScreen';
 import OnboardingScreen from './src/user_screen/OnboardingScreen';
 import LoginScreen from './src/user_screen/LoginScreen';
+import { markOnboardingSeen } from './src/utils/onboardingStorage';
 import RegisterScreen from './src/user_screen/RegisterScreen';
 import VerificationScreen from './src/user_screen/VerificationScreen';
 import RegistrationSuccessScreen from './src/user_screen/RegistrationSuccessScreen';
@@ -30,6 +39,7 @@ import { BookmarksProvider } from './src/context/BookmarksContext';
 import { UserProvider } from './src/context/UserContext';
 import { ProfileProvider } from './src/context/ProfileContext';
 import { InchatProvider, useInchat } from './src/context/InchatContext';
+import { NotificationsUnreadProvider } from './src/context/NotificationsUnreadContext';
 import InchatNotificationBanner from './src/components/inchat/InchatNotificationBanner';
 import PushNotificationBootstrap from './src/notifications/PushNotificationBootstrap';
 
@@ -41,6 +51,7 @@ export type { RootStackParamList };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const navigationRef = createNavigationContainerRef<RootStackParamList>();
+const LAUNCH_BG = '#060C36';
 
 function InchatBannerHost({
   activeThreadId,
@@ -96,6 +107,11 @@ function InchatBannerHost({
 
 export default function App() {
   const [activeThreadId, setActiveThreadId] = useState<string>();
+  const [fontsLoaded] = useFonts({
+    Poppins_400Regular,
+    Poppins_500Medium,
+    Poppins_600SemiBold,
+  });
 
   const syncActiveThread = useCallback(() => {
     const route = navigationRef.getCurrentRoute();
@@ -106,11 +122,20 @@ export default function App() {
     );
   }, []);
 
+  if (!fontsLoaded) {
+    return (
+      <View style={{ flex: 1, backgroundColor: LAUNCH_BG, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color="#FFFFFF" />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaProvider>
       <UserProvider>
         <ProfileProvider>
         <BookmarksProvider>
+          <NotificationsUnreadProvider>
           <InchatProvider>
           <NavigationContainer
             ref={navigationRef}
@@ -118,16 +143,30 @@ export default function App() {
             onStateChange={syncActiveThread}
           >
           <Stack.Navigator
-            initialRouteName="Onboarding"
+            initialRouteName="Launch"
             screenOptions={{ headerShown: false }}
           >
+            <Stack.Screen
+              name="Launch"
+              options={{ gestureEnabled: false, animation: 'fade' }}
+            >
+              {({ navigation }) => (
+                <LaunchScreen
+                  onFinish={(destination) => navigation.replace(destination)}
+                />
+              )}
+            </Stack.Screen>
+
             <Stack.Screen
               name="Onboarding"
               options={{ gestureEnabled: false }}
             >
               {({ navigation }) => (
                 <OnboardingScreen
-                  onContinue={() => navigation.replace('Login')}
+                  onContinue={() => {
+                    void markOnboardingSeen();
+                    navigation.replace('Login');
+                  }}
                 />
               )}
             </Stack.Screen>
@@ -264,6 +303,7 @@ export default function App() {
           <InchatBannerHost activeThreadId={activeThreadId} />
           <PushNotificationBootstrap navigationRef={navigationRef} />
           </InchatProvider>
+          </NotificationsUnreadProvider>
         </BookmarksProvider>
         </ProfileProvider>
       </UserProvider>

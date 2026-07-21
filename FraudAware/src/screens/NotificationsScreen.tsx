@@ -40,6 +40,7 @@ import {
   mapApiNotificationsToGeneralItems,
 } from '../utils/notificationMapper';
 import { useUser } from '../context/UserContext';
+import { useNotificationsUnread } from '../context/NotificationsUnreadContext';
 import { navigateToInchatThread } from '../navigation/navigateToInchatThread';
 
 if (
@@ -55,6 +56,7 @@ export default function NotificationsScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route = useRoute<RouteProp<RootStackParamList, 'Notifications'>>();
   const { token } = useUser();
+  const { markAllReadAndClearBadge } = useNotificationsUnread();
 
   const [fontsLoaded] = useFonts({
     Poppins_400Regular,
@@ -121,8 +123,12 @@ export default function NotificationsScreen() {
       if (tab === 'applications' || tab === 'general') {
         setActiveTab(tab);
       }
-      loadNotifications();
-    }, [route.params?.initialTab, loadNotifications])
+      void (async () => {
+        await loadNotifications();
+        // Opening the inbox clears the Home bell badge
+        await markAllReadAndClearBadge();
+      })();
+    }, [route.params?.initialTab, loadNotifications, markAllReadAndClearBadge])
   );
 
   if (!fontsLoaded) {

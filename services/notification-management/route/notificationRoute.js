@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 import {
   clearNotifications,
   deleteNotification,
+  getUnreadNotificationCount,
   listNotifications,
   markAllNotificationsRead,
   markNotificationRead,
@@ -15,6 +16,7 @@ import {
 const router = Router();
 
 router.get("/", authMiddleware, listNotifications);
+router.get("/unread-count", authMiddleware, getUnreadNotificationCount);
 router.patch("/read-all", authMiddleware, markAllNotificationsRead);
 router.post("/push-token", authMiddleware, registerPushToken);
 router.delete("/push-token", authMiddleware, unregisterPushToken);
