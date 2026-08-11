@@ -18,7 +18,7 @@ PROPOSED_FILE = (
 JOBS_FILE = "data/raw/jobs.csv"
 
 OUTPUT_FILE = (
-    "evaluation/datasets/ground_truth.csv"
+    "evaluation/datasets/ground_truth_template.csv"
 )
 
 
@@ -150,3 +150,9 @@ print(
 print(
     f"Saved To           : {OUTPUT_FILE}"
 )
+
+print("----------------------------------------")
+print("Creating Ground Truth TEMPLATE")
+print("----------------------------------------")
+print("This script creates a BLANK template.")
+print("It will NOT modify ground_truth.csv.")
