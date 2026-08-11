@@ -14,16 +14,19 @@ sys.path.insert(0, PROJECT_ROOT)
 
 from src.skill_matching import run_skill_matching
 
+
 # ===================================================
 # Configuration
 # ===================================================
 
 JOBS_FILE = "data/raw/jobs.csv"
 TEST_USERS_FILE = "evaluation/datasets/test_users.csv"
-OUTPUT_FILE = "evaluation/baseline/results/baseline_recommendations.csv"
+OUTPUT_FILE = (
+    "evaluation/baseline/results/baseline_recommendations.csv"
+)
 
-# Number of recommendations per user
 TOP_K = 10
+
 
 # ===================================================
 # Load datasets
@@ -35,8 +38,9 @@ test_users = pd.read_csv(TEST_USERS_FILE)
 all_recommendations = []
 
 print("----------------------------------------")
-print("Generating Recommendations...")
+print("Generating Baseline Recommendations...")
 print("----------------------------------------")
+
 
 # ===================================================
 # Generate recommendations
@@ -53,7 +57,10 @@ for _, user in test_users.iterrows():
         for skill in user["skills"].split(",")
     ]
 
-    print(f"Processing User {user_id} ({user_domain})")
+    print(
+        f"Processing User {user_id} "
+        f"({user_domain})"
+    )
 
     # Run TF-IDF skill matching
     results = run_skill_matching(
@@ -68,17 +75,20 @@ for _, user in test_users.iterrows():
         how="left"
     )
 
-    # Sort by similarity score
+    # Sort only by skill match score
     results = results.sort_values(
         by="skill_match_score",
         ascending=False
     )
 
-    # Keep only Top-K
+    # Keep Top-K
     top_jobs = results.head(TOP_K)
 
     # Store recommendations
-    for rank, (_, row) in enumerate(top_jobs.iterrows(), start=1):
+    for rank, (_, row) in enumerate(
+        top_jobs.iterrows(),
+        start=1
+    ):
 
         all_recommendations.append({
 
@@ -92,7 +102,7 @@ for _, user in test_users.iterrows():
             "job_category": row["category"],
 
             "skill_match_score": round(
-                row["skill_match_score"],
+                float(row["skill_match_score"]),
                 4
             ),
 
@@ -101,24 +111,34 @@ for _, user in test_users.iterrows():
             "matched_skills": ", ".join(
                 row["matched_skills"]
             )
-
         })
+
 
 # ===================================================
 # Save recommendations
 # ===================================================
 
-recommendations_df = pd.DataFrame(all_recommendations)
+recommendations_df = pd.DataFrame(
+    all_recommendations
+)
 
 recommendations_df.to_csv(
     OUTPUT_FILE,
     index=False
 )
 
+
 print("\n----------------------------------------")
-print("Recommendations Generated Successfully!")
+print("Baseline Recommendations Generated Successfully!")
 print("----------------------------------------")
-print(f"Users Processed : {len(test_users)}")
+print(
+    f"Users Processed : {len(test_users)}"
+)
 print(f"Top K           : {TOP_K}")
-print(f"Total Records   : {len(recommendations_df)}")
-print(f"Saved To        : {OUTPUT_FILE}")
+print(
+    f"Total Records   : "
+    f"{len(recommendations_df)}"
+)
+print(
+    f"Saved To        : {OUTPUT_FILE}"
+)
