@@ -20,7 +20,7 @@ from src.skill_matching import run_skill_matching
 
 JOBS_FILE = "data/raw/jobs.csv"
 TEST_USERS_FILE = "evaluation/datasets/test_users.csv"
-OUTPUT_FILE = "evaluation/results/recommendations.csv"
+OUTPUT_FILE = "evaluation/baseline/results/baseline_recommendations.csv"
 
 # Number of recommendations per user
 TOP_K = 10
