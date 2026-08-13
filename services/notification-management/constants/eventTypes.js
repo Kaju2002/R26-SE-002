@@ -4,6 +4,7 @@ export const EVENT_TYPES = {
   AUTH_PASSWORD_UPDATED: "auth.password.updated",
   AUTH_ACCOUNT_CREATED: "auth.account.created",
   CHAT_MESSAGE_CREATED: "chat.message.created",
+  JOB_CREATED: "job.created",
 };
 
 export const ROUTING_KEYS = Object.values(EVENT_TYPES);

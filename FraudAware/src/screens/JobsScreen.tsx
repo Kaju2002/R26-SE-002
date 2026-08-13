@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -35,8 +36,11 @@ import JobsEmptyState from '../components/jobs/search/JobsEmptyState';
 import JobsResultsList from '../components/jobs/search/JobsResultsList';
 import JobsSortSheet from '../components/jobs/search/JobsSortSheet';
 import JobsFilterSheet from '../components/jobs/search/JobsFilterSheet';
+import ForYouRecommendationsSection from '../components/jobs/ForYouRecommendationsSection';
+import { useSafeJobRecommendations } from '../hooks/useSafeJobRecommendations';
 import {
   DEFAULT_JOB_FILTERS,
+  normalizeSalaryCurrency,
   type JobFilters,
   type SortOption,
 } from '../components/jobs/search/types';
@@ -61,14 +65,16 @@ function buildListParams(
   filters: JobFilters,
   sort: SortOption
 ): ListJobsParams {
+  const salaryActive = Boolean(filters.currency && filters.salaryEnabled);
   return {
     q: query.trim() || undefined,
     mode: filters.mode || undefined,
     types: filters.types.length > 1 ? filters.types : undefined,
     type: filters.types.length === 1 ? filters.types[0] : undefined,
     location: filters.location.trim() || undefined,
-    salaryMin: filters.salaryMin,
-    salaryMax: filters.salaryMax,
+    currency: filters.currency || undefined,
+    salaryMin: salaryActive ? filters.salaryMin : undefined,
+    salaryMax: salaryActive ? filters.salaryMax : undefined,
     sort: segment === 'forYou' ? 'newly_posted' : sort,
     limit: 50,
   };
@@ -101,9 +107,22 @@ function filterJobs(jobs: Job[], query: string, filters: JobFilters): Job[] {
     const locationHit =
       !filters.location.trim() ||
       job.location.toLowerCase().includes(filters.location.trim().toLowerCase());
+    const jobCurrency = normalizeSalaryCurrency(job.salaryCurrency);
+    const currencyHit =
+      !filters.currency || jobCurrency === filters.currency;
     const salaryHit =
-      job.salaryMax >= filters.salaryMin && job.salaryMin <= filters.salaryMax;
-    return searchHit && modeHit && typeHit && locationHit && salaryHit;
+      !filters.currency ||
+      !filters.salaryEnabled ||
+      (job.salaryMax >= filters.salaryMin &&
+        job.salaryMin <= filters.salaryMax);
+    return (
+      searchHit &&
+      modeHit &&
+      typeHit &&
+      locationHit &&
+      currencyHit &&
+      salaryHit
+    );
   });
 }
 
@@ -126,6 +145,15 @@ export default function JobsScreen() {
   const [fetching, setFetching] = useState(true);
   const [startingChat, setStartingChat] = useState(false);
 
+  const {
+    skills,
+    jobs: forYouJobs,
+    status: forYouStatus,
+    errorMessage: forYouError,
+    isLoading: forYouLoading,
+    reload: reloadForYou,
+  } = useSafeJobRecommendations();
+
   useEffect(() => {
     if (route.params?.segment) {
       setSegment(route.params.segment);
@@ -141,7 +169,10 @@ export default function JobsScreen() {
         setShowFilters(true);
         navigation.setParams({ openFilters: false } as never);
       }
-    }, [navigation, route.params?.openFilters])
+      if (segment === 'forYou') {
+        void reloadForYou();
+      }
+    }, [navigation, reloadForYou, route.params?.openFilters, segment])
   );
 
   const [fontsLoaded] = useFonts({
@@ -151,6 +182,11 @@ export default function JobsScreen() {
   });
 
   const loadJobs = useCallback(async () => {
+    if (segment === 'forYou') {
+      setFetching(false);
+      return;
+    }
+
     if (segment === 'applied') {
       if (!token) {
         setJobs([]);
@@ -205,14 +241,19 @@ export default function JobsScreen() {
   }, [segment, query, filters, sort, token]);
 
   useEffect(() => {
+    if (segment === 'forYou') {
+      setFetching(false);
+      return;
+    }
+
     const timer = setTimeout(() => {
-      loadJobs();
+      void loadJobs();
     }, SEARCH_LOADING_DELAY_MS);
 
     return () => clearTimeout(timer);
-  }, [loadJobs]);
+  }, [loadJobs, segment]);
 
-  const isLoading = fetching;
+  const isLoading = segment === 'forYou' ? forYouLoading : fetching;
   const visibleJobs =
     segment === 'saved'
       ? jobs.filter((job) => bookmarkedIds.has(job.id))
@@ -220,7 +261,7 @@ export default function JobsScreen() {
 
   const handleQueryChange = (value: string) => {
     setQuery(value);
-    setFetching(true);
+    if (segment !== 'forYou') setFetching(true);
   };
 
   const openRecruiterProfile = useCallback(
@@ -279,7 +320,30 @@ export default function JobsScreen() {
       <SegmentTabs value={segment} onChange={setSegment} />
 
       <View style={styles.content}>
-        {isLoading ? (
+        {segment === 'forYou' ? (
+          <ScrollView
+            contentContainerStyle={styles.forYouScroll}
+            showsVerticalScrollIndicator={false}
+          >
+            <ForYouRecommendationsSection
+              title="For You"
+              layout="vertical"
+              jobs={forYouJobs}
+              skills={skills}
+              loading={isLoading}
+              status={forYouStatus}
+              errorMessage={forYouError}
+              onRetry={() => void reloadForYou()}
+              onSeeAllPress={() => navigation.navigate('SafeJobRecommendations')}
+              onJobPress={(jobId) => navigation.navigate('JobDetails', { jobId })}
+              onBookmarkPress={toggleBookmark}
+              onChatPress={onChatPress}
+              currentUserId={user?.id}
+              bookmarkedIds={bookmarkedIds}
+              onAddSkillsPress={() => navigation.navigate('Profile')}
+            />
+          </ScrollView>
+        ) : isLoading ? (
           <JobsLoadingState />
         ) : visibleJobs.length === 0 ? (
           <JobsEmptyState />
@@ -367,6 +431,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+  },
+  forYouScroll: {
+    paddingBottom: 24,
   },
   segmentRow: {
     flexDirection: 'row',

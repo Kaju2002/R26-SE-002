@@ -62,3 +62,50 @@ export const validateUserSession = async (authorizationHeader) => {
     };
   }
 };
+
+/**
+ * Find jobseekers whose profile skills overlap the given job skills.
+ */
+export const findJobseekersMatchingSkills = async (
+  skills = [],
+  { excludeUserId, limit = 100 } = {}
+) => {
+  const key = process.env.INTERNAL_SERVICE_KEY?.trim();
+  if (!key) {
+    console.warn(
+      "Notification service: INTERNAL_SERVICE_KEY missing; skill-match lookup skipped"
+    );
+    return [];
+  }
+
+  const response = await fetch(
+    `${getBaseUrl()}/api/internal/jobseekers/match-skills`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-service-key": key,
+      },
+      body: JSON.stringify({
+        skills,
+        excludeUserId,
+        limit,
+      }),
+    }
+  );
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || `Skill match lookup failed (${response.status})`
+    );
+  }
+
+  return Array.isArray(data.users) ? data.users : [];
+};

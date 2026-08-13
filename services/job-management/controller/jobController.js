@@ -4,6 +4,8 @@ import SavedJob from "../model/savedJobModel.js";
 import { getFileUrl } from "../utils/cloudinaryHelper.js";
 import { formatJob, formatJobList } from "../utils/jobFormatter.js";
 import { normalizeJobCreateInput, normalizeJobUpdateInput } from "../utils/jobPayloadNormalizer.js";
+import { EVENT_TYPES } from "../constants/eventTypes.js";
+import { publishEvent } from "../utils/publishEvent.js";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -79,6 +81,13 @@ const buildPublicListFilter = (query) => {
 
   if (query.location?.trim()) {
     filter.location = { $regex: query.location.trim(), $options: "i" };
+  }
+
+  const currency = String(query.currency || "").trim().toUpperCase();
+  if (currency === "GHS" || currency === "GHC") {
+    filter.salaryCurrency = { $in: ["GHS", "GHC", "GH¢", "GH₵"] };
+  } else if (currency === "LKR" || currency === "USD") {
+    filter.salaryCurrency = currency;
   }
 
   const salaryMin = parseNumber(query.salaryMin);
@@ -166,6 +175,22 @@ const applyCompanyBranding = (document, user) => {
   };
 };
 
+const publishJobCreatedEvent = async (job) => {
+  if (!job || String(job.status) !== "active") return false;
+
+  return publishEvent(EVENT_TYPES.JOB_CREATED, {
+    jobId: String(job._id),
+    jobTitle: job.title || "",
+    companyName: job.companyName || "",
+    companyLogo: job.companyLogo || null,
+    skills: Array.isArray(job.skills) ? job.skills : [],
+    postedBy: job.postedBy ? String(job.postedBy) : undefined,
+    location: job.location || "",
+    type: job.type || "",
+    mode: job.mode || "",
+  });
+};
+
 // ============ CREATE JOB ============
 export const createJob = async (req, res) => {
   try {
@@ -223,6 +248,10 @@ export const createJob = async (req, res) => {
         ...document,
         postedBy: req.userId,
       });
+
+      if (job.status === "active") {
+        void publishJobCreatedEvent(job);
+      }
 
       const message =
         document.status === "draft"
@@ -457,6 +486,7 @@ export const updateJob = async (req, res) => {
       });
     }
 
+    const previousStatus = job.status;
     Object.assign(job, normalized.patch);
 
     if (posterType === "company" && req.user?.company?.name) {
@@ -467,6 +497,11 @@ export const updateJob = async (req, res) => {
     }
 
     await job.save();
+
+    // When a draft/closed job becomes active, notify skill-matched jobseekers.
+    if (previousStatus !== "active" && job.status === "active") {
+      void publishJobCreatedEvent(job);
+    }
 
     sendJob(res, job, "Job updated successfully");
   } catch (error) {
@@ -484,6 +519,39 @@ export const updateJob = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error updating job",
+      error: error.message,
+    });
+  }
+};
+
+// ============ NOTIFY SKILL MATCHES (manual / Compass jobs) ============
+export const notifyJobSkillMatches = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const job = await findOwnedJob(id, req.userId, res);
+    if (!job) return;
+
+    if (job.status !== "active") {
+      return res.status(400).json({
+        success: false,
+        message: "Only active jobs can notify skill matches",
+      });
+    }
+
+    const published = await publishJobCreatedEvent(job);
+    return res.status(200).json({
+      success: true,
+      message: published
+        ? "Skill-match notifications queued"
+        : "Event not published (check RABBITMQ_URL)",
+      published,
+      jobId: String(job._id),
+    });
+  } catch (error) {
+    console.error("Notify job skill matches error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error queueing skill-match notifications",
       error: error.message,
     });
   }

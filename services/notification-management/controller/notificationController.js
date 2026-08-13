@@ -16,9 +16,12 @@ const parseCategory = (value) => {
   return category;
 };
 
-const buildUserFilter = (userId, category) => {
+const buildUserFilter = (userId, category, { hideChat = false } = {}) => {
   const filter = { userId: String(userId) };
   if (category) filter.category = category;
+  // Regular chat rows clutter General; they belong in Chat + push.
+  // Flagged chat is stored as type "scam", so it still appears.
+  if (hideChat) filter.type = { $ne: "chat" };
   return filter;
 };
 
@@ -33,7 +36,9 @@ export const listNotifications = async (req, res) => {
     }
 
     const { page, limit, skip } = parsePagination(req.query);
-    const filter = buildUserFilter(req.userId, category);
+    const filter = buildUserFilter(req.userId, category, {
+      hideChat: category === "general" || !category,
+    });
 
     const [notifications, total] = await Promise.all([
       Notification.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
@@ -66,6 +71,7 @@ export const getUnreadNotificationCount = async (req, res) => {
     const unreadCount = await Notification.countDocuments({
       userId: String(req.userId),
       read: false,
+      type: { $ne: "chat" },
     });
 
     return res.status(200).json({

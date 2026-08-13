@@ -192,8 +192,16 @@ export default function NotificationsScreen() {
 
   const handleGeneralPress = (id: string) => {
     const item = generalItems.find((entry) => entry.id === id);
-    if (!item?.conversationId) return;
-    navigateToInchatThread(navigation, item.conversationId);
+    if (!item) return;
+
+    if (item.jobId) {
+      navigation.navigate('JobDetails', { jobId: item.jobId });
+      return;
+    }
+
+    if (item.conversationId) {
+      navigateToInchatThread(navigation, item.conversationId);
+    }
   };
 
   const openMoreMenu = () => {

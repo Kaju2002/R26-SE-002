@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -7,142 +7,120 @@ import {
   Text,
   View,
 } from 'react-native';
-
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-import {
-  useFonts,
-  Poppins_400Regular,
-  Poppins_500Medium,
-  Poppins_600SemiBold,
-} from '@expo-google-fonts/poppins';
-
 import type { RootStackParamList } from '../../navigation/rootStackParams';
-
+import { useBookmarks } from '../../context/BookmarksContext';
+import { useUser } from '../../context/UserContext';
 import {
-  fetchRecommendations,
-  Recommendation,
-} from '../../api/safeJobApi';
+  useSafeJobRecommendations,
+  type RankedJob,
+} from '../../hooks/useSafeJobRecommendations';
+import JobCard from '../../components/jobs/JobCard';
 
 const NAVY = '#202871';
+const MUTED = '#6B7280';
 
 export default function SafeJobRecommendationsScreen() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { bookmarkedIds, toggleBookmark } = useBookmarks();
+  const { user } = useUser();
 
-  const [jobs, setJobs] = useState<Recommendation[]>([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    skills,
+    jobs,
+    status: loadState,
+    errorMessage,
+    isLoading,
+    reload: loadRecommendations,
+  } = useSafeJobRecommendations();
 
-  const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_500Medium,
-    Poppins_600SemiBold,
-  });
-
-  useEffect(() => {
-    async function loadRecommendations() {
-      try {
-        const data = await fetchRecommendations([
-          'employee relations',
-          'talent acquisition',
-          'communication',
-          'onboarding',
-        ]);
-
-        setJobs(data);
-      } catch (error) {
-        console.log('API ERROR:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadRecommendations();
-  }, []);
-
-  if (!fontsLoaded || loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color={NAVY} />
-      </View>
-    );
-  }
+  const openJob = useCallback(
+    (jobId: string) => {
+      navigation.navigate('JobDetails', { jobId });
+    },
+    [navigation]
+  );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Pressable
-          style={styles.backButton}
+          style={({ pressed }) => [styles.backButton, pressed && { opacity: 0.6 }]}
           onPress={() => navigation.goBack()}
         >
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
 
         <Text style={styles.heading}>AI Safe Job Recommendations</Text>
-
         <Text style={styles.subHeading}>
-          Fraud-aware personalized job matches
+          Personalized matches from your live job board + profile skills
         </Text>
+
+        {skills.length > 0 ? (
+          <Text style={styles.skillsUsed} numberOfLines={2}>
+            Based on: {skills.join(', ')}
+          </Text>
+        ) : null}
       </View>
 
-      <FlatList
-        data={jobs}
-        keyExtractor={(item) => item.job_id.toString()}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        renderItem={({ item, index }) => (
-          <View style={styles.card}>
-            <View style={styles.rankRow}>
-              <View style={styles.rankBadge}>
-                <Text style={styles.rankText}>#{index + 1}</Text>
-              </View>
-            </View>
-
-            <Text style={styles.title}>{item.job_title}</Text>
-
-            <View style={styles.scoreContainer}>
-              <View style={styles.scoreBox}>
-                <Text style={styles.scoreLabel}>Skill Match</Text>
-                <Text style={styles.scoreValue}>
-                  {(item.relevance * 100).toFixed(1)}%
-                </Text>
-              </View>
-
-              <View style={styles.scoreBox}>
-                <Text style={styles.scoreLabel}>Trust Score</Text>
-                <Text style={styles.scoreValue}>
-                  {(item.trust_score * 100).toFixed(1)}%
-                </Text>
-              </View>
-
-              <View style={styles.scoreBox}>
-                <Text style={styles.scoreLabel}>Overall Fit</Text>
-                <Text style={styles.scoreValue}>
-                  {(item.overall_fit * 100).toFixed(1)}%
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Skills You Have</Text>
-
-              <Text style={styles.skillText}>
-                {item.skills_you_have.join(', ')}
-              </Text>
-            </View>
-
-            <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Skills To Develop</Text>
-
-              <Text style={styles.skillText}>
-                {item.skills_to_develop.join(', ')}
-              </Text>
-            </View>
-          </View>
-        )}
-      />
+      {isLoading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={NAVY} />
+          <Text style={styles.statusHint}>Finding safer matches…</Text>
+        </View>
+      ) : loadState === 'needs_skills' ? (
+        <View style={styles.center}>
+          <Text style={styles.stateTitle}>Add skills to get matches</Text>
+          <Text style={styles.stateBody}>
+            Recommendations use the skills on your profile. Add a few skills,
+            then come back here.
+          </Text>
+          <Pressable
+            onPress={() => navigation.navigate('Profile')}
+            style={({ pressed }) => [styles.primaryBtn, pressed && { opacity: 0.85 }]}
+          >
+            <Text style={styles.primaryBtnText}>Go to Profile</Text>
+          </Pressable>
+        </View>
+      ) : loadState === 'error' ? (
+        <View style={styles.center}>
+          <Text style={styles.stateTitle}>Couldn’t load recommendations</Text>
+          <Text style={styles.stateBody}>
+            {errorMessage ?? 'Check that job-management and job-recommendation are running.'}
+          </Text>
+          <Pressable
+            onPress={() => void loadRecommendations()}
+            style={({ pressed }) => [styles.primaryBtn, pressed && { opacity: 0.85 }]}
+          >
+            <Text style={styles.primaryBtnText}>Retry</Text>
+          </Pressable>
+        </View>
+      ) : jobs.length === 0 ? (
+        <View style={styles.center}>
+          <Text style={styles.stateTitle}>No matches yet</Text>
+          <Text style={styles.stateBody}>
+            Try adding skills that appear on your posted jobs, then refresh.
+          </Text>
+          <Pressable
+            onPress={() => navigation.navigate('Profile')}
+            style={({ pressed }) => [styles.primaryBtn, pressed && { opacity: 0.85 }]}
+          >
+            <Text style={styles.primaryBtnText}>Update skills</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <FlatList
+          data={jobs}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          renderItem={({ item }) => <RankedJobRow job={item} onPress={openJob} bookmarkedIds={bookmarkedIds} onBookmarkPress={toggleBookmark} currentUserId={user?.id} />}
+        />
+      )}
 
       <View style={styles.footer}>
         <Text style={styles.footerText}>
@@ -153,158 +131,146 @@ export default function SafeJobRecommendationsScreen() {
   );
 }
 
+function RankedJobRow({
+  job,
+  onPress,
+  bookmarkedIds,
+  onBookmarkPress,
+  currentUserId,
+}: {
+  job: RankedJob;
+  onPress: (jobId: string) => void;
+  bookmarkedIds: Set<string>;
+  onBookmarkPress: (jobId: string) => void;
+  currentUserId?: string | null;
+}) {
+  return (
+    <View style={styles.row}>
+      <View style={styles.rankBadge}>
+        <Text style={styles.rankText}>#{job.rank}</Text>
+      </View>
+      <JobCard
+        job={job}
+        isBookmarked={bookmarkedIds.has(job.id)}
+        onPress={() => onPress(job.id)}
+        onBookmarkPress={() => onBookmarkPress(job.id)}
+        currentUserId={currentUserId}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F5F7FD',
   },
-
   center: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 28,
+    backgroundColor: '#F5F7FD',
   },
-
+  statusHint: {
+    marginTop: 12,
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 13,
+    color: MUTED,
+  },
+  stateTitle: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 18,
+    color: NAVY,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  stateBody: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 14,
+    lineHeight: 22,
+    color: MUTED,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  primaryBtn: {
+    minWidth: 160,
+    height: 44,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    backgroundColor: NAVY,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryBtnText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
   header: {
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 12,
     backgroundColor: '#FFFFFF',
   },
-
   backButton: {
     marginBottom: 12,
+    alignSelf: 'flex-start',
   },
-
   backText: {
     fontFamily: 'Poppins_500Medium',
     color: NAVY,
     fontSize: 14,
   },
-
   heading: {
     fontFamily: 'Poppins_600SemiBold',
-    fontSize: 24,
+    fontSize: 22,
     color: NAVY,
   },
-
   subHeading: {
     fontFamily: 'Poppins_400Regular',
     fontSize: 13,
-    color: '#6B7280',
+    color: MUTED,
     marginTop: 4,
   },
-
+  skillsUsed: {
+    marginTop: 10,
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 12,
+    color: NAVY,
+    lineHeight: 18,
+  },
   listContent: {
     padding: 16,
-    paddingBottom: 120,
+    paddingBottom: 100,
+    gap: 14,
   },
-
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 22,
-    padding: 18,
-    marginBottom: 18,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    elevation: 3,
+  row: {
+    width: '100%',
   },
-
-  rankRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    marginBottom: 10,
-  },
-
   rankBadge: {
-    backgroundColor: '#EEF0FF',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    alignSelf: 'flex-start',
+    backgroundColor: NAVY,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 999,
+    marginBottom: 8,
   },
-
   rankText: {
     fontFamily: 'Poppins_600SemiBold',
-    color: NAVY,
     fontSize: 12,
+    color: '#FFFFFF',
   },
-
-  title: {
-    fontFamily: 'Poppins_600SemiBold',
-    fontSize: 18,
-    color: NAVY,
-    marginBottom: 16,
-  },
-
-  scoreContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 10,
-  },
-
-  scoreBox: {
-    flex: 1,
-    backgroundColor: '#F7F8FC',
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    alignItems: 'center',
-  },
-
-  scoreLabel: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 11,
-    color: '#6B7280',
-    marginBottom: 4,
-    textAlign: 'center',
-  },
-
-  scoreValue: {
-    fontFamily: 'Poppins_600SemiBold',
-    fontSize: 15,
-    color: NAVY,
-  },
-
-  section: {
-    marginTop: 18,
-  },
-
-  sectionTitle: {
-    fontFamily: 'Poppins_500Medium',
-    fontSize: 14,
-    color: NAVY,
-    marginBottom: 6,
-  },
-
-  skillText: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 13,
-    color: '#4B5563',
-    lineHeight: 22,
-  },
-
   footer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
     backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
+    paddingVertical: 14,
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
     alignItems: 'center',
   },
-
   footerText: {
     fontFamily: 'Poppins_400Regular',
     fontSize: 12,
-    color: '#6B7280',
+    color: MUTED,
   },
 });
-

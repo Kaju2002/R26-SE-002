@@ -9,6 +9,12 @@ export function getJobRecApiBase(): string {
   );
 }
 
+/** CSV dataset pipeline (evaluation / demo). */
 export function getJobRecommendUrl(): string {
   return `${getJobRecApiBase()}/recommend`;
+}
+
+/** Live Mongo jobs ranking (Home / Jobs For you). */
+export function getLiveJobRecommendUrl(): string {
+  return `${getJobRecApiBase()}/recommend/live`;
 }

@@ -1,12 +1,13 @@
 # app.py
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.skill_matching import run_skill_matching
 from src.risk_aggregation import run_risk_aggregation
 from src.ranking import run_ranking
+from src.live_ranking import rank_live_jobs
 
 import ast
 
@@ -29,9 +30,22 @@ class UserRequest(BaseModel):
     skills: list[str]
 
 
+class LiveJobInput(BaseModel):
+    id: str
+    title: str
+    skills: list[str] = Field(default_factory=list)
+    isVerified: bool = False
+
+
+class LiveRecommendRequest(BaseModel):
+    skills: list[str]
+    jobs: list[LiveJobInput]
+    limit: int = 20
+
+
 def find_missing_skills(user_skills, job_skills_string):
     """Find skills in the job that the user doesn't have."""
-    
+
     user_lower = [s.lower() for s in user_skills]
 
     job_list = ast.literal_eval(job_skills_string)
@@ -40,8 +54,14 @@ def find_missing_skills(user_skills, job_skills_string):
     return [s for s in job_lower if s not in user_lower]
 
 
+@app.get("/health")
+def health():
+    return {"ok": True, "service": "job-recommendation"}
+
+
 @app.post("/recommend")
 def recommend(request: UserRequest):
+    """CSV + risk TOPSIS pipeline (dataset demo / evaluation)."""
 
     # Module 1: Skill Matching
     skill_results = run_skill_matching(
@@ -107,3 +127,29 @@ def recommend(request: UserRequest):
         })
 
     return response
+
+
+@app.post("/recommend/live")
+def recommend_live(request: LiveRecommendRequest):
+    """
+    Rank live FraudAware jobs (Mongo / job-management) by profile skills.
+    job_id is returned as a string so the mobile app can open Job Details.
+    """
+    skills = [s.strip() for s in request.skills if str(s).strip()]
+    if not skills:
+        raise HTTPException(status_code=400, detail="Add at least one skill.")
+
+    if not request.jobs:
+        return []
+
+    payload = [
+        {
+            "id": job.id,
+            "title": job.title,
+            "skills": job.skills,
+            "isVerified": job.isVerified,
+        }
+        for job in request.jobs
+    ]
+
+    return rank_live_jobs(skills, payload, top_n=request.limit)

@@ -4,6 +4,7 @@ import "dotenv/config";
 import connectDB from "./config/mongodb.js";
 import userRoute from "./route/userRoute.js";
 import profileRoute from "./route/profileRoute.js";
+import internalRoute from "./route/internalRoute.js";
 
 // ==== APP CONFIG ====
 const app = express();
@@ -17,7 +18,7 @@ app.use(
   cors({
     origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin"],
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "x-internal-service-key"],
     exposedHeaders: ["Content-Range", "X-Content-Range"],
   })
 );
@@ -28,6 +29,7 @@ app.use(express.urlencoded({ extended: true }));
 // ==== ROUTES ====
 app.use("/api/auth", userRoute);
 app.use("/api/profile", profileRoute);
+app.use("/api/internal", internalRoute);
 
 // ==== HEALTH CHECK ====
 app.get("/health", (req, res) => {

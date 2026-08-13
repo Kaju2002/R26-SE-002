@@ -21,6 +21,8 @@ export type AppNotification = {
   read?: boolean;
   /** Present for InChat message notifications — tap opens the thread. */
   conversationId?: string;
+  /** Present for skill-match / job notifications — tap opens Job Details. */
+  jobId?: string;
   flagged?: boolean;
 };
 
