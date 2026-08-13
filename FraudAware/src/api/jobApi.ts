@@ -45,6 +45,7 @@ export type ListJobsParams = {
   type?: JobType;
   types?: JobType[];
   location?: string;
+  currency?: string;
   salaryMin?: number;
   salaryMax?: number;
   sort?: SortOption;
@@ -78,6 +79,7 @@ function buildJobsQuery(params: ListJobsParams = {}): string {
   if (params.types?.length) search.set('types', params.types.join(','));
   else if (params.type) search.set('type', params.type);
   if (params.location?.trim()) search.set('location', params.location.trim());
+  if (params.currency?.trim()) search.set('currency', params.currency.trim());
   if (params.salaryMin !== undefined) search.set('salaryMin', String(params.salaryMin));
   if (params.salaryMax !== undefined) search.set('salaryMax', String(params.salaryMax));
   if (params.sort) search.set('sort', params.sort);

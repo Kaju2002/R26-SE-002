@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Image,
   LayoutChangeEvent,
@@ -20,7 +20,12 @@ import {
 import { JOB_SEARCH_COLORS } from './jobSearchTheme';
 import {
   DEFAULT_JOB_FILTERS,
+  SALARY_CURRENCIES,
+  SALARY_SLIDER_BY_CURRENCY,
+  SALARY_SLIDER_DEFAULTS,
+  formatSalaryAmount,
   type JobFilters,
+  type SalaryCurrencyCode,
 } from './types';
 
 type Props = {
@@ -115,10 +120,42 @@ export default function JobsFilterSheet({
     industry: true,
   });
 
-  const salaryLabel = useMemo(
-    () => `${formatCedi(draft.salaryMin)} - ${formatCedi(draft.salaryMax)}`,
-    [draft.salaryMax, draft.salaryMin]
-  );
+  useEffect(() => {
+    if (visible) setDraft(value);
+  }, [visible, value]);
+
+  const salaryLabel = useMemo(() => {
+    if (!draft.currency) return 'Any currency · Any salary';
+    if (!draft.salaryEnabled) {
+      return `${draft.currency} · Any salary`;
+    }
+    return `${formatSalaryAmount(draft.salaryMin, draft.currency)} - ${formatSalaryAmount(draft.salaryMax, draft.currency)}`;
+  }, [draft.currency, draft.salaryEnabled, draft.salaryMax, draft.salaryMin]);
+
+  const sliderConfig = draft.currency
+    ? SALARY_SLIDER_BY_CURRENCY[draft.currency]
+    : SALARY_SLIDER_DEFAULTS;
+
+  const setCurrency = (currency: SalaryCurrencyCode | null) => {
+    if (!currency) {
+      setDraft((prev) => ({
+        ...prev,
+        currency: null,
+        salaryEnabled: false,
+        salaryMin: SALARY_SLIDER_DEFAULTS.lower,
+        salaryMax: SALARY_SLIDER_DEFAULTS.upper,
+      }));
+      return;
+    }
+    const next = SALARY_SLIDER_BY_CURRENCY[currency];
+    setDraft((prev) => ({
+      ...prev,
+      currency,
+      salaryEnabled: false,
+      salaryMin: next.lower,
+      salaryMax: next.upper,
+    }));
+  };
 
   const setSection = (key: SectionKey) => {
     setOpen((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -212,42 +249,104 @@ export default function JobsFilterSheet({
                       style={styles.locationInput}
                     />
                   </View>
-                  <Text style={[styles.inputLabel, { marginTop: 8 }]}>Salary</Text>
-                  <RangeSlider
-                    min={2500}
-                    max={15000}
-                    lowerValue={draft.salaryMin}
-                    upperValue={draft.salaryMax}
-                    onChange={(lowerValue, upperValue) =>
-                      setDraft((prev) => ({
-                        ...prev,
-                        salaryMin: lowerValue,
-                        salaryMax: upperValue,
-                      }))
-                    }
-                  />
-                  <View style={styles.salaryValueRow}>
-                    <View style={styles.salaryValueBox}>
-                      <Text style={styles.salaryValueText}>
-                        {formatCedi(draft.salaryMin)}
+                  <Text style={[styles.inputLabel, { marginTop: 8 }]}>Currency</Text>
+                  <View style={styles.currencyRow}>
+                    <Pressable
+                      onPress={() => setCurrency(null)}
+                      style={[
+                        styles.currencyChip,
+                        !draft.currency && styles.currencyChipActive,
+                      ]}
+                    >
+                      <Text
+                        style={[
+                          styles.currencyChipText,
+                          !draft.currency && styles.currencyChipTextActive,
+                        ]}
+                      >
+                        Any
                       </Text>
-                    </View>
-                    <View style={styles.salaryValueBox}>
-                      <Text style={styles.salaryValueText}>
-                        {formatCedi(draft.salaryMax)}
-                      </Text>
-                    </View>
+                    </Pressable>
+                    {SALARY_CURRENCIES.map((item) => {
+                      const active = draft.currency === item.code;
+                      return (
+                        <Pressable
+                          key={item.code}
+                          onPress={() => setCurrency(item.code)}
+                          style={[
+                            styles.currencyChip,
+                            active && styles.currencyChipActive,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.currencyChipText,
+                              active && styles.currencyChipTextActive,
+                            ]}
+                          >
+                            {item.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
                   </View>
-                  <View style={styles.periodRow}>
-                    <Text style={styles.periodText}>{draft.salaryPeriod}</Text>
-                    <Ionicons
-                      name="chevron-down"
-                      size={14}
-                      color={JOB_SEARCH_COLORS.primaryText}
-                      style={styles.periodArrow}
-                    />
-                  </View>
-                  <Text style={styles.salaryLabel}>{salaryLabel}</Text>
+
+                  <Text style={[styles.inputLabel, { marginTop: 10 }]}>Salary</Text>
+                  {draft.currency ? (
+                    <>
+                      <RangeSlider
+                        key={draft.currency}
+                        min={sliderConfig.min}
+                        max={sliderConfig.max}
+                        lowerValue={draft.salaryMin}
+                        upperValue={draft.salaryMax}
+                        step={sliderConfig.step}
+                        onChange={(lowerValue, upperValue) =>
+                          setDraft((prev) => ({
+                            ...prev,
+                            salaryMin: lowerValue,
+                            salaryMax: upperValue,
+                            salaryEnabled: true,
+                          }))
+                        }
+                      />
+                      <View style={styles.salaryValueRow}>
+                        <View style={styles.salaryValueBox}>
+                          <Text style={styles.salaryValueText}>
+                            {draft.salaryEnabled
+                              ? formatSalaryAmount(draft.salaryMin, draft.currency)
+                              : 'Any'}
+                          </Text>
+                        </View>
+                        <View style={styles.salaryValueBox}>
+                          <Text style={styles.salaryValueText}>
+                            {draft.salaryEnabled
+                              ? formatSalaryAmount(draft.salaryMax, draft.currency)
+                              : 'Any'}
+                          </Text>
+                        </View>
+                      </View>
+                      <View style={styles.periodRow}>
+                        <Text style={styles.periodText}>{draft.salaryPeriod}</Text>
+                        <Ionicons
+                          name="chevron-down"
+                          size={14}
+                          color={JOB_SEARCH_COLORS.primaryText}
+                          style={styles.periodArrow}
+                        />
+                      </View>
+                      <Text style={styles.salaryLabel}>{salaryLabel}</Text>
+                      {!draft.salaryEnabled ? (
+                        <Text style={styles.salaryHint}>
+                          Move the slider to filter by salary in {draft.currency}
+                        </Text>
+                      ) : null}
+                    </>
+                  ) : (
+                    <Text style={styles.salaryHint}>
+                      Choose a currency to filter by salary range
+                    </Text>
+                  )}
                 </FilterSection>
 
                 <FilterSection
@@ -349,26 +448,24 @@ export default function JobsFilterSheet({
   );
 }
 
-function formatCedi(value: number): string {
-  return `GH¢ ${(value / 1000).toFixed(value % 1000 === 0 ? 0 : 1)}k`;
-}
-
 function RangeSlider({
   min,
   max,
   lowerValue,
   upperValue,
+  step = 100,
   onChange,
 }: {
   min: number;
   max: number;
   lowerValue: number;
   upperValue: number;
+  step?: number;
   onChange: (lower: number, upper: number) => void;
 }) {
   const [trackWidth, setTrackWidth] = useState(1);
   const [activeThumb, setActiveThumb] = useState<'lower' | 'upper'>('lower');
-  const minGap = 500;
+  const minGap = Math.max(step, step * 2);
 
   const lowerX = ((lowerValue - min) / (max - min)) * trackWidth;
   const upperX = ((upperValue - min) / (max - min)) * trackWidth;
@@ -376,7 +473,7 @@ function RangeSlider({
   const updateFromX = (x: number, thumb: 'lower' | 'upper' = activeThumb) => {
     const clampedX = Math.max(0, Math.min(trackWidth, x));
     const rawValue = min + (clampedX / trackWidth) * (max - min);
-    const rounded = Math.round(rawValue / 100) * 100;
+    const rounded = Math.round(rawValue / step) * step;
 
     if (thumb === 'lower') {
       onChange(Math.min(rounded, upperValue - minGap), upperValue);
@@ -400,7 +497,7 @@ function RangeSlider({
         },
         onPanResponderMove: (evt) => updateFromX(evt.nativeEvent.locationX),
       }),
-    [lowerX, upperX, trackWidth, lowerValue, upperValue, activeThumb]
+    [lowerX, upperX, trackWidth, lowerValue, upperValue, activeThumb, step, minGap]
   );
 
   const onTrackLayout = (event: LayoutChangeEvent) => {
@@ -562,6 +659,35 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
     fontSize: 12,
   },
+  currencyRow: {
+    marginTop: 4,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  currencyChip: {
+    minWidth: 52,
+    height: 32,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: JOB_SEARCH_COLORS.border,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currencyChipActive: {
+    borderColor: JOB_SEARCH_COLORS.primaryText,
+    backgroundColor: JOB_SEARCH_COLORS.primaryText,
+  },
+  currencyChipText: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 12,
+    color: JOB_SEARCH_COLORS.mutedText,
+  },
+  currencyChipTextActive: {
+    color: '#FFFFFF',
+  },
   sliderWrap: {
     marginTop: 8,
     height: 24,
@@ -634,6 +760,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Poppins_400Regular',
     fontSize: 11,
     color: JOB_SEARCH_COLORS.secondaryText,
+  },
+  salaryHint: {
+    marginTop: 4,
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 11,
+    color: JOB_SEARCH_COLORS.mutedText,
   },
   footer: {
     borderTopWidth: 1,

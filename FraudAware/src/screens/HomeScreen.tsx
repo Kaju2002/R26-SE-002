@@ -13,12 +13,14 @@ import {
 import Header from '../components/Header';
 import SearchBar from '../components/SearchBar';
 import JobsSection from '../components/jobs/JobsSection';
+import ForYouRecommendationsSection from '../components/jobs/ForYouRecommendationsSection';
 import HomeHeroBanner from '../components/home/HomeHeroBanner';
 import type { Job } from '../../data/jobs';
 import { listJobs } from '../api/jobApi';
 import { mapApiJobsToJobs } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
 import { useUser } from '../context/UserContext';
+import { useSafeJobRecommendations } from '../hooks/useSafeJobRecommendations';
 import {
   getHomeHeroDismissed,
   markHomeHeroDismissed,
@@ -42,6 +44,7 @@ type HomeNavParams = {
   Bookmarks: undefined;
   JobDetails: { jobId: string };
   RecruiterProfile: { recruiterId: string; jobId?: string };
+  Profile: undefined;
   SafeJobRecommendations: undefined;
 };
 
@@ -50,12 +53,20 @@ export default function HomeScreen() {
   const [query, setQuery] = useState('');
   const { bookmarkedIds, toggleBookmark } = useBookmarks();
   const { user } = useUser();
-  const [recommendedJobs, setRecommendedJobs] = useState<Job[]>([]);
   const [recentJobs, setRecentJobs] = useState<Job[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showHero, setShowHero] = useState(false);
+
+  const {
+    skills,
+    jobs: forYouJobs,
+    status: forYouStatus,
+    errorMessage: forYouError,
+    isLoading: forYouLoading,
+    reload: reloadForYou,
+  } = useSafeJobRecommendations(8);
 
   useEffect(() => {
     let cancelled = false;
@@ -74,15 +85,10 @@ export default function HomeScreen() {
     setLoadError(false);
 
     try {
-      const [recommended, recent] = await Promise.all([
-        listJobs({ sort: 'newly_posted', limit: 10 }),
-        listJobs({ sort: 'newly_posted', limit: 20 }),
-      ]);
-      setRecommendedJobs(mapApiJobsToJobs(recommended.jobs));
+      const recent = await listJobs({ sort: 'newly_posted', limit: 20 });
       setRecentJobs(mapApiJobsToJobs(recent.jobs));
       setLoadError(false);
     } catch {
-      setRecommendedJobs([]);
       setRecentJobs([]);
       setLoadError(true);
     } finally {
@@ -119,6 +125,29 @@ export default function HomeScreen() {
     navigation.navigate('SafeJobRecommendations');
   }, [dismissHero, navigation]);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        (async () => {
+          setLoadError(false);
+          try {
+            const recent = await listJobs({ sort: 'newly_posted', limit: 20 });
+            setRecentJobs(mapApiJobsToJobs(recent.jobs));
+          } catch {
+            setRecentJobs([]);
+            setLoadError(true);
+          } finally {
+            setLoadingJobs(false);
+          }
+        })(),
+        reloadForYou(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [reloadForYou]);
+
   const listHeader = showHero ? (
     <HomeHeroBanner onPress={openSaferJobs} onDismiss={dismissHero} />
   ) : null;
@@ -127,22 +156,24 @@ export default function HomeScreen() {
     ({ item }: { item: (typeof HOME_JOB_FEED_ROWS)[number] }) => {
       if (item.key === 'recommended') {
         return (
-          <JobsSection
+          <ForYouRecommendationsSection
             title="For you"
-            jobs={recommendedJobs}
             layout="horizontal"
-            loading={loadingJobs}
-            error={loadError}
-            onRetry={() => void loadJobs()}
-            emptyMessage="No recommendations yet — check back soon"
-            bookmarkedIds={bookmarkedIds}
-            onBookmarkPress={toggleBookmark}
-            onJobPress={openJobDetails}
-            onChatPress={openRecruiterProfile}
-            currentUserId={user?.id}
+            jobs={forYouJobs}
+            skills={skills}
+            loading={forYouLoading}
+            status={forYouStatus}
+            errorMessage={forYouError}
+            onRetry={() => void reloadForYou()}
             onSeeAllPress={() =>
               navigation.navigate('Jobs', { segment: 'forYou' })
             }
+            onJobPress={openJobDetails}
+            onBookmarkPress={toggleBookmark}
+            onChatPress={openRecruiterProfile}
+            currentUserId={user?.id}
+            bookmarkedIds={bookmarkedIds}
+            onAddSkillsPress={() => navigation.navigate('Profile')}
           />
         );
       }
@@ -168,6 +199,10 @@ export default function HomeScreen() {
     },
     [
       bookmarkedIds,
+      forYouError,
+      forYouJobs,
+      forYouLoading,
+      forYouStatus,
       loadError,
       loadJobs,
       loadingJobs,
@@ -175,7 +210,8 @@ export default function HomeScreen() {
       openJobDetails,
       openRecruiterProfile,
       recentJobs,
-      recommendedJobs,
+      reloadForYou,
+      skills,
       toggleBookmark,
       user?.id,
     ],
@@ -188,7 +224,6 @@ export default function HomeScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom', 'left', 'right']}>
-      {/* Sticky chrome: stays fixed while banner + jobs scroll */}
       <View style={styles.stickyTop}>
         <Header onBookmarksPress={() => navigation.navigate('Bookmarks')} />
         <SearchBar
@@ -197,13 +232,13 @@ export default function HomeScreen() {
           placeholder="Search jobs or companies"
           onFilterPress={() =>
             navigation.navigate('Jobs', {
-              segment: 'forYou',
+              segment: 'recent',
               openFilters: true,
             })
           }
           onSubmit={() =>
             navigation.navigate('Jobs', {
-              segment: 'forYou',
+              segment: 'recent',
               presetQuery: query.trim(),
             })
           }
@@ -224,7 +259,7 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
-            onRefresh={() => void loadJobs(true)}
+            onRefresh={() => void onRefresh()}
             tintColor={NAVY}
             colors={[NAVY]}
           />

@@ -47,43 +47,42 @@ export default function NotificationItem({
 const styles = StyleSheet.create({
   row: {
     paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 18,
-    minHeight: 96,
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   rowPressed: {
     backgroundColor: '#F7F8FE',
   },
   title: {
     fontFamily: 'Poppins_500Medium',
-    fontSize: 18,
-    lineHeight: 24,
+    fontSize: 16,
+    lineHeight: 22,
     color: TITLE,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   scamTitle: {
     color: '#B42318',
   },
   meta: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 12,
+    lineHeight: 16,
     color: META,
-    marginBottom: 10,
+    marginBottom: 4,
   },
   metaSep: {
     color: '#B0B6D4',
   },
   body: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: 14,
+    lineHeight: 20,
     color: BODY,
   },
   divider: {
     height: 1,
     backgroundColor: DIVIDER,
-    marginTop: 18,
+    marginTop: 12,
     marginHorizontal: -20,
   },
 });

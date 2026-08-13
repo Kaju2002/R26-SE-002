@@ -5,6 +5,7 @@ import {
   hasProcessedEvent,
 } from "../utils/idempotency.js";
 import { sendExpoPushToUser } from "../utils/expoPushClient.js";
+import { findJobseekersMatchingSkills } from "../utils/userManagementClient.js";
 
 const STATUS_TITLES = {
   sent: "Application Submitted",
@@ -222,42 +223,142 @@ const handleChatMessageCreated = async (event) => {
   const company = String(companyName || "Recruiter").trim() || "Recruiter";
   const messagePreview = String(preview || "").trim() || "New chat message";
   const roleHint = jobTitle ? ` · ${jobTitle}` : "";
+  const isFlagged = Boolean(flagged);
 
-  const title = flagged ? "Possible scam message" : `New message from ${company}`;
-  const body = flagged
+  // Normal chat stays in Chat + push only so General is not flooded.
+  // Flagged / possible-scam messages still land in General as safety alerts.
+  const title = isFlagged
+    ? "Possible scam message"
+    : `New message from ${company}`;
+  const body = isFlagged
     ? `${company}${roleHint}: ${messagePreview}`
     : messagePreview;
 
-  const notification = await createNotification({
-    userId: String(recipientId),
-    category: "general",
-    type: flagged ? "scam" : "chat",
-    title,
-    body,
-    metadata: {
-      conversationId: String(conversationId),
-      messageId: messageId ? String(messageId) : undefined,
-      applicationId: applicationId ? String(applicationId) : undefined,
-      jobId: jobId ? String(jobId) : undefined,
-      companyName: company,
-      jobTitle,
-      flagged: Boolean(flagged),
-    },
-    sourceEventId: event.eventId,
-  });
+  let notification = null;
+  if (isFlagged) {
+    notification = await createNotification({
+      userId: String(recipientId),
+      category: "general",
+      type: "scam",
+      title,
+      body,
+      metadata: {
+        conversationId: String(conversationId),
+        messageId: messageId ? String(messageId) : undefined,
+        applicationId: applicationId ? String(applicationId) : undefined,
+        jobId: jobId ? String(jobId) : undefined,
+        companyName: company,
+        jobTitle,
+        flagged: true,
+      },
+      sourceEventId: event.eventId,
+    });
+  }
 
   const pushResult = await sendExpoPushToUser(recipientId, {
     title,
     body,
     data: {
-      type: flagged ? "scam_chat" : "chat",
+      type: isFlagged ? "scam_chat" : "chat",
       conversationId: String(conversationId),
       messageId: messageId ? String(messageId) : undefined,
-      flagged: Boolean(flagged),
+      flagged: isFlagged,
     },
   });
 
-  return { created: Boolean(notification), push: pushResult };
+  return {
+    created: Boolean(notification),
+    skippedInbox: !isFlagged,
+    push: pushResult,
+  };
+};
+
+const handleJobCreated = async (event) => {
+  const payload = event.payload || {};
+  const {
+    jobId,
+    jobTitle = "",
+    companyName = "",
+    companyLogo = null,
+    skills = [],
+    postedBy,
+  } = payload;
+
+  if (!jobId) {
+    throw new Error("job.created payload missing jobId");
+  }
+
+  const jobSkills = Array.isArray(skills)
+    ? skills.map((s) => String(s || "").trim()).filter(Boolean)
+    : [];
+
+  if (!jobSkills.length) {
+    return { skipped: true, reason: "no-job-skills" };
+  }
+
+  const matches = await findJobseekersMatchingSkills(jobSkills, {
+    excludeUserId: postedBy ? String(postedBy) : undefined,
+    limit: 100,
+  });
+
+  if (!matches.length) {
+    return { skipped: true, reason: "no-skill-matches" };
+  }
+
+  let createdCount = 0;
+
+  for (const match of matches) {
+    const userId = String(match.id || "").trim();
+    if (!userId) continue;
+
+    const matchedSkills = Array.isArray(match.matchedSkills)
+      ? match.matchedSkills.map((s) => String(s).trim()).filter(Boolean)
+      : [];
+    const skillPreview = matchedSkills.slice(0, 3).join(", ");
+    const title = "New job match for you";
+    const body = skillPreview
+      ? `${jobTitle || "A new job"} at ${companyName || "a company"} looks suitable — your skills match (${skillPreview}).`
+      : `${jobTitle || "A new job"} at ${companyName || "a company"} looks suitable based on your profile skills.`;
+
+    const sourceEventId = `${event.eventId}:${userId}`;
+
+    const existing = await Notification.findOne({
+      userId,
+      type: "job",
+      "metadata.jobId": String(jobId),
+      sourceEventId,
+    }).select("_id");
+    if (existing) continue;
+
+    const notification = await createNotification({
+      userId,
+      category: "general",
+      type: "job",
+      title,
+      body,
+      metadata: {
+        jobId: String(jobId),
+        jobTitle,
+        companyName,
+        companyLogo,
+      },
+      sourceEventId,
+    });
+
+    if (notification) {
+      createdCount += 1;
+      void sendExpoPushToUser(userId, {
+        title,
+        body,
+        data: {
+          type: "job_match",
+          jobId: String(jobId),
+        },
+      });
+    }
+  }
+
+  return { created: createdCount > 0, createdCount };
 };
 
 export const handleEvent = async (event) => {
@@ -276,6 +377,8 @@ export const handleEvent = async (event) => {
       return handleAuthAccountCreated(event);
     case EVENT_TYPES.CHAT_MESSAGE_CREATED:
       return handleChatMessageCreated(event);
+    case EVENT_TYPES.JOB_CREATED:
+      return handleJobCreated(event);
     default:
       return { skipped: true, reason: "unsupported-event" };
   }

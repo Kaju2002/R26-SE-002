@@ -59,6 +59,7 @@ export const formatGeneralNotification = (notification) => {
     conversationId: metadata.conversationId
       ? String(metadata.conversationId)
       : undefined,
+    jobId: metadata.jobId ? String(metadata.jobId) : undefined,
     flagged: Boolean(metadata.flagged),
   };
 };
