@@ -91,8 +91,8 @@ router.patch(
 
 /**
  * PATCH /api/chat/conversations/:conversationId/status
- * Body: { status: "active" | "blocked" }
- * Block or unblock a conversation (participants only).
+ * Body: { status: "active" | "archived" | "blocked" }
+ * Archive, unarchive, block, or unblock a conversation (participants only).
  */
 router.patch(
   "/conversations/:conversationId/status",

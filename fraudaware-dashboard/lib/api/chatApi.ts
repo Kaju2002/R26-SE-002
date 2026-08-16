@@ -233,7 +233,7 @@ export async function clearConversation(
   return parseJson<ClearConversationResponse>(response);
 }
 
-export type ConversationStatus = 'active' | 'blocked';
+export type ConversationStatus = 'active' | 'archived' | 'blocked';
 
 type UpdateConversationStatusResponse = {
   success: boolean;
@@ -241,7 +241,7 @@ type UpdateConversationStatusResponse = {
   conversation: ChatConversation;
 };
 
-/** Block or unblock a conversation (participants only). */
+/** Archive, unarchive, block, or unblock a conversation (participants only). */
 export async function updateConversationStatus(
   token: string,
   conversationId: string,

@@ -12,7 +12,7 @@ type Props = {
 
 export default function InchatFilterChips({ options, activeId, onSelect }: Props) {
   return (
-    <div className="flex gap-2 overflow-x-auto px-4 py-3">
+    <div className="scrollbar-hide flex gap-2 overflow-x-auto overflow-y-hidden px-4 py-3">
       {options.map((option) => {
         const active = option.id === activeId;
         return (

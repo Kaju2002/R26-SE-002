@@ -175,6 +175,26 @@ export default function InchatThreadPanel({
     }
   }, [setConversationStatus, thread.id]);
 
+  const onArchive = useCallback(async () => {
+    setStatusError(null);
+    try {
+      await setConversationStatus(thread.id, 'archived');
+    } catch (error) {
+      setStatusError(error instanceof Error ? error.message : 'Could not archive conversation.');
+      throw error;
+    }
+  }, [setConversationStatus, thread.id]);
+
+  const onUnarchive = useCallback(async () => {
+    setStatusError(null);
+    try {
+      await setConversationStatus(thread.id, 'active');
+    } catch (error) {
+      setStatusError(error instanceof Error ? error.message : 'Could not unarchive conversation.');
+      throw error;
+    }
+  }, [setConversationStatus, thread.id]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
       {!hideHeader ? (
@@ -187,6 +207,8 @@ export default function InchatThreadPanel({
           onClearChat={() => clearConversation(thread.id)}
           onBlock={onBlock}
           onUnblock={onUnblock}
+          onArchive={onArchive}
+          onUnarchive={onUnarchive}
         />
       ) : null}
 
