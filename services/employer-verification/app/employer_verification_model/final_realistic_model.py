@@ -38,7 +38,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 
 np.random.seed(42)
 
-INPUT_CSV = "data/final/training_dataset.csv"
+INPUT_CSV = "data/final/complete_training_dataset.csv"
 OUTPUT_CSV = "data/final_realistic_dataset.csv"
 MODEL_OUT  = "models/final_realistic_model.pkl"
 

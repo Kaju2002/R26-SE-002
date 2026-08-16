@@ -27,6 +27,7 @@ API / Interfaces:
 Data & Models:
 - Location of datasets: `data/`.
 - Trained models: `models/` (describe formats, versions, or how to retrain).
+- Data collection and verification workflow: [docs/DATA_COLLECTION_METHODOLOGY.md](docs/DATA_COLLECTION_METHODOLOGY.md)
 
 Testing:
 - Unit tests live in `tests/` — run with `pytest`.
