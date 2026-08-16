@@ -8,13 +8,21 @@ export type ChatScamAnalysis = {
   analyzedAt: string | null;
 };
 
+export type ChatAttachment = {
+  url: string;
+  publicId: string | null;
+  fileName: string;
+  mimeType: string;
+  size: number;
+};
+
 export type ChatMessage = {
   id: string;
   conversationId: string;
   senderId: string;
   messageType: 'text' | 'image' | 'file' | 'system';
   body: string;
-  attachments: unknown[];
+  attachments: ChatAttachment[];
   status: 'sent' | 'delivered' | 'read';
   deliveredAt: string | null;
   readAt: string | null;

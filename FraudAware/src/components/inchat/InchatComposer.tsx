@@ -38,6 +38,8 @@ type Props = {
   onTakePhoto?: () => void | Promise<void>;
   /** Photo/video from library. */
   onPickFromLibrary?: () => void | Promise<void>;
+  /** PDF, DOC, or DOCX attachment. */
+  onPickDocument?: () => void | Promise<void>;
 };
 
 export default function InchatComposer({
@@ -49,6 +51,7 @@ export default function InchatComposer({
   placeholder = 'Write a message…',
   onTakePhoto,
   onPickFromLibrary,
+  onPickDocument,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -95,11 +98,7 @@ export default function InchatComposer({
       key: 'doc',
       icon: 'file-document-outline',
       label: 'Send a document',
-      onPress: () =>
-        Alert.alert(
-          'Send a document',
-          'Document attachments are not wired in this demo. Paste text in the composer or use Message Analyzer.'
-        ),
+      onPress: () => void runAttachment(onPickDocument),
     },
     {
       key: 'camera',

@@ -4,11 +4,21 @@
 
 export type InchatMessageRole = 'user' | 'contact';
 
+export type InchatAttachment = {
+  url: string;
+  publicId: string | null;
+  fileName: string;
+  mimeType: string;
+  size: number;
+};
+
 export type InchatMessage = {
   id: string;
   threadId: string;
   role: InchatMessageRole;
   body: string;
+  messageType?: 'text' | 'image' | 'file' | 'system';
+  attachments?: InchatAttachment[];
   /** Short clock label for demo */
   timeLabel: string;
   /** Optional machine timestamp for grouping and sorting local messages. */

@@ -16,6 +16,7 @@ import {
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import type { ChatStackParamList } from '../navigation/chatStackTypes';
 import { navigateToMessageAnalyzer } from '../navigation/navigateToMessageAnalyzer';
@@ -74,6 +75,8 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     getThreadById,
     getCombinedMessages,
     appendUserMessage,
+    appendUserImageMessage,
+    appendUserDocumentMessage,
     deleteMessage,
     clearConversation,
     setConversationStatus,
@@ -256,29 +259,47 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     }
   }, [appendUserMessage, draft, sendBusy, setTyping, thread?.iBlocked, threadId]);
 
-  const appendAttachmentNote = useCallback(
-    async (line: string) => {
-      await appendUserMessage(threadId, line);
+  const uploadPickedImage = useCallback(
+    async (asset: ImagePicker.ImagePickerAsset) => {
+      if (sendBusy || thread?.iBlocked) return;
+      setSendBusy(true);
+      try {
+        await appendUserImageMessage(
+          threadId,
+          {
+            uri: asset.uri,
+            fileName: asset.fileName,
+            mimeType: asset.mimeType,
+          },
+          draft
+        );
+        setDraft('');
+      } catch (error) {
+        Alert.alert(
+          'Could not send image',
+          error instanceof Error ? error.message : 'Please try again.'
+        );
+      } finally {
+        setSendBusy(false);
+      }
     },
-    [appendUserMessage, threadId]
+    [appendUserImageMessage, draft, sendBusy, thread?.iBlocked, threadId]
   );
 
   const onTakePhoto = useCallback(async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Allow camera access to take a photo or video.');
+      Alert.alert('Permission needed', 'Allow camera access to take a photo.');
       return;
     }
     const pick = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.85,
       allowsEditing: false,
     });
     if (pick.canceled || !pick.assets?.[0]) return;
-    const asset = pick.assets[0];
-    const kind = asset.type === 'video' ? 'video' : 'photo';
-    await appendAttachmentNote(`📎 Sent a ${kind} (demo attachment).`);
-  }, [appendAttachmentNote]);
+    await uploadPickedImage(pick.assets[0]);
+  }, [uploadPickedImage]);
 
   const onPickFromLibrary = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -287,13 +308,60 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
       return;
     }
     const pick = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.85,
       allowsEditing: false,
     });
     if (pick.canceled || !pick.assets?.[0]) return;
-    await appendAttachmentNote('📎 Shared media from library (demo attachment).');
-  }, [appendAttachmentNote]);
+    await uploadPickedImage(pick.assets[0]);
+  }, [uploadPickedImage]);
+
+  const onPickDocument = useCallback(async () => {
+    if (sendBusy || thread?.iBlocked) return;
+    try {
+      const pick = await DocumentPicker.getDocumentAsync({
+        type: [
+          'application/pdf',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+        copyToCacheDirectory: true,
+        multiple: false,
+      });
+      if (pick.canceled || !pick.assets?.[0]) return;
+
+      const asset = pick.assets[0];
+      if (asset.size && asset.size > 10 * 1024 * 1024) {
+        Alert.alert('File too large', 'Documents cannot exceed 10 MB.');
+        return;
+      }
+
+      setSendBusy(true);
+      await appendUserDocumentMessage(
+        threadId,
+        {
+          uri: asset.uri,
+          fileName: asset.name || 'document.pdf',
+          mimeType: asset.mimeType || 'application/pdf',
+        },
+        draft
+      );
+      setDraft('');
+    } catch (error) {
+      Alert.alert(
+        'Could not send document',
+        error instanceof Error ? error.message : 'Please try again.'
+      );
+    } finally {
+      setSendBusy(false);
+    }
+  }, [
+    appendUserDocumentMessage,
+    draft,
+    sendBusy,
+    thread?.iBlocked,
+    threadId,
+  ]);
 
   const onAnalyzeConversation = useCallback(async () => {
     const text = transcript.trim();
@@ -549,6 +617,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             onSend={onSend}
             sending={sendBusy}
             disabled={isBlocked}
+            onPickDocument={onPickDocument}
             onTakePhoto={onTakePhoto}
             onPickFromLibrary={onPickFromLibrary}
           />

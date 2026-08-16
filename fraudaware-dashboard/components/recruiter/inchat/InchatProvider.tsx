@@ -92,7 +92,14 @@ function formatThread(
     avatarKind: 'person',
     initials: peer?.initials || 'A',
     avatarUrl: peer?.avatarUrl,
-    lastMessagePreview: conversation.lastMessage?.preview || 'No messages yet',
+    lastMessagePreview: (() => {
+      const preview = conversation.lastMessage?.preview || 'No messages yet';
+      try {
+        return decodeURIComponent(preview.replace(/\+/g, ' '));
+      } catch {
+        return preview;
+      }
+    })(),
     timestampLabel: formatTime(conversation.lastMessage?.sentAt || conversation.updatedAt),
     unreadCount: conversation.myUnread || 0,
     filterTags:
@@ -109,11 +116,24 @@ function formatThread(
 
 function formatMessage(message: ChatMessage, recruiterId: string): InchatMessage {
   const deletedForEveryone = Boolean(message.deletedForEveryone);
+  const attachments = deletedForEveryone
+    ? []
+    : (message.attachments ?? []).map((attachment) => {
+        let fileName = attachment.fileName;
+        try {
+          fileName = decodeURIComponent(String(fileName || '').replace(/\+/g, ' '));
+        } catch {
+          /* keep original */
+        }
+        return { ...attachment, fileName };
+      });
   return {
     id: message.id,
     threadId: message.conversationId,
     role: message.senderId === recruiterId ? 'recruiter' : 'applicant',
     body: deletedForEveryone ? 'This message was deleted' : message.body,
+    messageType: deletedForEveryone ? 'system' : message.messageType,
+    attachments,
     timeLabel: formatTime(message.createdAt),
     createdAtIso: message.createdAt,
     status: message.status,

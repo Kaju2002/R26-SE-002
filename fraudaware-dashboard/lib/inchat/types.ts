@@ -4,6 +4,14 @@ export type InchatAvatarKind = 'person' | 'company';
 
 export type InchatMessageRole = 'recruiter' | 'applicant';
 
+export type InchatMessageAttachment = {
+  url: string;
+  publicId: string | null;
+  fileName: string;
+  mimeType: string;
+  size: number;
+};
+
 export type InchatThread = {
   id: string;
   participantName: string;
@@ -28,6 +36,8 @@ export type InchatMessage = {
   threadId: string;
   role: InchatMessageRole;
   body: string;
+  messageType?: 'text' | 'image' | 'file' | 'system';
+  attachments?: InchatMessageAttachment[];
   timeLabel: string;
   createdAtIso?: string;
   status?: 'sent' | 'delivered' | 'read';

@@ -43,7 +43,7 @@ app.get("/", (req, res) => {
       getMessages:
         "GET /api/chat/conversations/:conversationId/messages (Bearer token required)",
       sendMessage:
-        "POST /api/chat/conversations/:conversationId/messages (Bearer token required)",
+        "POST /api/chat/conversations/:conversationId/messages (Bearer token; JSON text or multipart image/document)",
       markRead:
         "PATCH /api/chat/conversations/:conversationId/read (Bearer token required)",
       deleteMessage:
