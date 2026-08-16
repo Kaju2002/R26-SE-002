@@ -12,6 +12,11 @@ import { analyzeMessageForScam } from "../utils/scamDetectionClient.js";
 import { fetchApplication } from "../utils/jobManagementClient.js";
 import { publishEvent } from "../utils/publishEvent.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
+import {
+  deleteUploadedAttachment,
+  uploadChatDocument,
+  uploadChatImage,
+} from "../utils/chatImageUpload.js";
 
 const DELETED_EVERYONE_PREVIEW = "This message was deleted";
 
@@ -167,7 +172,12 @@ const refreshConversationLastMessage = async (conversation) => {
 
   const previewSource = latest.deletedForEveryone
     ? DELETED_EVERYONE_PREVIEW
-    : latest.body || "";
+    : latest.body ||
+      (latest.messageType === "image"
+        ? "📷 Photo"
+        : latest.messageType === "file"
+          ? `📎 ${latest.attachments?.[0]?.fileName || "Document"}`
+          : "");
   const trimmed = String(previewSource).trim();
   const preview =
     trimmed.length > 160 ? `${trimmed.slice(0, 157)}...` : trimmed;
@@ -434,15 +444,28 @@ const buildPreview = (body = "") => {
   return trimmed.length > 160 ? `${trimmed.slice(0, 157)}...` : trimmed;
 };
 
+const buildAttachmentPreview = (messageType, attachment) => {
+  if (messageType === "image") return "📷 Photo";
+  if (messageType === "file") {
+    return `📎 ${attachment?.fileName || "Document"}`;
+  }
+  return "";
+};
+
 /**
  * POST /api/chat/conversations/:conversationId/messages
- * Body: { body: "Hello" }
+ * JSON body: { body: "Hello" }
+ * Multipart body: image=<JPG|PNG|GIF|WebP> or
+ * document=<PDF|DOC|DOCX>, body=<optional caption>
  *
- * Saves a text message from the authenticated participant,
+ * Saves a text, image, or document message from the authenticated participant,
  * runs scam-detection for recruiter messages only (FraudAware),
  * updates lastMessage + unread, then broadcasts message:new over Socket.io.
  */
 export const sendMessage = async (req, res) => {
+  let uploadedAttachmentCommitted = false;
+  let uploadedAttachmentPublicId = null;
+  let uploadedAttachmentResourceType = "image";
   try {
     const { conversationId } = req.params;
     const access = await getParticipantConversation(conversationId, req.userId);
@@ -475,10 +498,15 @@ export const sendMessage = async (req, res) => {
     }
 
     const body = String(req.body?.body ?? "").trim();
-    if (!body) {
+    const imageFile = req.files?.image?.[0];
+    const documentFile = req.files?.document?.[0];
+    const hasImage = Boolean(imageFile);
+    const hasDocument = Boolean(documentFile);
+    const hasAttachment = hasImage || hasDocument;
+    if (!body && !hasAttachment) {
       return res.status(400).json({
         success: false,
-        message: "Message body is required",
+        message: "Message body or attachment is required",
       });
     }
 
@@ -501,7 +529,7 @@ export const sendMessage = async (req, res) => {
       silentUndelivered || !isUserOnline(recipientId) ? null : new Date();
 
     const scamAnalysis =
-      isRecruiterSender && !silentUndelivered
+      isRecruiterSender && !silentUndelivered && body
         ? await analyzeMessageForScam(body, req.userId)
         : {
             status: "not_checked",
@@ -511,16 +539,27 @@ export const sendMessage = async (req, res) => {
             analyzedAt: null,
           };
 
+    const messageType = hasImage ? "image" : hasDocument ? "file" : "text";
+    const attachment = hasImage
+      ? await uploadChatImage(imageFile)
+      : hasDocument
+        ? await uploadChatDocument(documentFile)
+        : null;
+    uploadedAttachmentPublicId = attachment?.publicId ?? null;
+    uploadedAttachmentResourceType = hasDocument ? "raw" : "image";
+
     const message = await Message.create({
       conversationId: conversation._id,
       senderId: String(req.userId),
-      messageType: "text",
+      messageType,
       body,
+      attachments: attachment ? [attachment] : [],
       status: deliveredAt ? "delivered" : "sent",
       deliveredAt,
       scamAnalysis,
       suppressedForPeer: silentUndelivered,
     });
+    uploadedAttachmentCommitted = hasAttachment;
 
     if (!silentUndelivered) {
       const unreadField = isRecruiterSender
@@ -532,8 +571,8 @@ export const sendMessage = async (req, res) => {
           lastMessage: {
             messageId: message._id,
             senderId: String(req.userId),
-            preview: buildPreview(body),
-            messageType: "text",
+            preview: buildPreview(body) || buildAttachmentPreview(messageType, attachment),
+            messageType,
             sentAt: message.createdAt,
           },
         },
@@ -562,8 +601,11 @@ export const sendMessage = async (req, res) => {
 
         const flagged =
           scamAnalysis.status === "flagged" || scamAnalysis.isScam === true;
-        const preview =
-          body.length > 140 ? `${body.slice(0, 137).trim()}…` : body;
+        const preview = body
+          ? body.length > 140
+            ? `${body.slice(0, 137).trim()}…`
+            : body
+          : buildAttachmentPreview(messageType, attachment);
 
         void publishEvent(EVENT_TYPES.CHAT_MESSAGE_CREATED, {
           recipientId: conversation.jobseekerId,
@@ -594,6 +636,12 @@ export const sendMessage = async (req, res) => {
       silentUndelivered: true,
     });
   } catch (error) {
+    if (!uploadedAttachmentCommitted) {
+      await deleteUploadedAttachment(
+        uploadedAttachmentPublicId,
+        uploadedAttachmentResourceType
+      );
+    }
     console.error("Send message error:", error);
 
     if (error.name === "ValidationError") {

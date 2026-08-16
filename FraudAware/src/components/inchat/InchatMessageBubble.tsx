@@ -1,5 +1,15 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  Alert,
+  Image,
+  Linking,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { InchatMessage } from '../../../data/inchatMessages';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from './inchatStyles';
@@ -7,6 +17,79 @@ import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from './inchatStyles';
 type Props = {
   message: InchatMessage;
 };
+
+const IMAGE_SIZE = 220;
+
+function formatFileSize(bytes: number): string {
+  if (!bytes) return '';
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function displayFileName(value?: string | null): string {
+  const raw = String(value || '').trim();
+  if (!raw) return 'Document';
+  try {
+    return decodeURIComponent(raw.replace(/\+/g, ' '));
+  } catch {
+    return raw;
+  }
+}
+
+/** Square crop in the bubble; tap opens the full image. */
+function MessageImage({ uri, label }: { uri: string; label: string }) {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+
+  return (
+    <>
+      <Pressable
+        onPress={() => setPreviewOpen(true)}
+        accessibilityRole="imagebutton"
+        accessibilityLabel={`${label}. Tap to view full image.`}
+      >
+        <Image
+          source={{ uri }}
+          style={styles.messageImage}
+          resizeMode="cover"
+          accessibilityLabel={label}
+        />
+      </Pressable>
+      <Modal
+        visible={previewOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewOpen(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.previewOverlay}>
+          <Pressable
+            style={styles.previewBackdrop}
+            onPress={() => setPreviewOpen(false)}
+            accessibilityLabel="Close full image"
+          />
+          <Image
+            source={{ uri }}
+            style={{
+              width: Math.min(windowWidth - 32, 520),
+              height: Math.min(windowHeight * 0.78, 720),
+            }}
+            resizeMode="contain"
+            accessibilityLabel={label}
+          />
+          <Pressable
+            style={styles.previewClose}
+            onPress={() => setPreviewOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          >
+            <MaterialCommunityIcons name="close" size={24} color="#fff" />
+          </Pressable>
+        </View>
+      </Modal>
+    </>
+  );
+}
 
 type ReceiptStatus = 'sent' | 'delivered' | 'read';
 
@@ -61,7 +144,20 @@ export default function InchatMessageBubble({ message }: Props) {
   // FraudAware: warn jobseekers on inbound recruiter messages only.
   const isFlagged = !mine && message.scamAnalysis?.status === 'flagged';
   const status = receiptStatus(message, mine);
-  const compactMeta = !isFlagged && message.body.length <= 28 && !message.body.includes('\n');
+  const imageAttachment =
+    message.messageType === 'image'
+      ? message.attachments?.find((attachment) => attachment.url)
+      : undefined;
+  const fileAttachment =
+    message.messageType === 'file'
+      ? message.attachments?.find((attachment) => attachment.url)
+      : undefined;
+  const compactMeta =
+    !imageAttachment &&
+    !fileAttachment &&
+    !isFlagged &&
+    message.body.length <= 28 &&
+    !message.body.includes('\n');
   const receiptColor =
     status === 'read' ? '#53BDEB' : mine && !isFlagged ? 'rgba(255,255,255,0.92)' : INCHAT_MUTED;
 
@@ -72,6 +168,7 @@ export default function InchatMessageBubble({ message }: Props) {
           styles.bubble,
           mine ? styles.bubbleMine : styles.bubbleTheirs,
           isFlagged && styles.bubbleFlagged,
+          Boolean(imageAttachment || fileAttachment) && styles.bubbleWithImage,
         ]}
       >
         {isFlagged ? (
@@ -81,6 +178,43 @@ export default function InchatMessageBubble({ message }: Props) {
               ? ` · ${Math.round(message.scamAnalysis.score * 100)}% risk`
               : ''}
           </Text>
+        ) : null}
+        {imageAttachment ? (
+          <MessageImage
+            uri={imageAttachment.url}
+            label={imageAttachment.fileName || 'Chat image'}
+          />
+        ) : null}
+        {fileAttachment ? (
+          <Pressable
+            style={styles.fileCard}
+            onPress={() => {
+              void Linking.openURL(fileAttachment.url).catch(() => {
+                Alert.alert('Open failed', 'Could not open this document.');
+              });
+            }}
+            accessibilityRole="link"
+            accessibilityLabel={`Open ${displayFileName(fileAttachment.fileName)}`}
+          >
+            <View style={styles.fileIcon}>
+              <MaterialCommunityIcons
+                name="file-document-outline"
+                size={26}
+                color={INCHAT_NAVY}
+              />
+            </View>
+            <View style={styles.fileText}>
+              <Text style={styles.fileName} numberOfLines={2}>
+                {displayFileName(fileAttachment.fileName)}
+              </Text>
+              <Text style={styles.fileMeta}>
+                {displayFileName(fileAttachment.fileName).split('.').pop()?.toUpperCase() ||
+                  'DOCUMENT'}
+                {fileAttachment.size ? ` · ${formatFileSize(fileAttachment.size)}` : ''}
+              </Text>
+            </View>
+            <MaterialCommunityIcons name="open-in-new" size={19} color={INCHAT_NAVY} />
+          </Pressable>
         ) : null}
         {compactMeta ? (
           <View style={styles.compactRow}>
@@ -101,24 +235,30 @@ export default function InchatMessageBubble({ message }: Props) {
               {status ? <ReceiptTicks status={status} color={receiptColor} /> : null}
             </View>
           </View>
-        ) : (
+        ) : message.body ? (
           <Text
             style={[
               styles.body,
               mine && !isFlagged ? styles.bodyMine : styles.bodyTheirs,
               isUnsent && styles.bodyUnsent,
               isFlagged && styles.bodyFlagged,
+              Boolean(imageAttachment || fileAttachment) && styles.inlineWithImage,
             ]}
           >
             {message.body}
           </Text>
-        )}
+        ) : null}
         {isFlagged && message.scamAnalysis?.tactics?.length ? (
           <Text style={styles.flagTactics}>Detected: {message.scamAnalysis.tactics.join(', ')}</Text>
         ) : null}
 
         {!compactMeta ? (
-          <View style={styles.metaRow}>
+          <View
+            style={[
+              styles.metaRow,
+              Boolean(imageAttachment || fileAttachment) && styles.inlineWithImage,
+            ]}
+          >
             <Text
               style={[
                 styles.time,
@@ -157,6 +297,14 @@ const styles = StyleSheet.create({
   bubbleMine: {
     backgroundColor: INCHAT_NAVY,
     borderBottomRightRadius: 4,
+  },
+  bubbleWithImage: {
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 4,
+  },
+  inlineWithImage: {
+    paddingHorizontal: 6,
   },
   bubbleTheirs: {
     backgroundColor: '#F3F5F8',
@@ -200,6 +348,72 @@ const styles = StyleSheet.create({
   bodyUnsent: {
     fontStyle: 'italic',
     opacity: 0.8,
+  },
+  messageImage: {
+    width: IMAGE_SIZE,
+    height: IMAGE_SIZE,
+    maxWidth: '100%',
+    borderRadius: 10,
+    backgroundColor: '#E5E7EB',
+    marginBottom: 6,
+  },
+  fileCard: {
+    width: 250,
+    maxWidth: '100%',
+    minHeight: 62,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 9,
+    marginBottom: 4,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+  },
+  fileIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#E8EAF6',
+  },
+  fileText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  fileName: {
+    fontSize: 13,
+    lineHeight: 17,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  fileMeta: {
+    marginTop: 2,
+    fontSize: 10,
+    fontWeight: '600',
+    color: INCHAT_MUTED,
+  },
+  previewOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+  },
+  previewBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  previewClose: {
+    position: 'absolute',
+    top: 48,
+    right: 20,
+    height: 40,
+    width: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.16)',
   },
   metaRow: {
     flexDirection: 'row',

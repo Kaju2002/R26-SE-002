@@ -1,4 +1,5 @@
 import { authHeaders, getChatManagementBaseUrl } from './apiConfig';
+import { appendDocumentField } from '../utils/formDataHelpers';
 
 export type ChatScamAnalysis = {
   status: 'not_checked' | 'pending' | 'safe' | 'flagged' | 'error';
@@ -8,13 +9,21 @@ export type ChatScamAnalysis = {
   analyzedAt: string | null;
 };
 
+export type ChatAttachment = {
+  url: string;
+  publicId: string | null;
+  fileName: string;
+  mimeType: string;
+  size: number;
+};
+
 export type ChatMessage = {
   id: string;
   conversationId: string;
   senderId: string;
   messageType: 'text' | 'image' | 'file' | 'system';
   body: string;
-  attachments: unknown[];
+  attachments: ChatAttachment[];
   status: 'sent' | 'delivered' | 'read';
   deliveredAt: string | null;
   readAt: string | null;
@@ -154,6 +163,74 @@ export async function sendConversationMessage(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ body }),
+    }
+  );
+
+  return (await parseJson<SendMessageResponse>(response)).chatMessage;
+}
+
+export type ChatImageUpload = {
+  uri: string;
+  fileName?: string | null;
+  mimeType?: string | null;
+};
+
+/** Upload and send one image, with an optional text caption. */
+export async function sendConversationImageMessage(
+  token: string,
+  conversationId: string,
+  image: ChatImageUpload,
+  body = ''
+): Promise<ChatMessage> {
+  const form = new FormData();
+  form.append('image', {
+    uri: image.uri,
+    name: image.fileName || 'chat-image.jpg',
+    type: image.mimeType || 'image/jpeg',
+  } as unknown as Blob);
+  if (body.trim()) form.append('body', body.trim());
+
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: form,
+    }
+  );
+
+  return (await parseJson<SendMessageResponse>(response)).chatMessage;
+}
+
+export type ChatDocumentUpload = {
+  uri: string;
+  fileName: string;
+  mimeType: string;
+};
+
+/** Upload and send one PDF, DOC, or DOCX, with an optional caption. */
+export async function sendConversationDocumentMessage(
+  token: string,
+  conversationId: string,
+  document: ChatDocumentUpload,
+  body = ''
+): Promise<ChatMessage> {
+  const form = new FormData();
+  appendDocumentField(
+    form,
+    'document',
+    document.uri,
+    document.fileName,
+    document.mimeType
+  );
+  if (body.trim()) form.append('body', body.trim());
+
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: form,
     }
   );
 

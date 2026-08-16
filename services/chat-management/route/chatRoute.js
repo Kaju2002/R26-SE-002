@@ -6,6 +6,7 @@ import {
   updateConversationStatus,
 } from "../controller/conversationController.js";
 import { getMessages, sendMessage, markConversationRead, deleteMessage, clearConversation } from "../controller/messageController.js";
+import { uploadChatAttachment } from "../config/multer.js";
 
 const router = Router();
 
@@ -49,11 +50,12 @@ router.get(
 
 /**
  * POST /api/chat/conversations/:conversationId/messages
- * Send a text message in a conversation (participants only).
+ * Send text JSON or one multipart attachment (field: image or document).
  */
 router.post(
   "/conversations/:conversationId/messages",
   authMiddleware,
+  uploadChatAttachment,
   sendMessage
 );
 

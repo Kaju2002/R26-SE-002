@@ -12,6 +12,22 @@ type Props = {
 
 type ReceiptStatus = 'sent' | 'delivered' | 'read';
 
+function formatFileSize(bytes: number): string {
+  if (!bytes) return '';
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function displayFileName(value?: string | null): string {
+  const raw = String(value || '').trim();
+  if (!raw) return 'Document';
+  try {
+    return decodeURIComponent(raw.replace(/\+/g, ' '));
+  } catch {
+    return raw;
+  }
+}
+
 function receiptStatus(message: InchatMessage, mine: boolean): ReceiptStatus | null {
   if (!mine || message.unsent) return null;
   if (message.status === 'delivered' || message.status === 'read' || message.status === 'sent') {
@@ -68,7 +84,19 @@ export default function InchatMessageBubble({
   const mine = message.role === 'recruiter';
   const isUnsent = message.unsent === true;
   const status = receiptStatus(message, mine);
-  const compactMeta = message.body.length <= 28 && !message.body.includes('\n');
+  const imageAttachment =
+    message.messageType === 'image'
+      ? message.attachments?.find((attachment) => attachment.url)
+      : undefined;
+  const fileAttachment =
+    message.messageType === 'file'
+      ? message.attachments?.find((attachment) => attachment.url)
+      : undefined;
+  const compactMeta =
+    !imageAttachment &&
+    !fileAttachment &&
+    message.body.length <= 28 &&
+    !message.body.includes('\n');
   // Recruiter portal: never show scam badges (warnings are for jobseekers on mobile).
   const isFlagged = false;
 
@@ -122,6 +150,54 @@ export default function InchatMessageBubble({
                 : ''}
             </div>
           ) : null}
+          {imageAttachment ? (
+            <a
+              href={imageAttachment.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mb-1 block"
+              aria-label={`Open ${imageAttachment.fileName || 'chat image'}`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={imageAttachment.url}
+                alt={imageAttachment.fileName || 'Chat image'}
+                className="h-48 w-64 max-w-full rounded-md bg-[#E5E7EB] object-cover"
+              />
+            </a>
+          ) : null}
+          {fileAttachment ? (
+            <a
+              href={fileAttachment.url}
+              target="_blank"
+              rel="noreferrer"
+              className="mb-1 flex w-64 max-w-full items-center gap-2.5 rounded-lg bg-white/90 px-3 py-2.5 text-left no-underline"
+              aria-label={`Open ${displayFileName(fileAttachment.fileName)}`}
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#E8EAF6] text-xl">
+                📄
+              </span>
+              <span className="min-w-0 flex-1">
+                <span
+                  className="block truncate text-xs font-bold text-[#1F2937]"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  {displayFileName(fileAttachment.fileName)}
+                </span>
+                <span
+                  className="mt-0.5 block text-[10px] font-semibold text-[#667085]"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  {displayFileName(fileAttachment.fileName).split('.').pop()?.toUpperCase() ||
+                    'DOCUMENT'}
+                  {fileAttachment.size ? ` · ${formatFileSize(fileAttachment.size)}` : ''}
+                </span>
+              </span>
+              <span className="text-sm text-[#202871]" aria-hidden>
+                ↗
+              </span>
+            </a>
+          ) : null}
           {compactMeta ? (
             <div className="flex items-end gap-2">
               <p
@@ -142,14 +218,14 @@ export default function InchatMessageBubble({
                 {status ? <ReceiptTicks status={status} /> : null}
               </div>
             </div>
-          ) : (
+          ) : message.body ? (
             <p
               className={`text-sm leading-5 text-[#1F2937] ${isUnsent ? 'italic opacity-80' : ''}`}
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
               {message.body}
             </p>
-          )}
+          ) : null}
           {isFlagged && message.scamAnalysis?.tactics.length ? (
             <p className="mt-2 text-[11px] font-medium text-red-600">
               Detected: {message.scamAnalysis.tactics.join(', ')}

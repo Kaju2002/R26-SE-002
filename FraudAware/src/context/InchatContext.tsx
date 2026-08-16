@@ -16,10 +16,14 @@ import {
   listChatConversations,
   listConversationMessages,
   markConversationRead,
+  sendConversationDocumentMessage,
+  sendConversationImageMessage,
   sendConversationMessage,
   updateConversationStatus as updateConversationStatusApi,
   type ChatConversation,
+  type ChatDocumentUpload,
   type ChatMessage,
+  type ChatImageUpload,
   type ConversationStatus,
   type DeleteMessageMode,
 } from '../api/chatApi';
@@ -59,6 +63,16 @@ type InchatContextValue = {
   dismissIncomingNotification: () => void;
   getThreadById: (threadId: string) => InchatThread | undefined;
   appendUserMessage: (threadId: string, body: string) => Promise<void>;
+  appendUserImageMessage: (
+    threadId: string,
+    image: ChatImageUpload,
+    caption?: string
+  ) => Promise<void>;
+  appendUserDocumentMessage: (
+    threadId: string,
+    document: ChatDocumentUpload,
+    caption?: string
+  ) => Promise<void>;
   /** Delete for me (any message) or delete for everyone (own messages only). */
   deleteMessage: (
     threadId: string,
@@ -111,7 +125,14 @@ function formatThread(
     avatarKind: peer?.avatarKind ?? (conversation.myRole === 'jobseeker' ? 'company' : 'person'),
     initials: peer?.initials || '?',
     avatarUrl: peer?.avatarUrl,
-    lastMessagePreview: conversation.lastMessage?.preview || 'No messages yet',
+    lastMessagePreview: (() => {
+      const preview = conversation.lastMessage?.preview || 'No messages yet';
+      try {
+        return decodeURIComponent(preview.replace(/\+/g, ' '));
+      } catch {
+        return preview;
+      }
+    })(),
     timestampLabel: formatTime(conversation.lastMessage?.sentAt || conversation.updatedAt),
     unreadCount: conversation.myUnread || 0,
     filterTags:
@@ -128,11 +149,24 @@ function formatThread(
 
 function formatMessage(message: ChatMessage, currentUserId: string): InchatMessage {
   const deletedForEveryone = Boolean(message.deletedForEveryone);
+  const attachments = deletedForEveryone
+    ? []
+    : (message.attachments ?? []).map((attachment) => {
+        let fileName = attachment.fileName;
+        try {
+          fileName = decodeURIComponent(String(fileName || '').replace(/\+/g, ' '));
+        } catch {
+          /* keep original */
+        }
+        return { ...attachment, fileName };
+      });
   return {
     id: message.id,
     threadId: message.conversationId,
     role: message.senderId === currentUserId ? 'user' : 'contact',
     body: deletedForEveryone ? 'This message was deleted' : message.body,
+    messageType: deletedForEveryone ? 'system' : message.messageType,
+    attachments,
     timeLabel: formatTime(message.createdAt),
     createdAtIso: message.createdAt,
     status: message.status,
@@ -644,6 +678,54 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [conversations, refreshConversations, token, user?.id]
   );
 
+  const appendUserImageMessage = useCallback(
+    async (threadId: string, image: ChatImageUpload, caption = '') => {
+      if (!token || !user?.id) return;
+      if (!conversations.some((entry) => entry.id === threadId)) return;
+
+      socketRef.current?.emit('typing:stop', { conversationId: threadId });
+      setTypingByThread((previous) => ({ ...previous, [threadId]: false }));
+
+      const sent = await sendConversationImageMessage(
+        token,
+        threadId,
+        image,
+        caption.trim()
+      );
+      const mapped = formatMessage(sent, user.id);
+      setMessagesByThread((previous) => ({
+        ...previous,
+        [threadId]: appendUnique(previous[threadId] ?? [], mapped),
+      }));
+      await refreshConversations();
+    },
+    [conversations, refreshConversations, token, user?.id]
+  );
+
+  const appendUserDocumentMessage = useCallback(
+    async (threadId: string, document: ChatDocumentUpload, caption = '') => {
+      if (!token || !user?.id) return;
+      if (!conversations.some((entry) => entry.id === threadId)) return;
+
+      socketRef.current?.emit('typing:stop', { conversationId: threadId });
+      setTypingByThread((previous) => ({ ...previous, [threadId]: false }));
+
+      const sent = await sendConversationDocumentMessage(
+        token,
+        threadId,
+        document,
+        caption.trim()
+      );
+      const mapped = formatMessage(sent, user.id);
+      setMessagesByThread((previous) => ({
+        ...previous,
+        [threadId]: appendUnique(previous[threadId] ?? [], mapped),
+      }));
+      await refreshConversations();
+    },
+    [conversations, refreshConversations, token, user?.id]
+  );
+
   const isPeerTyping = useCallback(
     (threadId: string) => Boolean(typingByThread[threadId]),
     [typingByThread]
@@ -797,6 +879,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       dismissIncomingNotification,
       getThreadById,
       appendUserMessage,
+      appendUserImageMessage,
+      appendUserDocumentMessage,
       deleteMessage,
       clearConversation,
       setConversationStatus,
@@ -817,6 +901,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       dismissIncomingNotification,
       getThreadById,
       appendUserMessage,
+      appendUserImageMessage,
+      appendUserDocumentMessage,
       deleteMessage,
       clearConversation,
       setConversationStatus,
