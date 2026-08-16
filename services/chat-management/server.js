@@ -51,7 +51,7 @@ app.get("/", (req, res) => {
       clearConversation:
         "POST /api/chat/conversations/:conversationId/clear (Bearer token required) — clear chat for caller only",
       updateStatus:
-        "PATCH /api/chat/conversations/:conversationId/status (Bearer token required, body: { status: \"active\" | \"blocked\" })",
+        "PATCH /api/chat/conversations/:conversationId/status (Bearer token required, body: { status: \"active\" | \"archived\" | \"blocked\" })",
       socket: "Socket.io on same port (JWT in auth.token)",
     },
   });

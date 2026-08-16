@@ -3,7 +3,7 @@
  * Structure mirrors a professional message list: avatar, name, time, snippet, unread.
  */
 
-export type InchatFilterId = 'focused' | 'jobs' | 'unread' | 'saved';
+export type InchatFilterId = 'focused' | 'jobs' | 'unread' | 'saved' | 'archived';
 
 export type InchatAvatarKind = 'person' | 'company';
 
@@ -36,6 +36,7 @@ export const INCHAT_FILTER_OPTIONS: { id: InchatFilterId; label: string }[] = [
   { id: 'jobs', label: 'Jobs' },
   { id: 'unread', label: 'Unread' },
   { id: 'saved', label: 'Saved' },
+  { id: 'archived', label: 'Archived' },
 ];
 
 export const INCHAT_THREADS: InchatThread[] = [

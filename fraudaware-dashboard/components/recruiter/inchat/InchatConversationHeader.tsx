@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import {
   DotsVerticalIcon,
@@ -20,6 +21,8 @@ type Props = {
   onClearChat?: () => void | Promise<void>;
   onBlock?: () => void | Promise<void>;
   onUnblock?: () => void | Promise<void>;
+  onArchive?: () => void | Promise<void>;
+  onUnarchive?: () => void | Promise<void>;
 };
 
 export default function InchatConversationHeader({
@@ -31,13 +34,18 @@ export default function InchatConversationHeader({
   onClearChat,
   onBlock,
   onUnblock,
+  onArchive,
+  onUnarchive,
 }: Props) {
   const basePath = useInchatBasePath();
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
   const [clearing, setClearing] = useState(false);
   const [statusBusy, setStatusBusy] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const isBlocked = Boolean(thread.iBlocked);
+  const isArchived = thread.status === 'archived';
+  const conversationIsBlocked = thread.status === 'blocked';
 
   const lastSeen = lastSeenAt ? new Date(lastSeenAt) : null;
   const presenceLabel = isBlocked
@@ -104,6 +112,28 @@ export default function InchatConversationHeader({
     try {
       await onBlock();
       setMenuOpen(false);
+    } finally {
+      setStatusBusy(false);
+    }
+  };
+
+  const handleToggleArchive = async () => {
+    if (statusBusy) return;
+    const action = isArchived ? onUnarchive : onArchive;
+    if (!action) return;
+    const confirmed = window.confirm(
+      isArchived
+        ? 'Unarchive this conversation? It will return to the main inbox.'
+        : 'Archive this conversation? It will move to Archived for both participants.'
+    );
+    if (!confirmed) return;
+    setStatusBusy(true);
+    try {
+      await action();
+      setMenuOpen(false);
+      router.push(`${basePath}/inchat`);
+    } catch {
+      // The parent action surfaces the request error next to the conversation.
     } finally {
       setStatusBusy(false);
     }
@@ -218,6 +248,17 @@ export default function InchatConversationHeader({
             >
               {statusBusy ? 'Updating…' : isBlocked ? 'Unblock' : 'Block'}
             </button>
+            {!conversationIsBlocked ? (
+              <button
+                type="button"
+                disabled={statusBusy || (isArchived ? !onUnarchive : !onArchive)}
+                onClick={() => void handleToggleArchive()}
+                className="block w-full px-3 py-2 text-left text-sm font-semibold text-[#202871] transition hover:bg-[#F7F8FE] disabled:opacity-50"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                {statusBusy ? 'Updating…' : isArchived ? 'Unarchive' : 'Archive'}
+              </button>
+            ) : null}
             <button
               type="button"
               disabled={!onClearChat || clearing}

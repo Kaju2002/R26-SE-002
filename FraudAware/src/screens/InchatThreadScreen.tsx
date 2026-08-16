@@ -378,6 +378,41 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
   }, [clearConversation, closeThreadMenu, threadId]);
 
   const isBlocked = Boolean(thread?.iBlocked);
+  const isArchived = thread?.status === 'archived';
+  const conversationIsBlocked = thread?.status === 'blocked';
+
+  const onMenuToggleArchive = useCallback(() => {
+    closeThreadMenu();
+    const nextStatus = isArchived ? 'active' : 'archived';
+    Alert.alert(
+      isArchived ? 'Unarchive conversation?' : 'Archive conversation?',
+      isArchived
+        ? 'This conversation will return to your main inbox.'
+        : 'This conversation will move to Archived for both participants.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: isArchived ? 'Unarchive' : 'Archive',
+          onPress: () => {
+            void setConversationStatus(threadId, nextStatus)
+              .then(() => navigation.goBack())
+              .catch((error: unknown) => {
+                Alert.alert(
+                  isArchived ? 'Could not unarchive' : 'Could not archive',
+                  error instanceof Error ? error.message : 'Please try again.'
+                );
+              });
+          },
+        },
+      ]
+    );
+  }, [
+    closeThreadMenu,
+    isArchived,
+    navigation,
+    setConversationStatus,
+    threadId,
+  ]);
 
   const onMenuToggleBlock = useCallback(() => {
     closeThreadMenu();
@@ -556,6 +591,28 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
               <Text style={styles.menuRowLabel}>Check conversation</Text>
             </Pressable>
             <View style={styles.menuDivider} />
+            {!conversationIsBlocked ? (
+              <>
+                <Pressable
+                  style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
+                  onPress={onMenuToggleArchive}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isArchived ? 'Unarchive conversation' : 'Archive conversation'
+                  }
+                >
+                  <MaterialCommunityIcons
+                    name={isArchived ? 'archive-arrow-up-outline' : 'archive-outline'}
+                    size={22}
+                    color={INCHAT_NAVY}
+                  />
+                  <Text style={styles.menuRowLabel}>
+                    {isArchived ? 'Unarchive' : 'Archive'}
+                  </Text>
+                </Pressable>
+                <View style={styles.menuDivider} />
+              </>
+            ) : null}
             <Pressable
               style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
               onPress={onMenuMessageAnalyzer}

@@ -232,8 +232,9 @@ export const listConversations = async (req, res) => {
 
 /**
  * PATCH /api/chat/conversations/:conversationId/status
- * Body: { status: "active" | "blocked" }
+ * Body: { status: "active" | "archived" | "blocked" }
  *
+ * Archive is a conversation-level state shared by both participants.
  * WhatsApp-style asymmetric block:
  * - Block: sets status=blocked and blockedBy=caller
  * - Unblock: only the blocker (blockedBy) may restore active
@@ -243,7 +244,7 @@ export const updateConversationStatus = async (req, res) => {
   try {
     const conversationId = String(req.params.conversationId || "").trim();
     const status = String(req.body?.status || "").trim();
-    const allowed = ["active", "blocked"];
+    const allowed = ["active", "archived", "blocked"];
 
     if (!/^[a-fA-F0-9]{24}$/.test(conversationId)) {
       return res.status(400).json({
@@ -283,6 +284,45 @@ export const updateConversationStatus = async (req, res) => {
       ? String(conversation.blockedBy)
       : null;
 
+    if (status === "archived") {
+      if (conversation.status === "blocked") {
+        return res.status(409).json({
+          success: false,
+          code: "CONVERSATION_BLOCKED",
+          message: "Unblock the conversation before archiving it",
+        });
+      }
+
+      if (conversation.status === "archived") {
+        return res.status(200).json({
+          success: true,
+          message: "Conversation is already archived",
+          conversation: formatConversation(conversation, req.userId),
+        });
+      }
+
+      conversation.status = "archived";
+      conversation.blockedBy = null;
+      await conversation.save();
+
+      emitConversationStatus(
+        conversationId,
+        {
+          status: "archived",
+          blockedBy: null,
+          updatedBy: callerId,
+          updatedAt: new Date(),
+        },
+        [conversation.recruiterId, conversation.jobseekerId]
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: "Conversation archived successfully",
+        conversation: formatConversation(conversation, req.userId),
+      });
+    }
+
     if (status === "blocked") {
       conversation.status = "blocked";
       conversation.blockedBy = callerId;
@@ -306,8 +346,8 @@ export const updateConversationStatus = async (req, res) => {
       });
     }
 
-    // Unblock → active
-    if (conversation.status !== "blocked") {
+    // Restore an archived or blocked conversation to active.
+    if (conversation.status === "active") {
       return res.status(200).json({
         success: true,
         message: "Conversation is already active",
@@ -316,7 +356,11 @@ export const updateConversationStatus = async (req, res) => {
     }
 
     // Only the blocker can unblock (legacy: no blockedBy → either participant).
-    if (existingBlockedBy && existingBlockedBy !== callerId) {
+    if (
+      conversation.status === "blocked" &&
+      existingBlockedBy &&
+      existingBlockedBy !== callerId
+    ) {
       return res.status(403).json({
         success: false,
         code: "NOT_BLOCKER",
@@ -324,6 +368,7 @@ export const updateConversationStatus = async (req, res) => {
       });
     }
 
+    const wasBlocked = conversation.status === "blocked";
     conversation.status = "active";
     conversation.blockedBy = null;
     await conversation.save();
@@ -341,7 +386,9 @@ export const updateConversationStatus = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Conversation unblocked successfully",
+      message: wasBlocked
+        ? "Conversation unblocked successfully"
+        : "Conversation unarchived successfully",
       conversation: formatConversation(conversation, req.userId),
     });
   } catch (error) {

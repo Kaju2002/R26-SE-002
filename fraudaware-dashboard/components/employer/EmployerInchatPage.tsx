@@ -6,7 +6,6 @@ import EmployerShell from '@/components/employer/EmployerShell';
 import InchatConversationHeader from '@/components/recruiter/inchat/InchatConversationHeader';
 import InchatEmptyState from '@/components/recruiter/inchat/InchatEmptyState';
 import InchatFilterChips from '@/components/recruiter/inchat/InchatFilterChips';
-import { ChevronDownIcon } from '@/components/recruiter/inchat/InchatIcons';
 import InchatInboxHeader from '@/components/recruiter/inchat/InchatInboxHeader';
 import InchatThreadPanel from '@/components/recruiter/inchat/InchatThreadPanel';
 import InchatThreadDetailsPanel from '@/components/recruiter/inchat/InchatThreadDetailsPanel';
@@ -58,9 +57,9 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
     () =>
       threadsForList.filter(
         (thread) =>
-          (isDesktop || matchesFilter(thread, filterId)) && matchesQuery(thread, query)
+          matchesFilter(thread, filterId) && matchesQuery(thread, query)
       ),
-    [filterId, isDesktop, query, threadsForList]
+    [filterId, query, threadsForList]
   );
 
   const selectedThreadId = searchParams.get('thread');
@@ -134,23 +133,12 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
           </div>
 
           <InchatInboxHeader query={query} onQueryChange={setQuery} />
-          <div className="px-5 pb-3 pt-1 lg:hidden">
+          <div className="border-b border-[#EEF0F8]">
             <InchatFilterChips
               options={INCHAT_FILTER_OPTIONS}
               activeId={filterId}
               onSelect={setFilterId}
             />
-          </div>
-          <div className="hidden items-center px-5 pb-3 pt-1 lg:flex">
-            <button
-              type="button"
-              className="flex items-center gap-1 text-sm font-medium"
-              style={{ color: INCHAT_NAVY, fontFamily: 'var(--font-poppins)' }}
-              aria-label="Recent chats"
-            >
-              Recent Chats
-              <ChevronDownIcon width={16} height={16} strokeWidth={2} />
-            </button>
           </div>
 
           <div className="scrollbar-hide min-h-0 flex-1 overflow-y-auto">
@@ -220,6 +208,28 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
                     setStatusError(
                       err instanceof Error ? err.message : 'Could not unblock conversation.'
                     );
+                  }
+                }}
+                onArchive={async () => {
+                  setStatusError(null);
+                  try {
+                    await setConversationStatus(selectedThread.id, 'archived');
+                  } catch (err) {
+                    setStatusError(
+                      err instanceof Error ? err.message : 'Could not archive conversation.'
+                    );
+                    throw err;
+                  }
+                }}
+                onUnarchive={async () => {
+                  setStatusError(null);
+                  try {
+                    await setConversationStatus(selectedThread.id, 'active');
+                  } catch (err) {
+                    setStatusError(
+                      err instanceof Error ? err.message : 'Could not unarchive conversation.'
+                    );
+                    throw err;
                   }
                 }}
               />

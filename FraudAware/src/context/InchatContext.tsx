@@ -67,7 +67,7 @@ type InchatContextValue = {
   ) => Promise<void>;
   /** Clear all messages in a thread for the current user only. */
   clearConversation: (threadId: string) => Promise<void>;
-  /** Block or unblock a conversation. */
+  /** Archive, unarchive, block, or unblock a conversation. */
   setConversationStatus: (threadId: string, status: ConversationStatus) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
@@ -114,7 +114,12 @@ function formatThread(
     lastMessagePreview: conversation.lastMessage?.preview || 'No messages yet',
     timestampLabel: formatTime(conversation.lastMessage?.sentAt || conversation.updatedAt),
     unreadCount: conversation.myUnread || 0,
-    filterTags: conversation.myUnread > 0 ? ['focused', 'jobs', 'unread'] : ['focused', 'jobs'],
+    filterTags:
+      conversation.status === 'archived'
+        ? ['archived']
+        : conversation.myUnread > 0
+          ? ['focused', 'jobs', 'unread']
+          : ['focused', 'jobs'],
     status: conversation.status,
     blockedBy: conversation.blockedBy ?? null,
     iBlocked: Boolean(conversation.iBlocked),

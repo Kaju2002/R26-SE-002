@@ -95,7 +95,12 @@ function formatThread(
     lastMessagePreview: conversation.lastMessage?.preview || 'No messages yet',
     timestampLabel: formatTime(conversation.lastMessage?.sentAt || conversation.updatedAt),
     unreadCount: conversation.myUnread || 0,
-    filterTags: conversation.myUnread > 0 ? ['focused', 'jobs', 'unread'] : ['focused', 'jobs'],
+    filterTags:
+      conversation.status === 'archived'
+        ? ['archived']
+        : conversation.myUnread > 0
+          ? ['focused', 'jobs', 'unread']
+          : ['focused', 'jobs'],
     status: conversation.status,
     blockedBy: conversation.blockedBy ?? null,
     iBlocked: Boolean(conversation.iBlocked),

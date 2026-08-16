@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { InchatFilterId } from '../../../data/inchatThreads';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from './inchatStyles';
@@ -14,7 +14,12 @@ type Props = {
 
 export default function InchatFilterChips({ options, activeId, onSelect }: Props) {
   return (
-    <View style={styles.row}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.row}
+      keyboardShouldPersistTaps="handled"
+    >
       {options.map((opt) => {
         const active = opt.id === activeId;
         return (
@@ -37,14 +42,12 @@ export default function InchatFilterChips({ options, activeId, onSelect }: Props
           </Pressable>
         );
       })}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     paddingHorizontal: 12,
     paddingVertical: 10,
     gap: 8,
