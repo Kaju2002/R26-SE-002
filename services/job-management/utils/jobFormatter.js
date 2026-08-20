@@ -97,7 +97,70 @@ export const formatJob = (job, extras = {}) => {
     postedBy: job.postedBy,
     posterType: job.posterType || "recruiter",
     posterImage: job.posterImage || undefined,
+    posterName: job.posterName || undefined,
+    posterEmail: job.posterEmail || undefined,
+    moderationStatus: job.moderationStatus || "none",
+    riskCheck: job.riskCheck
+      ? {
+          prediction: job.riskCheck.prediction || undefined,
+          fakeProbability: job.riskCheck.fakeProbability ?? undefined,
+          legitimateProbability: job.riskCheck.legitimateProbability ?? undefined,
+          confidence: job.riskCheck.confidence ?? undefined,
+          message: job.riskCheck.message || undefined,
+          checkedAt: toIsoString(job.riskCheck.checkedAt),
+        }
+      : undefined,
     ...extras,
+  };
+};
+
+const formatSalaryLabel = (job) => {
+  if (job.salaryMin == null && job.salaryMax == null) return "—";
+  const currency = formatSalaryCurrency(job.salaryCurrency);
+  return `${currency} ${job.salaryMin ?? 0} – ${job.salaryMax ?? 0}`.trim();
+};
+
+export const formatModeratedJob = (job) => {
+  if (!job) return null;
+  const listingStatus =
+    job.status === "pending_review" || job.status === "draft"
+      ? job.status
+      : job.status === "closed"
+        ? "closed"
+        : "active";
+
+  return {
+    id: String(job._id),
+    title: job.title,
+    companyName: job.companyName,
+    posterType: job.posterType || "recruiter",
+    posterName: job.posterName || "",
+    posterEmail: job.posterEmail || "",
+    posterImage: job.posterImage || undefined,
+    location: job.location,
+    mode: job.mode,
+    type: job.type,
+    salaryLabel: formatSalaryLabel(job),
+    description: Array.isArray(job.description)
+      ? job.description.join("\n")
+      : String(job.description || ""),
+    listingStatus,
+    moderationStatus:
+      job.moderationStatus === "none" ? "cleared" : job.moderationStatus,
+    fakeJobScore: job.riskCheck?.fakeProbability ?? 0,
+    flagReasons: Array.isArray(job.flagReasons) && job.flagReasons.length
+      ? job.flagReasons
+      : job.moderationStatus === "flagged"
+        ? ["fake_job_model"]
+        : [],
+    reportCount: 0,
+    applicants: job.applicantsCount ?? 0,
+    postedAt: toIsoString(job.postedAt) || new Date().toISOString(),
+    flaggedAt: toIsoString(job.flaggedAt || job.riskCheck?.checkedAt) || new Date().toISOString(),
+    reviewedAt: toIsoString(job.moderatedAt) || null,
+    closeReason: job.closeReason || null,
+    riskMessage: job.riskCheck?.message || "",
+    riskPrediction: job.riskCheck?.prediction || "",
   };
 };
 

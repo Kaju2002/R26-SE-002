@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const NOTIFICATION_CATEGORIES = ["general", "applications"];
-const NOTIFICATION_TYPES = ["auth", "scam", "job", "application", "system", "chat"];
+const NOTIFICATION_TYPES = ["auth", "scam", "job", "application", "system", "chat", "moderation"];
 const APPLICATION_STATUSES = ["sent", "pending", "accepted", "rejected"];
 
 const metadataSchema = new mongoose.Schema(

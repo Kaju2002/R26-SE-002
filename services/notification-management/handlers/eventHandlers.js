@@ -5,7 +5,7 @@ import {
   hasProcessedEvent,
 } from "../utils/idempotency.js";
 import { sendExpoPushToUser } from "../utils/expoPushClient.js";
-import { findJobseekersMatchingSkills } from "../utils/userManagementClient.js";
+import { findJobseekersMatchingSkills, listSuperadmins } from "../utils/userManagementClient.js";
 import { sendApplicationThankYouEmail } from "../utils/sendApplicationThankYouEmail.js";
 
 const STATUS_TITLES = {
@@ -386,6 +386,75 @@ const handleJobCreated = async (event) => {
   return { created: createdCount > 0, createdCount };
 };
 
+const handleJobFlaggedForReview = async (event) => {
+  const payload = event.payload || {};
+  const {
+    jobId,
+    jobTitle = "",
+    companyName = "",
+    companyLogo = null,
+    prediction = "unknown",
+    fakeProbability = null,
+    message = "A job posting needs admin review.",
+  } = payload;
+
+  if (!jobId) {
+    throw new Error("job.flagged_for_review payload missing jobId");
+  }
+
+  const admins = await listSuperadmins();
+  if (!admins.length) {
+    console.warn(
+      "Notification service: no superadmins found for job.flagged_for_review"
+    );
+    return { skipped: true, reason: "no-superadmins" };
+  }
+
+  const score =
+    typeof fakeProbability === "number"
+      ? `${Math.round(fakeProbability * 100)}% fake score`
+      : String(prediction || "flagged");
+  const title = "Job posting needs review";
+  const body = `${jobTitle || "A job"} at ${companyName || "a company"} was flagged (${score}). ${message}`.trim();
+
+  let createdCount = 0;
+
+  for (const admin of admins) {
+    const userId = String(admin.id || "").trim();
+    if (!userId) continue;
+
+    const sourceEventId = `${event.eventId}:${userId}`;
+    const notification = await createNotification({
+      userId,
+      category: "general",
+      type: "moderation",
+      title,
+      body,
+      metadata: {
+        jobId: String(jobId),
+        jobTitle,
+        companyName,
+        companyLogo,
+      },
+      sourceEventId,
+    });
+
+    if (notification) {
+      createdCount += 1;
+      void sendExpoPushToUser(userId, {
+        title,
+        body,
+        data: {
+          type: "job_moderation",
+          jobId: String(jobId),
+        },
+      });
+    }
+  }
+
+  return { created: createdCount > 0, createdCount };
+};
+
 export const handleEvent = async (event) => {
   if (!event?.eventType) {
     throw new Error("Event envelope missing eventType");
@@ -404,6 +473,8 @@ export const handleEvent = async (event) => {
       return handleChatMessageCreated(event);
     case EVENT_TYPES.JOB_CREATED:
       return handleJobCreated(event);
+    case EVENT_TYPES.JOB_FLAGGED_FOR_REVIEW:
+      return handleJobFlaggedForReview(event);
     default:
       return { skipped: true, reason: "unsupported-event" };
   }

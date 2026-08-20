@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import EmployerJobForm, { emptyJobForm } from '@/components/employer/EmployerJobForm';
 import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceContext';
 import type { AuthUser } from '@/lib/api/authTypes';
-import { buildJobRiskText, predictFakeJobFromText } from '@/lib/api/fakeJobApi';
 import {
   createJob,
   deleteJob,
@@ -29,6 +28,7 @@ const PAGE_SIZE = 8;
 const STATUS_FILTERS: { value: JobStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'All statuses' },
   { value: 'active', label: 'Active' },
+  { value: 'pending_review', label: 'Pending review' },
   { value: 'draft', label: 'Draft' },
   { value: 'closed', label: 'Closed' },
 ];
@@ -36,6 +36,7 @@ const STATUS_FILTERS: { value: JobStatus | 'all'; label: string }[] = [
 function statusStyles(status: string): { color: string; background: string } {
   if (status === 'active') return { color: '#2E7D32', background: '#E8F5E9' };
   if (status === 'draft') return { color: '#EF6C00', background: '#FFF3E0' };
+  if (status === 'pending_review') return { color: '#6A1B9A', background: '#F3E5F5' };
   return { color: '#C62828', background: '#FFEBEE' };
 }
 
@@ -214,7 +215,8 @@ function EmployerJobsContent({
 
   const handleCreateOrUpdate = async (
     payload: CreateJobPayload,
-    logoFile: File | null
+    logoFile: File | null,
+    posterFile: File | null
   ) => {
     const token = getStoredToken();
     if (!token) return;
@@ -229,19 +231,31 @@ function EmployerJobsContent({
     try {
       if (mode === 'edit' && editingJob) {
         if (!ensureJobInActiveWorkspace(editingJob)) return;
-        await updateJob(
+        const saved = await updateJob(
           token,
           editingJob.id,
           { ...payload, workspaceId: activeWorkspaceId },
-          logoFile
+          logoFile,
+          posterFile
         );
-        setMessage(`Updated “${payload.title}”.`);
-      } else {
-        await createJob(token, { ...payload, workspaceId: activeWorkspaceId }, logoFile);
         setMessage(
-          payload.status === 'draft'
-            ? `Saved “${payload.title}” as draft.`
-            : `Published “${payload.title}”.`
+          saved.status === 'pending_review'
+            ? `“${payload.title}” was held for admin review and is not visible to job seekers yet.`
+            : `Updated “${payload.title}”.`
+        );
+      } else {
+        const saved = await createJob(
+          token,
+          { ...payload, workspaceId: activeWorkspaceId },
+          logoFile,
+          posterFile
+        );
+        setMessage(
+          saved.status === 'pending_review'
+            ? `“${payload.title}” was held for admin review and is not visible to job seekers yet.`
+            : saved.status === 'draft'
+              ? `Saved “${payload.title}” as draft.`
+              : `Published “${payload.title}”.`
         );
       }
       closeForm();
@@ -262,46 +276,16 @@ function EmployerJobsContent({
     setError(null);
     setMessage(null);
 
-    if (status === 'active') {
-      try {
-        const text = buildJobRiskText({
-          title: job.title,
-          companyName: job.companyName,
-          location: job.location || '',
-          description: descriptionToText(job.description) || job.title,
-          requirements: listToMultiline(job.requirements),
-          skills: skillsToCsv(job.skills),
-        });
-        const risk = await predictFakeJobFromText(text);
-        const prediction = risk.prediction.toLowerCase();
-        if (prediction === 'fake' || prediction === 'suspicious') {
-          const proceed = window.confirm(
-            `${risk.message}\n\nPublish “${job.title}” anyway?`
-          );
-          if (!proceed) return;
-        } else {
-          setMessage(risk.message);
-        }
-      } catch (requestError: unknown) {
-        const proceed = window.confirm(
-          `${
-            requestError instanceof Error
-              ? requestError.message
-              : 'Fake-job check failed.'
-          }\n\nPublish without a completed risk check?`
-        );
-        if (!proceed) return;
-      }
-    }
-
     try {
-      await updateJob(token, job.id, { status, workspaceId: activeWorkspaceId });
+      const saved = await updateJob(token, job.id, { status, workspaceId: activeWorkspaceId });
       setMessage(
-        status === 'active'
-          ? `“${job.title}” is now active.`
-          : status === 'closed'
-            ? `“${job.title}” was closed.`
-            : `“${job.title}” moved to draft.`
+        saved.status === 'pending_review'
+          ? `“${job.title}” was held for admin review and is not visible to job seekers yet.`
+          : saved.status === 'active'
+            ? `“${job.title}” is now active.`
+            : saved.status === 'closed'
+              ? `“${job.title}” was closed.`
+              : `“${job.title}” moved to draft.`
       );
       await reload();
     } catch (requestError: unknown) {
@@ -382,6 +366,7 @@ function EmployerJobsContent({
                 companyNameOverride={activeWorkspace?.name}
                 initial={formInitial}
                 existingLogoUrl={editingJob?.companyLogoUri}
+                existingPosterUrl={editingJob?.posterImage}
                 submitLabel={mode === 'edit' ? 'Save changes' : 'Save job'}
                 saving={saving}
                 onCancel={closeForm}
@@ -479,8 +464,17 @@ function EmployerJobsContent({
                       className="flex flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6"
                     >
                       <div className="min-w-0 flex items-start gap-3">
-                        <div className="relative h-11 w-11 shrink-0">
-                          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-[#EEF0F8]">
+                        {job.posterImage ? (
+                          <div className="h-16 w-24 shrink-0 overflow-hidden rounded-xl bg-[#EEF0F8]">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={job.posterImage}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#EEF0F8]">
                             {job.companyLogoUri ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
@@ -500,15 +494,7 @@ function EmployerJobsContent({
                               </span>
                             )}
                           </div>
-                          {job.posterImage ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={job.posterImage}
-                              alt=""
-                              className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-white object-cover"
-                            />
-                          ) : null}
-                        </div>
+                        )}
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <p

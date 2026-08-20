@@ -1,11 +1,12 @@
 import Job, { JOB_MODES, JOB_TYPES, JOB_STATUSES } from "../model/jobModel.js";
 import Application from "../model/applicationModel.js";
 import SavedJob from "../model/savedJobModel.js";
-import { getFileUrl } from "../utils/cloudinaryHelper.js";
-import { formatJob, formatJobList } from "../utils/jobFormatter.js";
+import { getFileUrl, getUploadedFile } from "../utils/cloudinaryHelper.js";
+import { formatJob, formatJobList, formatModeratedJob } from "../utils/jobFormatter.js";
 import { normalizeJobCreateInput, normalizeJobUpdateInput } from "../utils/jobPayloadNormalizer.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
 import { publishEvent } from "../utils/publishEvent.js";
+import { createJobStatusMessage, runJobRiskGate, updateJobStatusMessage } from "../utils/jobRiskGate.js";
 import {
   assertHomeWorkspaceAccess,
   getOrCreateHomeWorkspace,
@@ -168,12 +169,10 @@ const getPosterType = (user) => {
   return null;
 };
 
-const resolvePosterImage = (user, fallback = null) => {
-  const avatar = typeof user?.avatar === "string" ? user.avatar.trim() : "";
-  if (avatar) return avatar;
-  const fromBody = typeof fallback === "string" ? fallback.trim() : "";
-  return fromBody || null;
-};
+const getJobUploadUrls = (req) => ({
+  logoUrl: getFileUrl(getUploadedFile(req, "logo")),
+  posterUrl: getFileUrl(getUploadedFile(req, "poster")),
+});
 
 const publishJobCreatedEvent = async (job) => {
   if (!job || String(job.status) !== "active") return false;
@@ -191,6 +190,35 @@ const publishJobCreatedEvent = async (job) => {
     type: job.type || "",
     mode: job.mode || "",
   });
+};
+
+const publishJobFlaggedEvent = async (job) => {
+  if (!job || String(job.moderationStatus) !== "flagged") return false;
+
+  return publishEvent(EVENT_TYPES.JOB_FLAGGED_FOR_REVIEW, {
+    jobId: String(job._id),
+    jobTitle: job.title || "",
+    companyName: job.companyName || "",
+    companyLogo: job.companyLogo || null,
+    posterName: job.posterName || "",
+    posterEmail: job.posterEmail || "",
+    postedBy: job.postedBy ? String(job.postedBy) : undefined,
+    prediction: job.riskCheck?.prediction || "unknown",
+    fakeProbability: job.riskCheck?.fakeProbability ?? null,
+    message: job.riskCheck?.message || "Job flagged for admin review.",
+  });
+};
+
+const attachRiskDecision = (target, risk, decision) => {
+  target.status = decision.status;
+  target.isVerified = decision.isVerified;
+  target.moderationStatus = decision.moderationStatus;
+  target.flagReasons = decision.flagReasons;
+  target.riskCheck = risk;
+  target.flaggedAt = decision.moderationStatus === "flagged" ? risk.checkedAt : null;
+  if (decision.moderationStatus !== "force_closed") {
+    target.closeReason = null;
+  }
 };
 
 // ============ CREATE JOB ============
@@ -220,7 +248,8 @@ export const createJob = async (req, res) => {
     body.companyName = homeWorkspace.name;
     body.companyLogo = homeWorkspace.logo || body.companyLogo || null;
 
-    const normalized = normalizeJobCreateInput(body, getFileUrl(req.file));
+    const { logoUrl, posterUrl } = getJobUploadUrls(req);
+    const normalized = normalizeJobCreateInput(body, logoUrl, posterUrl);
 
     if (!normalized.errors?.length) {
       if (!normalized.document) {
@@ -236,8 +265,16 @@ export const createJob = async (req, res) => {
         workspaceId: String(homeWorkspace._id),
         companyName: homeWorkspace.name,
         companyLogo: homeWorkspace.logo || normalized.document.companyLogo || null,
-        posterImage: resolvePosterImage(req.user, body.posterImage),
+        posterImage: posterUrl || normalized.document.posterImage || null,
+        posterName: req.user?.fullName || "",
+        posterEmail: req.user?.email || req.userEmail || "",
       };
+
+      const { risk, decision } = await runJobRiskGate(
+        document,
+        normalized.document.status
+      );
+      attachRiskDecision(document, risk, decision);
 
       const job = await Job.create({
         ...document,
@@ -247,13 +284,11 @@ export const createJob = async (req, res) => {
       if (job.status === "active") {
         void publishJobCreatedEvent(job);
       }
+      if (job.moderationStatus === "flagged") {
+        void publishJobFlaggedEvent(job);
+      }
 
-      const message =
-        document.status === "draft"
-          ? "Job submitted for review"
-          : "Job created successfully";
-
-      return sendJob(res, job, message, 201);
+      return sendJob(res, job, createJobStatusMessage(job.status), 201);
     }
 
     return res.status(400).json({
@@ -453,7 +488,8 @@ export const getJobById = async (req, res) => {
     }
 
     const isOwner = req.userId && job.postedBy === req.userId;
-    if (job.status !== "active" && !isOwner) {
+    const isAdmin = req.user?.accountType === "superadmin";
+    if (job.status !== "active" && !isOwner && !isAdmin) {
       return res.status(404).json({
         success: false,
         message: "Job not found",
@@ -516,7 +552,8 @@ export const updateJob = async (req, res) => {
       }
     }
 
-    const normalized = normalizeJobUpdateInput(body, getFileUrl(req.file), job);
+    const { logoUrl, posterUrl } = getJobUploadUrls(req);
+    const normalized = normalizeJobUpdateInput(body, logoUrl, job, posterUrl);
 
     if (normalized.errors?.length) {
       return res.status(400).json({
@@ -527,6 +564,7 @@ export const updateJob = async (req, res) => {
     }
 
     const previousStatus = job.status;
+    const previousModeration = job.moderationStatus;
     Object.assign(job, normalized.patch);
 
     if (workspace) {
@@ -539,16 +577,31 @@ export const updateJob = async (req, res) => {
       }
     }
 
-    job.posterImage = resolvePosterImage(req.user, job.posterImage);
+    if (req.user?.fullName) job.posterName = req.user.fullName;
+    if (req.user?.email) job.posterEmail = req.user.email;
+
+    const requestedStatus = job.status;
+    const shouldScan =
+      requestedStatus === "active" ||
+      requestedStatus === "pending_review" ||
+      previousStatus === "pending_review" ||
+      previousModeration === "flagged";
+
+    if (shouldScan) {
+      const { risk, decision } = await runJobRiskGate(job, requestedStatus);
+      attachRiskDecision(job, risk, decision);
+    }
 
     await job.save();
 
-    // When a draft/closed job becomes active, notify skill-matched jobseekers.
     if (previousStatus !== "active" && job.status === "active") {
       void publishJobCreatedEvent(job);
     }
+    if (previousModeration !== "flagged" && job.moderationStatus === "flagged") {
+      void publishJobFlaggedEvent(job);
+    }
 
-    sendJob(res, job, "Job updated successfully");
+    sendJob(res, job, updateJobStatusMessage(job.status));
   } catch (error) {
     console.error("Update job error:", error);
 
@@ -611,6 +664,142 @@ export const notifyJobSkillMatches = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error queueing skill-match notifications",
+      error: error.message,
+    });
+  }
+};
+
+// ============ ADMIN MODERATION ============
+export const listModerationJobs = async (req, res) => {
+  try {
+    const requested = String(req.query.moderationStatus || "").trim();
+    const filter = {};
+    if (["flagged", "cleared", "force_closed"].includes(requested)) {
+      filter.moderationStatus = requested;
+    } else {
+      filter.moderationStatus = { $in: ["flagged", "cleared", "force_closed"] };
+    }
+
+    const q = req.query.q?.trim();
+    if (q) {
+      filter.$or = [
+        { title: { $regex: q, $options: "i" } },
+        { companyName: { $regex: q, $options: "i" } },
+        { posterName: { $regex: q, $options: "i" } },
+        { posterEmail: { $regex: q, $options: "i" } },
+        { location: { $regex: q, $options: "i" } },
+      ];
+    }
+
+    const { page, limit, skip } = parsePagination(req.query);
+    const [jobs, total, flagged, cleared, forceClosed] = await Promise.all([
+      Job.find(filter).sort({ flaggedAt: -1, postedAt: -1 }).skip(skip).limit(limit),
+      Job.countDocuments(filter),
+      Job.countDocuments({ moderationStatus: "flagged" }),
+      Job.countDocuments({ moderationStatus: "cleared" }),
+      Job.countDocuments({ moderationStatus: "force_closed" }),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: "Moderation jobs fetched successfully",
+      jobs: jobs.map((job) => formatModeratedJob(job)),
+      counts: {
+        total: flagged + cleared + forceClosed,
+        flagged,
+        cleared,
+        forceClosed,
+      },
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit) || 0,
+      },
+    });
+  } catch (error) {
+    console.error("List moderation jobs error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching jobs for moderation",
+      error: error.message,
+    });
+  }
+};
+
+export const moderateJob = async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!isValidObjectId(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid job id",
+      });
+    }
+
+    const job = await Job.findById(id);
+    if (!job) {
+      return res.status(404).json({
+        success: false,
+        message: "Job not found",
+      });
+    }
+
+    const action = String(req.body?.action || "").trim().toLowerCase();
+    if (action !== "approve" && action !== "reject") {
+      return res.status(400).json({
+        success: false,
+        message: "Action must be approve or reject",
+      });
+    }
+
+    if (job.moderationStatus !== "flagged") {
+      return res.status(400).json({
+        success: false,
+        message: "Only flagged jobs can be moderated",
+      });
+    }
+
+    if (action === "approve") {
+      job.status = "active";
+      job.isVerified = true;
+      job.moderationStatus = "cleared";
+      job.closeReason = null;
+    } else {
+      const closeReason = String(req.body?.closeReason || "").trim();
+      if (!closeReason) {
+        return res.status(400).json({
+          success: false,
+          message: "Add a force-close reason before rejecting this listing",
+        });
+      }
+      job.status = "closed";
+      job.isVerified = false;
+      job.moderationStatus = "force_closed";
+      job.closeReason = closeReason;
+    }
+
+    job.moderatedAt = new Date();
+    job.moderatedBy = req.userId;
+    await job.save();
+
+    if (action === "approve") {
+      void publishJobCreatedEvent(job);
+    }
+
+    res.status(200).json({
+      success: true,
+      message:
+        action === "approve"
+          ? "Job cleared and published to job seekers"
+          : "Job force-closed and hidden from job seekers",
+      job: formatModeratedJob(job),
+    });
+  } catch (error) {
+    console.error("Moderate job error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error moderating job",
       error: error.message,
     });
   }

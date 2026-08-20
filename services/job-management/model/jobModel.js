@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 
 const JOB_MODES = ["On-Site", "Remote", "Hybrid"];
 const JOB_TYPES = ["Full-Time", "Part-Time", "Contract", "Internship"];
-const JOB_STATUSES = ["active", "closed", "draft"];
+const JOB_STATUSES = ["active", "closed", "draft", "pending_review"];
+const JOB_MODERATION_STATUSES = ["none", "flagged", "cleared", "force_closed"];
 
 const contactSchema = new mongoose.Schema(
   {
@@ -10,6 +11,18 @@ const contactSchema = new mongoose.Schema(
     email: { type: String, trim: true, default: "" },
     phone: { type: String, trim: true, default: "" },
     website: { type: String, trim: true, default: "" },
+  },
+  { _id: false }
+);
+
+const riskCheckSchema = new mongoose.Schema(
+  {
+    prediction: { type: String, trim: true, default: null },
+    fakeProbability: { type: Number, default: null, min: 0, max: 1 },
+    legitimateProbability: { type: Number, default: null, min: 0, max: 1 },
+    confidence: { type: Number, default: null },
+    message: { type: String, trim: true, default: "" },
+    checkedAt: { type: Date, default: null },
   },
   { _id: false }
 );
@@ -130,6 +143,16 @@ const jobSchema = new mongoose.Schema(
       default: "recruiter",
       index: true,
     },
+    posterName: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+    posterEmail: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     postedAt: {
       type: Date,
       default: Date.now,
@@ -153,6 +176,37 @@ const jobSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    riskCheck: {
+      type: riskCheckSchema,
+      default: () => ({}),
+    },
+    moderationStatus: {
+      type: String,
+      enum: JOB_MODERATION_STATUSES,
+      default: "none",
+      index: true,
+    },
+    flagReasons: {
+      type: [String],
+      default: [],
+    },
+    flaggedAt: {
+      type: Date,
+      default: null,
+    },
+    moderatedAt: {
+      type: Date,
+      default: null,
+    },
+    moderatedBy: {
+      type: String,
+      default: null,
+    },
+    closeReason: {
+      type: String,
+      trim: true,
+      default: null,
+    },
   },
   { timestamps: true }
 );
@@ -170,4 +224,4 @@ jobSchema.pre("validate", function validateSalaryRange() {
 const Job = mongoose.model("Job", jobSchema);
 
 export default Job;
-export { JOB_MODES, JOB_TYPES, JOB_STATUSES };
+export { JOB_MODES, JOB_TYPES, JOB_STATUSES, JOB_MODERATION_STATUSES };

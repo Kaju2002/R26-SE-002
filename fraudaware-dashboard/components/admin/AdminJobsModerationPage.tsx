@@ -1,13 +1,14 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import AdminShell from '@/components/admin/AdminShell';
-import { MOCK_MODERATED_JOBS } from '@/lib/admin/mockModeratedJobs';
-import type {
-  JobFlagReason,
-  JobModerationStatus,
-  ModeratedJob,
-} from '@/lib/admin/jobModerationTypes';
+import type { JobModerationStatus } from '@/lib/admin/jobModerationTypes';
+import {
+  listModerationJobs,
+  moderateJob,
+  type ModeratedJobRecord,
+} from '@/lib/api/jobApi';
+import { getStoredToken } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
 
 type StatusFilter = 'all' | JobModerationStatus;
@@ -19,7 +20,7 @@ const FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
   { value: 'force_closed', label: 'Force-closed' },
 ];
 
-const FLAG_LABELS: Record<JobFlagReason, string> = {
+const FLAG_LABELS: Record<string, string> = {
   fake_job_model: 'Fake-job model',
   user_report: 'User report',
   payment_request: 'Payment request',
@@ -65,104 +66,110 @@ function moderationStyles(status: JobModerationStatus): {
 }
 
 export default function AdminJobsModerationPage() {
-  const [jobs, setJobs] = useState<ModeratedJob[]>(MOCK_MODERATED_JOBS);
+  const [jobs, setJobs] = useState<ModeratedJobRecord[]>([]);
+  const [counts, setCounts] = useState({
+    total: 0,
+    flagged: 0,
+    cleared: 0,
+    forceClosed: 0,
+  });
+  const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<StatusFilter>('flagged');
-  const [selectedId, setSelectedId] = useState<string | null>(
-    MOCK_MODERATED_JOBS.find((job) => job.moderationStatus === 'flagged')?.id ??
-      MOCK_MODERATED_JOBS[0]?.id ??
-      null
-  );
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [closeReason, setCloseReason] = useState('');
   const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const counts = useMemo(
-    () => ({
-      total: jobs.length,
-      flagged: jobs.filter((job) => job.moderationStatus === 'flagged').length,
-      cleared: jobs.filter((job) => job.moderationStatus === 'cleared').length,
-      forceClosed: jobs.filter((job) => job.moderationStatus === 'force_closed')
-        .length,
-    }),
-    [jobs]
-  );
+  const reload = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) {
+      setError('Your session has expired. Please sign in again.');
+      setLoading(false);
+      return;
+    }
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return jobs.filter((job) => {
-      if (filter !== 'all' && job.moderationStatus !== filter) return false;
-      if (!q) return true;
-      const haystack = [
-        job.title,
-        job.companyName,
-        job.posterName,
-        job.posterEmail,
-        job.location,
-        ...job.flagReasons.map((reason) => FLAG_LABELS[reason]),
-      ]
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [jobs, query, filter]);
+    setLoading(true);
+    try {
+      const result = await listModerationJobs(token, {
+        moderationStatus: filter,
+        q: query,
+        limit: 50,
+      });
+      setJobs(result.jobs);
+      setCounts(result.counts);
+      setError(null);
+      setSelectedId((current) => {
+        if (current && result.jobs.some((job) => job.id === current)) return current;
+        return result.jobs[0]?.id ?? null;
+      });
+    } catch (requestError: unknown) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Could not load jobs for moderation.'
+      );
+    } finally {
+      setLoading(false);
+    }
+  }, [filter, query]);
 
-  const selected =
-    filtered.find((job) => job.id === selectedId) ?? filtered[0] ?? null;
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
-  const clearListing = (id: string) => {
+  const selected = jobs.find((job) => job.id === selectedId) ?? jobs[0] ?? null;
+
+  const clearListing = async (id: string) => {
+    const token = getStoredToken();
     const target = jobs.find((job) => job.id === id);
-    if (!target || target.moderationStatus !== 'flagged') return;
+    if (!token || !target || target.moderationStatus !== 'flagged') return;
 
-    const nextFlagged = jobs.find(
-      (job) => job.id !== id && job.moderationStatus === 'flagged'
-    );
-
-    setJobs((prev) =>
-      prev.map((job) =>
-        job.id === id
-          ? {
-              ...job,
-              moderationStatus: 'cleared',
-              reviewedAt: new Date().toISOString(),
-              closeReason: null,
-            }
-          : job
-      )
-    );
-    setCloseReason('');
-    setMessage(`“${target.title}” was cleared and remains published.`);
-    setSelectedId(nextFlagged?.id ?? id);
+    setSaving(true);
+    setMessage(null);
+    setError(null);
+    try {
+      await moderateJob(token, id, 'approve');
+      setMessage(`“${target.title}” was cleared and published to job seekers.`);
+      await reload();
+    } catch (requestError: unknown) {
+      setError(
+        requestError instanceof Error ? requestError.message : 'Could not clear this listing.'
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const forceCloseListing = (id: string) => {
+  const forceCloseListing = async (id: string) => {
+    const token = getStoredToken();
     const target = jobs.find((job) => job.id === id);
-    if (!target || target.moderationStatus !== 'flagged') return;
+    if (!token || !target || target.moderationStatus !== 'flagged') return;
 
     if (!closeReason.trim()) {
       setMessage('Add a force-close reason before closing this listing.');
       return;
     }
 
-    const nextFlagged = jobs.find(
-      (job) => job.id !== id && job.moderationStatus === 'flagged'
-    );
-
-    setJobs((prev) =>
-      prev.map((job) =>
-        job.id === id
-          ? {
-              ...job,
-              listingStatus: 'closed',
-              moderationStatus: 'force_closed',
-              reviewedAt: new Date().toISOString(),
-              closeReason: closeReason.trim(),
-            }
-          : job
-      )
-    );
-    setCloseReason('');
-    setMessage(`“${target.title}” was force-closed and removed from public listings.`);
-    setSelectedId(nextFlagged?.id ?? id);
+    setSaving(true);
+    setMessage(null);
+    setError(null);
+    try {
+      await moderateJob(token, id, 'reject', closeReason.trim());
+      setCloseReason('');
+      setMessage(`“${target.title}” was force-closed and hidden from job seekers.`);
+      await reload();
+    } catch (requestError: unknown) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : 'Could not force-close this listing.'
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -187,17 +194,23 @@ export default function AdminJobsModerationPage() {
               className="mt-1 text-sm"
               style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
             >
-              Review model scores and user reports, then clear a listing or
-              force-close it. Uses mock data for now.
+              Review fake-job model results, then publish a listing to job seekers
+              or force-close it. Flagged posts stay hidden on mobile until you act.
             </p>
           </div>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-[1fr_200px]">
+          <form
+            className="mt-5 grid gap-3 md:grid-cols-[1fr_200px]"
+            onSubmit={(event) => {
+              event.preventDefault();
+              setQuery(queryInput.trim());
+            }}
+          >
             <input
               type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search title, company, poster, flag reason…"
+              value={queryInput}
+              onChange={(event) => setQueryInput(event.target.value)}
+              placeholder="Search title, company, poster…"
               className="w-full rounded-xl border border-[#E5E7EE] bg-[#F7F8FE] px-3 py-2.5 text-sm outline-none transition focus:border-[#202871]"
               style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
             />
@@ -213,7 +226,16 @@ export default function AdminJobsModerationPage() {
                 </option>
               ))}
             </select>
-          </div>
+          </form>
+
+          {error ? (
+            <div
+              className="mt-4 rounded-xl border border-[#FFCDD2] bg-[#FFEBEE] px-4 py-3 text-sm text-[#C62828]"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {error}
+            </div>
+          ) : null}
 
           {message ? (
             <div
@@ -227,7 +249,14 @@ export default function AdminJobsModerationPage() {
 
         <div className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
           <div className="overflow-hidden rounded-2xl border border-[#EEF0F8] bg-white shadow-sm">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <p
+                className="px-5 py-10 text-center text-sm"
+                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+              >
+                Loading jobs...
+              </p>
+            ) : jobs.length === 0 ? (
               <p
                 className="px-5 py-10 text-center text-sm"
                 style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
@@ -236,7 +265,7 @@ export default function AdminJobsModerationPage() {
               </p>
             ) : (
               <ul className="divide-y divide-[#EEF0F8]">
-                {filtered.map((job) => {
+                {jobs.map((job) => {
                   const active = selected?.id === job.id;
                   const score = scoreStyles(job.fakeJobScore);
                   return (
@@ -314,9 +343,10 @@ export default function AdminJobsModerationPage() {
               <JobDetail
                 job={selected}
                 closeReason={closeReason}
+                saving={saving}
                 onCloseReasonChange={setCloseReason}
-                onClear={() => clearListing(selected.id)}
-                onForceClose={() => forceCloseListing(selected.id)}
+                onClear={() => void clearListing(selected.id)}
+                onForceClose={() => void forceCloseListing(selected.id)}
               />
             )}
           </div>
@@ -329,12 +359,14 @@ export default function AdminJobsModerationPage() {
 function JobDetail({
   job,
   closeReason,
+  saving,
   onCloseReasonChange,
   onClear,
   onForceClose,
 }: {
-  job: ModeratedJob;
+  job: ModeratedJobRecord;
   closeReason: string;
+  saving: boolean;
   onCloseReasonChange: (value: string) => void;
   onClear: () => void;
   onForceClose: () => void;
@@ -360,17 +392,26 @@ function JobDetail({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <ModerationBadge status={job.moderationStatus} />
+          <ModerationBadge status={job.moderationStatus as JobModerationStatus} />
           <span
             className="rounded-full px-2.5 py-1 text-xs font-semibold capitalize"
             style={{
-              color: job.listingStatus === 'active' ? '#2E7D32' : '#C62828',
+              color:
+                job.listingStatus === 'active'
+                  ? '#2E7D32'
+                  : job.listingStatus === 'pending_review'
+                    ? '#EF6C00'
+                    : '#C62828',
               backgroundColor:
-                job.listingStatus === 'active' ? '#E8F5E9' : '#FFEBEE',
+                job.listingStatus === 'active'
+                  ? '#E8F5E9'
+                  : job.listingStatus === 'pending_review'
+                    ? '#FFF3E0'
+                    : '#FFEBEE',
               fontFamily: 'var(--font-poppins)',
             }}
           >
-            Listing {job.listingStatus}
+            Listing {job.listingStatus.replace('_', ' ')}
           </span>
         </div>
       </div>
@@ -381,6 +422,16 @@ function JobDetail({
       >
         {job.description}
       </p>
+
+      {job.riskMessage ? (
+        <p
+          className="rounded-xl border border-[#FFE0B2] bg-[#FFF8E1] px-4 py-3 text-sm"
+          style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
+        >
+          {job.riskPrediction ? `${job.riskPrediction}: ` : ''}
+          {job.riskMessage}
+        </p>
+      ) : null}
 
       <dl className="grid gap-3 sm:grid-cols-2">
         <DetailRow label="Salary" value={job.salaryLabel} />
@@ -440,7 +491,7 @@ function JobDetail({
               className="rounded-full border border-[#E5E7EE] bg-[#F7F8FE] px-3 py-1 text-xs font-medium"
               style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
             >
-              {FLAG_LABELS[reason]}
+              {FLAG_LABELS[reason] || reason}
             </span>
           ))}
         </div>
@@ -484,16 +535,18 @@ function JobDetail({
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
+              disabled={saving}
               onClick={onClear}
-              className="rounded-xl bg-[#2E7D32] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+              className="rounded-xl bg-[#2E7D32] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-70"
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              Clear flag
+              {saving ? 'Saving…' : 'Approve & publish'}
             </button>
             <button
               type="button"
+              disabled={saving}
               onClick={onForceClose}
-              className="rounded-xl border border-[#FFCDD2] px-5 py-2.5 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE]"
+              className="rounded-xl border border-[#FFCDD2] px-5 py-2.5 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE] disabled:opacity-70"
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
               Force-close listing
@@ -524,8 +577,8 @@ function StatCard({ label, value }: { label: string; value: number }) {
   );
 }
 
-function ModerationBadge({ status }: { status: JobModerationStatus }) {
-  const styles = moderationStyles(status);
+function ModerationBadge({ status }: { status: string }) {
+  const styles = moderationStyles(status as JobModerationStatus);
   return (
     <span
       className="inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold"

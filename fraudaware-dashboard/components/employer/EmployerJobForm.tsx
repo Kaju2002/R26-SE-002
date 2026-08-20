@@ -1,18 +1,13 @@
 'use client';
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import type { AuthUser } from '@/lib/api/authTypes';
-import {
-  buildJobRiskText,
-  predictFakeJobFromText,
-  type FakeJobPrediction,
-} from '@/lib/api/fakeJobApi';
 import type { CreateJobPayload, JobStatus } from '@/lib/api/jobApi';
 import { colors } from '@/lib/theme/colors';
 
 const MODES = ['On-Site', 'Remote', 'Hybrid'] as const;
 const TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Internship'] as const;
-const STATUSES: JobStatus[] = ['draft', 'active', 'closed'];
+const STATUSES: JobStatus[] = ['draft', 'active', 'closed', 'pending_review'];
 
 export function emptyJobForm(companyName = ''): CreateJobPayload {
   return {
@@ -43,10 +38,15 @@ type Props = {
   companyNameOverride?: string;
   initial: CreateJobPayload;
   existingLogoUrl?: string | null;
+  existingPosterUrl?: string | null;
   submitLabel: string;
   saving: boolean;
   onCancel: () => void;
-  onSubmit: (payload: CreateJobPayload, logoFile: File | null) => Promise<void>;
+  onSubmit: (
+    payload: CreateJobPayload,
+    logoFile: File | null,
+    posterFile: File | null
+  ) => Promise<void>;
 };
 
 export default function EmployerJobForm({
@@ -55,6 +55,7 @@ export default function EmployerJobForm({
   companyNameOverride,
   initial,
   existingLogoUrl,
+  existingPosterUrl,
   submitLabel,
   saving,
   onCancel,
@@ -63,12 +64,12 @@ export default function EmployerJobForm({
   const [form, setForm] = useState<CreateJobPayload>(initial);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(existingLogoUrl ?? null);
-  const [risk, setRisk] = useState<FakeJobPrediction | null>(null);
-  const [riskError, setRiskError] = useState<string | null>(null);
-  const [checkingRisk, setCheckingRisk] = useState(false);
-  const [riskBypass, setRiskBypass] = useState(false);
-  const [localError, setLocalError] = useState<string | null>(null);
+  const [posterFile, setPosterFile] = useState<File | null>(null);
+  const [posterPreview, setPosterPreview] = useState<string | null>(
+    existingPosterUrl || initial.posterImage || null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const posterInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -77,15 +78,13 @@ export default function EmployerJobForm({
       setForm(initial);
       setLogoFile(null);
       setLogoPreview(existingLogoUrl ?? null);
-      setRisk(null);
-      setRiskError(null);
-      setRiskBypass(false);
-      setLocalError(null);
+      setPosterFile(null);
+      setPosterPreview(existingPosterUrl || initial.posterImage || null);
     });
     return () => {
       cancelled = true;
     };
-  }, [initial, existingLogoUrl]);
+  }, [initial, existingLogoUrl, existingPosterUrl]);
 
   useEffect(() => {
     if (!logoFile) return;
@@ -100,55 +99,26 @@ export default function EmployerJobForm({
     };
   }, [logoFile]);
 
+  useEffect(() => {
+    if (!posterFile) return;
+    const url = URL.createObjectURL(posterFile);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setPosterPreview(url);
+    });
+    return () => {
+      cancelled = true;
+      URL.revokeObjectURL(url);
+    };
+  }, [posterFile]);
+
   const companyLocked = Boolean(companyNameOverride) || isCompany;
   const companyName = companyLocked
     ? companyNameOverride || user?.company?.name || form.companyName || ''
     : form.companyName || '';
 
-  const riskTone = useMemo(() => {
-    const prediction = risk?.prediction?.toLowerCase();
-    if (prediction === 'fake') {
-      return { color: '#C62828', background: '#FFEBEE', label: 'High risk' };
-    }
-    if (prediction === 'suspicious') {
-      return { color: '#EF6C00', background: '#FFF3E0', label: 'Medium risk' };
-    }
-    if (prediction === 'legitimate') {
-      return { color: '#2E7D32', background: '#E8F5E9', label: 'Low risk' };
-    }
-    return null;
-  }, [risk]);
-
-  const runRiskCheck = async (): Promise<FakeJobPrediction | null> => {
-    setCheckingRisk(true);
-    setRiskError(null);
-    try {
-      const text = buildJobRiskText({
-        title: form.title,
-        companyName,
-        location: form.location,
-        description: form.description,
-        requirements: form.requirements,
-        skills: form.skills,
-      });
-      const result = await predictFakeJobFromText(text);
-      setRisk(result);
-      setRiskBypass(false);
-      return result;
-    } catch (error: unknown) {
-      const message =
-        error instanceof Error ? error.message : 'Could not run fake-job risk check.';
-      setRiskError(message);
-      setRisk(null);
-      return null;
-    } finally {
-      setCheckingRisk(false);
-    }
-  };
-
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
-    setLocalError(null);
 
     const payload: CreateJobPayload = {
       ...form,
@@ -158,35 +128,10 @@ export default function EmployerJobForm({
       skills: form.skills?.trim() || '',
       benefits: form.benefits?.trim() || '',
       about: form.about?.trim() || '',
-      posterImage: user?.avatar?.trim() || form.posterImage?.trim() || undefined,
+      posterImage: form.posterImage?.trim() || '',
     };
 
-    const publishing = payload.status === 'active';
-    if (publishing) {
-      const result = risk ?? (await runRiskCheck());
-      if (!result) {
-        setLocalError(
-          'Fake-job risk check is required before publishing. Save as draft, or retry the check.'
-        );
-        return;
-      }
-
-      const prediction = result.prediction.toLowerCase();
-      if (prediction === 'fake' && !riskBypass) {
-        setLocalError(
-          'This posting looks fake. Save as draft, revise the copy, or confirm publish anyway.'
-        );
-        return;
-      }
-      if (prediction === 'suspicious' && !riskBypass) {
-        setLocalError(
-          'This posting looks suspicious. Review the risk result, then confirm publish anyway if you still want to proceed.'
-        );
-        return;
-      }
-    }
-
-    await onSubmit(payload, logoFile);
+    await onSubmit(payload, logoFile, posterFile);
   };
 
   return (
@@ -386,112 +331,73 @@ export default function EmployerJobForm({
           className="mb-2 text-sm font-medium"
           style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
         >
-          Poster photo
+          Job poster
         </p>
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-[#E5E7EE] bg-[#F7F8FE]">
-            {user?.avatar ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+          <div className="flex h-36 w-full max-w-sm items-center justify-center overflow-hidden rounded-xl border border-[#E5E7EE] bg-[#F7F8FE]">
+            {posterPreview ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={user.avatar}
-                alt=""
-                className="h-full w-full object-cover"
-              />
+              <img src={posterPreview} alt="" className="h-full w-full object-cover" />
             ) : (
               <span
                 className="text-xs font-semibold"
                 style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
               >
-                {(user?.firstName || user?.fullName || 'P').slice(0, 1).toUpperCase()}
+                Poster
               </span>
             )}
           </div>
-          <p
-            className="max-w-sm text-xs leading-relaxed"
-            style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-          >
-            Saved from your profile photo when you create or update this job
-            {user?.fullName ? ` (${user.fullName})` : ''}. Change it on your profile.
-          </p>
-        </div>
-      </div>
-
-      <div className="rounded-xl border border-[#EEF0F8] bg-[#F7F8FE] p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => posterInputRef.current?.click()}
+                className="rounded-xl border border-[#E5E7EE] px-4 py-2 text-sm font-semibold"
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                Upload poster
+              </button>
+              {posterFile || posterPreview ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPosterFile(null);
+                    setPosterPreview(null);
+                    setForm((prev) => ({ ...prev, posterImage: '' }));
+                    if (posterInputRef.current) posterInputRef.current.value = '';
+                  }}
+                  className="rounded-xl border border-[#E5E7EE] px-4 py-2 text-sm font-semibold text-[#C62828]"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  Remove
+                </button>
+              ) : null}
+            </div>
             <p
-              className="text-sm font-semibold"
-              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              className="max-w-sm text-xs leading-relaxed"
+              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
             >
-              Fake-job risk check
-            </p>
-            <p
-              className="mt-1 text-xs"
-              style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
-            >
-              Required before publishing as active. Draft saves skip this gate.
+              Artwork for this job listing (banner or flyer). This is not your
+              profile photo or company logo.
             </p>
           </div>
-          <button
-            type="button"
-            disabled={checkingRisk || saving}
-            onClick={() => void runRiskCheck()}
-            className="rounded-xl border border-[#E5E7EE] bg-white px-4 py-2 text-sm font-semibold disabled:opacity-70"
-            style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-          >
-            {checkingRisk ? 'Checking…' : 'Run risk check'}
-          </button>
-        </div>
-
-        {risk && riskTone ? (
-          <div
-            className="mt-3 rounded-xl px-3 py-3 text-sm"
-            style={{
-              backgroundColor: riskTone.background,
-              color: riskTone.color,
-              fontFamily: 'var(--font-poppins)',
+          <input
+            ref={posterInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0] ?? null;
+              setPosterFile(file);
             }}
-          >
-            <p className="font-semibold">
-              {riskTone.label} · {risk.prediction} ·{' '}
-              {Math.round(risk.fake_probability * 100)}% fake probability
-            </p>
-            <p className="mt-1 text-xs opacity-90">{risk.message}</p>
-            {(risk.prediction.toLowerCase() === 'fake' ||
-              risk.prediction.toLowerCase() === 'suspicious') && (
-              <label className="mt-3 flex items-start gap-2 text-xs font-medium">
-                <input
-                  type="checkbox"
-                  checked={riskBypass}
-                  onChange={(event) => setRiskBypass(event.target.checked)}
-                  className="mt-0.5"
-                />
-                I reviewed this result and still want to publish as active
-              </label>
-            )}
-          </div>
-        ) : null}
-
-        {riskError ? (
-          <p
-            className="mt-3 text-sm text-[#C62828]"
-            style={{ fontFamily: 'var(--font-poppins)' }}
-          >
-            {riskError}
-          </p>
-        ) : null}
+          />
+        </div>
       </div>
-
-      {localError ? (
-        <p className="text-sm text-[#C62828]" style={{ fontFamily: 'var(--font-poppins)' }}>
-          {localError}
-        </p>
-      ) : null}
 
       <div className="flex flex-wrap gap-3">
         <button
           type="submit"
-          disabled={saving || checkingRisk}
+          disabled={saving}
           className="rounded-xl bg-[#202871] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-70"
           style={{ fontFamily: 'var(--font-poppins)' }}
         >

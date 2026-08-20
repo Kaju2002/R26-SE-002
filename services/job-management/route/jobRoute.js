@@ -2,6 +2,7 @@ import express from "express";
 import {
   authMiddleware,
   optionalAuthMiddleware,
+  requireSuperAdmin,
 } from "../middleware/authMiddleware.js";
 import { optionalJobLogoUpload } from "../middleware/optionalJobLogoUpload.js";
 import { optionalResumeUpload } from "../middleware/optionalResumeUpload.js";
@@ -21,6 +22,8 @@ import {
   getJobsByRecruiter,
   getMyJobs,
   listJobs,
+  listModerationJobs,
+  moderateJob,
   notifyJobSkillMatches,
   updateJob,
 } from "../controller/jobController.js";
@@ -39,6 +42,13 @@ const router = express.Router();
 // Specific paths before /:id
 router.get("/me/ping", authMiddleware, authPing);
 router.get("/mine", authMiddleware, getMyJobs);
+router.get("/moderation", authMiddleware, requireSuperAdmin, listModerationJobs);
+router.patch(
+  "/:id/moderation",
+  authMiddleware,
+  requireSuperAdmin,
+  moderateJob
+);
 router.get("/workspaces", authMiddleware, listMyWorkspaces);
 router.get("/workspaces/:workspaceId", authMiddleware, getMyWorkspace);
 router.get("/saved", authMiddleware, getSavedJobs);

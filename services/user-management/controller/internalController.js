@@ -102,3 +102,49 @@ export const matchJobseekersBySkills = async (req, res) => {
     });
   }
 };
+
+const assertInternalKey = (req, res) => {
+  const expected = process.env.INTERNAL_SERVICE_KEY?.trim();
+  const provided = String(req.headers["x-internal-service-key"] || "").trim();
+  if (!expected || provided !== expected) {
+    res.status(401).json({
+      success: false,
+      message: "Unauthorized internal request",
+    });
+    return false;
+  }
+  return true;
+};
+
+/**
+ * Internal: list active superadmin accounts so other services can notify them.
+ */
+export const listSuperadmins = async (req, res) => {
+  try {
+    if (!assertInternalKey(req, res)) return;
+
+    const admins = await User.find({
+      accountType: "superadmin",
+      accountStatus: "active",
+    })
+      .select("_id email firstName lastName")
+      .lean();
+
+    return res.status(200).json({
+      success: true,
+      message: "Superadmins fetched",
+      users: admins.map((user) => ({
+        id: String(user._id),
+        email: user.email || "",
+        fullName: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+      })),
+    });
+  } catch (error) {
+    console.error("listSuperadmins error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error listing superadmins",
+      error: error.message,
+    });
+  }
+};

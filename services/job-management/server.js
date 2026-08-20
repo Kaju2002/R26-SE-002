@@ -50,6 +50,8 @@ app.get("/", (req, res) => {
       saveJob: "POST /api/jobs/saved",
       unsaveJob: "DELETE /api/jobs/saved/:jobId",
       applyToJob: "POST /api/jobs/:id/apply",
+      moderationList: "GET /api/jobs/moderation (superadmin)",
+      moderateJob: "PATCH /api/jobs/:id/moderation (superadmin)",
     },
   });
 });

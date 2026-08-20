@@ -107,7 +107,11 @@ const parseSalaryPair = (body) => {
 /**
  * Normalize create-job input from PostJobForm (JSON or multipart fields).
  */
-export const normalizeJobCreateInput = (body, uploadedLogoUrl = null) => {
+export const normalizeJobCreateInput = (
+  body,
+  uploadedLogoUrl = null,
+  uploadedPosterUrl = null
+) => {
   const data = body && typeof body === "object" ? body : {};
   const errors = [];
   const type = data.type || data.jobType;
@@ -149,6 +153,10 @@ export const normalizeJobCreateInput = (body, uploadedLogoUrl = null) => {
   const perksSource = data.perksLines ?? data.perks;
   const companyLogo =
     uploadedLogoUrl || data.companyLogo?.trim() || data.logoUri?.trim() || null;
+  const posterImage =
+    uploadedPosterUrl ||
+    (typeof data.posterImage === "string" ? data.posterImage.trim() : "") ||
+    null;
 
   return {
     errors: [],
@@ -157,6 +165,7 @@ export const normalizeJobCreateInput = (body, uploadedLogoUrl = null) => {
       title,
       companyName,
       companyLogo,
+      posterImage,
       location,
       mode,
       type,
@@ -186,7 +195,12 @@ const hasField = (data, key) =>
 /**
  * Normalize partial update input for job owner edits.
  */
-export const normalizeJobUpdateInput = (body, uploadedLogoUrl = null, existingJob) => {
+export const normalizeJobUpdateInput = (
+  body,
+  uploadedLogoUrl = null,
+  existingJob,
+  uploadedPosterUrl = null
+) => {
   const data = body && typeof body === "object" ? body : {};
   const errors = [];
   const patch = {};
@@ -309,6 +323,14 @@ export const normalizeJobUpdateInput = (body, uploadedLogoUrl = null, existingJo
     patch.companyLogo = uploadedLogoUrl;
   } else if (hasField(data, "companyLogo") || hasField(data, "logoUri")) {
     patch.companyLogo = data.companyLogo?.trim() || data.logoUri?.trim() || null;
+  }
+
+  if (uploadedPosterUrl) {
+    patch.posterImage = uploadedPosterUrl;
+  } else if (hasField(data, "posterImage")) {
+    const nextPoster =
+      typeof data.posterImage === "string" ? data.posterImage.trim() : "";
+    patch.posterImage = nextPoster || null;
   }
 
   if (errors.length) {

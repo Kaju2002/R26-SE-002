@@ -2,17 +2,18 @@ import multer from "multer";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import cloudinary from "./cloudinary.js";
 
-const logoStorage = new CloudinaryStorage({
+const jobImageStorage = new CloudinaryStorage({
   cloudinary,
   params: {
-    folder: "fraudaware/jobs/logos",
+    folder: (req, file) =>
+      file.fieldname === "poster" ? "fraudaware/jobs/posters" : "fraudaware/jobs/logos",
     resource_type: "image",
     allowed_formats: ["jpg", "jpeg", "png", "gif", "webp"],
   },
 });
 
-const logoUpload = multer({
-  storage: logoStorage,
+const jobImageUpload = multer({
+  storage: jobImageStorage,
   limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/jpg"];
@@ -24,7 +25,11 @@ const logoUpload = multer({
   },
 });
 
-export const uploadJobLogo = logoUpload.single("logo");
+export const uploadJobLogo = jobImageUpload.single("logo");
+export const uploadJobImages = jobImageUpload.fields([
+  { name: "logo", maxCount: 1 },
+  { name: "poster", maxCount: 1 },
+]);
 
 const resumeStorage = new CloudinaryStorage({
   cloudinary,

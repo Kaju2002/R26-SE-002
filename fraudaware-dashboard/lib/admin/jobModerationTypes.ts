@@ -19,7 +19,7 @@ export type ModeratedJob = {
   type: 'Full-Time' | 'Part-Time' | 'Contract' | 'Internship';
   salaryLabel: string;
   description: string;
-  listingStatus: 'active' | 'closed';
+  listingStatus: 'active' | 'closed' | 'pending_review' | 'draft';
   moderationStatus: JobModerationStatus;
   fakeJobScore: number;
   flagReasons: JobFlagReason[];
@@ -29,4 +29,6 @@ export type ModeratedJob = {
   flaggedAt: string;
   reviewedAt?: string | null;
   closeReason?: string | null;
+  riskMessage?: string;
+  riskPrediction?: string;
 };

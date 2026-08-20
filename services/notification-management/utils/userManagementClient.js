@@ -109,3 +109,38 @@ export const findJobseekersMatchingSkills = async (
 
   return Array.isArray(data.users) ? data.users : [];
 };
+
+/**
+ * List active superadmin accounts for moderation notifications.
+ */
+export const listSuperadmins = async () => {
+  const key = process.env.INTERNAL_SERVICE_KEY?.trim();
+  if (!key) {
+    console.warn(
+      "Notification service: INTERNAL_SERVICE_KEY missing; superadmin lookup skipped"
+    );
+    return [];
+  }
+
+  const response = await fetch(`${getBaseUrl()}/api/internal/superadmins`, {
+    method: "GET",
+    headers: {
+      "x-internal-service-key": key,
+    },
+  });
+
+  let data = {};
+  try {
+    data = await response.json();
+  } catch {
+    data = {};
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || `Superadmin lookup failed (${response.status})`
+    );
+  }
+
+  return Array.isArray(data.users) ? data.users : [];
+};

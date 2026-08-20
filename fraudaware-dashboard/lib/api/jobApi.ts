@@ -4,7 +4,7 @@ import {
   getJobManagementBaseUrl,
 } from './apiConfig';
 
-export type JobStatus = 'active' | 'draft' | 'closed';
+export type JobStatus = 'active' | 'draft' | 'closed' | 'pending_review';
 
 export type EmployerWorkspaceRole = 'owner' | 'admin' | 'recruiter' | 'viewer';
 
@@ -39,6 +39,12 @@ export type JobSummary = {
   posterType?: 'recruiter' | 'company';
   posterImage?: string;
   companyLogoUri?: string;
+  moderationStatus?: 'none' | 'flagged' | 'cleared' | 'force_closed' | string;
+  riskCheck?: {
+    prediction?: string;
+    fakeProbability?: number;
+    message?: string;
+  };
   description?: string[];
   requirements?: string[];
   skills?: string[];
@@ -256,15 +262,21 @@ export async function getJobById(token: string, jobId: string): Promise<JobDetai
   return (await parseJson<JobResponse>(response)).job;
 }
 
+function appendJobFiles(formData: FormData, logoFile?: File | null, posterFile?: File | null) {
+  if (logoFile) formData.append('logo', logoFile);
+  if (posterFile) formData.append('poster', posterFile);
+}
+
 export async function createJob(
   token: string,
   payload: CreateJobPayload,
-  logoFile?: File | null
+  logoFile?: File | null,
+  posterFile?: File | null
 ): Promise<JobDetail> {
-  if (logoFile) {
+  if (logoFile || posterFile) {
     const formData = new FormData();
     appendPayloadFields(formData, payload);
-    formData.append('logo', logoFile);
+    appendJobFiles(formData, logoFile, posterFile);
     const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs`, {
       method: 'POST',
       headers: authHeadersMultipart(token),
@@ -286,12 +298,13 @@ export async function updateJob(
   token: string,
   jobId: string,
   payload: Partial<CreateJobPayload>,
-  logoFile?: File | null
+  logoFile?: File | null,
+  posterFile?: File | null
 ): Promise<JobDetail> {
-  if (logoFile) {
+  if (logoFile || posterFile) {
     const formData = new FormData();
     appendPayloadFields(formData, payload);
-    formData.append('logo', logoFile);
+    appendJobFiles(formData, logoFile, posterFile);
     const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/${jobId}`, {
       method: 'PUT',
       headers: authHeadersMultipart(token),
@@ -369,6 +382,94 @@ export async function updateApplicationStatus(
   );
 
   await parseJson<{ success: boolean }>(response);
+}
+
+export type ModerationCounts = {
+  total: number;
+  flagged: number;
+  cleared: number;
+  forceClosed: number;
+};
+
+export type ModeratedJobRecord = {
+  id: string;
+  title: string;
+  companyName: string;
+  posterType: 'recruiter' | 'company';
+  posterName: string;
+  posterEmail: string;
+  location: string;
+  mode: string;
+  type: string;
+  salaryLabel: string;
+  description: string;
+  listingStatus: string;
+  moderationStatus: 'flagged' | 'cleared' | 'force_closed' | string;
+  fakeJobScore: number;
+  flagReasons: string[];
+  reportCount: number;
+  applicants: number;
+  postedAt: string;
+  flaggedAt: string;
+  reviewedAt?: string | null;
+  closeReason?: string | null;
+  riskMessage?: string;
+  riskPrediction?: string;
+};
+
+export async function listModerationJobs(
+  token: string,
+  params: { moderationStatus?: string; q?: string; limit?: number } = {}
+): Promise<{ jobs: ModeratedJobRecord[]; counts: ModerationCounts }> {
+  const search = new URLSearchParams();
+  search.set('limit', String(params.limit ?? 50));
+  if (params.moderationStatus && params.moderationStatus !== 'all') {
+    search.set('moderationStatus', params.moderationStatus);
+  }
+  if (params.q?.trim()) search.set('q', params.q.trim());
+
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/moderation?${search.toString()}`,
+    {
+      method: 'GET',
+      headers: authHeaders(token),
+      cache: 'no-store',
+    }
+  );
+
+  const data = await parseJson<{
+    success: boolean;
+    jobs: ModeratedJobRecord[];
+    counts?: ModerationCounts;
+  }>(response);
+
+  return {
+    jobs: data.jobs ?? [],
+    counts: data.counts ?? {
+      total: data.jobs?.length ?? 0,
+      flagged: 0,
+      cleared: 0,
+      forceClosed: 0,
+    },
+  };
+}
+
+export async function moderateJob(
+  token: string,
+  jobId: string,
+  action: 'approve' | 'reject',
+  closeReason?: string
+): Promise<ModeratedJobRecord> {
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/${jobId}/moderation`,
+    {
+      method: 'PATCH',
+      headers: authHeaders(token),
+      body: JSON.stringify({ action, closeReason }),
+    }
+  );
+
+  return (await parseJson<{ job: ModeratedJobRecord }>(response)).job;
 }
 
 export function descriptionToText(value?: string[] | string | null): string {

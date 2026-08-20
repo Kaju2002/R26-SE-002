@@ -1,4 +1,4 @@
-import { uploadJobLogo } from "../config/multer.js";
+import { uploadJobImages } from "../config/multer.js";
 
 const isMultipart = (req) =>
   (req.headers["content-type"] || "").includes("multipart/form-data");
@@ -10,8 +10,8 @@ const ensureBodyObject = (req) => {
 };
 
 /**
- * Parse multipart job posts (logo + fields). Skip for JSON/urlencoded so
- * express.json() / express.urlencoded() bodies are preserved.
+ * Parse multipart job posts (company logo, job poster, and fields).
+ * Skip for JSON/urlencoded so express.json() / express.urlencoded() bodies are preserved.
  */
 export const optionalJobLogoUpload = (req, res, next) => {
   if (!isMultipart(req)) {
@@ -19,7 +19,7 @@ export const optionalJobLogoUpload = (req, res, next) => {
     return next();
   }
 
-  uploadJobLogo(req, res, (err) => {
+  uploadJobImages(req, res, (err) => {
     if (err) return next(err);
     ensureBodyObject(req);
     next();
