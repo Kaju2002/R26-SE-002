@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
   },
   empty: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: '#5B6473',
   },
 });

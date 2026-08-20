@@ -75,11 +75,11 @@ const styles = StyleSheet.create({
     height: 22,
     tintColor: NAVY,
   },
-  /** Section label — Poppins Regular 14 · #202871 */
+  /** Section label — Poppins Regular 16 · #202871 */
   label: {
     flex: 1,
     fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
+    fontSize: 16,
     color: NAVY,
   },
   addBtn: {

@@ -77,13 +77,13 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: 'Poppins_500Medium',
-    fontSize: 13,
+    fontSize: 15,
     color: NAVY,
     marginBottom: 2,
   },
   size: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 13,
     color: SUBTLE,
   },
   removeBtn: {

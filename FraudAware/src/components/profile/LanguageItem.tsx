@@ -73,13 +73,13 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily: 'Poppins_500Medium',
-    fontSize: 14,
+    fontSize: 15,
     color: NAVY,
-    marginBottom: 1,
+    marginBottom: 2,
   },
   proficiency: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: SUBTLE,
   },
   editBtn: {

@@ -21,14 +21,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: PILL_BORDER,
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
     backgroundColor: '#FFFFFF',
   },
-  /** Skill — Poppins Regular 12 · #202871 */
+  /** Skill — Poppins Regular 14 · #202871 */
   label: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: NAVY,
   },
 });

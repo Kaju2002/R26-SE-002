@@ -77,12 +77,12 @@ export default function RegisterScreen({ navigation }: Props) {
         password,
         confirmPassword,
       });
+      // Keep submitting state until this screen unmounts (avoids Register button flash).
       navigation.replace('Verification', { email: normalizedEmail, flow: 'register' });
     } catch (error) {
+      setIsSubmitting(false);
       const message = error instanceof Error ? error.message : 'Registration failed';
       Alert.alert('Registration failed', message);
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -187,10 +187,14 @@ export default function RegisterScreen({ navigation }: Props) {
             activeOpacity={0.85}
             accessibilityRole="button"
             accessibilityLabel="Register"
+            accessibilityState={{ busy: isSubmitting, disabled: isSubmitting }}
             disabled={isSubmitting}
           >
             {isSubmitting ? (
-              <ActivityIndicator size="small" color="#FFFFFF" />
+              <View style={styles.btnLoadingRow}>
+                <ActivityIndicator size="small" color="#FFFFFF" />
+                <Text style={styles.registerBtnText}>Creating account…</Text>
+              </View>
             ) : (
               <Text style={styles.registerBtnText}>Register</Text>
             )}
@@ -203,9 +207,10 @@ export default function RegisterScreen({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={styles.googleBtn}
+            style={[styles.googleBtn, isSubmitting && styles.registerBtnDisabled]}
             onPress={() => Alert.alert('Google', 'Sign up with Google coming soon.')}
             activeOpacity={0.8}
+            disabled={isSubmitting}
           >
             <Image
               source={require('../../assets/icons/logo googleg 48dp.png')}
@@ -217,9 +222,10 @@ export default function RegisterScreen({ navigation }: Props) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.appleBtn}
+            style={[styles.appleBtn, isSubmitting && styles.registerBtnDisabled]}
             onPress={() => Alert.alert('Apple', 'Sign up with Apple coming soon.')}
             activeOpacity={0.85}
+            disabled={isSubmitting}
           >
             <Image
               source={require('../../assets/icons/Apple.png')}
@@ -232,7 +238,11 @@ export default function RegisterScreen({ navigation }: Props) {
 
           <View style={styles.footerRow}>
             <Text style={styles.footerMuted}>Already have an account? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')} accessibilityRole="link">
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Login')}
+              disabled={isSubmitting}
+              accessibilityRole="link"
+            >
               <Text style={styles.signInLink}>Sign In</Text>
             </TouchableOpacity>
           </View>
@@ -328,11 +338,18 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingVertical: 15,
     alignItems: 'center',
+    justifyContent: 'center',
     marginTop: 14,
     marginBottom: 4,
   },
   registerBtnDisabled: {
     opacity: 0.7,
+  },
+  btnLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
   },
   registerBtnText: {
     fontFamily: FONT.poppinsReg,

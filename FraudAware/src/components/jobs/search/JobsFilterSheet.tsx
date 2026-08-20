@@ -535,7 +535,7 @@ function FilterSection({
         <Text style={styles.sectionTitle}>{title}</Text>
         <Ionicons
           name={open ? 'chevron-up' : 'chevron-down'}
-          size={18}
+          size={20}
           color={JOB_SEARCH_COLORS.primaryText}
           style={styles.expandIcon}
         />
@@ -593,15 +593,15 @@ const styles = StyleSheet.create({
     backgroundColor: JOB_SEARCH_COLORS.cardBackground,
   },
   sectionHeader: {
-    minHeight: 46,
+    minHeight: 52,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
   },
   sectionTitle: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 14,
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 16,
     color: JOB_SEARCH_COLORS.primaryText,
   },
   expandIcon: {
@@ -610,46 +610,50 @@ const styles = StyleSheet.create({
   sectionBody: {
     borderTopWidth: 1,
     borderTopColor: JOB_SEARCH_COLORS.divider,
-    padding: 10,
-    gap: 8,
+    padding: 12,
+    gap: 10,
   },
   optionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    minHeight: 40,
+    gap: 10,
   },
   radioIcon: {
-    width: 14,
-    height: 14,
+    width: 18,
+    height: 18,
   },
   optionLabel: {
+    flex: 1,
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
-    color: JOB_SEARCH_COLORS.mutedText,
+    fontSize: 15,
+    lineHeight: 22,
+    color: JOB_SEARCH_COLORS.secondaryText,
   },
   optionLabelSelected: {
+    fontFamily: 'Poppins_500Medium',
     color: JOB_SEARCH_COLORS.primaryText,
   },
   inputLabel: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 11,
+    fontSize: 13,
     color: JOB_SEARCH_COLORS.secondaryText,
   },
   locationRow: {
     marginTop: 4,
     borderWidth: 1,
     borderColor: JOB_SEARCH_COLORS.border,
-    borderRadius: 6,
+    borderRadius: 8,
     backgroundColor: '#FFFFFF',
-    height: 36,
+    height: 44,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 8,
-    gap: 6,
+    paddingHorizontal: 10,
+    gap: 8,
   },
   locationIcon: {
-    width: 16,
-    height: 16,
+    width: 18,
+    height: 18,
     tintColor: '#202871',
   },
   locationInput: {
@@ -657,7 +661,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     color: JOB_SEARCH_COLORS.primaryText,
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 15,
   },
   currencyRow: {
     marginTop: 4,
@@ -666,9 +670,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   currencyChip: {
-    minWidth: 52,
-    height: 32,
-    paddingHorizontal: 12,
+    minWidth: 56,
+    height: 38,
+    paddingHorizontal: 14,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: JOB_SEARCH_COLORS.border,
@@ -681,9 +685,9 @@ const styles = StyleSheet.create({
     backgroundColor: JOB_SEARCH_COLORS.primaryText,
   },
   currencyChipText: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
-    color: JOB_SEARCH_COLORS.mutedText,
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 14,
+    color: JOB_SEARCH_COLORS.secondaryText,
   },
   currencyChipTextActive: {
     color: '#FFFFFF',
@@ -725,19 +729,19 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: JOB_SEARCH_COLORS.border,
     borderRadius: 8,
-    height: 32,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#FFFFFF',
   },
   salaryValueText: {
-    fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 14,
     color: JOB_SEARCH_COLORS.primaryText,
   },
   periodRow: {
     marginTop: 8,
-    height: 34,
+    height: 42,
     borderWidth: 1,
     borderColor: JOB_SEARCH_COLORS.border,
     borderRadius: 8,
@@ -749,7 +753,7 @@ const styles = StyleSheet.create({
   },
   periodText: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 15,
     color: JOB_SEARCH_COLORS.primaryText,
   },
   periodArrow: {
@@ -758,13 +762,14 @@ const styles = StyleSheet.create({
   salaryLabel: {
     marginTop: 6,
     fontFamily: 'Poppins_400Regular',
-    fontSize: 11,
+    fontSize: 13,
     color: JOB_SEARCH_COLORS.secondaryText,
   },
   salaryHint: {
     marginTop: 4,
     fontFamily: 'Poppins_400Regular',
-    fontSize: 11,
+    fontSize: 13,
+    lineHeight: 18,
     color: JOB_SEARCH_COLORS.mutedText,
   },
   footer: {
@@ -802,10 +807,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
   checkBox: {
-    width: 14,
-    height: 14,
+    width: 18,
+    height: 18,
     borderWidth: 1.5,
-    borderRadius: 2,
+    borderRadius: 3,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -819,8 +824,8 @@ const styles = StyleSheet.create({
   },
   checkMark: {
     color: '#FFFFFF',
-    fontSize: 10,
-    lineHeight: 10,
+    fontSize: 12,
+    lineHeight: 12,
     fontFamily: 'Poppins_500Medium',
   },
 });
