@@ -233,7 +233,7 @@ export default function HomeScreen() {
           onFilterPress={() =>
             navigation.navigate('Jobs', {
               segment: 'recent',
-              openFilters: true,
+              ...(query.trim() ? { presetQuery: query.trim() } : {}),
             })
           }
           onSubmit={() =>

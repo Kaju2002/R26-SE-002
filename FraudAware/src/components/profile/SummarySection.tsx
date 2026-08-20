@@ -27,11 +27,11 @@ export default function SummarySection({
 }
 
 const styles = StyleSheet.create({
-  /** Summary text — Poppins Regular 13 */
+  /** Summary text — Poppins Regular 15 */
   body: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 15,
+    lineHeight: 22,
     color: SUBTLE,
   },
 });

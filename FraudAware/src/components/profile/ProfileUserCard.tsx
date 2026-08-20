@@ -98,10 +98,10 @@ const styles = StyleSheet.create({
     color: NAVY,
     marginBottom: 2,
   },
-  /** Role — Poppins Regular 12 · subtle */
+  /** Role — Poppins Regular 14 · subtle */
   role: {
     fontFamily: 'Poppins_400Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: SUBTLE,
   },
   editBtn: {

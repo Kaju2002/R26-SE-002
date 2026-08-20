@@ -60,13 +60,16 @@ export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  /** Stays true after success until this screen unmounts (avoids Sign In flash). */
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const busy = isSigningIn || isLoading;
 
-  // ============ AUTO NAVIGATE ON SUCCESS ============
+  // Already logged in (e.g. session restore) — leave login without button flash.
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isSigningIn) {
       navigation.replace('MainTabs');
     }
-  }, [isAuthenticated, navigation]);
+  }, [isAuthenticated, isSigningIn, navigation]);
 
   // ============ HANDLE LOGIN ============
   const onSignIn = async () => {
@@ -83,9 +86,11 @@ export default function LoginScreen({ navigation }: Props) {
         return;
       }
 
-      // Call login from context
+      setIsSigningIn(true);
       await login({ email: email.trim(), password });
+      navigation.replace('MainTabs');
     } catch (err) {
+      setIsSigningIn(false);
       if (err instanceof EmailVerificationRequiredError) {
         navigation.replace('Verification', {
           email: email.trim(),
@@ -183,21 +188,26 @@ export default function LoginScreen({ navigation }: Props) {
           <TouchableOpacity
             style={styles.forgotWrap}
             onPress={() => navigation.navigate('ForgotPassword')}
+            disabled={busy}
             accessibilityRole="button"
           >
             <Text style={styles.forgotText}>Forgot your password?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.signInBtn, isLoading && styles.signInBtnDisabled]}
+            style={[styles.signInBtn, busy && styles.signInBtnDisabled]}
             onPress={onSignIn}
             activeOpacity={0.85}
-            disabled={isLoading}
+            disabled={busy}
             accessibilityRole="button"
             accessibilityLabel="Sign in"
+            accessibilityState={{ busy, disabled: busy }}
           >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" size="small" />
+            {busy ? (
+              <View style={styles.btnLoadingRow}>
+                <ActivityIndicator color="#fff" size="small" />
+                <Text style={styles.signInBtnText}>Signing in…</Text>
+              </View>
             ) : (
               <Text style={styles.signInBtnText}>Sign In</Text>
             )}
@@ -210,9 +220,10 @@ export default function LoginScreen({ navigation }: Props) {
           </View>
 
           <TouchableOpacity
-            style={styles.googleBtn}
+            style={[styles.googleBtn, busy && styles.signInBtnDisabled]}
             onPress={() => Alert.alert('Google', 'Sign in with Google coming soon.')}
             activeOpacity={0.8}
+            disabled={busy}
             accessibilityRole="button"
           >
             <Image
@@ -225,9 +236,10 @@ export default function LoginScreen({ navigation }: Props) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.appleBtn}
+            style={[styles.appleBtn, busy && styles.signInBtnDisabled]}
             onPress={() => Alert.alert('Apple', 'Sign in with Apple coming soon.')}
             activeOpacity={0.85}
+            disabled={busy}
             accessibilityRole="button"
           >
             <Image
@@ -243,6 +255,7 @@ export default function LoginScreen({ navigation }: Props) {
             <Text style={styles.footerMuted}>{"Don't have an account? "}</Text>
             <TouchableOpacity
               onPress={() => navigation.navigate('Register')}
+              disabled={busy}
               accessibilityRole="link"
             >
               <Text style={styles.registerLink}>Register</Text>
@@ -344,6 +357,12 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  btnLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
   },
   /** Sign In — Poppins Regular 14 (on button) */
   signInBtnText: {

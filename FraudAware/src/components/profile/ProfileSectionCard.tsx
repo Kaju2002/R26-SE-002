@@ -96,11 +96,11 @@ const styles = StyleSheet.create({
     height: 20,
     tintColor: NAVY,
   },
-  /** Section header — Poppins Medium 14 · #202871 */
+  /** Section header — Poppins Medium 16 · #202871 */
   headerLabel: {
     flex: 1,
     fontFamily: 'Poppins_500Medium',
-    fontSize: 14,
+    fontSize: 16,
     color: NAVY,
   },
   headerBtn: {
