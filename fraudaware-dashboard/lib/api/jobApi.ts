@@ -79,6 +79,9 @@ export type JobApplication = {
   status: string;
   motivation?: string;
   appliedAt: string;
+  resumeUrl?: string;
+  resumeName?: string;
+  resumeDownloadUrl?: string;
 };
 
 export type ApplicationDetail = {

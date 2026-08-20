@@ -48,6 +48,12 @@ export function getStoredUser(): AuthUser | null {
   }
 }
 
+/** Updates cached user without changing the auth token / cookie lifetime. */
+export function updateStoredUser(user: AuthUser) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+}
+
 export function clearSession() {
   if (typeof window === 'undefined') return;
 

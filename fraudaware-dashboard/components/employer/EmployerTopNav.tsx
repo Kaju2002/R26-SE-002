@@ -354,7 +354,7 @@ export default function EmployerTopNav({
 
   if (mobile) {
     return (
-      <header className="relative z-30 bg-white px-4 py-3">
+      <header className="sticky top-0 z-40 bg-white px-4 py-3">
         <div className="flex w-full items-center justify-between gap-3">
           <p
             className="truncate text-base font-semibold"
@@ -397,7 +397,7 @@ export default function EmployerTopNav({
   }
 
   return (
-    <header className="relative z-30 hidden h-[70px] items-center bg-white px-4 md:flex lg:px-6">
+    <header className="sticky top-0 z-40 hidden h-[70px] shrink-0 items-center border-b border-[#EEF0F8] bg-white px-4 md:flex lg:px-6">
       <div className="flex w-full items-center justify-between gap-4">
         {/* Left cluster — Modernize-style: toggle · search · quick links */}
         <div className="flex min-w-0 items-center gap-1 lg:gap-2">

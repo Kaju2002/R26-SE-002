@@ -1,7 +1,14 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type MouseEvent,
+  type ReactNode,
+} from 'react';
 import EmailComposeModal from '@/components/employer/EmailComposeModal';
 import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceContext';
 import { createChatConversation } from '@/lib/api/chatApi';
@@ -18,7 +25,16 @@ import { portalConfigs } from '@/lib/auth/portalConfig';
 import { getStoredToken } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
 
-const STATUS_OPTIONS = ['pending', 'accepted', 'rejected'] as const;
+const ALL_JOBS = 'all';
+
+const STATUS_OPTIONS = [
+  { value: 'pending', label: 'Pending' },
+  { value: 'accepted', label: 'Accepted' },
+  { value: 'rejected', label: 'Rejected' },
+] as const;
+
+type PipelineStatus = (typeof STATUS_OPTIONS)[number]['value'];
+type StatusFilter = 'all' | PipelineStatus | 'sent';
 
 function initialsFromName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -30,12 +46,116 @@ function initialsFromName(name: string): string {
 
 function formatAppliedAt(value: string): string {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  if (Number.isNaN(date.getTime())) return '—';
   return date.toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
   });
+}
+
+function statusLabel(status: string): string {
+  if (status === 'accepted') return 'Accepted';
+  if (status === 'rejected') return 'Rejected';
+  if (status === 'pending') return 'Pending';
+  if (status === 'sent') return 'Sent';
+  return status.replace(/_/g, ' ');
+}
+
+function statusStyles(status: string): { color: string; background: string } {
+  if (status === 'accepted') return { color: '#2E7D32', background: '#E8F5E9' };
+  if (status === 'rejected') return { color: '#C62828', background: '#FFEBEE' };
+  if (status === 'pending') return { color: '#EF6C00', background: '#FFF3E0' };
+  return { color: '#5B6473', background: '#EEF0F8' };
+}
+
+function normalizePipelineStatus(status: string): PipelineStatus {
+  if (status === 'accepted' || status === 'rejected' || status === 'pending') {
+    return status;
+  }
+  return 'pending';
+}
+
+function ActionIconButton({
+  label,
+  onClick,
+  href,
+  tone = 'default',
+  disabled,
+  children,
+}: {
+  label: string;
+  onClick?: (event: MouseEvent<HTMLAnchorElement | HTMLButtonElement>) => void;
+  href?: string;
+  tone?: 'default' | 'danger' | 'success';
+  disabled?: boolean;
+  children: ReactNode;
+}) {
+  const toneClass =
+    tone === 'danger'
+      ? 'text-[#C62828] hover:bg-[#FFEBEE]'
+      : tone === 'success'
+        ? 'text-[#2E7D32] hover:bg-[#E8F5E9]'
+        : 'text-[#42498A] hover:bg-[#F2F6FF]';
+
+  const className = `inline-flex h-7 w-7 items-center justify-center rounded-lg bg-[#F7F8FE] transition disabled:cursor-not-allowed disabled:opacity-50 ${toneClass}`;
+
+  if (href && !disabled) {
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        className={className}
+        aria-label={label}
+        title={label}
+        onClick={onClick}
+      >
+        {children}
+      </a>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={className}
+      aria-label={label}
+      title={label}
+    >
+      {children}
+    </button>
+  );
+}
+
+async function fetchApplicationsForJobs(
+  token: string,
+  jobs: JobSummary[],
+  jobFilterId: string
+): Promise<JobApplication[]> {
+  const targets =
+    jobFilterId === ALL_JOBS ? jobs : jobs.filter((job) => job.id === jobFilterId);
+
+  if (targets.length === 0) return [];
+
+  const titleById = new Map(jobs.map((job) => [job.id, job.title]));
+  const batches = await Promise.all(
+    targets.map(async (job) => {
+      const items = await listJobApplications(token, job.id);
+      return items.map((item) => ({
+        ...item,
+        jobId: item.jobId || job.id,
+        jobTitle: item.jobTitle || titleById.get(item.jobId || job.id) || job.title,
+      }));
+    })
+  );
+
+  return batches
+    .flat()
+    .sort(
+      (a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime()
+    );
 }
 
 function EmployerApplicantsContent({
@@ -51,8 +171,9 @@ function EmployerApplicantsContent({
   } = useEmployerWorkspace();
   const activeWorkspaceId = activeWorkspace?.id;
   const basePath = portalConfigs[portal].basePath;
+
   const [jobs, setJobs] = useState<JobSummary[]>([]);
-  const [selectedJobId, setSelectedJobId] = useState('');
+  const [jobFilterId, setJobFilterId] = useState(ALL_JOBS);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loadingJobs, setLoadingJobs] = useState(true);
   const [loadingApplications, setLoadingApplications] = useState(false);
@@ -61,6 +182,13 @@ function EmployerApplicantsContent({
   const [emailTarget, setEmailTarget] = useState<JobApplication | null>(null);
   const [emailConnected, setEmailConnected] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
+  const [queryInput, setQueryInput] = useState('');
+  const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [jobsReady, setJobsReady] = useState(false);
 
   useEffect(() => {
     if (workspaceLoading) return;
@@ -68,7 +196,8 @@ function EmployerApplicantsContent({
       queueMicrotask(() => {
         setJobs([]);
         setApplications([]);
-        setSelectedJobId('');
+        setJobFilterId(ALL_JOBS);
+        setJobsReady(false);
         setError(workspaceError || 'No active employer workspace is available.');
         setLoadingJobs(false);
       });
@@ -81,6 +210,7 @@ function EmployerApplicantsContent({
       queueMicrotask(() => {
         setError('Your session has expired. Please sign in again.');
         setLoadingJobs(false);
+        setJobsReady(false);
       });
       return;
     }
@@ -88,10 +218,14 @@ function EmployerApplicantsContent({
     queueMicrotask(() => {
       if (cancelled) return;
       setLoadingJobs(true);
+      setJobsReady(false);
       setJobs([]);
       setApplications([]);
-      setSelectedJobId('');
+      setJobFilterId(ALL_JOBS);
+      setSelectedIds([]);
+      setDetailId(null);
     });
+
     Promise.all([
       listMyJobs(token, { limit: 50, workspaceId: activeWorkspaceId }),
       getEmailStatus(token).catch(() => null),
@@ -99,7 +233,7 @@ function EmployerApplicantsContent({
       .then(([result, status]) => {
         if (cancelled) return;
         setJobs(result.jobs);
-        if (result.jobs.length > 0) setSelectedJobId(result.jobs[0].id);
+        setJobsReady(true);
         if (status) setEmailConnected(status.connected);
       })
       .catch((requestError: unknown) => {
@@ -107,6 +241,7 @@ function EmployerApplicantsContent({
         setError(
           requestError instanceof Error ? requestError.message : 'Could not load your jobs.'
         );
+        setJobsReady(false);
       })
       .finally(() => {
         if (!cancelled) setLoadingJobs(false);
@@ -117,45 +252,74 @@ function EmployerApplicantsContent({
     };
   }, [activeWorkspaceId, workspaceError, workspaceLoading]);
 
-  useEffect(() => {
-    if (!selectedJobId) {
-      queueMicrotask(() => setApplications([]));
-      return;
-    }
+  const loadApplications = useCallback(
+    async (options?: { silent?: boolean }) => {
+      const token = getStoredToken();
+      if (!token || !jobsReady) return;
 
-    const token = getStoredToken();
-    if (!token) return;
+      if (!options?.silent) {
+        setLoadingApplications(true);
+        setError(null);
+        setSelectedIds([]);
+        setDetailId(null);
+      }
 
-    let cancelled = false;
-    queueMicrotask(() => {
-      if (cancelled) return;
-      setLoadingApplications(true);
-      setError(null);
-    });
-
-    listJobApplications(token, selectedJobId)
-      .then((items) => {
-        if (!cancelled) setApplications(items);
-      })
-      .catch((requestError: unknown) => {
-        if (cancelled) return;
+      try {
+        const items = await fetchApplicationsForJobs(token, jobs, jobFilterId);
+        setApplications(items);
+      } catch (requestError: unknown) {
         setApplications([]);
         setError(
           requestError instanceof Error
             ? requestError.message
-            : 'Could not load applications for this job.'
+            : 'Could not load applications.'
         );
-      })
-      .finally(() => {
-        if (!cancelled) setLoadingApplications(false);
-      });
+      } finally {
+        if (!options?.silent) setLoadingApplications(false);
+      }
+    },
+    [jobFilterId, jobs, jobsReady]
+  );
 
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedJobId]);
+  useEffect(() => {
+    if (!jobsReady) return;
+    void loadApplications();
+  }, [jobsReady, jobFilterId, loadApplications]);
 
-  const selectedJob = jobs.find((job) => job.id === selectedJobId);
+  const selectedJob =
+    jobFilterId === ALL_JOBS ? null : jobs.find((job) => job.id === jobFilterId) || null;
+
+  const stageCounts = useMemo(() => {
+    const counts = { all: applications.length, pending: 0, accepted: 0, rejected: 0, sent: 0 };
+    for (const item of applications) {
+      if (item.status === 'pending') counts.pending += 1;
+      else if (item.status === 'accepted') counts.accepted += 1;
+      else if (item.status === 'rejected') counts.rejected += 1;
+      else if (item.status === 'sent') counts.sent += 1;
+    }
+    return counts;
+  }, [applications]);
+
+  const displayedApplications = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return applications.filter((application) => {
+      if (statusFilter !== 'all' && application.status !== statusFilter) return false;
+      if (!q) return true;
+      return (
+        application.fullName.toLowerCase().includes(q) ||
+        application.email.toLowerCase().includes(q) ||
+        (application.jobTitle || '').toLowerCase().includes(q)
+      );
+    });
+  }, [applications, query, statusFilter]);
+
+  const allDisplayedSelected =
+    displayedApplications.length > 0 &&
+    displayedApplications.every((item) => selectedIds.includes(item.id));
+
+  const detailApplication = detailId
+    ? applications.find((item) => item.id === detailId) || null
+    : null;
 
   const startChat = useCallback(
     async (application: JobApplication) => {
@@ -215,6 +379,8 @@ function EmployerApplicantsContent({
       setApplications((prev) =>
         prev.map((item) => (item.id === applicationId ? { ...item, status } : item))
       );
+      setInfo(null);
+      setError(null);
     } catch (requestError: unknown) {
       setError(
         requestError instanceof Error
@@ -224,25 +390,96 @@ function EmployerApplicantsContent({
     }
   };
 
+  const handleBulkStatus = async (status: PipelineStatus) => {
+    const token = getStoredToken();
+    if (!token || selectedIds.length === 0 || bulkBusy) return;
+
+    setBulkBusy(true);
+    setError(null);
+    setInfo(null);
+
+    const ids = [...selectedIds];
+    const results = await Promise.allSettled(
+      ids.map((id) => updateApplicationStatus(token, id, status))
+    );
+
+    const succeeded = new Set<string>();
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') succeeded.add(ids[index]);
+    });
+
+    if (succeeded.size > 0) {
+      setApplications((prev) =>
+        prev.map((item) =>
+          succeeded.has(item.id) ? { ...item, status } : item
+        )
+      );
+      setSelectedIds((prev) => prev.filter((id) => !succeeded.has(id)));
+      setInfo(
+        `Moved ${succeeded.size} applicant${succeeded.size === 1 ? '' : 's'} to ${statusLabel(status)}.`
+      );
+    }
+
+    const failed = ids.length - succeeded.size;
+    if (failed > 0) {
+      setError(`Could not update ${failed} applicant${failed === 1 ? '' : 's'}.`);
+    }
+
+    setBulkBusy(false);
+  };
+
+  const toggleSelectAll = () => {
+    if (allDisplayedSelected) {
+      const ids = new Set(displayedApplications.map((item) => item.id));
+      setSelectedIds((prev) => prev.filter((id) => !ids.has(id)));
+      return;
+    }
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const item of displayedApplications) next.add(item.id);
+      return Array.from(next);
+    });
+  };
+
+  const toggleSelectOne = (id: string) => {
+    setSelectedIds((prev) =>
+      prev.includes(id) ? prev.filter((value) => value !== id) : [...prev, id]
+    );
+  };
+
+  const filterSelectClass =
+    'h-10 rounded-lg border border-[#E5E7EE] bg-white px-3 text-sm outline-none focus:border-[#202871]';
+
+  const stageChips: { value: StatusFilter; label: string; count: number }[] = [
+    { value: 'all', label: 'All', count: stageCounts.all },
+    { value: 'pending', label: 'Pending', count: stageCounts.pending },
+    { value: 'accepted', label: 'Accepted', count: stageCounts.accepted },
+    { value: 'rejected', label: 'Rejected', count: stageCounts.rejected },
+  ];
+  if (stageCounts.sent > 0) {
+    stageChips.push({ value: 'sent', label: 'Sent', count: stageCounts.sent });
+  }
+
   return (
     <>
       <div className="space-y-5">
-        <div className="rounded-2xl border border-[#EEF0F8] bg-white p-6 shadow-sm md:p-8">
-          <h2
-            className="text-xl font-semibold"
-            style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-          >
-            Applicants
-          </h2>
-          <p
-            className="mt-2 text-sm leading-relaxed"
-            style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
-          >
-            Review applications for your jobs, update status, message in InChat, or email
-            from your connected mailbox.
-          </p>
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h2
+              className="text-xl font-semibold"
+              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+            >
+              Hiring pipeline
+            </h2>
+            <p
+              className="mt-1 text-sm"
+              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+            >
+              Review, shortlist, and message applicants across your jobs
+            </p>
+          </div>
 
-          <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <span
               className="rounded-full px-3 py-1 text-xs font-semibold"
               style={{
@@ -257,39 +494,29 @@ function EmployerApplicantsContent({
               <button
                 type="button"
                 onClick={() => void connectMailbox()}
-                className="rounded-xl border border-[#E5E7EE] px-3 py-1.5 text-xs font-semibold"
+                className="h-10 rounded-lg border border-[#E5E7EE] px-3 text-xs font-semibold"
                 style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
               >
-                Connect Gmail / Outlook
+                Connect mailbox
               </button>
             ) : null}
+            <button
+              type="button"
+              onClick={() => void loadApplications()}
+              disabled={!jobsReady || loadingApplications}
+              className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[#E5E7EE] text-[#42498A] transition hover:bg-[#F7F8FE] disabled:opacity-50"
+              aria-label="Refresh applicants"
+              title="Refresh"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182"
+                />
+              </svg>
+            </button>
           </div>
-
-          <label className="mt-5 block">
-            <span
-              className="mb-2 block text-xs font-semibold uppercase tracking-wide"
-              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-            >
-              Job posting
-            </span>
-            <select
-              value={selectedJobId}
-              onChange={(event) => setSelectedJobId(event.target.value)}
-              disabled={loadingJobs || jobs.length === 0}
-              className="w-full max-w-xl rounded-xl border border-[#E5E7EE] bg-[#F7F8FE] px-3 py-2.5 text-sm outline-none transition focus:border-[#202871]"
-              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-            >
-              {jobs.length === 0 ? (
-                <option value="">No jobs found</option>
-              ) : (
-                jobs.map((job) => (
-                  <option key={job.id} value={job.id}>
-                    {job.title} · {job.applicants} applicants
-                  </option>
-                ))
-              )}
-            </select>
-          </label>
         </div>
 
         {info ? (
@@ -300,134 +527,620 @@ function EmployerApplicantsContent({
             {info}
           </div>
         ) : null}
+        {error ? (
+          <div
+            className="rounded-xl border border-[#FFCDD2] bg-[#FFEBEE] px-4 py-3 text-sm text-[#C62828]"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            {error}
+          </div>
+        ) : null}
 
         <div className="overflow-hidden rounded-2xl border border-[#EEF0F8] bg-white shadow-sm">
-          {loadingJobs || loadingApplications ? (
-            <p
-              className="px-6 py-10 text-center text-sm"
-              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-            >
-              Loading applications...
-            </p>
-          ) : error ? (
-            <p
-              className="px-6 py-10 text-center text-sm text-red-600"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              {error}
-            </p>
-          ) : applications.length === 0 ? (
-            <p
-              className="px-6 py-10 text-center text-sm"
-              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-            >
-              No applications for this job yet.
-            </p>
-          ) : (
-            <ul className="divide-y divide-[#EEF0F8]">
-              {applications.map((application) => {
-                const busy = messagingId === application.id;
-                return (
-                  <li
-                    key={application.id}
-                    className="flex flex-col gap-4 px-5 py-4 md:px-6"
+          {/* Stage counts */}
+          <div className="flex flex-wrap gap-2 border-b border-[#EEF0F8] px-4 py-3 md:px-5">
+            {stageChips.map((chip) => {
+              const active = statusFilter === chip.value;
+              return (
+                <button
+                  key={chip.value}
+                  type="button"
+                  onClick={() => setStatusFilter(chip.value)}
+                  className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    active
+                      ? 'bg-[#202871] text-white'
+                      : 'bg-[#F7F8FE] text-[#42498A] hover:bg-[#EEF0F8]'
+                  }`}
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  {chip.label}
+                  <span
+                    className={`rounded-full px-1.5 py-0.5 text-[10px] tabular-nums ${
+                      active ? 'bg-white/20 text-white' : 'bg-white text-[#858BBD]'
+                    }`}
                   >
-                    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EEF0F8]">
-                          <span
-                            className="text-sm font-bold"
-                            style={{
-                              color: colors.navy,
-                              fontFamily: 'var(--font-poppins)',
-                            }}
-                          >
-                            {initialsFromName(application.fullName)}
-                          </span>
-                        </div>
-                        <div className="min-w-0">
-                          <p
-                            className="truncate text-sm font-semibold"
-                            style={{
-                              color: colors.navy,
-                              fontFamily: 'var(--font-poppins)',
-                            }}
-                          >
-                            {application.fullName}
-                          </p>
-                          <p
-                            className="truncate text-xs"
-                            style={{
-                              color: colors.muted,
-                              fontFamily: 'var(--font-poppins)',
-                            }}
-                          >
-                            {application.email}
-                          </p>
-                          <p
-                            className="mt-1 text-xs font-medium"
-                            style={{
-                              color: colors.body,
-                              fontFamily: 'var(--font-poppins)',
-                            }}
-                          >
-                            Applied {formatAppliedAt(application.appliedAt)}
-                          </p>
-                        </div>
-                      </div>
+                    {chip.count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
 
-                      <div className="flex flex-wrap items-center gap-2">
-                        <select
-                          value={application.status}
-                          onChange={(event) => {
-                            if (event.target.value === 'sent') return;
-                            void handleStatusChange(application.id, event.target.value);
-                          }}
-                          className="rounded-xl border border-[#E5E7EE] bg-[#F7F8FE] px-3 py-2 text-xs font-semibold outline-none"
-                          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+          <div className="flex flex-col gap-3 border-b border-[#EEF0F8] p-4 md:flex-row md:items-center md:justify-between md:px-5">
+            <form
+              className="w-full md:max-w-xs"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setQuery(queryInput.trim());
+              }}
+            >
+              <div className="relative">
+                <svg
+                  className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#858BBD]"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.8}
+                  stroke="currentColor"
+                  aria-hidden
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+                  />
+                </svg>
+                <input
+                  type="search"
+                  value={queryInput}
+                  onChange={(event) => {
+                    setQueryInput(event.target.value);
+                    setQuery(event.target.value.trim());
+                  }}
+                  placeholder="Search name, email, or job"
+                  className="h-10 w-full rounded-lg border border-[#E5E7EE] bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-[#202871]"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                />
+              </div>
+            </form>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={jobFilterId}
+                onChange={(event) => setJobFilterId(event.target.value)}
+                disabled={loadingJobs || jobs.length === 0}
+                className={`${filterSelectClass} min-w-[180px] max-w-[280px]`}
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                {jobs.length === 0 ? (
+                  <option value={ALL_JOBS}>No jobs found</option>
+                ) : (
+                  <>
+                    <option value={ALL_JOBS}>All jobs · {jobs.length}</option>
+                    {jobs.map((job) => (
+                      <option key={job.id} value={job.id}>
+                        {job.title} · {job.applicants}
+                      </option>
+                    ))}
+                  </>
+                )}
+              </select>
+            </div>
+          </div>
+
+          {/* Bulk actions */}
+          {selectedIds.length > 0 ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#D8E1FF] bg-[#F2F6FF] px-4 py-3 md:px-5">
+              <p
+                className="text-sm font-semibold"
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                {selectedIds.length} selected
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => void handleBulkStatus('pending')}
+                  className="rounded-lg border border-[#E5E7EE] bg-white px-3 py-1.5 text-xs font-semibold transition hover:bg-[#F7F8FE] disabled:opacity-60"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Mark pending
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => void handleBulkStatus('accepted')}
+                  className="rounded-lg bg-[#E8F5E9] px-3 py-1.5 text-xs font-semibold text-[#2E7D32] transition hover:bg-[#DDEEDF] disabled:opacity-60"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  Accept
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => void handleBulkStatus('rejected')}
+                  className="rounded-lg bg-[#FFEBEE] px-3 py-1.5 text-xs font-semibold text-[#C62828] transition hover:bg-[#F8D7DA] disabled:opacity-60"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  Reject
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => setSelectedIds([])}
+                  className="rounded-lg px-3 py-1.5 text-xs font-semibold text-[#858BBD] transition hover:text-[#42498A] disabled:opacity-60"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="w-full overflow-hidden">
+            {loadingJobs || loadingApplications ? (
+              <p
+                className="px-6 py-12 text-center text-sm"
+                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+              >
+                Loading applications...
+              </p>
+            ) : displayedApplications.length === 0 ? (
+              <p
+                className="px-6 py-12 text-center text-sm"
+                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+              >
+                {applications.length === 0
+                  ? jobFilterId === ALL_JOBS
+                    ? 'No applications yet across your jobs.'
+                    : 'No applications for this job yet.'
+                  : 'No applicants match your filters.'}
+              </p>
+            ) : (
+              <table className="w-full table-fixed border-collapse text-left">
+                <colgroup>
+                  <col className="w-[4%]" />
+                  <col className="w-[22%]" />
+                  <col className="w-[16%]" />
+                  <col className="w-[10%]" />
+                  <col className="w-[9%]" />
+                  <col className="w-[14%]" />
+                  <col className="w-[12%]" />
+                  <col className="w-[13%]" />
+                </colgroup>
+                <thead>
+                  <tr className="border-b border-[#EEF0F8] bg-[#F7F8FE]">
+                    <th className="px-3 py-3 pl-5">
+                      <input
+                        type="checkbox"
+                        checked={allDisplayedSelected}
+                        onChange={toggleSelectAll}
+                        aria-label="Select all applicants"
+                        className="h-4 w-4 cursor-pointer rounded border-[#C9D2E0] accent-[#202871]"
+                      />
+                    </th>
+                    {[
+                      'Candidate',
+                      'Job',
+                      'Status',
+                      'Applied',
+                      'Resume',
+                      'Pipeline',
+                      'Action',
+                    ].map((label) => (
+                      <th
+                        key={label}
+                        className="px-2 py-3 text-xs font-semibold uppercase tracking-wide text-[#858BBD] last:pr-4"
+                        style={{ fontFamily: 'var(--font-poppins)' }}
+                      >
+                        {label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {displayedApplications.map((application) => {
+                    const badge = statusStyles(application.status);
+                    const isSelected = selectedIds.includes(application.id);
+                    const busy = messagingId === application.id;
+                    const resumeHref =
+                      application.resumeDownloadUrl || application.resumeUrl || '';
+                    const jobLabel = application.jobTitle || '—';
+
+                    return (
+                      <tr
+                        key={application.id}
+                        className={`border-b border-[#EEF0F8] last:border-b-0 hover:bg-[#FCFCFF] ${
+                          isSelected ? 'bg-[#F7F9FF]' : ''
+                        }`}
+                      >
+                        <td className="px-3 py-3.5 pl-5">
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSelectOne(application.id)}
+                            aria-label={`Select ${application.fullName}`}
+                            className="h-4 w-4 cursor-pointer rounded border-[#C9D2E0] accent-[#202871]"
+                          />
+                        </td>
+                        <td className="px-2 py-3.5">
+                          <button
+                            type="button"
+                            onClick={() => setDetailId(application.id)}
+                            className="flex min-w-0 items-center gap-2.5 text-left"
+                          >
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EEF0F8]">
+                              <span
+                                className="text-[11px] font-bold"
+                                style={{
+                                  color: colors.navy,
+                                  fontFamily: 'var(--font-poppins)',
+                                }}
+                              >
+                                {initialsFromName(application.fullName)}
+                              </span>
+                            </div>
+                            <div className="min-w-0">
+                              <p
+                                className="truncate text-sm font-semibold"
+                                style={{
+                                  color: colors.navy,
+                                  fontFamily: 'var(--font-poppins)',
+                                }}
+                              >
+                                {application.fullName}
+                              </p>
+                              <p
+                                className="truncate text-xs"
+                                style={{
+                                  color: colors.muted,
+                                  fontFamily: 'var(--font-poppins)',
+                                }}
+                              >
+                                {application.email}
+                              </p>
+                            </div>
+                          </button>
+                        </td>
+                        <td
+                          className="truncate px-2 py-3.5 text-sm"
+                          style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
+                          title={jobLabel}
                         >
-                          {application.status === 'sent' ? (
-                            <option value="sent">sent</option>
-                          ) : null}
-                          {STATUS_OPTIONS.map((status) => (
-                            <option key={status} value={status}>
-                              {status}
-                            </option>
-                          ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={() => setEmailTarget(application)}
-                          className="rounded-xl border border-[#E5E7EE] px-4 py-2.5 text-sm font-semibold"
-                          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                          {jobLabel}
+                        </td>
+                        <td className="px-2 py-3.5">
+                          <span
+                            className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                            style={{
+                              color: badge.color,
+                              backgroundColor: badge.background,
+                              fontFamily: 'var(--font-poppins)',
+                            }}
+                          >
+                            {statusLabel(application.status)}
+                          </span>
+                        </td>
+                        <td
+                          className="px-2 py-3.5 text-sm"
+                          style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
                         >
-                          Email
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void startChat(application)}
-                          disabled={Boolean(messagingId)}
-                          className="rounded-xl bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1A2160] disabled:cursor-not-allowed disabled:opacity-60"
-                          style={{ fontFamily: 'var(--font-poppins)' }}
-                        >
-                          {busy ? 'Opening chat...' : 'Message'}
-                        </button>
-                      </div>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+                          {formatAppliedAt(application.appliedAt)}
+                        </td>
+                        <td className="px-2 py-3.5">
+                          {resumeHref ? (
+                            <a
+                              href={resumeHref}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex max-w-full items-center gap-1.5 truncate text-xs font-semibold text-[#202871] hover:underline"
+                              style={{ fontFamily: 'var(--font-poppins)' }}
+                              title={application.resumeName || 'Resume'}
+                            >
+                              <svg
+                                className="h-3.5 w-3.5 shrink-0"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                strokeWidth={1.7}
+                                stroke="currentColor"
+                                aria-hidden
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                                />
+                              </svg>
+                              <span className="truncate">
+                                {application.resumeName || 'Resume'}
+                              </span>
+                            </a>
+                          ) : (
+                            <span
+                              className="text-xs"
+                              style={{
+                                color: colors.muted,
+                                fontFamily: 'var(--font-poppins)',
+                              }}
+                            >
+                              —
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-2 py-3.5">
+                          <select
+                            value={normalizePipelineStatus(application.status)}
+                            onChange={(event) => {
+                              void handleStatusChange(application.id, event.target.value);
+                            }}
+                            className="h-8 w-full max-w-[120px] rounded-lg border border-[#E5E7EE] bg-white px-2 text-xs font-semibold outline-none focus:border-[#202871]"
+                            style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                          >
+                            {STATUS_OPTIONS.map((status) => (
+                              <option key={status.value} value={status.value}>
+                                {status.label}
+                              </option>
+                            ))}
+                          </select>
+                        </td>
+                        <td className="whitespace-nowrap px-2 py-3.5 last:pr-4">
+                          <div className="flex flex-nowrap items-center gap-1">
+                            <ActionIconButton
+                              label="View details"
+                              onClick={() => setDetailId(application.id)}
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                              </svg>
+                            </ActionIconButton>
+
+                            <ActionIconButton
+                              label={busy ? 'Opening chat...' : 'Message in InChat'}
+                              disabled={Boolean(messagingId)}
+                              onClick={() => void startChat(application)}
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.199C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
+                                />
+                              </svg>
+                            </ActionIconButton>
+
+                            <ActionIconButton
+                              label="Email applicant"
+                              onClick={() => setEmailTarget(application)}
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+                                />
+                              </svg>
+                            </ActionIconButton>
+
+                            {resumeHref ? (
+                              <ActionIconButton label="Open resume" href={resumeHref}>
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
+                                  />
+                                </svg>
+                              </ActionIconButton>
+                            ) : null}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            )}
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#EEF0F8] px-4 py-3.5 md:px-5">
+            <p
+              className="text-xs"
+              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+            >
+              {displayedApplications.length} applicant
+              {displayedApplications.length === 1 ? '' : 's'}
+              {selectedJob
+                ? ` · ${selectedJob.title}`
+                : jobFilterId === ALL_JOBS
+                  ? ' · All jobs'
+                  : ''}
+              {selectedIds.length > 0 ? ` · ${selectedIds.length} selected` : ''}
+            </p>
+          </div>
         </div>
       </div>
+
+      {detailApplication ? (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/30 p-0 sm:p-4">
+          <button
+            type="button"
+            className="absolute inset-0 cursor-default"
+            aria-label="Close details"
+            onClick={() => setDetailId(null)}
+          />
+          <aside className="relative z-10 flex h-full w-full max-w-md flex-col bg-white shadow-xl sm:rounded-2xl">
+            <div className="flex items-start justify-between gap-3 border-b border-[#EEF0F8] px-5 py-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#EEF0F8]">
+                  <span
+                    className="text-sm font-bold"
+                    style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {initialsFromName(detailApplication.fullName)}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p
+                    className="truncate text-base font-semibold"
+                    style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {detailApplication.fullName}
+                  </p>
+                  <p
+                    className="truncate text-xs"
+                    style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {detailApplication.email}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDetailId(null)}
+                className="rounded-lg border border-[#E5E7EE] px-2.5 py-1 text-xs font-semibold"
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                  style={{
+                    ...statusStyles(detailApplication.status),
+                    fontFamily: 'var(--font-poppins)',
+                  }}
+                >
+                  {statusLabel(detailApplication.status)}
+                </span>
+                <span
+                  className="text-xs"
+                  style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Applied {formatAppliedAt(detailApplication.appliedAt)}
+                </span>
+              </div>
+
+              <div>
+                <p
+                  className="text-xs font-semibold uppercase tracking-wide"
+                  style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Job
+                </p>
+                <p
+                  className="mt-1 text-sm"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  {detailApplication.jobTitle || selectedJob?.title || '—'}
+                </p>
+              </div>
+
+              <div>
+                <p
+                  className="mb-1.5 text-xs font-semibold uppercase tracking-wide"
+                  style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Move in pipeline
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {STATUS_OPTIONS.map((status) => {
+                    const active =
+                      normalizePipelineStatus(detailApplication.status) === status.value;
+                    return (
+                      <button
+                        key={status.value}
+                        type="button"
+                        onClick={() =>
+                          void handleStatusChange(detailApplication.id, status.value)
+                        }
+                        className={`rounded-lg px-3 py-2 text-xs font-semibold transition ${
+                          active
+                            ? 'bg-[#202871] text-white'
+                            : 'border border-[#E5E7EE] bg-white text-[#42498A] hover:bg-[#F7F8FE]'
+                        }`}
+                        style={{ fontFamily: 'var(--font-poppins)' }}
+                      >
+                        {status.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div>
+                <p
+                  className="text-xs font-semibold uppercase tracking-wide"
+                  style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Motivation
+                </p>
+                <p
+                  className="mt-1 whitespace-pre-wrap text-sm leading-relaxed"
+                  style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
+                >
+                  {detailApplication.motivation?.trim() || 'No motivation note provided.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-2 border-t border-[#EEF0F8] px-5 py-4">
+              {(detailApplication.resumeDownloadUrl || detailApplication.resumeUrl) && (
+                <a
+                  href={
+                    detailApplication.resumeDownloadUrl ||
+                    detailApplication.resumeUrl ||
+                    '#'
+                  }
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex w-full items-center justify-center rounded-xl bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a2160]"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  Open resume
+                </a>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  disabled={Boolean(messagingId)}
+                  onClick={() => void startChat(detailApplication)}
+                  className="rounded-xl border border-[#E5E7EE] px-4 py-2.5 text-sm font-semibold transition hover:bg-[#F7F8FE] disabled:opacity-60"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  {messagingId === detailApplication.id ? 'Opening…' : 'InChat'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEmailTarget(detailApplication)}
+                  className="rounded-xl border border-[#E5E7EE] px-4 py-2.5 text-sm font-semibold transition hover:bg-[#F7F8FE]"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Email
+                </button>
+              </div>
+            </div>
+          </aside>
+        </div>
+      ) : null}
 
       {emailTarget ? (
         <EmailComposeModal
           to={emailTarget.email}
           applicantName={emailTarget.fullName}
           applicationId={emailTarget.id}
-          jobTitle={selectedJob?.title}
+          jobTitle={emailTarget.jobTitle || selectedJob?.title}
           onClose={() => setEmailTarget(null)}
           onSent={() => {
             setEmailTarget(null);

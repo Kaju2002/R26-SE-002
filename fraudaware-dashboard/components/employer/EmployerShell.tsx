@@ -287,7 +287,7 @@ export default function EmployerShell({
     <InchatProvider>
       <div className="flex min-h-screen bg-white">
         <aside
-          className={`hidden shrink-0 border-r border-[#EEF0F8] bg-white transition-[width] duration-200 md:flex md:flex-col ${
+          className={`sticky top-0 hidden h-screen shrink-0 overflow-hidden border-r border-[#EEF0F8] bg-white transition-[width] duration-200 md:flex md:flex-col ${
             sidebarCollapsed ? 'w-[72px]' : 'w-64'
           }`}
         >
@@ -379,7 +379,7 @@ export default function EmployerShell({
             onToggleSidebar={() => setSidebarCollapsed((value) => !value)}
           />
 
-          <div className="bg-white md:hidden">
+          <div className="sticky top-0 z-40 bg-white md:hidden">
             <EmployerTopNav
               portal={portal}
               basePath={config.basePath}
@@ -389,7 +389,7 @@ export default function EmployerShell({
               onLogout={handleLogout}
               mobile
             />
-            <div className="px-4 pb-3">
+            <div className="border-b border-[#EEF0F8] px-4 pb-3">
               <MobileCompanyChip />
               <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                 {navItems.map((item) => {
@@ -417,7 +417,7 @@ export default function EmployerShell({
             className={
               fullBleed
                 ? 'flex min-h-0 flex-1 flex-col overflow-hidden bg-white'
-                : 'mx-auto w-full max-w-6xl flex-1 bg-white px-4 py-6 md:px-6 md:py-8'
+                : 'w-full flex-1 bg-white px-4 py-6 md:px-6 md:py-8 lg:px-8'
             }
           >
             {children}
