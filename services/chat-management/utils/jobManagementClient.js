@@ -6,6 +6,14 @@ const getBaseUrl = () => {
   return url;
 };
 
+const parseResponse = async (response) => {
+  try {
+    return await response.json();
+  } catch {
+    return {};
+  }
+};
+
 /**
  * Fetch a single application from job-management.
  * Forwards the caller's Authorization header so job-management can enforce
@@ -33,12 +41,7 @@ export const fetchApplication = async (applicationId, authorizationHeader) => {
       }
     );
 
-    let data = {};
-    try {
-      data = await response.json();
-    } catch {
-      data = {};
-    }
+    const data = await parseResponse(response);
 
     if (!response.ok) {
       return {
@@ -62,6 +65,55 @@ export const fetchApplication = async (applicationId, authorizationHeader) => {
     };
   } catch (error) {
     console.error("Job management client error:", error.message);
+    return {
+      ok: false,
+      status: 503,
+      message: "Job management service unavailable",
+    };
+  }
+};
+
+/**
+ * Validate active membership and fetch the authoritative workspace snapshot.
+ * Job-management enforces membership using the forwarded caller token.
+ */
+export const fetchWorkspace = async (workspaceId, authorizationHeader) => {
+  if (!authorizationHeader?.startsWith("Bearer ")) {
+    return {
+      ok: false,
+      status: 401,
+      message: "No token provided. Please login.",
+    };
+  }
+
+  try {
+    const response = await fetch(
+      `${getBaseUrl()}/api/jobs/workspaces/${encodeURIComponent(workspaceId)}`,
+      {
+        method: "GET",
+        headers: { Authorization: authorizationHeader },
+      }
+    );
+    const data = await parseResponse(response);
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        message: data.message || "Could not verify workspace membership",
+      };
+    }
+    if (!data.workspace?.id) {
+      return {
+        ok: false,
+        status: 502,
+        message: "Invalid workspace response from job management service",
+      };
+    }
+
+    return { ok: true, workspace: data.workspace };
+  } catch (error) {
+    console.error("Workspace validation client error:", error.message);
     return {
       ok: false,
       status: 503,

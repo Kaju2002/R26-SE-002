@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { use, useEffect } from 'react';
-import EmployerShell from '@/components/employer/EmployerShell';
 import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
 import InchatThreadPanel from '@/components/recruiter/inchat/InchatThreadPanel';
 import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
@@ -74,9 +73,5 @@ function MobileThreadContent({ threadId }: { threadId: string }) {
 export default function CompanyInchatThreadPage({ params }: PageProps) {
   const { threadId } = use(params);
 
-  return (
-    <EmployerShell portal="company" fullBleed>
-      <MobileThreadContent threadId={threadId} />
-    </EmployerShell>
-  );
+  return <MobileThreadContent threadId={threadId} />;
 }

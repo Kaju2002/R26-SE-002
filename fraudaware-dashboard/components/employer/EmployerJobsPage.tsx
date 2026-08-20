@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import EmployerJobForm, { emptyJobForm } from '@/components/employer/EmployerJobForm';
-import EmployerShell from '@/components/employer/EmployerShell';
+import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceContext';
 import type { AuthUser } from '@/lib/api/authTypes';
 import { buildJobRiskText, predictFakeJobFromText } from '@/lib/api/fakeJobApi';
 import {
@@ -41,6 +41,7 @@ function statusStyles(status: string): { color: string; background: string } {
 
 function jobToForm(job: JobSummary, fallbackCompany = ''): CreateJobPayload {
   return {
+    workspaceId: job.workspaceId || undefined,
     title: job.title,
     companyName: job.companyName || fallbackCompany,
     location: job.location || '',
@@ -61,12 +62,18 @@ function jobToForm(job: JobSummary, fallbackCompany = ''): CreateJobPayload {
   };
 }
 
-export default function EmployerJobsPage({
+function EmployerJobsContent({
   portal,
 }: {
   portal: Extract<PortalType, 'recruiter' | 'company'>;
 }) {
   const isCompany = portal === 'company';
+  const {
+    activeWorkspace,
+    loading: workspaceLoading,
+    error: workspaceError,
+  } = useEmployerWorkspace();
+  const activeWorkspaceId = activeWorkspace?.id;
   const basePath = portalConfigs[portal].basePath;
   const [user, setUser] = useState<AuthUser | null>(null);
   const [jobs, setJobs] = useState<JobSummary[]>([]);
@@ -86,8 +93,17 @@ export default function EmployerJobsPage({
   const [message, setMessage] = useState<string | null>(null);
   const [mode, setMode] = useState<'list' | 'create' | 'edit'>('list');
   const [editingJob, setEditingJob] = useState<JobSummary | null>(null);
+  const requestIdRef = useRef(0);
 
   const reload = useCallback(async () => {
+    if (workspaceLoading) return;
+    if (!activeWorkspaceId) {
+      setJobs([]);
+      setError(workspaceError || 'No active employer workspace is available.');
+      setLoading(false);
+      return;
+    }
+
     const token = getStoredToken();
     if (!token) {
       setError('Your session has expired. Please sign in again.');
@@ -95,6 +111,7 @@ export default function EmployerJobsPage({
       return;
     }
 
+    const requestId = ++requestIdRef.current;
     setLoading(true);
     try {
       const result = await listMyJobs(token, {
@@ -103,34 +120,91 @@ export default function EmployerJobsPage({
         status: statusFilter,
         q: query,
         sort: 'newly_posted',
+        workspaceId: activeWorkspaceId,
       });
+      if (requestId !== requestIdRef.current) return;
       setJobs(result.jobs);
       setPagination(result.pagination);
       setError(null);
     } catch (requestError: unknown) {
+      if (requestId !== requestIdRef.current) return;
       setError(
         requestError instanceof Error ? requestError.message : 'Could not load jobs.'
       );
     } finally {
-      setLoading(false);
+      if (requestId === requestIdRef.current) setLoading(false);
     }
-  }, [page, query, statusFilter]);
+  }, [
+    activeWorkspaceId,
+    page,
+    query,
+    statusFilter,
+    workspaceError,
+    workspaceLoading,
+  ]);
 
   useEffect(() => {
     const stored = getStoredUser();
-    setUser(stored);
+    queueMicrotask(() => setUser(stored));
   }, []);
 
   useEffect(() => {
-    void reload();
+    requestIdRef.current += 1;
+    queueMicrotask(() => {
+      setJobs([]);
+      setPagination({
+        page: 1,
+        limit: PAGE_SIZE,
+        total: 0,
+        totalPages: 0,
+      });
+      setPage(1);
+      setQueryInput('');
+      setQuery('');
+      setStatusFilter('all');
+      setMode('list');
+      setEditingJob(null);
+      setMessage(null);
+      setError(
+        !workspaceLoading && !activeWorkspaceId
+          ? workspaceError || 'No active employer workspace is available.'
+          : null
+      );
+    });
+  }, [activeWorkspaceId, workspaceError, workspaceLoading]);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) void reload();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [reload]);
 
   const formInitial = useMemo(() => {
     if (mode === 'edit' && editingJob) {
-      return jobToForm(editingJob, user?.company?.name || '');
+      return jobToForm(editingJob, activeWorkspace?.name || user?.company?.name || '');
     }
-    return emptyJobForm(user?.company?.name || '');
-  }, [mode, editingJob, user?.company?.name]);
+    return emptyJobForm(activeWorkspace?.name || user?.company?.name || '');
+  }, [activeWorkspace?.name, mode, editingJob, user?.company?.name]);
+
+  const ensureJobInActiveWorkspace = useCallback(
+    (job: JobSummary): boolean => {
+      if (!activeWorkspaceId || job.workspaceId !== activeWorkspaceId) {
+        setError(
+          job.workspaceId
+            ? 'This job belongs to a different workspace. Switch to that workspace before acting on it.'
+            : 'This legacy job has no workspace assignment. Run the employer workspace migration before acting on it.'
+        );
+        setMessage(null);
+        return false;
+      }
+      return true;
+    },
+    [activeWorkspaceId]
+  );
 
   const closeForm = () => {
     setMode('list');
@@ -143,16 +217,26 @@ export default function EmployerJobsPage({
   ) => {
     const token = getStoredToken();
     if (!token) return;
+    if (!activeWorkspaceId) {
+      setError('Select an active workspace before saving a job.');
+      return;
+    }
 
     setSaving(true);
     setError(null);
     setMessage(null);
     try {
       if (mode === 'edit' && editingJob) {
-        await updateJob(token, editingJob.id, payload, logoFile);
+        if (!ensureJobInActiveWorkspace(editingJob)) return;
+        await updateJob(
+          token,
+          editingJob.id,
+          { ...payload, workspaceId: activeWorkspaceId },
+          logoFile
+        );
         setMessage(`Updated “${payload.title}”.`);
       } else {
-        await createJob(token, payload, logoFile);
+        await createJob(token, { ...payload, workspaceId: activeWorkspaceId }, logoFile);
         setMessage(
           payload.status === 'draft'
             ? `Saved “${payload.title}” as draft.`
@@ -173,6 +257,7 @@ export default function EmployerJobsPage({
   const setJobStatus = async (job: JobSummary, status: JobStatus) => {
     const token = getStoredToken();
     if (!token) return;
+    if (!ensureJobInActiveWorkspace(job)) return;
     setError(null);
     setMessage(null);
 
@@ -209,7 +294,7 @@ export default function EmployerJobsPage({
     }
 
     try {
-      await updateJob(token, job.id, { status });
+      await updateJob(token, job.id, { status, workspaceId: activeWorkspaceId });
       setMessage(
         status === 'active'
           ? `“${job.title}” is now active.`
@@ -227,13 +312,14 @@ export default function EmployerJobsPage({
     }
   };
 
-  const handleDelete = async (jobId: string) => {
+  const handleDelete = async (job: JobSummary) => {
     const token = getStoredToken();
     if (!token) return;
+    if (!ensureJobInActiveWorkspace(job)) return;
     if (!window.confirm('Delete this job posting permanently?')) return;
 
     try {
-      await deleteJob(token, jobId);
+      await deleteJob(token, job.id);
       setMessage('Job deleted.');
       await reload();
     } catch (requestError: unknown) {
@@ -244,7 +330,7 @@ export default function EmployerJobsPage({
   };
 
   return (
-    <EmployerShell portal={portal}>
+    <>
       <div className="space-y-5">
         <div className="rounded-2xl border border-[#EEF0F8] bg-white p-6 shadow-sm md:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
@@ -266,13 +352,14 @@ export default function EmployerJobsPage({
             {mode === 'list' ? (
               <button
                 type="button"
+                disabled={!activeWorkspaceId}
                 onClick={() => {
                   setEditingJob(null);
                   setMode('create');
                   setError(null);
                   setMessage(null);
                 }}
-                className="rounded-xl bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white"
+                className="rounded-xl bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
                 style={{ fontFamily: 'var(--font-poppins)' }}
               >
                 Post a job
@@ -291,6 +378,7 @@ export default function EmployerJobsPage({
               <EmployerJobForm
                 isCompany={isCompany}
                 user={user}
+                companyNameOverride={activeWorkspace?.name}
                 initial={formInitial}
                 existingLogoUrl={editingJob?.companyLogoUri}
                 submitLabel={mode === 'edit' ? 'Save changes' : 'Save job'}
@@ -449,6 +537,9 @@ export default function EmployerJobsPage({
                       <div className="flex flex-wrap gap-2">
                         <Link
                           href={`${basePath}/jobs/${job.id}`}
+                          onClick={(event) => {
+                            if (!ensureJobInActiveWorkspace(job)) event.preventDefault();
+                          }}
                           className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold"
                           style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
                         >
@@ -457,6 +548,7 @@ export default function EmployerJobsPage({
                         <button
                           type="button"
                           onClick={() => {
+                            if (!ensureJobInActiveWorkspace(job)) return;
                             setEditingJob(job);
                             setMode('edit');
                             setMessage(null);
@@ -502,7 +594,7 @@ export default function EmployerJobsPage({
                         ) : null}
                         <button
                           type="button"
-                          onClick={() => void handleDelete(job.id)}
+                          onClick={() => void handleDelete(job)}
                           className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold text-[#C62828]"
                           style={{ fontFamily: 'var(--font-poppins)' }}
                         >
@@ -560,6 +652,14 @@ export default function EmployerJobsPage({
           </div>
         ) : null}
       </div>
-    </EmployerShell>
+    </>
   );
+}
+
+export default function EmployerJobsPage({
+  portal,
+}: {
+  portal: Extract<PortalType, 'recruiter' | 'company'>;
+}) {
+  return <EmployerJobsContent portal={portal} />;
 }

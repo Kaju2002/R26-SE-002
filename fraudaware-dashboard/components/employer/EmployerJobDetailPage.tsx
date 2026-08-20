@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
-import EmployerShell from '@/components/employer/EmployerShell';
 import { buildJobRiskText, predictFakeJobFromText } from '@/lib/api/fakeJobApi';
 import {
   descriptionToText,
@@ -163,7 +162,6 @@ export default function EmployerJobDetailPage({
   };
 
   return (
-    <EmployerShell portal={portal}>
       <div className="space-y-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
@@ -433,7 +431,6 @@ export default function EmployerJobDetailPage({
           </>
         ) : null}
       </div>
-    </EmployerShell>
   );
 }
 

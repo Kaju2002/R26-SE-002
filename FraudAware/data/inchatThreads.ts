@@ -9,6 +9,8 @@ export type InchatAvatarKind = 'person' | 'company';
 
 export type InchatThread = {
   id: string;
+  /** Job-management id used by the Jobs filter. */
+  jobId?: string;
   participantName: string;
   /** Optional subtitle, e.g. company or “Recruiter” */
   subtitle?: string;
@@ -28,6 +30,8 @@ export type InchatThread = {
   blockedBy?: string | null;
   /** True when the logged-in user blocked this thread. */
   iBlocked?: boolean;
+  /** Saved by the logged-in participant. */
+  saved?: boolean;
 };
 
 /** Chips shown under the search bar (LinkedIn-style filters, FraudAware copy). */

@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import EmployerShell from '@/components/employer/EmployerShell';
 import { getEmailManagementBaseUrl } from '@/lib/api/apiConfig';
 import type { PortalType } from '@/lib/auth/portalConfig';
 import { portalConfigs } from '@/lib/auth/portalConfig';
@@ -60,10 +59,8 @@ export default function EmployerEmailCallbackPage({
   }, [basePath, router, searchParams]);
 
   return (
-    <EmployerShell portal={portal}>
       <div className="rounded-2xl border border-[#EEF0F8] bg-white p-8 shadow-sm">
         <p style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}>{message}</p>
       </div>
-    </EmployerShell>
   );
 }

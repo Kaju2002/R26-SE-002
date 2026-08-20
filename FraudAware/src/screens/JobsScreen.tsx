@@ -24,8 +24,8 @@ import {
 } from '@expo-google-fonts/poppins';
 import type { Job } from '../../data/jobs';
 import type { RootStackParamList } from '../navigation/rootStackParams';
-import { getAppliedJobs, getSavedJobs, listJobs, type ListJobsParams } from '../api/jobApi';
-import { mapApiJobsToJobs, mapAppliedJobsToJobs } from '../utils/jobMapper';
+import { getSavedJobs, listJobs, type ListJobsParams } from '../api/jobApi';
+import { mapApiJobsToJobs } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
 import { useUser } from '../context/UserContext';
 import { useInchat } from '../context/InchatContext';
@@ -48,7 +48,7 @@ import { JOB_SEARCH_COLORS } from '../components/jobs/search/jobSearchTheme';
 
 const SEARCH_LOADING_DELAY_MS = 450;
 
-type JobsSegment = 'forYou' | 'recent' | 'saved' | 'applied';
+type JobsSegment = 'forYou' | 'recent' | 'saved';
 type JobsRouteParams = {
   Jobs:
     | {
@@ -184,26 +184,6 @@ export default function JobsScreen() {
   const loadJobs = useCallback(async () => {
     if (segment === 'forYou') {
       setFetching(false);
-      return;
-    }
-
-    if (segment === 'applied') {
-      if (!token) {
-        setJobs([]);
-        setFetching(false);
-        return;
-      }
-
-      setFetching(true);
-      try {
-        const response = await getAppliedJobs(token, { limit: 50 });
-        const appliedJobs = mapAppliedJobsToJobs(response.jobs, response.applications);
-        setJobs(sortJobs(filterJobs(appliedJobs, query, filters), sort));
-      } catch {
-        setJobs([]);
-      } finally {
-        setFetching(false);
-      }
       return;
     }
 
@@ -395,7 +375,6 @@ function SegmentTabs({
     { key: 'forYou', label: 'For You' },
     { key: 'recent', label: 'Recent' },
     { key: 'saved', label: 'Saved' },
-    { key: 'applied', label: 'Applied' },
   ];
 
   return (

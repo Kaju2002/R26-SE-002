@@ -56,6 +56,16 @@ const conversationSchema = new mongoose.Schema(
       required: [true, "Recruiter user id is required"],
       trim: true,
     },
+    workspaceId: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    workspaceName: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     jobseekerId: {
       type: String,
       required: [true, "Jobseeker user id is required"],
@@ -84,6 +94,11 @@ const conversationSchema = new mongoose.Schema(
       type: String,
       default: null,
       trim: true,
+    },
+    /** Participants who saved/bookmarked this conversation for themselves. */
+    savedBy: {
+      type: [String],
+      default: [],
     },
     startedBy: {
       type: String,
@@ -123,8 +138,10 @@ conversationSchema.path("jobseekerId").validate(function (jobseekerId) {
 // One chat per job application prevents duplicate conversation threads.
 conversationSchema.index({ applicationId: 1 }, { unique: true });
 conversationSchema.index({ recruiterId: 1, updatedAt: -1 });
+conversationSchema.index({ workspaceId: 1, updatedAt: -1 });
 conversationSchema.index({ jobseekerId: 1, updatedAt: -1 });
 conversationSchema.index({ jobId: 1 });
+conversationSchema.index({ savedBy: 1, updatedAt: -1 });
 
 const Conversation = mongoose.model("Conversation", conversationSchema);
 

@@ -114,6 +114,11 @@ const jobSchema = new mongoose.Schema(
       required: [true, "Posted by user id is required"],
       index: true,
     },
+    workspaceId: {
+      type: String,
+      default: null,
+      index: true,
+    },
     posterType: {
       type: String,
       enum: ["recruiter", "company"],

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import EmployerShell from '@/components/employer/EmployerShell';
 import {
   disconnectEmail,
   getEmailConnectUrl,
@@ -75,7 +74,6 @@ export default function EmployerProfilePage({
   };
 
   return (
-    <EmployerShell portal={portal}>
       <div className="space-y-5">
         <div className="rounded-2xl border border-[#EEF0F8] bg-white p-8 shadow-sm">
           <h2
@@ -173,7 +171,6 @@ export default function EmployerProfilePage({
           </div>
         </div>
       </div>
-    </EmployerShell>
   );
 }
 

@@ -6,8 +6,26 @@ import {
 
 export type JobStatus = 'active' | 'draft' | 'closed';
 
+export type EmployerWorkspaceRole = 'owner' | 'admin' | 'recruiter' | 'viewer';
+
+export type EmployerWorkspace = {
+  id: string;
+  ownerId?: string;
+  name: string;
+  normalizedName?: string;
+  logo: string | null;
+  status: 'active' | 'inactive' | string;
+  role?: EmployerWorkspaceRole;
+  members?: Array<{
+    userId: string;
+    role: EmployerWorkspaceRole;
+    status: 'active' | 'inactive' | string;
+  }>;
+};
+
 export type JobSummary = {
   id: string;
+  workspaceId: string | null;
   title: string;
   companyName: string;
   status: JobStatus | string;
@@ -46,6 +64,7 @@ export type JobDetail = JobSummary & {
 
 export type JobApplication = {
   id: string;
+  workspaceId: string | null;
   jobId: string;
   jobTitle: string;
   fullName: string;
@@ -57,6 +76,7 @@ export type JobApplication = {
 
 export type ApplicationDetail = {
   id: string;
+  workspaceId: string | null;
   applicantId: string;
   recruiterId: string;
   jobId: string;
@@ -69,6 +89,7 @@ export type ApplicationDetail = {
 };
 
 export type CreateJobPayload = {
+  workspaceId?: string;
   title: string;
   companyName?: string;
   location: string;
@@ -94,6 +115,7 @@ export type ListMyJobsParams = {
   status?: JobStatus | 'all';
   q?: string;
   sort?: string;
+  workspaceId?: string;
 };
 
 export type PaginationInfo = {
@@ -123,6 +145,16 @@ type JobApplicationsResponse = {
 type ApplicationDetailResponse = {
   success: boolean;
   application: ApplicationDetail;
+};
+
+type WorkspacesResponse = {
+  success?: boolean;
+  workspaces: EmployerWorkspace[];
+};
+
+type WorkspaceResponse = {
+  success?: boolean;
+  workspace: EmployerWorkspace;
 };
 
 async function parseJson<T>(response: Response): Promise<T> {
@@ -166,7 +198,10 @@ export async function listMyJobs(
     `${getJobManagementBaseUrl()}/api/jobs/mine?${search.toString()}`,
     {
       method: 'GET',
-      headers: authHeaders(token),
+      headers: {
+        ...authHeaders(token),
+        ...(params.workspaceId ? { 'X-Workspace-Id': params.workspaceId } : {}),
+      },
       cache: 'no-store',
     }
   );
@@ -181,6 +216,32 @@ export async function listMyJobs(
       totalPages: 1,
     },
   };
+}
+
+export async function listEmployerWorkspaces(token: string): Promise<EmployerWorkspace[]> {
+  const response = await fetch(`${getJobManagementBaseUrl()}/api/jobs/workspaces`, {
+    method: 'GET',
+    headers: authHeaders(token),
+    cache: 'no-store',
+  });
+
+  return (await parseJson<WorkspacesResponse>(response)).workspaces;
+}
+
+export async function getEmployerWorkspace(
+  token: string,
+  workspaceId: string
+): Promise<EmployerWorkspace> {
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/workspaces/${encodeURIComponent(workspaceId)}`,
+    {
+      method: 'GET',
+      headers: authHeaders(token),
+      cache: 'no-store',
+    }
+  );
+
+  return (await parseJson<WorkspaceResponse>(response)).workspace;
 }
 
 export async function getJobById(token: string, jobId: string): Promise<JobDetail> {
@@ -273,13 +334,17 @@ export async function listJobApplications(
 
 export async function getApplicationById(
   token: string,
-  applicationId: string
+  applicationId: string,
+  workspaceId?: string
 ): Promise<ApplicationDetail> {
   const response = await fetch(
     `${getJobManagementBaseUrl()}/api/jobs/applications/${applicationId}`,
     {
       method: 'GET',
-      headers: authHeaders(token),
+      headers: {
+        ...authHeaders(token),
+        ...(workspaceId ? { 'X-Workspace-Id': workspaceId } : {}),
+      },
       cache: 'no-store',
     }
   );

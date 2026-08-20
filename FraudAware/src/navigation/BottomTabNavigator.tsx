@@ -4,8 +4,7 @@ import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
 import DetectNavigator from './DetectNavigator';
-import MyNetworkScreen from '../screens/MyNetworkScreen';
-import PostTabScreen from './PostTabScreen';
+import ApplicationsScreen from '../screens/ApplicationsScreen';
 import ChatNavigator from './ChatNavigator';
 import JobsScreen from '../screens/JobsScreen';
 import ChatIcon from '../components/icons/ChatIcon';
@@ -76,10 +75,10 @@ export default function BottomTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="Post"
-        component={PostTabScreen}
+        name="Applications"
+        component={ApplicationsScreen}
         options={{
-          tabBarLabel: 'Post',
+          tabBarLabel: 'Applied',
           tabBarIcon: ({ color }) => (
             <Image
               source={require('../../assets/icons/plus.png')}

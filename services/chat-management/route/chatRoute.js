@@ -3,6 +3,7 @@ import { authMiddleware } from "../middleware/authMiddleware.js";
 import {
   createConversation,
   listConversations,
+  updateConversationSaved,
   updateConversationStatus,
 } from "../controller/conversationController.js";
 import { getMessages, sendMessage, markConversationRead, deleteMessage, clearConversation } from "../controller/messageController.js";
@@ -100,6 +101,17 @@ router.patch(
   "/conversations/:conversationId/status",
   authMiddleware,
   updateConversationStatus
+);
+
+/**
+ * PATCH /api/chat/conversations/:conversationId/saved
+ * Body: { saved: boolean }
+ * Save or unsave a conversation for the caller only.
+ */
+router.patch(
+  "/conversations/:conversationId/saved",
+  authMiddleware,
+  updateConversationSaved
 );
 
 export default router;

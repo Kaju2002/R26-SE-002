@@ -19,6 +19,7 @@ import {
   sendConversationDocumentMessage,
   sendConversationImageMessage,
   sendConversationMessage,
+  updateConversationSaved as updateConversationSavedApi,
   updateConversationStatus as updateConversationStatusApi,
   type ChatConversation,
   type ChatDocumentUpload,
@@ -83,6 +84,8 @@ type InchatContextValue = {
   clearConversation: (threadId: string) => Promise<void>;
   /** Archive, unarchive, block, or unblock a conversation. */
   setConversationStatus: (threadId: string, status: ConversationStatus) => Promise<void>;
+  /** Save or unsave a conversation for the current user. */
+  setConversationSaved: (threadId: string, saved: boolean) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
   leaveThread: (threadId: string) => void;
@@ -120,6 +123,7 @@ function formatThread(
   const peer = peerByConversationId[conversation.id];
   return {
     id: conversation.id,
+    jobId: conversation.jobId,
     participantName: peer?.name || (conversation.myRole === 'jobseeker' ? 'Recruiter' : 'Applicant'),
     subtitle: peer?.subtitle || `Application · ${conversation.applicationId.slice(-6)}`,
     avatarKind: peer?.avatarKind ?? (conversation.myRole === 'jobseeker' ? 'company' : 'person'),
@@ -135,15 +139,19 @@ function formatThread(
     })(),
     timestampLabel: formatTime(conversation.lastMessage?.sentAt || conversation.updatedAt),
     unreadCount: conversation.myUnread || 0,
-    filterTags:
-      conversation.status === 'archived'
-        ? ['archived']
-        : conversation.myUnread > 0
-          ? ['focused', 'jobs', 'unread']
-          : ['focused', 'jobs'],
+    filterTags: [
+      ...(conversation.status === 'active' ? ['focused' as const] : []),
+      ...(conversation.status !== 'archived' && conversation.jobId ? ['jobs' as const] : []),
+      ...(conversation.status !== 'archived' && conversation.myUnread > 0
+        ? ['unread' as const]
+        : []),
+      ...(conversation.saved ? ['saved' as const] : []),
+      ...(conversation.status === 'archived' ? ['archived' as const] : []),
+    ],
     status: conversation.status,
     blockedBy: conversation.blockedBy ?? null,
     iBlocked: Boolean(conversation.iBlocked),
+    saved: Boolean(conversation.saved),
   };
 }
 
@@ -843,6 +851,21 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [conversations, token, user?.id]
   );
 
+  const setConversationSaved = useCallback(
+    async (threadId: string, saved: boolean) => {
+      if (!token || !user?.id) return;
+      if (!conversations.some((entry) => entry.id === threadId)) return;
+
+      const updated = await updateConversationSavedApi(token, threadId, saved);
+      setConversations((previous) =>
+        previous.map((entry) =>
+          entry.id === threadId ? { ...entry, saved: Boolean(updated.saved) } : entry
+        )
+      );
+    },
+    [conversations, token, user?.id]
+  );
+
   const getCombinedMessages = useCallback(
     (threadId: string) => messagesByThread[threadId] ?? [],
     [messagesByThread]
@@ -884,6 +907,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       deleteMessage,
       clearConversation,
       setConversationStatus,
+      setConversationSaved,
       getCombinedMessages,
       loadMessages,
       leaveThread,
@@ -906,6 +930,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       deleteMessage,
       clearConversation,
       setConversationStatus,
+      setConversationSaved,
       getCombinedMessages,
       loadMessages,
       leaveThread,

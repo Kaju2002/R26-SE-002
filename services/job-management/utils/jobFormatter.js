@@ -67,6 +67,7 @@ export const formatJob = (job, extras = {}) => {
 
   return {
     id: String(job._id),
+    workspaceId: job.workspaceId ? String(job.workspaceId) : null,
     title: job.title,
     companyName,
     companyLogoUri: companyLogo || undefined,

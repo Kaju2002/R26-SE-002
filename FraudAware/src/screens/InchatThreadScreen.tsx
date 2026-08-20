@@ -79,6 +79,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     appendUserDocumentMessage,
     deleteMessage,
     clearConversation,
+    setConversationSaved,
     setConversationStatus,
     loadMessages,
     leaveThread,
@@ -447,7 +448,18 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
 
   const isBlocked = Boolean(thread?.iBlocked);
   const isArchived = thread?.status === 'archived';
+  const isSaved = Boolean(thread?.saved);
   const conversationIsBlocked = thread?.status === 'blocked';
+
+  const onMenuToggleSaved = useCallback(() => {
+    closeThreadMenu();
+    void setConversationSaved(threadId, !isSaved).catch((error: unknown) => {
+      Alert.alert(
+        isSaved ? 'Could not remove saved chat' : 'Could not save chat',
+        error instanceof Error ? error.message : 'Please try again.'
+      );
+    });
+  }, [closeThreadMenu, isSaved, setConversationSaved, threadId]);
 
   const onMenuToggleArchive = useCallback(() => {
     closeThreadMenu();
@@ -658,6 +670,22 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             >
               <MaterialCommunityIcons name="shield-check-outline" size={22} color={INCHAT_NAVY} />
               <Text style={styles.menuRowLabel}>Check conversation</Text>
+            </Pressable>
+            <View style={styles.menuDivider} />
+            <Pressable
+              style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
+              onPress={onMenuToggleSaved}
+              accessibilityRole="button"
+              accessibilityLabel={isSaved ? 'Remove from saved' : 'Save conversation'}
+            >
+              <MaterialCommunityIcons
+                name={isSaved ? 'bookmark' : 'bookmark-outline'}
+                size={22}
+                color={INCHAT_NAVY}
+              />
+              <Text style={styles.menuRowLabel}>
+                {isSaved ? 'Remove from saved' : 'Save'}
+              </Text>
             </Pressable>
             <View style={styles.menuDivider} />
             {!conversationIsBlocked ? (

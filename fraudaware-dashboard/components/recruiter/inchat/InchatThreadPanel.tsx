@@ -43,6 +43,7 @@ export default function InchatThreadPanel({
     appendRecruiterMessage,
     deleteMessage,
     clearConversation,
+    setConversationSaved,
     setConversationStatus,
     loadMessages,
     leaveThread,
@@ -195,6 +196,28 @@ export default function InchatThreadPanel({
     }
   }, [setConversationStatus, thread.id]);
 
+  const onSave = useCallback(async () => {
+    setStatusError(null);
+    try {
+      await setConversationSaved(thread.id, true);
+    } catch (error) {
+      setStatusError(error instanceof Error ? error.message : 'Could not save conversation.');
+      throw error;
+    }
+  }, [setConversationSaved, thread.id]);
+
+  const onUnsave = useCallback(async () => {
+    setStatusError(null);
+    try {
+      await setConversationSaved(thread.id, false);
+    } catch (error) {
+      setStatusError(
+        error instanceof Error ? error.message : 'Could not remove saved conversation.'
+      );
+      throw error;
+    }
+  }, [setConversationSaved, thread.id]);
+
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-white">
       {!hideHeader ? (
@@ -209,6 +232,8 @@ export default function InchatThreadPanel({
           onUnblock={onUnblock}
           onArchive={onArchive}
           onUnarchive={onUnarchive}
+          onSave={onSave}
+          onUnsave={onUnsave}
         />
       ) : null}
 

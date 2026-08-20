@@ -9,7 +9,12 @@ export type RootStackParamList = {
   RegistrationSuccess: undefined;
   NewPassword: { email?: string; otp?: string } | undefined;
   PasswordUpdated: undefined;
-  MainTabs: undefined;
+  MainTabs:
+    | {
+        screen?: 'Home' | 'Detect' | 'Applications' | 'Chat' | 'Jobs';
+        params?: Record<string, unknown>;
+      }
+    | undefined;
   Profile: undefined;
   EditProfile: undefined;
   EditWorkExperience: { itemId?: string } | undefined;

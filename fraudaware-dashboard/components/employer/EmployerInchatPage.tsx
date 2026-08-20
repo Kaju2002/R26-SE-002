@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
-import EmployerShell from '@/components/employer/EmployerShell';
 import InchatConversationHeader from '@/components/recruiter/inchat/InchatConversationHeader';
 import InchatEmptyState from '@/components/recruiter/inchat/InchatEmptyState';
 import InchatFilterChips from '@/components/recruiter/inchat/InchatFilterChips';
@@ -20,8 +19,18 @@ import { INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 import { INCHAT_FILTER_OPTIONS, type InchatFilterId, type InchatThread } from '@/lib/inchat/types';
 
 function matchesFilter(thread: InchatThread, filterId: InchatFilterId): boolean {
-  if (filterId === 'unread') return thread.unreadCount > 0;
-  return thread.filterTags.includes(filterId);
+  switch (filterId) {
+    case 'focused':
+      return thread.status === 'active';
+    case 'jobs':
+      return thread.status !== 'archived' && Boolean(thread.jobId);
+    case 'unread':
+      return thread.status !== 'archived' && thread.unreadCount > 0;
+    case 'saved':
+      return Boolean(thread.saved);
+    case 'archived':
+      return thread.status === 'archived';
+  }
 }
 
 function matchesQuery(thread: InchatThread, query: string): boolean {
@@ -46,6 +55,7 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
     isPeerTyping,
     getPeerPresence,
     clearConversation,
+    setConversationSaved,
     setConversationStatus,
   } = useInchat();
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -232,6 +242,30 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
                     throw err;
                   }
                 }}
+                onSave={async () => {
+                  setStatusError(null);
+                  try {
+                    await setConversationSaved(selectedThread.id, true);
+                  } catch (err) {
+                    setStatusError(
+                      err instanceof Error ? err.message : 'Could not save conversation.'
+                    );
+                    throw err;
+                  }
+                }}
+                onUnsave={async () => {
+                  setStatusError(null);
+                  try {
+                    await setConversationSaved(selectedThread.id, false);
+                  } catch (err) {
+                    setStatusError(
+                      err instanceof Error
+                        ? err.message
+                        : 'Could not remove saved conversation.'
+                    );
+                    throw err;
+                  }
+                }}
               />
               {statusError ? (
                 <p
@@ -260,9 +294,5 @@ export default function EmployerInchatPage({
 }: {
   portal: Extract<PortalType, 'recruiter' | 'company'>;
 }) {
-  return (
-    <EmployerShell portal={portal} fullBleed>
-      <InchatWorkspace roleLabel={portal === 'company' ? 'Company' : 'Recruiter'} />
-    </EmployerShell>
-  );
+  return <InchatWorkspace roleLabel={portal === 'company' ? 'Company' : 'Recruiter'} />;
 }

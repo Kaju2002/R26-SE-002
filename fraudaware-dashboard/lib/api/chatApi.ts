@@ -36,6 +36,8 @@ export type ChatMessage = {
 
 export type ChatConversation = {
   id: string;
+  workspaceId: string | null;
+  workspaceName: string | null;
   recruiterId: string;
   jobseekerId: string;
   applicationId: string;
@@ -44,6 +46,8 @@ export type ChatConversation = {
   blockedBy?: string | null;
   /** True when the current user is the one who blocked (WhatsApp-style). */
   iBlocked?: boolean;
+  /** True when the current user saved this conversation. */
+  saved?: boolean;
   startedBy: 'recruiter' | 'jobseeker' | 'system';
   lastMessage: {
     messageId: string | null;
@@ -108,10 +112,20 @@ async function parseJson<T>(response: Response): Promise<T> {
   return data as T;
 }
 
-export async function listChatConversations(token: string): Promise<ChatConversation[]> {
-  const response = await fetch(`${getChatManagementBaseUrl()}/api/chat/conversations`, {
+function workspaceHeaders(token: string, workspaceId: string): HeadersInit {
+  return {
+    ...authHeaders(token),
+    'X-Workspace-Id': workspaceId,
+  };
+}
+
+export async function listChatConversations(
+  token: string,
+  workspaceId: string
+): Promise<ChatConversation[]> {
+  const response = await fetch(`${getChatManagementBaseUrl()}/api/chat/conversations?limit=50`, {
     method: 'GET',
-    headers: authHeaders(token),
+    headers: workspaceHeaders(token, workspaceId),
     cache: 'no-store',
   });
 
@@ -123,11 +137,12 @@ export async function listChatConversations(token: string): Promise<ChatConversa
  */
 export async function createChatConversation(
   token: string,
-  applicationId: string
+  applicationId: string,
+  workspaceId: string
 ): Promise<ChatConversation> {
   const response = await fetch(`${getChatManagementBaseUrl()}/api/chat/conversations`, {
     method: 'POST',
-    headers: authHeaders(token),
+    headers: workspaceHeaders(token, workspaceId),
     body: JSON.stringify({ applicationId }),
   });
 
@@ -136,13 +151,14 @@ export async function createChatConversation(
 
 export async function listConversationMessages(
   token: string,
-  conversationId: string
+  conversationId: string,
+  workspaceId: string
 ): Promise<ChatMessage[]> {
   const response = await fetch(
     `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages?limit=100`,
     {
       method: 'GET',
-      headers: authHeaders(token),
+      headers: workspaceHeaders(token, workspaceId),
       cache: 'no-store',
     }
   );
@@ -153,13 +169,14 @@ export async function listConversationMessages(
 export async function sendConversationMessage(
   token: string,
   conversationId: string,
-  body: string
+  body: string,
+  workspaceId: string
 ): Promise<ChatMessage> {
   const response = await fetch(
     `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages`,
     {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: workspaceHeaders(token, workspaceId),
       body: JSON.stringify({ body }),
     }
   );
@@ -172,13 +189,14 @@ export async function sendConversationMessage(
  */
 export async function markConversationRead(
   token: string,
-  conversationId: string
+  conversationId: string,
+  workspaceId: string
 ): Promise<void> {
   const response = await fetch(
     `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/read`,
     {
       method: 'PATCH',
-      headers: authHeaders(token),
+      headers: workspaceHeaders(token, workspaceId),
     }
   );
 
@@ -201,13 +219,14 @@ export async function deleteConversationMessage(
   token: string,
   conversationId: string,
   messageId: string,
-  mode: DeleteMessageMode
+  mode: DeleteMessageMode,
+  workspaceId: string
 ): Promise<DeleteMessageResponse> {
   const response = await fetch(
     `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages/${messageId}`,
     {
       method: 'DELETE',
-      headers: authHeaders(token),
+      headers: workspaceHeaders(token, workspaceId),
       body: JSON.stringify({ mode }),
     }
   );
@@ -228,13 +247,14 @@ type ClearConversationResponse = {
 /** Clear all chat for the caller only (peer unchanged). */
 export async function clearConversation(
   token: string,
-  conversationId: string
+  conversationId: string,
+  workspaceId: string
 ): Promise<ClearConversationResponse> {
   const response = await fetch(
     `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/clear`,
     {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: workspaceHeaders(token, workspaceId),
     }
   );
 
@@ -253,14 +273,34 @@ type UpdateConversationStatusResponse = {
 export async function updateConversationStatus(
   token: string,
   conversationId: string,
-  status: ConversationStatus
+  status: ConversationStatus,
+  workspaceId: string
 ): Promise<ChatConversation> {
   const response = await fetch(
     `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/status`,
     {
       method: 'PATCH',
-      headers: authHeaders(token),
+      headers: workspaceHeaders(token, workspaceId),
       body: JSON.stringify({ status }),
+    }
+  );
+
+  return (await parseJson<UpdateConversationStatusResponse>(response)).conversation;
+}
+
+/** Save or unsave a conversation for the logged-in participant. */
+export async function updateConversationSaved(
+  token: string,
+  conversationId: string,
+  saved: boolean,
+  workspaceId: string
+): Promise<ChatConversation> {
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/saved`,
+    {
+      method: 'PATCH',
+      headers: workspaceHeaders(token, workspaceId),
+      body: JSON.stringify({ saved }),
     }
   );
 

@@ -29,12 +29,18 @@ import {
   saveJob,
   unsaveJob,
 } from "../controller/savedJobController.js";
+import {
+  getMyWorkspace,
+  listMyWorkspaces,
+} from "../controller/employerWorkspaceController.js";
 
 const router = express.Router();
 
 // Specific paths before /:id
 router.get("/me/ping", authMiddleware, authPing);
 router.get("/mine", authMiddleware, getMyJobs);
+router.get("/workspaces", authMiddleware, listMyWorkspaces);
+router.get("/workspaces/:workspaceId", authMiddleware, getMyWorkspace);
 router.get("/saved", authMiddleware, getSavedJobs);
 router.get("/applied", authMiddleware, getAppliedJobs);
 router.get("/recruiter/:userId", optionalAuthMiddleware, getJobsByRecruiter);

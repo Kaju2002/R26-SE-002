@@ -36,7 +36,7 @@ const HOME_JOB_FEED_ROWS = [
 type HomeNavParams = {
   Jobs:
     | {
-        segment?: 'forYou' | 'recent' | 'saved' | 'applied';
+        segment?: 'forYou' | 'recent' | 'saved';
         presetQuery?: string;
         openFilters?: boolean;
       }
