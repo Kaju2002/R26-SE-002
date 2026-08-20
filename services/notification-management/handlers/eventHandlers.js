@@ -6,6 +6,7 @@ import {
 } from "../utils/idempotency.js";
 import { sendExpoPushToUser } from "../utils/expoPushClient.js";
 import { findJobseekersMatchingSkills } from "../utils/userManagementClient.js";
+import { sendApplicationThankYouEmail } from "../utils/sendApplicationThankYouEmail.js";
 
 const STATUS_TITLES = {
   sent: "Application Submitted",
@@ -53,6 +54,10 @@ const handleApplicationCreated = async (event) => {
     jobTitle = "",
     companyName = "",
     companyLogo = null,
+    applicantEmail = "",
+    applicantName = "",
+    companyWebsite = "",
+    hrEmail = "",
     status = "sent",
   } = payload;
 
@@ -65,30 +70,50 @@ const handleApplicationCreated = async (event) => {
   }
 
   const existing = await findApplicationNotification(applicantId, applicationId);
-  if (existing) {
-    return { skipped: true, reason: "duplicate-application" };
-  }
 
   const copy = buildApplicationCopy(status, jobTitle, companyName);
 
-  const notification = await createNotification({
-    userId: String(applicantId),
-    category: "applications",
-    type: "application",
-    title: copy.title,
-    body: copy.body,
-    metadata: {
-      applicationId: String(applicationId),
-      jobId: jobId ? String(jobId) : undefined,
+  let notification = existing;
+  if (!existing) {
+    notification = await createNotification({
+      userId: String(applicantId),
+      category: "applications",
+      type: "application",
+      title: copy.title,
+      body: copy.body,
+      metadata: {
+        applicationId: String(applicationId),
+        jobId: jobId ? String(jobId) : undefined,
+        jobTitle,
+        companyName,
+        companyLogo,
+        applicationStatus: status,
+      },
+      sourceEventId: event.eventId,
+    });
+  }
+
+  let emailResult = { skipped: true, reason: "not-attempted" };
+  try {
+    emailResult = await sendApplicationThankYouEmail({
+      applicationId,
+      applicantEmail,
+      applicantName,
       jobTitle,
       companyName,
-      companyLogo,
-      applicationStatus: status,
-    },
-    sourceEventId: event.eventId,
-  });
+      companyWebsite,
+      hrEmail,
+      sourceEventId: event.eventId,
+    });
+  } catch (error) {
+    console.error("Application thank-you email error:", error.message);
+    emailResult = { sent: false, error: error.message };
+  }
 
-  return { created: Boolean(notification) };
+  return {
+    created: Boolean(notification && !existing),
+    email: emailResult,
+  };
 };
 
 const handleApplicationStatusUpdated = async (event) => {
