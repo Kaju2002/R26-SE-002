@@ -547,12 +547,12 @@ export default function EmployerProfilePage({
         </div>
       </section>
 
-      {message ? (
+          {message ? (
         <div
           className="rounded-xl border border-[#C8E6C9] bg-[#E8F5E9] px-4 py-3 text-sm text-[#2E7D32]"
-          style={{ fontFamily: 'var(--font-poppins)' }}
-        >
-          {message}
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {message}
         </div>
       ) : null}
       {error ? (
@@ -982,8 +982,8 @@ export default function EmployerProfilePage({
                     <div className="flex flex-wrap items-center gap-2">
                       <p
                         className="text-sm font-semibold"
-                        style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-                      >
+            style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+          >
                         {mailboxOn ? 'Mailbox connected' : 'No mailbox connected'}
                       </p>
                       <StatusPill
@@ -1020,41 +1020,41 @@ export default function EmployerProfilePage({
                       >
                         Open inbox
                       </Link>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => void disconnect()}
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => void disconnect()}
                         className="rounded-lg border border-[#E5E7EE] bg-white px-4 py-2.5 text-sm font-semibold transition hover:bg-[#F7F8FE] disabled:opacity-70"
-                        style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-                      >
-                        Disconnect
-                      </button>
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                Disconnect
+              </button>
                     </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => void connect('google')}
+            ) : (
+              <>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void connect('google')}
                         className="rounded-lg bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#1a2160] disabled:opacity-70"
-                        style={{ fontFamily: 'var(--font-poppins)' }}
-                      >
-                        Connect Gmail
-                      </button>
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => void connect('microsoft')}
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  Connect Gmail
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => void connect('microsoft')}
                         className="rounded-lg border border-[#E5E7EE] bg-white px-4 py-2.5 text-sm font-semibold transition hover:bg-[#F7F8FE] disabled:opacity-70"
-                        style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-                      >
-                        Connect Outlook
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Connect Outlook
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
           ) : null}
         </div>
       </section>
