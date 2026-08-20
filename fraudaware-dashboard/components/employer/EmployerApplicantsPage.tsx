@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import EmailComposeModal from '@/components/employer/EmailComposeModal';
-import EmployerShell from '@/components/employer/EmployerShell';
+import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceContext';
 import { createChatConversation } from '@/lib/api/chatApi';
 import { getEmailConnectUrl, getEmailStatus } from '@/lib/api/emailApi';
 import {
@@ -38,12 +38,18 @@ function formatAppliedAt(value: string): string {
   });
 }
 
-export default function EmployerApplicantsPage({
+function EmployerApplicantsContent({
   portal,
 }: {
   portal: Extract<PortalType, 'recruiter' | 'company'>;
 }) {
   const router = useRouter();
+  const {
+    activeWorkspace,
+    loading: workspaceLoading,
+    error: workspaceError,
+  } = useEmployerWorkspace();
+  const activeWorkspaceId = activeWorkspace?.id;
   const basePath = portalConfigs[portal].basePath;
   const [jobs, setJobs] = useState<JobSummary[]>([]);
   const [selectedJobId, setSelectedJobId] = useState('');
@@ -57,6 +63,19 @@ export default function EmployerApplicantsPage({
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
+    if (workspaceLoading) return;
+    if (!activeWorkspaceId) {
+      queueMicrotask(() => {
+        setJobs([]);
+        setApplications([]);
+        setSelectedJobId('');
+        setError(workspaceError || 'No active employer workspace is available.');
+        setLoadingJobs(false);
+      });
+      return;
+    }
+
+    let cancelled = false;
     const token = getStoredToken();
     if (!token) {
       queueMicrotask(() => {
@@ -66,19 +85,37 @@ export default function EmployerApplicantsPage({
       return;
     }
 
-    Promise.all([listMyJobs(token, { limit: 50 }), getEmailStatus(token).catch(() => null)])
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setLoadingJobs(true);
+      setJobs([]);
+      setApplications([]);
+      setSelectedJobId('');
+    });
+    Promise.all([
+      listMyJobs(token, { limit: 50, workspaceId: activeWorkspaceId }),
+      getEmailStatus(token).catch(() => null),
+    ])
       .then(([result, status]) => {
+        if (cancelled) return;
         setJobs(result.jobs);
         if (result.jobs.length > 0) setSelectedJobId(result.jobs[0].id);
         if (status) setEmailConnected(status.connected);
       })
       .catch((requestError: unknown) => {
+        if (cancelled) return;
         setError(
           requestError instanceof Error ? requestError.message : 'Could not load your jobs.'
         );
       })
-      .finally(() => setLoadingJobs(false));
-  }, []);
+      .finally(() => {
+        if (!cancelled) setLoadingJobs(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeWorkspaceId, workspaceError, workspaceLoading]);
 
   useEffect(() => {
     if (!selectedJobId) {
@@ -125,11 +162,22 @@ export default function EmployerApplicantsPage({
       const token = getStoredToken();
       if (!token || messagingId) return;
 
+      if (!application.workspaceId) {
+        setError(
+          'This application has no workspace assignment. Run the employer workspace migration before starting a chat.'
+        );
+        return;
+      }
+
       setMessagingId(application.id);
       setError(null);
 
       try {
-        const conversation = await createChatConversation(token, application.id);
+        const conversation = await createChatConversation(
+          token,
+          application.id,
+          application.workspaceId
+        );
         router.push(`${basePath}/inchat?thread=${conversation.id}`);
       } catch (requestError: unknown) {
         setError(
@@ -177,7 +225,7 @@ export default function EmployerApplicantsPage({
   };
 
   return (
-    <EmployerShell portal={portal}>
+    <>
       <div className="space-y-5">
         <div className="rounded-2xl border border-[#EEF0F8] bg-white p-6 shadow-sm md:p-8">
           <h2
@@ -391,6 +439,14 @@ export default function EmployerApplicantsPage({
           }}
         />
       ) : null}
-    </EmployerShell>
+    </>
   );
+}
+
+export default function EmployerApplicantsPage({
+  portal,
+}: {
+  portal: Extract<PortalType, 'recruiter' | 'company'>;
+}) {
+  return <EmployerApplicantsContent portal={portal} />;
 }

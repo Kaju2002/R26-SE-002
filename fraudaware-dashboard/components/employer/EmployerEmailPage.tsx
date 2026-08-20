@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
-import EmployerShell from '@/components/employer/EmployerShell';
 import EmailDetailPane from '@/components/employer/email/EmailDetailPane';
 import EmailFolderNav from '@/components/employer/email/EmailFolderNav';
 import EmailMessageRow from '@/components/employer/email/EmailMessageRow';
@@ -216,7 +215,7 @@ export default function EmployerEmailPage({
   };
 
   return (
-    <EmployerShell portal={portal} fullBleed>
+    <>
       <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:m-4 lg:rounded-xl lg:border lg:border-[#EEF0F8] lg:bg-white lg:shadow-sm">
         <div
           className="flex shrink-0 items-center justify-between gap-4 border-b border-[#EEF0F8] px-5 py-4"
@@ -411,6 +410,6 @@ export default function EmployerEmailPage({
           }}
         />
       ) : null}
-    </EmployerShell>
+    </>
   );
 }

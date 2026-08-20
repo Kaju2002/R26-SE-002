@@ -10,6 +10,11 @@ const applicationSchema = new mongoose.Schema(
       required: [true, "Job id is required"],
       index: true,
     },
+    workspaceId: {
+      type: String,
+      default: null,
+      index: true,
+    },
     applicantId: {
       type: String,
       required: [true, "Applicant user id is required"],

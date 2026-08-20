@@ -10,6 +10,10 @@ import { canAccessPortal, clearSession, getStoredToken } from '@/lib/auth/sessio
 import { colors } from '@/lib/theme/colors';
 import { InchatProvider } from '@/components/recruiter/inchat/InchatProvider';
 import { InchatBasePathProvider } from '@/lib/inchat/InchatBasePathContext';
+import {
+  EmployerWorkspaceProvider,
+  useEmployerWorkspace,
+} from '@/components/employer/EmployerWorkspaceContext';
 
 type Props = {
   portal: Extract<PortalType, 'recruiter' | 'company'>;
@@ -17,6 +21,51 @@ type Props = {
   /** When true, main area fills height without extra padding (InChat views). */
   fullBleed?: boolean;
 };
+
+function WorkspaceIdentity({ mobile = false }: { mobile?: boolean }) {
+  const { activeWorkspace, loading, error } = useEmployerWorkspace();
+
+  if (loading) {
+    return (
+      <p className="truncate text-xs font-medium text-[#858BBD]">
+        Loading company...
+      </p>
+    );
+  }
+
+  if (error) {
+    return <p className="truncate text-xs font-medium text-red-600">{error}</p>;
+  }
+
+  if (!activeWorkspace) {
+    return (
+      <p className="truncate text-xs font-medium text-[#858BBD]">
+        No company on this login
+      </p>
+    );
+  }
+
+  return (
+    <div className={`flex min-w-0 items-center gap-2 ${mobile ? 'flex-1' : ''}`}>
+      {activeWorkspace.logo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={activeWorkspace.logo}
+          alt=""
+          className="h-7 w-7 shrink-0 rounded-lg object-cover"
+        />
+      ) : null}
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-[#858BBD]">
+          Company
+        </p>
+        <p className="truncate text-sm font-semibold text-[#202871]">
+          {activeWorkspace.name}
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export default function EmployerShell({
   portal,
@@ -27,6 +76,7 @@ export default function EmployerShell({
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -56,7 +106,10 @@ export default function EmployerShell({
           router.replace(config.loginPath);
           return;
         }
-        if (!cancelled) setUser(response.user);
+        if (!cancelled) {
+          setUser(response.user);
+          setSessionToken(token);
+        }
       } catch {
         clearSession();
         router.replace(config.loginPath);
@@ -94,12 +147,13 @@ export default function EmployerShell({
     );
   }
 
-  if (!user) return null;
+  if (!user || !sessionToken) return null;
 
   const shortLabel = portal === 'company' ? 'Company' : 'Recruiter';
 
   return (
     <InchatBasePathProvider basePath={config.basePath}>
+    <EmployerWorkspaceProvider user={user} token={sessionToken}>
     <InchatProvider>
       <div className="flex min-h-screen bg-[#F7F8FE]">
         <aside className="hidden w-60 shrink-0 border-r border-[#EEF0F8] bg-white md:flex md:flex-col">
@@ -113,6 +167,9 @@ export default function EmployerShell({
             >
               FraudAware
             </p>
+            <div className="mt-4">
+              <WorkspaceIdentity />
+            </div>
           </div>
 
           <nav className="flex-1 space-y-1 p-3">
@@ -211,6 +268,9 @@ export default function EmployerShell({
                 Sign out
               </button>
             </div>
+            <div className="mt-3">
+              <WorkspaceIdentity mobile />
+            </div>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
               {navItems.map((item) => {
                 const active =
@@ -243,6 +303,7 @@ export default function EmployerShell({
         </div>
       </div>
     </InchatProvider>
+    </EmployerWorkspaceProvider>
     </InchatBasePathProvider>
   );
 }

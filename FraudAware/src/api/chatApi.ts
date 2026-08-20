@@ -45,6 +45,8 @@ export type ChatConversation = {
   blockedBy?: string | null;
   /** True when the current user is the one who blocked (WhatsApp-style). */
   iBlocked?: boolean;
+  /** True when the current user saved this conversation. */
+  saved?: boolean;
   startedBy: 'recruiter' | 'jobseeker' | 'system';
   lastMessage: {
     messageId: string | null;
@@ -110,7 +112,7 @@ async function parseJson<T>(response: Response): Promise<T> {
 }
 
 export async function listChatConversations(token: string): Promise<ChatConversation[]> {
-  const response = await fetch(`${getChatManagementBaseUrl()}/api/chat/conversations`, {
+  const response = await fetch(`${getChatManagementBaseUrl()}/api/chat/conversations?limit=50`, {
     method: 'GET',
     headers: authHeaders(token),
   });
@@ -335,6 +337,27 @@ export async function updateConversationStatus(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ status }),
+    }
+  );
+
+  return (await parseJson<UpdateConversationStatusResponse>(response)).conversation;
+}
+
+/** Save or unsave a conversation for the logged-in participant. */
+export async function updateConversationSaved(
+  token: string,
+  conversationId: string,
+  saved: boolean
+): Promise<ChatConversation> {
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/saved`,
+    {
+      method: 'PATCH',
+      headers: {
+        ...authHeaders(token),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ saved }),
     }
   );
 

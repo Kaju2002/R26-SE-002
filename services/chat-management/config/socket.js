@@ -2,168 +2,203 @@ import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import Conversation from "../model/conversationModel.js";
 import Message from "../model/messageModel.js";
+import {
+  getAuthorizedConversation,
+  isEmployerAccount,
+  normalizeWorkspaceId,
+  validateWorkspaceMembership,
+} from "../utils/workspaceAuthorization.js";
 
 const JWT_SECRET = () => process.env.JWT_SECRET || "greatStack";
-const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
+const conversationRoom = (id) => `conversation:${id}`;
+const userRoom = (userId) => `user:${String(userId)}`;
+const workspaceUserRoom = (workspaceId, userId) =>
+  `workspace:${workspaceId}:user:${String(userId)}`;
+const onlineKey = (userId, workspaceId) =>
+  workspaceId
+    ? `workspace:${workspaceId}:user:${String(userId)}`
+    : userRoom(userId);
 
 let io = null;
-const onlineSocketsByUser = new Map();
-const lastSeenByUser = new Map();
+const onlineSockets = new Map();
+const lastSeen = new Map();
 
-const conversationRoom = (conversationId) => `conversation:${conversationId}`;
-const userRoom = (userId) => `user:${String(userId)}`;
-
-const addOnlineSocket = (userId, socketId) => {
-  const sockets = onlineSocketsByUser.get(userId) ?? new Set();
+const addOnlineSocket = (key, socketId) => {
+  const sockets = onlineSockets.get(key) ?? new Set();
   sockets.add(socketId);
-  onlineSocketsByUser.set(userId, sockets);
+  onlineSockets.set(key, sockets);
   return sockets.size;
 };
 
-const removeOnlineSocket = (userId, socketId) => {
-  const sockets = onlineSocketsByUser.get(userId);
+const removeOnlineSocket = (key, socketId) => {
+  const sockets = onlineSockets.get(key);
   if (!sockets) return 0;
   sockets.delete(socketId);
-  if (sockets.size === 0) {
-    onlineSocketsByUser.delete(userId);
-    return 0;
-  }
+  if (!sockets.size) onlineSockets.delete(key);
   return sockets.size;
 };
 
-export const isUserOnline = (userId) =>
-  (onlineSocketsByUser.get(String(userId))?.size ?? 0) > 0;
+export const isUserOnline = (userId, workspaceId = null) =>
+  (onlineSockets.get(onlineKey(userId, workspaceId))?.size ?? 0) > 0;
 
-const presenceFor = (userId) => ({
-  userId: String(userId),
-  isOnline: isUserOnline(userId),
-  lastSeenAt: lastSeenByUser.get(String(userId)) ?? null,
-});
+const presenceFor = (userId, workspaceId = null) => {
+  const key = onlineKey(userId, workspaceId);
+  return {
+    userId: String(userId),
+    workspaceId: workspaceId || null,
+    isOnline: isUserOnline(userId, workspaceId),
+    lastSeenAt: lastSeen.get(key) ?? null,
+  };
+};
 
-const participantConversations = (userId) =>
-  Conversation.find({
-    $or: [{ recruiterId: String(userId) }, { jobseekerId: String(userId) }],
-  }).select("_id recruiterId jobseekerId");
+const roomForConversationUser = (conversation, userId) => {
+  const isJobseeker =
+    String(conversation.jobseekerId) === String(userId);
+  if (isJobseeker || !conversation.workspaceId) return userRoom(userId);
+  return workspaceUserRoom(conversation.workspaceId, userId);
+};
 
-const notifyPresenceToPeers = async (userId) => {
-  if (!io) return;
-  const conversations = await participantConversations(userId);
-  const peers = new Set();
-  for (const conversation of conversations) {
-    const peerId =
-      String(conversation.recruiterId) === String(userId)
-        ? conversation.jobseekerId
-        : conversation.recruiterId;
-    peers.add(String(peerId));
+const conversationFilterForSocket = (socket) => {
+  if (!isEmployerAccount(socket.accountType)) {
+    return { jobseekerId: socket.userId };
   }
-  const payload = presenceFor(userId);
-  for (const peerId of peers) {
-    io.to(userRoom(peerId)).emit("presence:update", payload);
+  if (socket.workspaceId) return { workspaceId: socket.workspaceId };
+  return {
+    recruiterId: socket.userId,
+    $or: [
+      { workspaceId: null },
+      { workspaceId: "" },
+      { workspaceId: { $exists: false } },
+    ],
+  };
+};
+
+const socketConversations = (socket) =>
+  Conversation.find(conversationFilterForSocket(socket)).select(
+    "_id recruiterId jobseekerId workspaceId"
+  );
+
+const assertSocketAccess = async (socket, payload = {}) => {
+  const conversationId = String(payload.conversationId || "").trim();
+  const result = await getAuthorizedConversation({
+    conversationId,
+    userId: socket.userId,
+    accountType: socket.accountType,
+    workspaceId: socket.workspaceId,
+    authorizationHeader: socket.authorizationHeader,
+    membershipCache: socket.workspaceMembershipCache,
+    projection: "recruiterId jobseekerId workspaceId",
+  });
+  if (!result.ok) return result;
+
+  const payloadWorkspaceId = normalizeWorkspaceId(payload.workspaceId);
+  const conversationWorkspaceId = normalizeWorkspaceId(
+    result.conversation.workspaceId
+  );
+  if (payloadWorkspaceId && payloadWorkspaceId !== conversationWorkspaceId) {
+    return {
+      ok: false,
+      message: "Workspace does not match this conversation",
+    };
+  }
+  return result;
+};
+
+const notifyPresenceToPeers = async (socket) => {
+  if (!io) return;
+  const conversations = await socketConversations(socket);
+  const payload = presenceFor(socket.userId, socket.workspaceId);
+  for (const conversation of conversations) {
+    const isJobseeker =
+      String(conversation.jobseekerId) === socket.userId;
+    const peerId = isJobseeker
+      ? conversation.recruiterId
+      : conversation.jobseekerId;
+    let target = io.to(roomForConversationUser(conversation, peerId));
+    if (isJobseeker && conversation.workspaceId) {
+      target = addEmployerWorkspaceTargets(target, conversation.workspaceId);
+    }
+    target.emit("presence:update", {
+      ...payload,
+      workspaceId: conversation.workspaceId || null,
+    });
   }
 };
 
-const markPendingMessagesDelivered = async (userId) => {
+const markPendingMessagesDelivered = async (socket) => {
   if (!io) return;
-  const conversations = await participantConversations(userId);
+  const conversations = await socketConversations(socket);
   const deliveredAt = new Date();
 
   await Promise.all(
     conversations.map(async (conversation) => {
+      const isEmployerSocket = isEmployerAccount(socket.accountType);
       const result = await Message.updateMany(
         {
           conversationId: conversation._id,
-          senderId: { $ne: String(userId) },
+          senderId: isEmployerSocket
+            ? String(conversation.jobseekerId)
+            : { $ne: socket.userId },
           status: "sent",
+          suppressedForPeer: { $ne: true },
         },
         { $set: { status: "delivered", deliveredAt } }
       );
-      if (result.modifiedCount === 0) return;
+      if (!result.modifiedCount) return;
 
+      const senderId =
+        String(conversation.jobseekerId) === socket.userId
+          ? conversation.recruiterId
+          : conversation.jobseekerId;
       const payload = {
         conversationId: String(conversation._id),
-        recipientId: String(userId),
+        workspaceId: conversation.workspaceId || null,
+        recipientId: socket.userId,
         status: "delivered",
         deliveredAt,
       };
-      io.to(conversationRoom(conversation._id)).emit("messages:status", payload);
-      const senderId =
-        String(conversation.recruiterId) === String(userId)
-          ? conversation.jobseekerId
-          : conversation.recruiterId;
-      io.to(userRoom(senderId)).emit("messages:status", payload);
+      addConversationTargets(
+        io
+          .to(conversationRoom(conversation._id))
+          .to(roomForConversationUser(conversation, senderId)),
+        conversation
+      ).emit("messages:status", payload);
     })
   );
 };
 
-const assertParticipant = async (conversationId, userId) => {
-  if (!isValidObjectId(conversationId)) {
-    return { ok: false, message: "Invalid conversation id" };
-  }
-
-  const conversation = await Conversation.findById(conversationId).select(
-    "recruiterId jobseekerId"
-  );
-  if (!conversation) {
-    return { ok: false, message: "Conversation not found" };
-  }
-
-  const isParticipant =
-    String(conversation.recruiterId) === String(userId) ||
-    String(conversation.jobseekerId) === String(userId);
-
-  if (!isParticipant) {
-    return { ok: false, message: "You are not a participant of this conversation" };
-  }
-
-  return { ok: true };
-};
-
-/**
- * Attach Socket.io to the HTTP server.
- * Auth: JWT via handshake.auth.token or Authorization header.
- *
- * Client events:
- *   conversation:join  { conversationId }
- *   conversation:leave { conversationId }
- *   typing:start       { conversationId }
- *   typing:stop        { conversationId }
- *
- * Server events:
- *   message:new        { chatMessage }
- *   message:deleted    { conversationId, messageId, mode, deletedBy, ... }
- *   conversation:cleared { conversationId, clearedBy, clearedAt, mode: "me" }
- *   conversation:status  { conversationId, status, updatedBy, updatedAt }
- *   typing:update      { conversationId, userId, isTyping }
- *   presence:update    { userId, isOnline, lastSeenAt }
- *   messages:status    { conversationId, recipientId|readerId, status, ... }
- *   conversation:joined / conversation:error
- */
 export const initSocket = (httpServer) => {
   io = new Server(httpServer, {
-    cors: {
-      origin: "*",
-      methods: ["GET", "POST"],
-    },
+    cors: { origin: "*", methods: ["GET", "POST"] },
   });
 
-  io.use((socket, next) => {
+  io.use(async (socket, next) => {
     try {
-      const token =
+      const rawToken =
         socket.handshake.auth?.token ||
         socket.handshake.headers?.authorization?.replace(/^Bearer\s+/i, "");
+      if (!rawToken) return next(new Error("Authentication required"));
 
-      if (!token) {
-        return next(new Error("Authentication required"));
-      }
-
-      const decoded = jwt.verify(token, JWT_SECRET());
-      if (!decoded.userId) {
-        return next(new Error("Invalid token payload"));
-      }
+      const decoded = jwt.verify(rawToken, JWT_SECRET());
+      if (!decoded.userId) return next(new Error("Invalid token payload"));
 
       socket.userId = String(decoded.userId);
       socket.email = decoded.email ?? null;
       socket.accountType = decoded.accountType || "jobseeker";
+      socket.authorizationHeader = `Bearer ${rawToken}`;
+      socket.workspaceMembershipCache = new Map();
+      socket.workspaceId = isEmployerAccount(socket.accountType)
+        ? normalizeWorkspaceId(socket.handshake.auth?.workspaceId) || null
+        : null;
+
+      if (socket.workspaceId) {
+        const membership = await validateWorkspaceMembership({
+          workspaceId: socket.workspaceId,
+          authorizationHeader: socket.authorizationHeader,
+          cache: socket.workspaceMembershipCache,
+        });
+        if (!membership.ok) return next(new Error(membership.message));
+      }
       next();
     } catch {
       next(new Error("Authentication failed"));
@@ -171,196 +206,215 @@ export const initSocket = (httpServer) => {
   });
 
   io.on("connection", (socket) => {
-    console.log(`Socket connected: user=${socket.userId} id=${socket.id}`);
+    const personalRoom = socket.workspaceId
+      ? workspaceUserRoom(socket.workspaceId, socket.userId)
+      : userRoom(socket.userId);
+    const key = onlineKey(socket.userId, socket.workspaceId);
+    socket.join(personalRoom);
 
-    socket.join(userRoom(socket.userId));
-    const connectionCount = addOnlineSocket(socket.userId, socket.id);
-    if (connectionCount === 1) {
-      void notifyPresenceToPeers(socket.userId);
-      void markPendingMessagesDelivered(socket.userId);
+    if (addOnlineSocket(key, socket.id) === 1) {
+      void notifyPresenceToPeers(socket);
+      void markPendingMessagesDelivered(socket);
     }
 
     socket.on("conversation:join", async (payload = {}) => {
       try {
+        const access = await assertSocketAccess(socket, payload);
         const conversationId = String(payload.conversationId || "").trim();
-        const access = await assertParticipant(conversationId, socket.userId);
-
         if (!access.ok) {
           socket.emit("conversation:error", {
             conversationId,
+            workspaceId: socket.workspaceId,
             message: access.message,
           });
           return;
         }
 
-        const conversation = await Conversation.findById(conversationId).select(
-          "recruiterId jobseekerId"
-        );
+        const conversation = access.conversation;
         const peerId =
-          String(conversation.recruiterId) === String(socket.userId)
-            ? conversation.jobseekerId
-            : conversation.recruiterId;
+          String(conversation.jobseekerId) === socket.userId
+            ? conversation.recruiterId
+            : conversation.jobseekerId;
+        const peerWorkspaceId =
+          String(conversation.jobseekerId) === socket.userId
+            ? conversation.workspaceId
+            : null;
 
         socket.join(conversationRoom(conversationId));
         socket.emit("conversation:joined", {
           conversationId,
-          peerPresence: presenceFor(peerId),
+          workspaceId: conversation.workspaceId || null,
+          peerPresence: presenceFor(peerId, peerWorkspaceId),
         });
       } catch (error) {
-        console.error("conversation:join error:", error.message);
         socket.emit("conversation:error", {
+          workspaceId: socket.workspaceId,
           message: "Could not join conversation",
         });
       }
     });
 
-    socket.on("conversation:leave", (payload = {}) => {
-      const conversationId = String(payload.conversationId || "").trim();
-      if (!conversationId) return;
-      socket
-        .to(conversationRoom(conversationId))
-        .emit("typing:update", {
+    socket.on("conversation:leave", async (payload = {}) => {
+      try {
+        const access = await assertSocketAccess(socket, payload);
+        if (!access.ok) {
+          socket.emit("conversation:error", {
+            conversationId: String(payload.conversationId || ""),
+            workspaceId: socket.workspaceId,
+            message: access.message,
+          });
+          return;
+        }
+        const conversationId = String(payload.conversationId);
+        socket.to(conversationRoom(conversationId)).emit("typing:update", {
           conversationId,
+          workspaceId: access.conversation.workspaceId || null,
           userId: socket.userId,
           isTyping: false,
         });
-      socket.leave(conversationRoom(conversationId));
+        socket.leave(conversationRoom(conversationId));
+      } catch (error) {
+        console.error("Conversation leave error:", error.message);
+      }
     });
 
     const emitTyping = async (payload = {}, isTyping) => {
       try {
-        const conversationId = String(payload.conversationId || "").trim();
-        const access = await assertParticipant(conversationId, socket.userId);
-        if (!access.ok) return;
-
+        const access = await assertSocketAccess(socket, payload);
+        if (!access.ok) {
+          socket.emit("conversation:error", {
+            conversationId: String(payload.conversationId || ""),
+            workspaceId: socket.workspaceId,
+            message: access.message,
+          });
+          return;
+        }
+        const conversationId = String(payload.conversationId);
         socket.to(conversationRoom(conversationId)).emit("typing:update", {
           conversationId,
+          workspaceId: access.conversation.workspaceId || null,
           userId: socket.userId,
           isTyping: Boolean(isTyping),
         });
       } catch (error) {
-        console.error("typing event error:", error.message);
+        console.error("Typing event error:", error.message);
       }
     };
 
-    socket.on("typing:start", (payload) => {
-      void emitTyping(payload, true);
-    });
-
-    socket.on("typing:stop", (payload) => {
-      void emitTyping(payload, false);
-    });
+    socket.on("typing:start", (payload) => void emitTyping(payload, true));
+    socket.on("typing:stop", (payload) => void emitTyping(payload, false));
 
     socket.on("disconnect", () => {
-      console.log(`Socket disconnected: user=${socket.userId} id=${socket.id}`);
-      const remaining = removeOnlineSocket(socket.userId, socket.id);
-      if (remaining === 0) {
-        lastSeenByUser.set(socket.userId, new Date());
-        void notifyPresenceToPeers(socket.userId);
+      if (removeOnlineSocket(key, socket.id) === 0) {
+        lastSeen.set(key, new Date());
+        void notifyPresenceToPeers(socket);
       }
     });
   });
 
-  console.log("Socket.io ready (JWT auth + conversation rooms)");
+  console.log("Socket.io ready (JWT + workspace authorization)");
   return io;
 };
 
 export const getIO = () => io;
 
-export const emitMessageStatus = (conversationId, payload, participantIds = []) => {
-  if (!io) return;
-  let target = io.to(conversationRoom(conversationId));
-  for (const participantId of participantIds) {
-    if (participantId) target = target.to(userRoom(participantId));
+const addConversationTargets = (target, conversation) => {
+  if (!conversation) return target;
+  target = target.to(userRoom(conversation.jobseekerId));
+  if (!conversation.workspaceId) {
+    return target.to(userRoom(conversation.recruiterId));
   }
-  target.emit("messages:status", {
-    conversationId: String(conversationId),
-    ...payload,
+  return addEmployerWorkspaceTargets(target, conversation.workspaceId).to(
+    workspaceUserRoom(conversation.workspaceId, conversation.recruiterId)
+  );
+};
+
+const addEmployerWorkspaceTargets = (target, workspaceId) => {
+  const prefix = `workspace:${workspaceId}:user:`;
+  for (const room of onlineSockets.keys()) {
+    if (room.startsWith(prefix)) target = target.to(room);
+  }
+  return target;
+};
+
+const eventPayload = (conversationId, conversation, payload = {}) => ({
+  conversationId: String(conversationId),
+  ...payload,
+  workspaceId: conversation?.workspaceId || null,
+});
+
+export const emitMessageStatus = (
+  conversationId,
+  payload,
+  conversation
+) => {
+  if (!io) return;
+  addConversationTargets(
+    io.to(conversationRoom(conversationId)),
+    conversation
+  ).emit("messages:status", eventPayload(conversationId, conversation, payload));
+};
+
+export const emitNewMessage = (conversationId, chatMessage, conversation) => {
+  if (!io) return;
+  addConversationTargets(
+    io.to(conversationRoom(conversationId)),
+    conversation
+  ).emit("message:new", {
+    workspaceId: conversation?.workspaceId || null,
+    chatMessage,
   });
 };
 
-/**
- * Broadcast a new message to the conversation and both participants' personal rooms.
- * Socket.io unions the rooms, so a socket present in more than one receives one event.
- * Safe no-op if Socket.io is not initialized yet.
- */
-export const emitNewMessage = (
-  conversationId,
-  chatMessage,
-  participantIds = [],
-) => {
-  if (!io) return;
-
-  let target = io.to(conversationRoom(conversationId));
-  for (const participantId of participantIds) {
-    if (participantId) {
-      target = target.to(userRoom(participantId));
-    }
-  }
-  target.emit("message:new", { chatMessage });
-};
-
-/**
- * Notify clients that a message was deleted.
- * - mode "me": only the caller's personal room (peer should not hide it)
- * - mode "everyone": conversation room + both participant rooms
- */
 export const emitMessageDeleted = (
   conversationId,
   payload,
-  { mode, userId, participantIds = [] } = {}
+  { mode, userId, conversation } = {}
 ) => {
   if (!io) return;
-
-  const eventPayload = {
-    conversationId: String(conversationId),
+  const fullPayload = eventPayload(conversationId, conversation, {
     ...payload,
     mode,
-  };
-
+  });
   if (mode === "me") {
-    if (userId) {
-      io.to(userRoom(userId)).emit("message:deleted", eventPayload);
+    if (userId && conversation) {
+      io.to(roomForConversationUser(conversation, userId)).emit(
+        "message:deleted",
+        fullPayload
+      );
     }
     return;
   }
-
-  let target = io.to(conversationRoom(conversationId));
-  for (const participantId of participantIds) {
-    if (participantId) target = target.to(userRoom(participantId));
-  }
-  target.emit("message:deleted", eventPayload);
+  addConversationTargets(
+    io.to(conversationRoom(conversationId)),
+    conversation
+  ).emit("message:deleted", fullPayload);
 };
 
-/**
- * Notify the caller that they cleared a conversation (delete-for-me on all messages).
- */
-export const emitConversationCleared = (conversationId, userId, payload = {}) => {
-  if (!io || !userId) return;
-  io.to(userRoom(userId)).emit("conversation:cleared", {
-    conversationId: String(conversationId),
-    ...payload,
-  });
+export const emitConversationCleared = (
+  conversationId,
+  userId,
+  payload = {},
+  conversation
+) => {
+  if (!io || !userId || !conversation) return;
+  io.to(roomForConversationUser(conversation, userId)).emit(
+    "conversation:cleared",
+    eventPayload(conversationId, conversation, payload)
+  );
 };
 
-/**
- * Broadcast conversation status change (block / unblock) to both participants.
- */
 export const emitConversationStatus = (
   conversationId,
   payload = {},
-  participantIds = []
+  conversation
 ) => {
   if (!io) return;
-
-  const eventPayload = {
-    conversationId: String(conversationId),
-    ...payload,
-  };
-
-  let target = io.to(conversationRoom(conversationId));
-  for (const participantId of participantIds) {
-    if (participantId) target = target.to(userRoom(participantId));
-  }
-  target.emit("conversation:status", eventPayload);
+  addConversationTargets(
+    io.to(conversationRoom(conversationId)),
+    conversation
+  ).emit(
+    "conversation:status",
+    eventPayload(conversationId, conversation, payload)
+  );
 };

@@ -39,6 +39,7 @@ export function emptyJobForm(companyName = ''): CreateJobPayload {
 type Props = {
   isCompany: boolean;
   user: AuthUser | null;
+  companyNameOverride?: string;
   initial: CreateJobPayload;
   existingLogoUrl?: string | null;
   submitLabel: string;
@@ -50,6 +51,7 @@ type Props = {
 export default function EmployerJobForm({
   isCompany,
   user,
+  companyNameOverride,
   initial,
   existingLogoUrl,
   submitLabel,
@@ -68,24 +70,38 @@ export default function EmployerJobForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setForm(initial);
-    setLogoFile(null);
-    setLogoPreview(existingLogoUrl ?? null);
-    setRisk(null);
-    setRiskError(null);
-    setRiskBypass(false);
-    setLocalError(null);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setForm(initial);
+      setLogoFile(null);
+      setLogoPreview(existingLogoUrl ?? null);
+      setRisk(null);
+      setRiskError(null);
+      setRiskBypass(false);
+      setLocalError(null);
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [initial, existingLogoUrl]);
 
   useEffect(() => {
     if (!logoFile) return;
     const url = URL.createObjectURL(logoFile);
-    setLogoPreview(url);
-    return () => URL.revokeObjectURL(url);
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setLogoPreview(url);
+    });
+    return () => {
+      cancelled = true;
+      URL.revokeObjectURL(url);
+    };
   }, [logoFile]);
 
-  const companyName = isCompany
-    ? user?.company?.name || form.companyName || ''
+  const companyLocked = Boolean(companyNameOverride) || isCompany;
+  const companyName = companyLocked
+    ? companyNameOverride || user?.company?.name || form.companyName || ''
     : form.companyName || '';
 
   const riskTone = useMemo(() => {
@@ -184,8 +200,8 @@ export default function EmployerJobForm({
           label="Company name"
           value={companyName}
           onChange={(next) => setForm((prev) => ({ ...prev, companyName: next }))}
-          required={!isCompany}
-          disabled={isCompany}
+          required={!companyLocked}
+          disabled={companyLocked}
         />
         <TextField
           label="Location"

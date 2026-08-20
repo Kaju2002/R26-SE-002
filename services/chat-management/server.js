@@ -52,6 +52,8 @@ app.get("/", (req, res) => {
         "POST /api/chat/conversations/:conversationId/clear (Bearer token required) — clear chat for caller only",
       updateStatus:
         "PATCH /api/chat/conversations/:conversationId/status (Bearer token required, body: { status: \"active\" | \"archived\" | \"blocked\" })",
+      updateSaved:
+        "PATCH /api/chat/conversations/:conversationId/saved (Bearer token required, body: { saved: boolean })",
       socket: "Socket.io on same port (JWT in auth.token)",
     },
   });

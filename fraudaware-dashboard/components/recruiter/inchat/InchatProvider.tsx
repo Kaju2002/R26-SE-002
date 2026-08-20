@@ -18,6 +18,7 @@ import {
   listConversationMessages,
   markConversationRead,
   sendConversationMessage,
+  updateConversationSaved as updateConversationSavedApi,
   updateConversationStatus as updateConversationStatusApi,
   type ChatConversation,
   type ChatMessage,
@@ -29,6 +30,7 @@ import { getApplicationById } from '@/lib/api/jobApi';
 import { getPublicUserAvatar } from '@/lib/api/userApi';
 import { getStoredToken, getStoredUser } from '@/lib/auth/session';
 import type { InchatMessage, InchatThread } from '@/lib/inchat/types';
+import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceContext';
 
 type PeerMeta = {
   name: string;
@@ -54,6 +56,7 @@ type InchatContextValue = {
   ) => Promise<void>;
   clearConversation: (threadId: string) => Promise<void>;
   setConversationStatus: (threadId: string, status: ConversationStatus) => Promise<void>;
+  setConversationSaved: (threadId: string, saved: boolean) => Promise<void>;
   getCombinedMessages: (threadId: string) => InchatMessage[];
   loadMessages: (threadId: string) => Promise<void>;
   leaveThread: (threadId: string) => void;
@@ -87,6 +90,7 @@ function formatThread(
 
   return {
     id: conversation.id,
+    jobId: conversation.jobId,
     participantName: peer?.name || 'Applicant',
     subtitle: peer?.subtitle || `Application • ${conversation.applicationId.slice(-6)}`,
     avatarKind: 'person',
@@ -102,15 +106,19 @@ function formatThread(
     })(),
     timestampLabel: formatTime(conversation.lastMessage?.sentAt || conversation.updatedAt),
     unreadCount: conversation.myUnread || 0,
-    filterTags:
-      conversation.status === 'archived'
-        ? ['archived']
-        : conversation.myUnread > 0
-          ? ['focused', 'jobs', 'unread']
-          : ['focused', 'jobs'],
+    filterTags: [
+      ...(conversation.status === 'active' ? ['focused' as const] : []),
+      ...(conversation.status !== 'archived' && conversation.jobId ? ['jobs' as const] : []),
+      ...(conversation.status !== 'archived' && conversation.myUnread > 0
+        ? ['unread' as const]
+        : []),
+      ...(conversation.saved ? ['saved' as const] : []),
+      ...(conversation.status === 'archived' ? ['archived' as const] : []),
+    ],
     status: conversation.status,
     blockedBy: conversation.blockedBy ?? null,
     iBlocked: Boolean(conversation.iBlocked),
+    saved: Boolean(conversation.saved),
   };
 }
 
@@ -154,11 +162,16 @@ function appendUnique(messages: InchatMessage[], message: InchatMessage): Inchat
 
 async function loadPeerMetaForConversations(
   token: string,
-  conversations: ChatConversation[]
+  conversations: ChatConversation[],
+  workspaceId: string
 ): Promise<Record<string, PeerMeta>> {
   const settled = await Promise.allSettled(
     conversations.map(async (conversation) => {
-      const application = await getApplicationById(token, conversation.applicationId);
+      const application = await getApplicationById(
+        token,
+        conversation.applicationId,
+        conversation.workspaceId || workspaceId
+      );
 
       // Recruiter inbox shows the applicant; jobseeker would see company.
       const name =
@@ -209,6 +222,12 @@ export function useInchat(): InchatContextValue {
 }
 
 export function InchatProvider({ children }: { children: ReactNode }) {
+  const {
+    activeWorkspace,
+    loading: workspaceLoading,
+    error: workspaceError,
+  } = useEmployerWorkspace();
+  const activeWorkspaceId = activeWorkspace?.id;
   const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [peerByConversationId, setPeerByConversationId] = useState<Record<string, PeerMeta>>(
     {}
@@ -222,12 +241,27 @@ export function InchatProvider({ children }: { children: ReactNode }) {
   const conversationsRef = useRef(conversations);
   const typingTimeoutRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const activeThreadRef = useRef<string | null>(null);
+  const activeWorkspaceIdRef = useRef<string | null>(activeWorkspaceId ?? null);
 
   useEffect(() => {
     conversationsRef.current = conversations;
   }, [conversations]);
 
+  useEffect(() => {
+    activeWorkspaceIdRef.current = activeWorkspaceId ?? null;
+  }, [activeWorkspaceId]);
+
   const refreshConversations = useCallback(async () => {
+    const workspaceId = activeWorkspaceId;
+    if (!workspaceId) {
+      setLoaded(!workspaceLoading);
+      setError(
+        workspaceError ||
+          (!workspaceLoading ? 'No active employer workspace is available.' : null)
+      );
+      return;
+    }
+
     const token = getStoredToken();
     if (!token) {
       setError('Your session has expired. Please sign in again.');
@@ -237,53 +271,64 @@ export function InchatProvider({ children }: { children: ReactNode }) {
 
     try {
       setError(null);
-      const items = await listChatConversations(token);
+      const items = await listChatConversations(token, workspaceId);
+      if (activeWorkspaceIdRef.current !== workspaceId) return;
       setConversations(items);
-      setPeerByConversationId(await loadPeerMetaForConversations(token, items));
+      const peers = await loadPeerMetaForConversations(token, items, workspaceId);
+      if (activeWorkspaceIdRef.current !== workspaceId) return;
+      setPeerByConversationId(peers);
     } catch (requestError) {
+      if (activeWorkspaceIdRef.current !== workspaceId) return;
       setError(
         requestError instanceof Error ? requestError.message : 'Could not load conversations.'
       );
     } finally {
-      setLoaded(true);
+      if (activeWorkspaceIdRef.current === workspaceId) setLoaded(true);
     }
-  }, []);
+  }, [activeWorkspaceId, workspaceError, workspaceLoading]);
 
   useEffect(() => {
-    const token = getStoredToken();
-    if (!token) {
-      queueMicrotask(() => {
-        setError('Your session has expired. Please sign in again.');
-        setLoaded(true);
-      });
-      return;
-    }
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setConversations([]);
+      setPeerByConversationId({});
+      setMessagesByThread({});
+      setTypingByThread({});
+      setPresenceByUserId({});
+      setLoaded(false);
+      setError(null);
+      activeThreadRef.current = null;
+      Object.values(typingTimeoutRef.current).forEach(clearTimeout);
+      typingTimeoutRef.current = {};
 
-    listChatConversations(token)
-      .then(async (items) => {
-        setError(null);
-        setConversations(items);
-        setPeerByConversationId(await loadPeerMetaForConversations(token, items));
-      })
-      .catch((requestError: unknown) => {
-        setError(
-          requestError instanceof Error ? requestError.message : 'Could not load conversations.'
-        );
-      })
-      .finally(() => setLoaded(true));
+      void refreshConversations();
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [refreshConversations]);
 
   useEffect(() => {
+    const workspaceId = activeWorkspaceId;
     const token = getStoredToken();
-    if (!token) return;
+    if (!token || !workspaceId) return;
 
     const socket = io(getChatManagementBaseUrl(), {
-      auth: { token },
+      auth: { token, workspaceId },
       transports: ['websocket', 'polling'],
     });
     socketRef.current = socket;
 
-    socket.on('message:new', ({ chatMessage }: { chatMessage?: ChatMessage }) => {
+    socket.on('message:new', ({
+      chatMessage,
+      workspaceId: payloadWorkspaceId,
+    }: {
+      chatMessage?: ChatMessage;
+      workspaceId?: string | null;
+    }) => {
+      if (payloadWorkspaceId && payloadWorkspaceId !== workspaceId) return;
       if (!chatMessage) return;
       const conversation = conversationsRef.current.find(
         (entry) => entry.id === chatMessage.conversationId
@@ -305,7 +350,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
           [chatMessage.conversationId]: false,
         }));
         if (activeThreadRef.current === chatMessage.conversationId) {
-          void markConversationRead(token, chatMessage.conversationId);
+          void markConversationRead(token, chatMessage.conversationId, workspaceId);
           setConversations((previous) =>
             previous.map((entry) =>
               entry.id === chatMessage.conversationId ? { ...entry, myUnread: 0 } : entry
@@ -320,11 +365,14 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     socket.on(
       'conversation:joined',
       ({
+        workspaceId: payloadWorkspaceId,
         peerPresence,
       }: {
         conversationId?: string;
+        workspaceId?: string | null;
         peerPresence?: { userId?: string; isOnline?: boolean; lastSeenAt?: string | null };
       }) => {
+        if (payloadWorkspaceId && payloadWorkspaceId !== workspaceId) return;
         if (!peerPresence?.userId) return;
         setPresenceByUserId((previous) => ({
           ...previous,
@@ -339,14 +387,17 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     socket.on(
       'presence:update',
       ({
+        workspaceId: payloadWorkspaceId,
         userId,
         isOnline,
         lastSeenAt,
       }: {
+        workspaceId?: string | null;
         userId?: string;
         isOnline?: boolean;
         lastSeenAt?: string | null;
       }) => {
+        if (payloadWorkspaceId && payloadWorkspaceId !== workspaceId) return;
         if (!userId) return;
         setPresenceByUserId((previous) => ({
           ...previous,
@@ -358,6 +409,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     socket.on(
       'messages:status',
       ({
+        workspaceId: payloadWorkspaceId,
         conversationId,
         readerId,
         recipientId,
@@ -365,6 +417,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
         readAt,
         deliveredAt,
       }: {
+        workspaceId?: string | null;
         conversationId?: string;
         readerId?: string;
         recipientId?: string;
@@ -372,6 +425,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
         readAt?: string | null;
         deliveredAt?: string | null;
       }) => {
+        if (payloadWorkspaceId && payloadWorkspaceId !== workspaceId) return;
         if (!conversationId || !status) return;
         const conversation = conversationsRef.current.find((entry) => entry.id === conversationId);
         if (!conversation) return;
@@ -399,16 +453,19 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     socket.on(
       'message:deleted',
       ({
+        workspaceId: payloadWorkspaceId,
         conversationId,
         messageId,
         mode,
         chatMessage,
       }: {
+        workspaceId?: string | null;
         conversationId?: string;
         messageId?: string;
         mode?: DeleteMessageMode;
         chatMessage?: ChatMessage;
       }) => {
+        if (payloadWorkspaceId && payloadWorkspaceId !== workspaceId) return;
         if (!conversationId || !messageId || !mode) return;
         const conversation = conversationsRef.current.find((entry) => entry.id === conversationId);
 
@@ -450,7 +507,14 @@ export function InchatProvider({ children }: { children: ReactNode }) {
 
     socket.on(
       'conversation:cleared',
-      ({ conversationId }: { conversationId?: string }) => {
+      ({
+        conversationId,
+        workspaceId: payloadWorkspaceId,
+      }: {
+        conversationId?: string;
+        workspaceId?: string | null;
+      }) => {
+        if (payloadWorkspaceId && payloadWorkspaceId !== workspaceId) return;
         if (!conversationId) return;
         setMessagesByThread((previous) => ({
           ...previous,
@@ -480,14 +544,17 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     socket.on(
       'conversation:status',
       ({
+        workspaceId: payloadWorkspaceId,
         conversationId,
         status,
         blockedBy,
       }: {
+        workspaceId?: string | null;
         conversationId?: string;
         status?: ChatConversation['status'];
         blockedBy?: string | null;
       }) => {
+        if (payloadWorkspaceId && payloadWorkspaceId !== workspaceId) return;
         if (!conversationId || (status !== 'active' && status !== 'blocked' && status !== 'archived')) {
           return;
         }
@@ -520,14 +587,17 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     socket.on(
       'typing:update',
       ({
+        workspaceId: payloadWorkspaceId,
         conversationId,
         userId,
         isTyping,
       }: {
+        workspaceId?: string | null;
         conversationId?: string;
         userId?: string;
         isTyping?: boolean;
       }) => {
+        if (payloadWorkspaceId && payloadWorkspaceId !== workspaceId) return;
         if (!conversationId || !userId) return;
         const conversation = conversationsRef.current.find(
           (entry) => entry.id === conversationId
@@ -566,19 +636,21 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       socketRef.current = null;
       activeThreadRef.current = null;
     };
-  }, [refreshConversations]);
+  }, [activeWorkspaceId, refreshConversations]);
 
   const loadMessages = useCallback(
     async (threadId: string) => {
       const token = getStoredToken();
+      const workspaceId = activeWorkspaceId;
       const conversation = conversations.find((entry) => entry.id === threadId);
-      if (!token || !conversation) return;
+      if (!token || !workspaceId || !conversation) return;
 
-      socketRef.current?.emit('conversation:join', { conversationId: threadId });
+      socketRef.current?.emit('conversation:join', { conversationId: threadId, workspaceId });
       activeThreadRef.current = threadId;
 
       try {
-        const messages = await listConversationMessages(token, threadId);
+        const messages = await listConversationMessages(token, threadId, workspaceId);
+        if (activeWorkspaceIdRef.current !== workspaceId) return;
         setMessagesByThread((previous) => ({
           ...previous,
           [threadId]: messages.map((message) =>
@@ -586,7 +658,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
           ),
         }));
 
-        await markConversationRead(token, threadId);
+        await markConversationRead(token, threadId, workspaceId);
         if (conversation.myUnread > 0) {
           setConversations((previous) =>
             previous.map((entry) =>
@@ -607,25 +679,29 @@ export function InchatProvider({ children }: { children: ReactNode }) {
         setError(requestError instanceof Error ? requestError.message : 'Could not load messages.');
       }
     },
-    [conversations]
+    [activeWorkspaceId, conversations]
   );
 
   const leaveThread = useCallback((threadId: string) => {
-    socketRef.current?.emit('conversation:leave', { conversationId: threadId });
+    socketRef.current?.emit('conversation:leave', {
+      conversationId: threadId,
+      workspaceId: activeWorkspaceId,
+    });
     if (activeThreadRef.current === threadId) activeThreadRef.current = null;
-  }, []);
+  }, [activeWorkspaceId]);
 
   const appendRecruiterMessage = useCallback(
     async (threadId: string, body: string) => {
       const token = getStoredToken();
+      const workspaceId = activeWorkspaceId;
       const conversation = conversations.find((entry) => entry.id === threadId);
       const trimmed = body.trim();
-      if (!token || !conversation || !trimmed) return;
+      if (!token || !workspaceId || !conversation || !trimmed) return;
 
-      socketRef.current?.emit('typing:stop', { conversationId: threadId });
+      socketRef.current?.emit('typing:stop', { conversationId: threadId, workspaceId });
       setTypingByThread((previous) => ({ ...previous, [threadId]: false }));
 
-      const sent = await sendConversationMessage(token, threadId, trimmed);
+      const sent = await sendConversationMessage(token, threadId, trimmed, workspaceId);
       const mapped = formatMessage(sent, conversation.recruiterId);
       setMessagesByThread((previous) => ({
         ...previous,
@@ -633,16 +709,23 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       }));
       await refreshConversations();
     },
-    [conversations, refreshConversations]
+    [activeWorkspaceId, conversations, refreshConversations]
   );
 
   const deleteMessage = useCallback(
     async (threadId: string, messageId: string, mode: DeleteMessageMode) => {
       const token = getStoredToken();
+      const workspaceId = activeWorkspaceId;
       const conversation = conversations.find((entry) => entry.id === threadId);
-      if (!token || !conversation) return;
+      if (!token || !workspaceId || !conversation) return;
 
-      const result = await deleteConversationMessage(token, threadId, messageId, mode);
+      const result = await deleteConversationMessage(
+        token,
+        threadId,
+        messageId,
+        mode,
+        workspaceId
+      );
 
       if (mode === 'me') {
         setMessagesByThread((previous) => ({
@@ -676,16 +759,17 @@ export function InchatProvider({ children }: { children: ReactNode }) {
 
       await refreshConversations();
     },
-    [conversations, refreshConversations]
+    [activeWorkspaceId, conversations, refreshConversations]
   );
 
   const clearConversation = useCallback(
     async (threadId: string) => {
       const token = getStoredToken();
+      const workspaceId = activeWorkspaceId;
       const conversation = conversations.find((entry) => entry.id === threadId);
-      if (!token || !conversation) return;
+      if (!token || !workspaceId || !conversation) return;
 
-      await clearConversationApi(token, threadId);
+      await clearConversationApi(token, threadId, workspaceId);
       setMessagesByThread((previous) => ({
         ...previous,
         [threadId]: [],
@@ -709,16 +793,17 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       );
       await refreshConversations();
     },
-    [conversations, refreshConversations]
+    [activeWorkspaceId, conversations, refreshConversations]
   );
 
   const setConversationStatus = useCallback(
     async (threadId: string, status: ConversationStatus) => {
       const token = getStoredToken();
+      const workspaceId = activeWorkspaceId;
       const conversation = conversations.find((entry) => entry.id === threadId);
-      if (!token || !conversation) return;
+      if (!token || !workspaceId || !conversation) return;
 
-      const updated = await updateConversationStatusApi(token, threadId, status);
+      const updated = await updateConversationStatusApi(token, threadId, status, workspaceId);
       setConversations((previous) =>
         previous.map((entry) =>
           entry.id === threadId
@@ -732,7 +817,24 @@ export function InchatProvider({ children }: { children: ReactNode }) {
         )
       );
     },
-    [conversations]
+    [activeWorkspaceId, conversations]
+  );
+
+  const setConversationSaved = useCallback(
+    async (threadId: string, saved: boolean) => {
+      const token = getStoredToken();
+      const workspaceId = activeWorkspaceId;
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!token || !workspaceId || !conversation) return;
+
+      const updated = await updateConversationSavedApi(token, threadId, saved, workspaceId);
+      setConversations((previous) =>
+        previous.map((entry) =>
+          entry.id === threadId ? { ...entry, saved: Boolean(updated.saved) } : entry
+        )
+      );
+    },
+    [activeWorkspaceId, conversations]
   );
 
   const getCombinedMessages = useCallback(
@@ -755,11 +857,12 @@ export function InchatProvider({ children }: { children: ReactNode }) {
   );
 
   const setTyping = useCallback((threadId: string, isTyping: boolean) => {
-    if (!threadId || !socketRef.current) return;
+    if (!threadId || !socketRef.current || !activeWorkspaceId) return;
     socketRef.current.emit(isTyping ? 'typing:start' : 'typing:stop', {
       conversationId: threadId,
+      workspaceId: activeWorkspaceId,
     });
-  }, []);
+  }, [activeWorkspaceId]);
 
   const threadsForList = useMemo(
     () => conversations.map((conversation) => formatThread(conversation, peerByConversationId)),
@@ -775,6 +878,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       deleteMessage,
       clearConversation,
       setConversationStatus,
+      setConversationSaved,
       getCombinedMessages,
       loadMessages,
       leaveThread,
@@ -790,6 +894,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       deleteMessage,
       clearConversation,
       setConversationStatus,
+      setConversationSaved,
       getCombinedMessages,
       loadMessages,
       leaveThread,

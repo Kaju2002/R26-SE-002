@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import EmployerShell from '@/components/employer/EmployerShell';
 import type { PortalType } from '@/lib/auth/portalConfig';
 import { portalConfigs } from '@/lib/auth/portalConfig';
 import { colors } from '@/lib/theme/colors';
@@ -15,7 +14,6 @@ export default function EmployerDashboardPage({
   const isCompany = portal === 'company';
 
   return (
-    <EmployerShell portal={portal}>
       <div className="rounded-2xl border border-[#EEF0F8] bg-white p-8 shadow-sm">
         <h2
           className="text-xl font-semibold"
@@ -65,6 +63,5 @@ export default function EmployerDashboardPage({
           </Link>
         </div>
       </div>
-    </EmployerShell>
   );
 }

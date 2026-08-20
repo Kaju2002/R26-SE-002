@@ -14,6 +14,7 @@ export type InchatMessageAttachment = {
 
 export type InchatThread = {
   id: string;
+  jobId?: string;
   participantName: string;
   subtitle?: string;
   avatarKind: InchatAvatarKind;
@@ -29,6 +30,7 @@ export type InchatThread = {
   blockedBy?: string | null;
   /** True when the logged-in user blocked this thread. */
   iBlocked?: boolean;
+  saved?: boolean;
 };
 
 export type InchatMessage = {

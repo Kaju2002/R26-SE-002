@@ -24,10 +24,18 @@ import { INCHAT_MUTED, INCHAT_NAVY } from '../components/inchat/inchatStyles';
 type Props = NativeStackScreenProps<ChatStackParamList, 'InchatInbox'>;
 
 function matchesFilter(thread: InchatThread, filterId: InchatFilterId): boolean {
-  if (filterId === 'unread') {
-    return thread.unreadCount > 0;
+  switch (filterId) {
+    case 'focused':
+      return thread.status === 'active';
+    case 'jobs':
+      return thread.status !== 'archived' && Boolean(thread.jobId);
+    case 'unread':
+      return thread.status !== 'archived' && thread.unreadCount > 0;
+    case 'saved':
+      return Boolean(thread.saved);
+    case 'archived':
+      return thread.status === 'archived';
   }
-  return thread.filterTags.includes(filterId);
 }
 
 function matchesQuery(thread: InchatThread, q: string): boolean {

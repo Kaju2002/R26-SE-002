@@ -6,6 +6,10 @@ import { formatApplication, formatApplicationList } from "../utils/applicationFo
 import { formatJob } from "../utils/jobFormatter.js";
 import { publishEvent } from "../utils/publishEvent.js";
 import { buildResumeDownloadUrl, resolveResumeFilename } from "../utils/resumeUrlHelper.js";
+import {
+  getOrCreateHomeWorkspace,
+  WorkspaceAccessError,
+} from "../service/employerWorkspaceService.js";
 
 /** Statuses a recruiter can set via PATCH (not the initial "sent" state). */
 const RECRUITER_UPDATABLE_STATUSES = ["pending", "accepted", "rejected"];
@@ -105,6 +109,7 @@ export const applyToJob = async (req, res) => {
 
     const application = await Application.create({
       jobId: job._id,
+      workspaceId: job.workspaceId || null,
       applicantId: req.userId,
       fullName: payload.fullName,
       email: payload.email,
@@ -123,6 +128,7 @@ export const applyToJob = async (req, res) => {
       applicantId: req.userId,
       recruiterId: job.postedBy,
       jobId: String(job._id),
+      workspaceId: job.workspaceId ? String(job.workspaceId) : null,
       jobTitle: job.title,
       companyName: job.companyName,
       companyLogo: job.companyLogo || null,
@@ -235,6 +241,16 @@ export const getJobApplications = async (req, res) => {
       });
     }
 
+    if (job.workspaceId) {
+      const home = await getOrCreateHomeWorkspace(req.user);
+      if (String(job.workspaceId) !== String(home._id)) {
+        return res.status(403).json({
+          success: false,
+          message: "This workspace does not belong to this login",
+        });
+      }
+    }
+
     const { page, limit, skip } = parsePagination(req.query);
     const statusFilter = String(req.query.status || "").trim();
     const filter = { jobId: job._id };
@@ -259,6 +275,7 @@ export const getJobApplications = async (req, res) => {
       message: "Job applications fetched successfully",
       job: {
         id: String(job._id),
+        workspaceId: job.workspaceId ? String(job.workspaceId) : null,
         title: job.title,
         companyName: job.companyName,
       },
@@ -274,6 +291,12 @@ export const getJobApplications = async (req, res) => {
     });
   } catch (error) {
     console.error("Get job applications error:", error);
+    if (error instanceof WorkspaceAccessError) {
+      return res.status(error.status).json({
+        success: false,
+        message: error.message,
+      });
+    }
     return res.status(500).json({
       success: false,
       message: "Error fetching job applications",
@@ -323,6 +346,20 @@ export const getApplicationById = async (req, res) => {
       });
     }
 
+    if (isJobOwner) {
+      const home = await getOrCreateHomeWorkspace(req.user);
+      const applicationWorkspaceId = application.workspaceId || job.workspaceId;
+      if (
+        applicationWorkspaceId &&
+        String(applicationWorkspaceId) !== String(home._id)
+      ) {
+        return res.status(403).json({
+          success: false,
+          message: "This workspace does not belong to this login",
+        });
+      }
+    }
+
     return res.status(200).json({
       success: true,
       message: "Application fetched successfully",
@@ -331,6 +368,11 @@ export const getApplicationById = async (req, res) => {
         applicantId,
         recruiterId,
         jobId: String(job._id),
+        workspaceId: application.workspaceId
+          ? String(application.workspaceId)
+          : job.workspaceId
+            ? String(job.workspaceId)
+            : null,
         jobTitle: job.title,
         companyName: job.companyName,
         companyLogo: job.companyLogo || null,
@@ -341,6 +383,12 @@ export const getApplicationById = async (req, res) => {
     });
   } catch (error) {
     console.error("Get application by id error:", error);
+    if (error instanceof WorkspaceAccessError) {
+      return res.status(error.status).json({
+        success: false,
+        message: error.message,
+      });
+    }
     return res.status(500).json({
       success: false,
       message: "Error fetching application",
@@ -392,6 +440,16 @@ export const updateApplicationStatus = async (req, res) => {
       });
     }
 
+    if (job.workspaceId) {
+      const home = await getOrCreateHomeWorkspace(req.user);
+      if (String(job.workspaceId) !== String(home._id)) {
+        return res.status(403).json({
+          success: false,
+          message: "This workspace does not belong to this login",
+        });
+      }
+    }
+
     if (application.status === status) {
       return res.status(200).json({
         success: true,
@@ -408,6 +466,11 @@ export const updateApplicationStatus = async (req, res) => {
       applicantId: application.applicantId,
       recruiterId: job.postedBy,
       jobId: String(job._id),
+      workspaceId: application.workspaceId
+        ? String(application.workspaceId)
+        : job.workspaceId
+          ? String(job.workspaceId)
+          : null,
       jobTitle: job.title,
       companyName: job.companyName,
       companyLogo: job.companyLogo || null,
@@ -421,6 +484,13 @@ export const updateApplicationStatus = async (req, res) => {
     });
   } catch (error) {
     console.error("Update application status error:", error);
+
+    if (error instanceof WorkspaceAccessError) {
+      return res.status(error.status).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((err) => err.message);
@@ -477,6 +547,16 @@ export const downloadApplicationResume = async (req, res) => {
       });
     }
 
+    if (isJobOwner && job?.workspaceId) {
+      const home = await getOrCreateHomeWorkspace(req.user);
+      if (String(job.workspaceId) !== String(home._id)) {
+        return res.status(403).json({
+          success: false,
+          message: "This workspace does not belong to this login",
+        });
+      }
+    }
+
     const downloadUrl = buildResumeDownloadUrl(
       application.resumeUrl,
       application.resumeName
@@ -507,6 +587,12 @@ export const downloadApplicationResume = async (req, res) => {
     return res.status(200).send(buffer);
   } catch (error) {
     console.error("Download application resume error:", error);
+    if (error instanceof WorkspaceAccessError) {
+      return res.status(error.status).json({
+        success: false,
+        message: error.message,
+      });
+    }
     res.status(500).json({
       success: false,
       message: "Error downloading resume",

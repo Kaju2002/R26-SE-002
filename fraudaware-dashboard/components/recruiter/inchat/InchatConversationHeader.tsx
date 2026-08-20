@@ -23,6 +23,8 @@ type Props = {
   onUnblock?: () => void | Promise<void>;
   onArchive?: () => void | Promise<void>;
   onUnarchive?: () => void | Promise<void>;
+  onSave?: () => void | Promise<void>;
+  onUnsave?: () => void | Promise<void>;
 };
 
 export default function InchatConversationHeader({
@@ -36,6 +38,8 @@ export default function InchatConversationHeader({
   onUnblock,
   onArchive,
   onUnarchive,
+  onSave,
+  onUnsave,
 }: Props) {
   const basePath = useInchatBasePath();
   const router = useRouter();
@@ -45,6 +49,7 @@ export default function InchatConversationHeader({
   const menuRef = useRef<HTMLDivElement>(null);
   const isBlocked = Boolean(thread.iBlocked);
   const isArchived = thread.status === 'archived';
+  const isSaved = Boolean(thread.saved);
   const conversationIsBlocked = thread.status === 'blocked';
 
   const lastSeen = lastSeenAt ? new Date(lastSeenAt) : null;
@@ -132,6 +137,21 @@ export default function InchatConversationHeader({
       await action();
       setMenuOpen(false);
       router.push(`${basePath}/inchat`);
+    } catch {
+      // The parent action surfaces the request error next to the conversation.
+    } finally {
+      setStatusBusy(false);
+    }
+  };
+
+  const handleToggleSaved = async () => {
+    if (statusBusy) return;
+    const action = isSaved ? onUnsave : onSave;
+    if (!action) return;
+    setStatusBusy(true);
+    try {
+      await action();
+      setMenuOpen(false);
     } catch {
       // The parent action surfaces the request error next to the conversation.
     } finally {
@@ -237,6 +257,15 @@ export default function InchatConversationHeader({
             className="absolute right-0 top-11 z-30 min-w-[180px] rounded-xl border bg-white py-1 shadow-lg"
             style={{ borderColor: INCHAT_BORDER }}
           >
+            <button
+              type="button"
+              disabled={statusBusy || (isSaved ? !onUnsave : !onSave)}
+              onClick={() => void handleToggleSaved()}
+              className="block w-full px-3 py-2 text-left text-sm font-semibold text-[#202871] transition hover:bg-[#F7F8FE] disabled:opacity-50"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {statusBusy ? 'Updating…' : isSaved ? 'Remove from saved' : 'Save'}
+            </button>
             <button
               type="button"
               disabled={statusBusy || (isBlocked ? !onUnblock : !onBlock)}

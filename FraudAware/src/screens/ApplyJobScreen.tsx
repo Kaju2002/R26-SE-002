@@ -168,7 +168,7 @@ export default function ApplyJobScreen() {
   const handleGoToApplications = () => {
     setSuccessVisible(false);
     navigation.pop(2);
-    navigation.navigate('Notifications', { initialTab: 'applications' });
+    navigation.navigate('MainTabs', { screen: 'Applications' });
   };
 
   const handleMessageRecruiter = async () => {

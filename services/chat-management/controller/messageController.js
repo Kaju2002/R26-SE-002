@@ -17,6 +17,11 @@ import {
   uploadChatDocument,
   uploadChatImage,
 } from "../utils/chatImageUpload.js";
+import {
+  buildConversationEventContext,
+  getAuthorizedConversation,
+  getRequestWorkspaceId,
+} from "../utils/workspaceAuthorization.js";
 
 const DELETED_EVERYONE_PREVIEW = "This message was deleted";
 
@@ -57,38 +62,15 @@ const formatMessage = (message) => {
  * Load a conversation and ensure the caller is a participant.
  * Returns { ok, status?, message?, conversation? }.
  */
-const getParticipantConversation = async (conversationId, userId) => {
-  if (!isValidObjectId(conversationId)) {
-    return {
-      ok: false,
-      status: 400,
-      message: "Invalid conversation id",
-    };
-  }
-
-  const conversation = await Conversation.findById(conversationId);
-  if (!conversation) {
-    return {
-      ok: false,
-      status: 404,
-      message: "Conversation not found",
-    };
-  }
-
-  const isParticipant =
-    String(conversation.recruiterId) === String(userId) ||
-    String(conversation.jobseekerId) === String(userId);
-
-  if (!isParticipant) {
-    return {
-      ok: false,
-      status: 403,
-      message: "You are not a participant of this conversation",
-    };
-  }
-
-  return { ok: true, conversation };
-};
+const getParticipantConversation = async (conversationId, req) =>
+  getAuthorizedConversation({
+    conversationId,
+    userId: req.userId,
+    accountType: req.accountType,
+    workspaceId: getRequestWorkspaceId(req),
+    authorizationHeader: req.headers.authorization,
+    membershipCache: (req.workspaceMembershipCache ??= new Map()),
+  });
 
 /**
  * GET /api/chat/conversations/:conversationId/messages
@@ -101,7 +83,7 @@ const getParticipantConversation = async (conversationId, userId) => {
 export const getMessages = async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const access = await getParticipantConversation(conversationId, req.userId);
+    const access = await getParticipantConversation(conversationId, req);
 
     if (!access.ok) {
       return res.status(access.status).json({
@@ -130,6 +112,7 @@ export const getMessages = async (req, res) => {
       success: true,
       message: "Messages fetched successfully",
       conversationId,
+      workspaceId: access.conversation.workspaceId || null,
       messages: messages.map(formatMessage),
       pagination: {
         page,
@@ -223,7 +206,7 @@ export const deleteMessage = async (req, res) => {
       });
     }
 
-    const access = await getParticipantConversation(conversationId, req.userId);
+    const access = await getParticipantConversation(conversationId, req);
     if (!access.ok) {
       return res.status(access.status).json({
         success: false,
@@ -232,6 +215,10 @@ export const deleteMessage = async (req, res) => {
     }
 
     const conversation = access.conversation;
+    const eventConversation = buildConversationEventContext(
+      conversation,
+      access
+    );
     const message = await Message.findOne({
       _id: messageId,
       conversationId: conversation._id,
@@ -272,8 +259,13 @@ export const deleteMessage = async (req, res) => {
           messageId: String(message._id),
           deletedBy: String(req.userId),
           deletedAt: now,
+          workspaceId: conversation.workspaceId || null,
         },
-        { mode: "me", userId: String(req.userId) }
+        {
+          mode: "me",
+          userId: String(req.userId),
+          conversation: eventConversation,
+        }
       );
 
       return res.status(200).json({
@@ -344,7 +336,7 @@ export const deleteMessage = async (req, res) => {
       },
       {
         mode: "everyone",
-        participantIds: [conversation.recruiterId, conversation.jobseekerId],
+        conversation: eventConversation,
       }
     );
 
@@ -377,7 +369,7 @@ export const deleteMessage = async (req, res) => {
 export const clearConversation = async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const access = await getParticipantConversation(conversationId, req.userId);
+    const access = await getParticipantConversation(conversationId, req);
 
     if (!access.ok) {
       return res.status(access.status).json({
@@ -387,7 +379,11 @@ export const clearConversation = async (req, res) => {
     }
 
     const conversation = access.conversation;
-    const isRecruiter = String(conversation.recruiterId) === String(req.userId);
+    const eventConversation = buildConversationEventContext(
+      conversation,
+      access
+    );
+    const isRecruiter = access.role === "recruiter";
     const clearedAtField = isRecruiter ? "clearedAt.recruiter" : "clearedAt.jobseeker";
     const unreadField = isRecruiter
       ? "unreadCounts.recruiter"
@@ -417,7 +413,8 @@ export const clearConversation = async (req, res) => {
       clearedAt: now,
       clearedCount: updateResult.modifiedCount ?? 0,
       mode: "me",
-    });
+      workspaceId: conversation.workspaceId || null,
+    }, eventConversation);
 
     return res.status(200).json({
       success: true,
@@ -468,7 +465,7 @@ export const sendMessage = async (req, res) => {
   let uploadedAttachmentResourceType = "image";
   try {
     const { conversationId } = req.params;
-    const access = await getParticipantConversation(conversationId, req.userId);
+    const access = await getParticipantConversation(conversationId, req);
 
     if (!access.ok) {
       return res.status(access.status).json({
@@ -478,6 +475,10 @@ export const sendMessage = async (req, res) => {
     }
 
     const conversation = access.conversation;
+    const eventConversation = buildConversationEventContext(
+      conversation,
+      access
+    );
     const blockedBy = conversation.blockedBy
       ? String(conversation.blockedBy)
       : null;
@@ -519,14 +520,19 @@ export const sendMessage = async (req, res) => {
 
     // FraudAware: only classify recruiter → jobseeker messages.
     // Jobseeker replies stay not_checked (protect applicants, not scan their chat).
-    const isRecruiterSender =
-      String(conversation.recruiterId) === String(req.userId);
+    const isRecruiterSender = access.role === "recruiter";
     const recipientId = isRecruiterSender
       ? String(conversation.jobseekerId)
       : String(conversation.recruiterId);
 
     const deliveredAt =
-      silentUndelivered || !isUserOnline(recipientId) ? null : new Date();
+      silentUndelivered ||
+      !isUserOnline(
+        recipientId,
+        isRecruiterSender ? null : conversation.workspaceId
+      )
+        ? null
+        : new Date();
 
     const scamAnalysis =
       isRecruiterSender && !silentUndelivered && body
@@ -580,14 +586,11 @@ export const sendMessage = async (req, res) => {
       });
 
       const chatMessage = formatMessage(message);
-      emitNewMessage(conversationId, chatMessage, [
-        conversation.recruiterId,
-        conversation.jobseekerId,
-      ]);
+      emitNewMessage(conversationId, chatMessage, eventConversation);
 
       // Notify the jobseeker in Notifications → General (banner already covers live toast).
       if (isRecruiterSender) {
-        let companyName = "Recruiter";
+        let companyName = conversation.workspaceName || "Recruiter";
         let jobTitle = "";
         const applicationResult = await fetchApplication(
           conversation.applicationId,
@@ -595,7 +598,9 @@ export const sendMessage = async (req, res) => {
         );
         if (applicationResult.ok) {
           companyName =
-            applicationResult.application.companyName || companyName;
+            conversation.workspaceName ||
+            applicationResult.application.companyName ||
+            companyName;
           jobTitle = applicationResult.application.jobTitle || "";
         }
 
@@ -613,6 +618,7 @@ export const sendMessage = async (req, res) => {
           messageId: String(message._id),
           applicationId: conversation.applicationId,
           jobId: conversation.jobId,
+          workspaceId: conversation.workspaceId || null,
           companyName,
           jobTitle,
           preview,
@@ -671,7 +677,7 @@ export const sendMessage = async (req, res) => {
 export const markConversationRead = async (req, res) => {
   try {
     const { conversationId } = req.params;
-    const access = await getParticipantConversation(conversationId, req.userId);
+    const access = await getParticipantConversation(conversationId, req);
 
     if (!access.ok) {
       return res.status(access.status).json({
@@ -681,7 +687,11 @@ export const markConversationRead = async (req, res) => {
     }
 
     const conversation = access.conversation;
-    const isRecruiter = String(conversation.recruiterId) === String(req.userId);
+    const eventConversation = buildConversationEventContext(
+      conversation,
+      access
+    );
+    const isRecruiter = access.role === "recruiter";
     const unreadField = isRecruiter
       ? "unreadCounts.recruiter"
       : "unreadCounts.jobseeker";
@@ -714,7 +724,7 @@ export const markConversationRead = async (req, res) => {
         status: "read",
         readAt: now,
       },
-      [conversation.recruiterId, conversation.jobseekerId]
+      eventConversation
     );
 
     return res.status(200).json({

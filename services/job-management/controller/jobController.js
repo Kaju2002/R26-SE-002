@@ -6,6 +6,12 @@ import { formatJob, formatJobList } from "../utils/jobFormatter.js";
 import { normalizeJobCreateInput, normalizeJobUpdateInput } from "../utils/jobPayloadNormalizer.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
 import { publishEvent } from "../utils/publishEvent.js";
+import {
+  assertHomeWorkspaceAccess,
+  getOrCreateHomeWorkspace,
+  loadWorkspace,
+  WorkspaceAccessError,
+} from "../service/employerWorkspaceService.js";
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 20;
@@ -135,6 +141,12 @@ const findOwnedJob = async (id, userId, res) => {
   return job;
 };
 
+const ensureJobBelongsToLogin = async (job, user) => {
+  if (!job?.workspaceId) return job;
+  await assertHomeWorkspaceAccess(job.workspaceId, user);
+  return job;
+};
+
 // Temporary protected route to verify auth middleware + user-management integration.
 export const authPing = async (req, res) => {
   res.status(200).json({
@@ -156,25 +168,6 @@ const getPosterType = (user) => {
   return null;
 };
 
-const applyCompanyBranding = (document, user) => {
-  const companyName = user?.company?.name?.trim();
-  if (!companyName) {
-    return {
-      ok: false,
-      message: "Company profile name is required before posting jobs",
-    };
-  }
-
-  return {
-    ok: true,
-    document: {
-      ...document,
-      companyName,
-      companyLogo: user?.company?.logo || document.companyLogo || null,
-    },
-  };
-};
-
 const publishJobCreatedEvent = async (job) => {
   if (!job || String(job.status) !== "active") return false;
 
@@ -183,6 +176,7 @@ const publishJobCreatedEvent = async (job) => {
     jobTitle: job.title || "",
     companyName: job.companyName || "",
     companyLogo: job.companyLogo || null,
+    workspaceId: job.workspaceId ? String(job.workspaceId) : null,
     skills: Array.isArray(job.skills) ? job.skills : [],
     postedBy: job.postedBy ? String(job.postedBy) : undefined,
     location: job.location || "",
@@ -202,21 +196,21 @@ export const createJob = async (req, res) => {
       });
     }
 
+    const homeWorkspace = await getOrCreateHomeWorkspace(req.user);
     const body = req.body ?? {};
-    // Company accounts: inject locked company name before validation.
-    if (posterType === "company") {
-      const companyName = req.user?.company?.name?.trim();
-      if (!companyName) {
-        return res.status(400).json({
-          success: false,
-          message: "Company profile name is required before posting jobs",
-        });
-      }
-      body.companyName = companyName;
-      if (req.user?.company?.logo) {
-        body.companyLogo = req.user.company.logo;
-      }
+    const requestedWorkspaceId = String(body.workspaceId || "").trim();
+    if (
+      requestedWorkspaceId &&
+      requestedWorkspaceId !== String(homeWorkspace._id)
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "This workspace does not belong to this login",
+      });
     }
+
+    body.companyName = homeWorkspace.name;
+    body.companyLogo = homeWorkspace.logo || body.companyLogo || null;
 
     const normalized = normalizeJobCreateInput(body, getFileUrl(req.file));
 
@@ -228,21 +222,13 @@ export const createJob = async (req, res) => {
         });
       }
 
-      let document = {
+      const document = {
         ...normalized.document,
         posterType,
+        workspaceId: String(homeWorkspace._id),
+        companyName: homeWorkspace.name,
+        companyLogo: homeWorkspace.logo || normalized.document.companyLogo || null,
       };
-
-      if (posterType === "company") {
-        const branded = applyCompanyBranding(document, req.user);
-        if (!branded.ok) {
-          return res.status(400).json({
-            success: false,
-            message: branded.message,
-          });
-        }
-        document = branded.document;
-      }
 
       const job = await Job.create({
         ...document,
@@ -268,6 +254,13 @@ export const createJob = async (req, res) => {
     });
   } catch (error) {
     console.error("Create job error:", error);
+
+    if (error instanceof WorkspaceAccessError) {
+      return res.status(error.status).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((err) => err.message);
@@ -322,7 +315,15 @@ export const listJobs = async (req, res) => {
 // ============ MY JOBS ============
 export const getMyJobs = async (req, res) => {
   try {
-    const filter = { postedBy: req.userId };
+    const homeWorkspace = await getOrCreateHomeWorkspace(req.user);
+    const requestedWorkspaceId = String(
+      req.get("X-Workspace-Id") || req.query.workspaceId || ""
+    ).trim();
+    if (requestedWorkspaceId) {
+      await assertHomeWorkspaceAccess(requestedWorkspaceId, req.user);
+    }
+
+    const filter = { workspaceId: String(homeWorkspace._id) };
 
     if (req.query.status && JOB_STATUSES.includes(req.query.status)) {
       filter.status = req.query.status;
@@ -358,6 +359,12 @@ export const getMyJobs = async (req, res) => {
     });
   } catch (error) {
     console.error("Get my jobs error:", error);
+    if (error instanceof WorkspaceAccessError) {
+      return res.status(error.status).json({
+        success: false,
+        message: error.message,
+      });
+    }
     res.status(500).json({
       success: false,
       message: "Error fetching your jobs",
@@ -461,12 +468,36 @@ export const updateJob = async (req, res) => {
     const { id } = req.params;
     const job = await findOwnedJob(id, req.userId, res);
     if (!job) return;
+    await ensureJobBelongsToLogin(job, req.user);
 
     const body = req.body ?? {};
     const posterType = job.posterType || getPosterType(req.user) || "recruiter";
+    const suppliedWorkspaceId = Object.prototype.hasOwnProperty.call(
+      body,
+      "workspaceId"
+    )
+      ? String(body.workspaceId || "").trim()
+      : null;
+
+    if (
+      suppliedWorkspaceId !== null &&
+      suppliedWorkspaceId !== String(job.workspaceId || "")
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "A job cannot be transferred to another workspace",
+      });
+    }
+
+    const workspace = job.workspaceId
+      ? await loadWorkspace(job.workspaceId)
+      : null;
 
     // Company posters cannot rename the employer brand on their jobs.
-    if (posterType === "company") {
+    if (workspace) {
+      body.companyName = workspace.name;
+      body.companyLogo = workspace.logo || null;
+    } else if (posterType === "company") {
       delete body.companyName;
       if (req.user?.company?.name) {
         body.companyName = req.user.company.name;
@@ -489,7 +520,10 @@ export const updateJob = async (req, res) => {
     const previousStatus = job.status;
     Object.assign(job, normalized.patch);
 
-    if (posterType === "company" && req.user?.company?.name) {
+    if (workspace) {
+      job.companyName = workspace.name;
+      job.companyLogo = workspace.logo || null;
+    } else if (posterType === "company" && req.user?.company?.name) {
       job.companyName = req.user.company.name;
       if (req.user.company.logo) {
         job.companyLogo = req.user.company.logo;
@@ -506,6 +540,13 @@ export const updateJob = async (req, res) => {
     sendJob(res, job, "Job updated successfully");
   } catch (error) {
     console.error("Update job error:", error);
+
+    if (error instanceof WorkspaceAccessError) {
+      return res.status(error.status).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
     if (error.name === "ValidationError") {
       const messages = Object.values(error.errors).map((err) => err.message);
@@ -530,6 +571,7 @@ export const notifyJobSkillMatches = async (req, res) => {
     const { id } = req.params;
     const job = await findOwnedJob(id, req.userId, res);
     if (!job) return;
+    await ensureJobBelongsToLogin(job, req.user);
 
     if (job.status !== "active") {
       return res.status(400).json({
@@ -549,6 +591,12 @@ export const notifyJobSkillMatches = async (req, res) => {
     });
   } catch (error) {
     console.error("Notify job skill matches error:", error);
+    if (error instanceof WorkspaceAccessError) {
+      return res.status(error.status).json({
+        success: false,
+        message: error.message,
+      });
+    }
     return res.status(500).json({
       success: false,
       message: "Error queueing skill-match notifications",
@@ -563,6 +611,7 @@ export const deleteJob = async (req, res) => {
     const { id } = req.params;
     const job = await findOwnedJob(id, req.userId, res);
     if (!job) return;
+    await ensureJobBelongsToLogin(job, req.user);
 
     await Promise.all([
       SavedJob.deleteMany({ jobId: job._id }),
@@ -576,6 +625,12 @@ export const deleteJob = async (req, res) => {
     });
   } catch (error) {
     console.error("Delete job error:", error);
+    if (error instanceof WorkspaceAccessError) {
+      return res.status(error.status).json({
+        success: false,
+        message: error.message,
+      });
+    }
     res.status(500).json({
       success: false,
       message: "Error deleting job",

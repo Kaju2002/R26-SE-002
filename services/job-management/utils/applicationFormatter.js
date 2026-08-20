@@ -21,6 +21,11 @@ export const formatApplication = (application, job = null) => {
   return {
     id: String(application._id),
     jobId: String(application.jobId),
+    workspaceId: application.workspaceId
+      ? String(application.workspaceId)
+      : job?.workspaceId
+        ? String(job.workspaceId)
+        : null,
     jobTitle: job?.title || "",
     companyName,
     status: application.status,

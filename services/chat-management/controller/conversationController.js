@@ -1,6 +1,14 @@
 import Conversation from "../model/conversationModel.js";
 import { fetchApplication } from "../utils/jobManagementClient.js";
 import { emitConversationStatus } from "../config/socket.js";
+import {
+  authorizeConversation,
+  buildConversationEventContext,
+  getAuthorizedConversation,
+  getRequestWorkspaceId,
+  isEmployerAccount,
+  validateWorkspaceMembership,
+} from "../utils/workspaceAuthorization.js";
 
 const parsePagination = (query) => {
   const page = Math.max(Number(query.page) || 1, 1);
@@ -19,7 +27,8 @@ const formatConversation = (conversation, viewerId = null) => {
   let lastMessage = conversation.lastMessage || null;
 
   if (viewerId && lastMessage?.sentAt) {
-    const isRecruiter = String(conversation.recruiterId) === String(viewerId);
+    const isRecruiter =
+      String(conversation.jobseekerId) !== String(viewerId);
     const viewerClearedAt = isRecruiter ? clearedAt.recruiter : clearedAt.jobseeker;
     if (
       viewerClearedAt &&
@@ -38,6 +47,10 @@ const formatConversation = (conversation, viewerId = null) => {
   const base = {
     id: String(conversation._id),
     recruiterId: conversation.recruiterId,
+    workspaceId: conversation.workspaceId
+      ? String(conversation.workspaceId)
+      : null,
+    workspaceName: conversation.workspaceName || null,
     jobseekerId: conversation.jobseekerId,
     applicationId: conversation.applicationId,
     jobId: conversation.jobId,
@@ -52,7 +65,8 @@ const formatConversation = (conversation, viewerId = null) => {
 
   if (!viewerId) return base;
 
-  const isRecruiter = String(conversation.recruiterId) === String(viewerId);
+  const isRecruiter =
+    String(conversation.jobseekerId) !== String(viewerId);
   const myRole = isRecruiter ? "recruiter" : "jobseeker";
   const blockedBy = base.blockedBy;
   // Legacy rows may be status=blocked without blockedBy — treat as mutual for both.
@@ -67,6 +81,9 @@ const formatConversation = (conversation, viewerId = null) => {
     peerId: isRecruiter ? conversation.jobseekerId : conversation.recruiterId,
     clearedAt: isRecruiter ? clearedAt.recruiter ?? null : clearedAt.jobseeker ?? null,
     iBlocked,
+    saved: (conversation.savedBy || []).some(
+      (userId) => String(userId) === String(viewerId)
+    ),
   };
 };
 
@@ -98,11 +115,48 @@ export const createConversation = async (req, res) => {
       });
     }
 
-    const { recruiterId, applicantId, jobId } = result.application;
+    const {
+      recruiterId,
+      applicantId,
+      jobId,
+      workspaceId: applicationWorkspaceId,
+      companyName,
+    } = result.application;
+    const workspaceId = applicationWorkspaceId
+      ? String(applicationWorkspaceId)
+      : null;
 
     // Figure out which side the caller is on.
     let startedBy;
-    if (String(req.userId) === String(recruiterId)) {
+    if (isEmployerAccount(req.accountType)) {
+      if (String(req.userId) !== String(recruiterId)) {
+        return res.status(403).json({
+          success: false,
+          message: "You are not allowed to create this application conversation",
+        });
+      }
+      if (workspaceId) {
+        const requestedWorkspaceId = getRequestWorkspaceId(req);
+        if (requestedWorkspaceId !== workspaceId) {
+          return res.status(requestedWorkspaceId ? 403 : 400).json({
+            success: false,
+            message: requestedWorkspaceId
+              ? "Workspace does not match this application"
+              : "X-Workspace-Id is required for workspace applications",
+          });
+        }
+        const membership = await validateWorkspaceMembership({
+          workspaceId,
+          authorizationHeader: req.headers.authorization,
+          cache: (req.workspaceMembershipCache ??= new Map()),
+        });
+        if (!membership.ok) {
+          return res.status(membership.status).json({
+            success: false,
+            message: membership.message,
+          });
+        }
+      }
       startedBy = "recruiter";
     } else if (String(req.userId) === String(applicantId)) {
       startedBy = "jobseeker";
@@ -123,6 +177,20 @@ export const createConversation = async (req, res) => {
     // Idempotent: one conversation per application.
     const existing = await Conversation.findOne({ applicationId });
     if (existing) {
+      const access = await authorizeConversation({
+        conversation: existing,
+        userId: req.userId,
+        accountType: req.accountType,
+        workspaceId: getRequestWorkspaceId(req),
+        authorizationHeader: req.headers.authorization,
+        membershipCache: (req.workspaceMembershipCache ??= new Map()),
+      });
+      if (!access.ok) {
+        return res.status(access.status).json({
+          success: false,
+          message: access.message,
+        });
+      }
       return res.status(200).json({
         success: true,
         message: "Conversation already exists",
@@ -132,6 +200,8 @@ export const createConversation = async (req, res) => {
 
     const conversation = await Conversation.create({
       recruiterId: String(recruiterId),
+      workspaceId,
+      workspaceName: companyName ? String(companyName) : null,
       jobseekerId: String(applicantId),
       applicationId,
       jobId: String(jobId),
@@ -189,9 +259,35 @@ export const listConversations = async (req, res) => {
     const { page, limit, skip } = parsePagination(req.query);
     const status = String(req.query.status || "").trim();
 
-    const filter = {
-      $or: [{ recruiterId: req.userId }, { jobseekerId: req.userId }],
-    };
+    let filter;
+    if (isEmployerAccount(req.accountType)) {
+      const workspaceId = getRequestWorkspaceId(req);
+      if (workspaceId) {
+        const membership = await validateWorkspaceMembership({
+          workspaceId,
+          authorizationHeader: req.headers.authorization,
+          cache: (req.workspaceMembershipCache ??= new Map()),
+        });
+        if (!membership.ok) {
+          return res.status(membership.status).json({
+            success: false,
+            message: membership.message,
+          });
+        }
+        filter = { workspaceId };
+      } else {
+        filter = {
+          recruiterId: String(req.userId),
+          $or: [
+            { workspaceId: null },
+            { workspaceId: "" },
+            { workspaceId: { $exists: false } },
+          ],
+        };
+      }
+    } else {
+      filter = { jobseekerId: String(req.userId) };
+    }
 
     if (status) {
       const allowed = ["active", "archived", "blocked"];
@@ -260,24 +356,25 @@ export const updateConversationStatus = async (req, res) => {
       });
     }
 
-    const conversation = await Conversation.findById(conversationId);
-    if (!conversation) {
-      return res.status(404).json({
+    const access = await getAuthorizedConversation({
+      conversationId,
+      userId: req.userId,
+      accountType: req.accountType,
+      workspaceId: getRequestWorkspaceId(req),
+      authorizationHeader: req.headers.authorization,
+      membershipCache: (req.workspaceMembershipCache ??= new Map()),
+    });
+    if (!access.ok) {
+      return res.status(access.status).json({
         success: false,
-        message: "Conversation not found",
+        message: access.message,
       });
     }
-
-    const isParticipant =
-      String(conversation.recruiterId) === String(req.userId) ||
-      String(conversation.jobseekerId) === String(req.userId);
-
-    if (!isParticipant) {
-      return res.status(403).json({
-        success: false,
-        message: "You are not a participant of this conversation",
-      });
-    }
+    const conversation = access.conversation;
+    const eventConversation = buildConversationEventContext(
+      conversation,
+      access
+    );
 
     const callerId = String(req.userId);
     const existingBlockedBy = conversation.blockedBy
@@ -313,7 +410,7 @@ export const updateConversationStatus = async (req, res) => {
           updatedBy: callerId,
           updatedAt: new Date(),
         },
-        [conversation.recruiterId, conversation.jobseekerId]
+        eventConversation
       );
 
       return res.status(200).json({
@@ -336,7 +433,7 @@ export const updateConversationStatus = async (req, res) => {
           updatedBy: callerId,
           updatedAt: new Date(),
         },
-        [conversation.recruiterId, conversation.jobseekerId]
+        eventConversation
       );
 
       return res.status(200).json({
@@ -381,7 +478,7 @@ export const updateConversationStatus = async (req, res) => {
         updatedBy: callerId,
         updatedAt: new Date(),
       },
-      [conversation.recruiterId, conversation.jobseekerId]
+      eventConversation
     );
 
     return res.status(200).json({
@@ -396,6 +493,77 @@ export const updateConversationStatus = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: "Error updating conversation status",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * PATCH /api/chat/conversations/:conversationId/saved
+ * Body: { saved: boolean }
+ *
+ * Saves or unsaves a conversation for the authenticated participant only.
+ */
+export const updateConversationSaved = async (req, res) => {
+  try {
+    const conversationId = String(req.params.conversationId || "").trim();
+    if (!/^[a-fA-F0-9]{24}$/.test(conversationId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid conversation id",
+      });
+    }
+
+    if (typeof req.body?.saved !== "boolean") {
+      return res.status(400).json({
+        success: false,
+        message: "saved must be a boolean",
+      });
+    }
+
+    const access = await getAuthorizedConversation({
+      conversationId,
+      userId: req.userId,
+      accountType: req.accountType,
+      workspaceId: getRequestWorkspaceId(req),
+      authorizationHeader: req.headers.authorization,
+      membershipCache: (req.workspaceMembershipCache ??= new Map()),
+    });
+    if (!access.ok) {
+      return res.status(access.status).json({
+        success: false,
+        message: access.message,
+      });
+    }
+    const participantFilter = { _id: access.conversation._id };
+    const update = req.body.saved
+      ? { $addToSet: { savedBy: String(req.userId) } }
+      : { $pull: { savedBy: String(req.userId) } };
+    const conversation = await Conversation.findOneAndUpdate(
+      participantFilter,
+      update,
+      { new: true }
+    );
+
+    if (!conversation) {
+      return res.status(404).json({
+        success: false,
+        message: "Conversation not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: req.body.saved
+        ? "Conversation saved successfully"
+        : "Conversation removed from saved",
+      conversation: formatConversation(conversation, req.userId),
+    });
+  } catch (error) {
+    console.error("Update conversation saved error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error updating saved conversation",
       error: error.message,
     });
   }
