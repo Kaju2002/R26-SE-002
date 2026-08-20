@@ -238,22 +238,32 @@ export default function EmployerJobDetailPage({
           <>
             <div className="rounded-2xl border border-[#EEF0F8] bg-white p-6 shadow-sm md:p-8">
               <div className="flex flex-wrap items-start gap-4">
-                <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-[#EEF0F8]">
-                  {job.companyLogoUri ? (
+                <div className="relative h-16 w-16 shrink-0">
+                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-[#EEF0F8]">
+                    {job.companyLogoUri ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={job.companyLogoUri}
+                        alt=""
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span
+                        className="text-sm font-bold"
+                        style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                      >
+                        {(job.companyName || 'J').slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
+                  {job.posterImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={job.companyLogoUri}
+                      src={job.posterImage}
                       alt=""
-                      className="h-full w-full object-cover"
+                      className="absolute -bottom-1 -right-1 h-7 w-7 rounded-full border-2 border-white object-cover"
                     />
-                  ) : (
-                    <span
-                      className="text-sm font-bold"
-                      style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-                    >
-                      {(job.companyName || 'J').slice(0, 2).toUpperCase()}
-                    </span>
-                  )}
+                  ) : null}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
@@ -289,6 +299,28 @@ export default function EmployerJobDetailPage({
                     Posted {formatDate(job.postedAt)}
                     {job.endsAt ? ` · Closes ${formatDate(job.endsAt)}` : ''}
                   </p>
+                  {job.posterImage || job.postedBy ? (
+                    <div className="mt-3 flex items-center gap-2">
+                      {job.posterImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={job.posterImage}
+                          alt=""
+                          className="h-7 w-7 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#EEF0F8] text-[10px] font-semibold" style={{ color: colors.navy }}>
+                          P
+                        </div>
+                      )}
+                      <span
+                        className="text-xs"
+                        style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
+                      >
+                        Posted by {job.posterType === 'company' ? 'company account' : 'recruiter'}
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
               </div>
 

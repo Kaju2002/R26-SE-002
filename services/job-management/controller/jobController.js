@@ -168,6 +168,13 @@ const getPosterType = (user) => {
   return null;
 };
 
+const resolvePosterImage = (user, fallback = null) => {
+  const avatar = typeof user?.avatar === "string" ? user.avatar.trim() : "";
+  if (avatar) return avatar;
+  const fromBody = typeof fallback === "string" ? fallback.trim() : "";
+  return fromBody || null;
+};
+
 const publishJobCreatedEvent = async (job) => {
   if (!job || String(job.status) !== "active") return false;
 
@@ -179,6 +186,7 @@ const publishJobCreatedEvent = async (job) => {
     workspaceId: job.workspaceId ? String(job.workspaceId) : null,
     skills: Array.isArray(job.skills) ? job.skills : [],
     postedBy: job.postedBy ? String(job.postedBy) : undefined,
+    posterImage: job.posterImage || null,
     location: job.location || "",
     type: job.type || "",
     mode: job.mode || "",
@@ -228,6 +236,7 @@ export const createJob = async (req, res) => {
         workspaceId: String(homeWorkspace._id),
         companyName: homeWorkspace.name,
         companyLogo: homeWorkspace.logo || normalized.document.companyLogo || null,
+        posterImage: resolvePosterImage(req.user, body.posterImage),
       };
 
       const job = await Job.create({
@@ -529,6 +538,8 @@ export const updateJob = async (req, res) => {
         job.companyLogo = req.user.company.logo;
       }
     }
+
+    job.posterImage = resolvePosterImage(req.user, job.posterImage);
 
     await job.save();
 

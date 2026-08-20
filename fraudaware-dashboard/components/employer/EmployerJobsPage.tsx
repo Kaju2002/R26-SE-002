@@ -59,6 +59,7 @@ function jobToForm(job: JobSummary, fallbackCompany = ''): CreateJobPayload {
     education: job.education || '',
     experience: job.experience || '',
     status: (job.status as JobStatus) || 'draft',
+    posterImage: job.posterImage || '',
   };
 }
 
@@ -478,25 +479,35 @@ function EmployerJobsContent({
                       className="flex flex-col gap-4 px-5 py-4 md:flex-row md:items-center md:justify-between md:px-6"
                     >
                       <div className="min-w-0 flex items-start gap-3">
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-[#EEF0F8]">
-                          {job.companyLogoUri ? (
+                        <div className="relative h-11 w-11 shrink-0">
+                          <div className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-[#EEF0F8]">
+                            {job.companyLogoUri ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={job.companyLogoUri}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <span
+                                className="text-xs font-bold"
+                                style={{
+                                  color: colors.navy,
+                                  fontFamily: 'var(--font-poppins)',
+                                }}
+                              >
+                                {(job.companyName || 'J').slice(0, 2).toUpperCase()}
+                              </span>
+                            )}
+                          </div>
+                          {job.posterImage ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={job.companyLogoUri}
+                              src={job.posterImage}
                               alt=""
-                              className="h-full w-full object-cover"
+                              className="absolute -bottom-1 -right-1 h-5 w-5 rounded-full border-2 border-white object-cover"
                             />
-                          ) : (
-                            <span
-                              className="text-xs font-bold"
-                              style={{
-                                color: colors.navy,
-                                fontFamily: 'var(--font-poppins)',
-                              }}
-                            >
-                              {(job.companyName || 'J').slice(0, 2).toUpperCase()}
-                            </span>
-                          )}
+                          ) : null}
                         </div>
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">

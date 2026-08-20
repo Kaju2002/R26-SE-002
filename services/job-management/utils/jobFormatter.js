@@ -96,6 +96,7 @@ export const formatJob = (job, extras = {}) => {
     status: job.status,
     postedBy: job.postedBy,
     posterType: job.posterType || "recruiter",
+    posterImage: job.posterImage || undefined,
     ...extras,
   };
 };

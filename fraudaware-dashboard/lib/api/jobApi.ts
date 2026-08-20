@@ -37,6 +37,7 @@ export type JobSummary = {
   salaryMax?: number;
   salaryCurrency?: string;
   posterType?: 'recruiter' | 'company';
+  posterImage?: string;
   companyLogoUri?: string;
   description?: string[];
   requirements?: string[];
@@ -107,6 +108,7 @@ export type CreateJobPayload = {
   education?: string;
   experience?: string;
   status?: JobStatus;
+  posterImage?: string;
 };
 
 export type ListMyJobsParams = {

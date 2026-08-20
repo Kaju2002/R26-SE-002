@@ -33,6 +33,7 @@ export function emptyJobForm(companyName = ''): CreateJobPayload {
     education: '',
     experience: '',
     status: 'draft',
+    posterImage: '',
   };
 }
 
@@ -157,6 +158,7 @@ export default function EmployerJobForm({
       skills: form.skills?.trim() || '',
       benefits: form.benefits?.trim() || '',
       about: form.about?.trim() || '',
+      posterImage: user?.avatar?.trim() || form.posterImage?.trim() || undefined,
     };
 
     const publishing = payload.status === 'active';
@@ -377,6 +379,41 @@ export default function EmployerJobForm({
             available.
           </p>
         ) : null}
+      </div>
+
+      <div>
+        <p
+          className="mb-2 text-sm font-medium"
+          style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
+        >
+          Poster photo
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-full border border-[#E5E7EE] bg-[#F7F8FE]">
+            {user?.avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.avatar}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <span
+                className="text-xs font-semibold"
+                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+              >
+                {(user?.firstName || user?.fullName || 'P').slice(0, 1).toUpperCase()}
+              </span>
+            )}
+          </div>
+          <p
+            className="max-w-sm text-xs leading-relaxed"
+            style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+          >
+            Saved from your profile photo when you create or update this job
+            {user?.fullName ? ` (${user.fullName})` : ''}. Change it on your profile.
+          </p>
+        </div>
       </div>
 
       <div className="rounded-xl border border-[#EEF0F8] bg-[#F7F8FE] p-4">
