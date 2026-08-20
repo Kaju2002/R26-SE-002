@@ -67,6 +67,7 @@ export default function AdminDashboardPage() {
             <li>Suspend, ban, or restore accounts (mock data)</li>
             <li>Review company legitimacy and approve or reject (mock data)</li>
             <li>Review flagged/fake job posts and force-close listings (mock data)</li>
+            <li>Reports, Audit log, Settings, and Support tabs ready (data later)</li>
           </ul>
         </div>
       </div>

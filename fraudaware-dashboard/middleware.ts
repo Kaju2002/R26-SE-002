@@ -22,21 +22,35 @@ export function middleware(request: NextRequest) {
     pathname.startsWith('/admin/dashboard') ||
     pathname.startsWith('/admin/users') ||
     pathname.startsWith('/admin/verification') ||
-    pathname.startsWith('/admin/jobs');
+    pathname.startsWith('/admin/jobs') ||
+    pathname.startsWith('/admin/reports') ||
+    pathname.startsWith('/admin/audit') ||
+    pathname.startsWith('/admin/settings') ||
+    pathname.startsWith('/admin/support');
   const isRecruiterArea =
     pathname.startsWith('/recruiter/dashboard') ||
     pathname.startsWith('/recruiter/inchat') ||
     pathname.startsWith('/recruiter/jobs') ||
     pathname.startsWith('/recruiter/applicants') ||
     pathname.startsWith('/recruiter/profile') ||
-    pathname.startsWith('/recruiter/email');
+    pathname.startsWith('/recruiter/email') ||
+    pathname.startsWith('/recruiter/interviews') ||
+    pathname.startsWith('/recruiter/templates') ||
+    pathname.startsWith('/recruiter/analytics') ||
+    pathname.startsWith('/recruiter/team') ||
+    pathname.startsWith('/recruiter/billing');
   const isCompanyArea =
     pathname.startsWith('/company/dashboard') ||
     pathname.startsWith('/company/inchat') ||
     pathname.startsWith('/company/jobs') ||
     pathname.startsWith('/company/applicants') ||
     pathname.startsWith('/company/profile') ||
-    pathname.startsWith('/company/email');
+    pathname.startsWith('/company/email') ||
+    pathname.startsWith('/company/interviews') ||
+    pathname.startsWith('/company/templates') ||
+    pathname.startsWith('/company/analytics') ||
+    pathname.startsWith('/company/team') ||
+    pathname.startsWith('/company/billing');
 
   if (!isAdminArea && !isRecruiterArea && !isCompanyArea) {
     return NextResponse.next();
@@ -72,17 +86,31 @@ export const config = {
     '/admin/users/:path*',
     '/admin/verification/:path*',
     '/admin/jobs/:path*',
+    '/admin/reports/:path*',
+    '/admin/audit/:path*',
+    '/admin/settings/:path*',
+    '/admin/support/:path*',
     '/recruiter/dashboard/:path*',
     '/recruiter/inchat/:path*',
     '/recruiter/jobs/:path*',
     '/recruiter/applicants/:path*',
     '/recruiter/profile/:path*',
     '/recruiter/email/:path*',
+    '/recruiter/interviews/:path*',
+    '/recruiter/templates/:path*',
+    '/recruiter/analytics/:path*',
+    '/recruiter/team/:path*',
+    '/recruiter/billing/:path*',
     '/company/dashboard/:path*',
     '/company/inchat/:path*',
     '/company/jobs/:path*',
     '/company/applicants/:path*',
     '/company/profile/:path*',
     '/company/email/:path*',
+    '/company/interviews/:path*',
+    '/company/templates/:path*',
+    '/company/analytics/:path*',
+    '/company/team/:path*',
+    '/company/billing/:path*',
   ],
 };
