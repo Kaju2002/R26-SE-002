@@ -9,6 +9,12 @@ const MODES = ['On-Site', 'Remote', 'Hybrid'] as const;
 const TYPES = ['Full-Time', 'Part-Time', 'Contract', 'Internship'] as const;
 const STATUSES: JobStatus[] = ['draft', 'active', 'closed', 'pending_review'];
 
+const inputClass =
+  'h-11 w-full rounded-xl border border-[#E5E7EE] bg-white px-3.5 text-sm outline-none transition placeholder:text-[#9CA3AF] hover:border-[#C9D2E0] focus:border-[#202871] focus:ring-2 focus:ring-[#202871]/12 disabled:cursor-not-allowed disabled:bg-[#F7F8FE]';
+
+const textareaClass =
+  'w-full rounded-xl border border-[#E5E7EE] bg-white px-3.5 py-2.5 text-sm leading-relaxed outline-none transition placeholder:text-[#9CA3AF] hover:border-[#C9D2E0] focus:border-[#202871] focus:ring-2 focus:ring-[#202871]/12';
+
 export function emptyJobForm(companyName = ''): CreateJobPayload {
   return {
     title: '',
@@ -135,7 +141,7 @@ export default function EmployerJobForm({
   };
 
   return (
-    <form onSubmit={(event) => void handleSubmit(event)} className="mt-6 space-y-5">
+    <form onSubmit={(event) => void handleSubmit(event)} className="space-y-5">
       <div className="grid gap-4 md:grid-cols-2">
         <TextField
           label="Job title"
@@ -266,42 +272,66 @@ export default function EmployerJobForm({
         >
           Company logo / branding
         </p>
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-xl border border-[#E5E7EE] bg-[#F7F8FE]">
+        <div className="flex flex-wrap items-start gap-4">
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="group relative flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#C9D2E0] bg-[#F7F8FE] transition hover:border-[#202871] hover:bg-[#EEF0F8]"
+            aria-label="Upload company logo"
+          >
             {logoPreview ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={logoPreview} alt="" className="h-full w-full object-cover" />
             ) : (
-              <span
-                className="text-xs font-semibold"
-                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-              >
-                Logo
+              <span className="flex flex-col items-center gap-1.5 px-2">
+                <FileUploadIcon className="h-7 w-7 text-[#202871]" />
+                <span
+                  className="text-[10px] font-semibold"
+                  style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Add file
+                </span>
               </span>
             )}
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="rounded-xl border border-[#E5E7EE] px-4 py-2 text-sm font-semibold"
-              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-            >
-              Upload logo
-            </button>
-            {logoFile || logoPreview ? (
+          </button>
+          <div className="min-w-0 space-y-2 pt-1">
+            <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  setLogoFile(null);
-                  setLogoPreview(null);
-                  if (fileInputRef.current) fileInputRef.current.value = '';
-                }}
-                className="rounded-xl border border-[#E5E7EE] px-4 py-2 text-sm font-semibold text-[#C62828]"
+                onClick={() => fileInputRef.current?.click()}
+                className="rounded-xl bg-[#202871] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a2160]"
                 style={{ fontFamily: 'var(--font-poppins)' }}
               >
-                Remove
+                Upload logo
               </button>
+              {logoFile || logoPreview ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLogoFile(null);
+                    setLogoPreview(null);
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="rounded-xl border border-[#E5E7EE] bg-white px-4 py-2 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE]"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  Remove
+                </button>
+              ) : null}
+            </div>
+            <p
+              className="max-w-xs text-xs leading-relaxed"
+              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+            >
+              PNG or JPG. Square logo works best.
+            </p>
+            {isCompany && user?.company?.logo ? (
+              <p
+                className="max-w-xs text-xs leading-relaxed"
+                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+              >
+                Company accounts may also inherit the profile logo from branding settings.
+              </p>
             ) : null}
           </div>
           <input
@@ -315,15 +345,6 @@ export default function EmployerJobForm({
             }}
           />
         </div>
-        {isCompany && user?.company?.logo ? (
-          <p
-            className="mt-2 text-xs"
-            style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-          >
-            Company accounts also inherit the profile logo from branding settings when
-            available.
-          </p>
-        ) : null}
       </div>
 
       <div>
@@ -334,26 +355,40 @@ export default function EmployerJobForm({
           Job poster
         </p>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-          <div className="flex h-36 w-full max-w-sm items-center justify-center overflow-hidden rounded-xl border border-[#E5E7EE] bg-[#F7F8FE]">
+          <button
+            type="button"
+            onClick={() => posterInputRef.current?.click()}
+            className="group relative flex h-36 w-full max-w-sm shrink-0 items-center justify-center overflow-hidden rounded-xl border border-dashed border-[#C9D2E0] bg-[#F7F8FE] transition hover:border-[#202871] hover:bg-[#EEF0F8]"
+            aria-label="Upload job poster"
+          >
             {posterPreview ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={posterPreview} alt="" className="h-full w-full object-cover" />
             ) : (
-              <span
-                className="text-xs font-semibold"
-                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-              >
-                Poster
+              <span className="flex flex-col items-center gap-2 px-4">
+                <FileUploadIcon className="h-8 w-8 text-[#202871]" />
+                <span
+                  className="text-xs font-semibold"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Choose poster file
+                </span>
+                <span
+                  className="text-[11px]"
+                  style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                >
+                  PNG, JPG · banner or flyer
+                </span>
               </span>
             )}
-          </div>
+          </button>
           <div className="space-y-2">
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={() => posterInputRef.current?.click()}
-                className="rounded-xl border border-[#E5E7EE] px-4 py-2 text-sm font-semibold"
-                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                className="rounded-xl bg-[#202871] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a2160]"
+                style={{ fontFamily: 'var(--font-poppins)' }}
               >
                 Upload poster
               </button>
@@ -366,7 +401,7 @@ export default function EmployerJobForm({
                     setForm((prev) => ({ ...prev, posterImage: '' }));
                     if (posterInputRef.current) posterInputRef.current.value = '';
                   }}
-                  className="rounded-xl border border-[#E5E7EE] px-4 py-2 text-sm font-semibold text-[#C62828]"
+                  className="rounded-xl border border-[#E5E7EE] bg-white px-4 py-2 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE]"
                   style={{ fontFamily: 'var(--font-poppins)' }}
                 >
                   Remove
@@ -377,8 +412,7 @@ export default function EmployerJobForm({
               className="max-w-sm text-xs leading-relaxed"
               style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
             >
-              Artwork for this job listing (banner or flyer). This is not your
-              profile photo or company logo.
+              Artwork for this job listing. This is not your profile photo or company logo.
             </p>
           </div>
           <input
@@ -394,11 +428,11 @@ export default function EmployerJobForm({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 pt-1">
         <button
           type="submit"
           disabled={saving}
-          className="rounded-xl bg-[#202871] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-70"
+          className="rounded-xl bg-[#202871] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1a2160] disabled:opacity-70"
           style={{ fontFamily: 'var(--font-poppins)' }}
         >
           {saving ? 'Saving…' : submitLabel}
@@ -407,13 +441,32 @@ export default function EmployerJobForm({
           type="button"
           onClick={onCancel}
           disabled={saving}
-          className="rounded-xl border border-[#E5E7EE] px-5 py-2.5 text-sm font-semibold disabled:opacity-70"
+          className="rounded-xl border border-[#E5E7EE] bg-white px-5 py-2.5 text-sm font-semibold transition hover:bg-[#F7F8FE] disabled:opacity-70"
           style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
         >
           Cancel
         </button>
       </div>
     </form>
+  );
+}
+
+function FileUploadIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      fill="none"
+      viewBox="0 0 24 24"
+      strokeWidth={1.5}
+      stroke="currentColor"
+      aria-hidden
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m6.75 12l-3-3m0 0l-3 3m3-3v6m-1.5-15H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+      />
+    </svg>
   );
 }
 
@@ -435,10 +488,11 @@ function TextField({
   return (
     <div>
       <label
-        className="mb-2 block text-sm font-medium"
+        className="mb-1.5 block text-sm font-medium"
         style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
       >
         {label}
+        {required ? <span className="ml-0.5 text-[#C62828]">*</span> : null}
       </label>
       <input
         type={type}
@@ -446,7 +500,7 @@ function TextField({
         onChange={(event) => onChange(event.target.value)}
         required={required}
         disabled={disabled}
-        className="h-11 w-full rounded-xl border border-[#E5E7EE] px-3 text-sm outline-none focus:border-[#202871] disabled:bg-[#F7F8FE]"
+        className={inputClass}
         style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
       />
     </div>
@@ -467,7 +521,7 @@ function SelectField({
   return (
     <div>
       <label
-        className="mb-2 block text-sm font-medium"
+        className="mb-1.5 block text-sm font-medium"
         style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
       >
         {label}
@@ -475,12 +529,12 @@ function SelectField({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-11 w-full rounded-xl border border-[#E5E7EE] bg-white px-3 text-sm outline-none focus:border-[#202871]"
+        className={inputClass}
         style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
       >
         {options.map((option) => (
           <option key={option} value={option}>
-            {option}
+            {option.replace(/_/g, ' ')}
           </option>
         ))}
       </select>
@@ -508,10 +562,11 @@ function TextAreaField({
   return (
     <div>
       <label
-        className="mb-2 block text-sm font-medium"
+        className="mb-1.5 block text-sm font-medium"
         style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
       >
         {label}
+        {required ? <span className="ml-0.5 text-[#C62828]">*</span> : null}
       </label>
       <textarea
         required={required}
@@ -519,12 +574,12 @@ function TextAreaField({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         rows={rows}
-        className="w-full rounded-xl border border-[#E5E7EE] px-3 py-2.5 text-sm outline-none focus:border-[#202871]"
+        className={textareaClass}
         style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
       />
       {hint ? (
         <p
-          className="mt-1 text-xs"
+          className="mt-1.5 text-xs"
           style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
         >
           {hint}
