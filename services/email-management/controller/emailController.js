@@ -7,6 +7,9 @@ import {
   getNylasConfig,
   listFolders as fetchNylasFolders,
   listMessages as fetchNylasMessages,
+  createEvent as createNylasEvent,
+  deleteEvent as deleteNylasEvent,
+  updateEvent as updateNylasEvent,
   revokeGrant,
   sendMessage,
 } from "../config/nylas.js";
@@ -515,6 +518,264 @@ export const getMessage = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Could not fetch message",
+    });
+  }
+};
+
+const resolveConferencingProvider = (requested, mailboxEmail) => {
+  const raw = String(requested || "").trim().toLowerCase();
+  if (raw === "google_meet" || raw === "google meet" || raw === "meet") {
+    return "Google Meet";
+  }
+  if (raw === "microsoft_teams" || raw === "microsoft teams" || raw === "teams") {
+    return "Microsoft Teams";
+  }
+  if (raw === "none" || raw === "off") return null;
+
+  const email = String(mailboxEmail || "").toLowerCase();
+  if (email.includes("outlook.") || email.endsWith("@hotmail.com") || email.endsWith("@live.com")) {
+    return "Microsoft Teams";
+  }
+  // Default to Google Meet for Gmail and unknown Google Workspace mailboxes
+  return "Google Meet";
+};
+
+const extractConferenceUrl = (event) => {
+  const details = event?.conferencing?.details;
+  if (!details) return null;
+  return details.url || details.meeting_url || details.link || null;
+};
+
+/** POST /api/email/calendar/events — create Nylas calendar event (+ Meet/Teams). */
+export const createCalendarEvent = async (req, res) => {
+  try {
+    if (!EMPLOYER_TYPES.has(req.user?.accountType)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only recruiters and companies can create calendar events",
+      });
+    }
+
+    const connected = await requireConnectedGrant(req.authorizationHeader);
+    if (!connected.ok) {
+      return res.status(connected.status).json({
+        success: false,
+        message: connected.message,
+      });
+    }
+
+    const title = String(req.body?.title || "").trim();
+    const description = String(req.body?.description || "").trim();
+    const location = String(req.body?.location || "").trim();
+    const timezone = String(req.body?.timezone || "UTC").trim() || "UTC";
+    const startTime = Number(req.body?.startTime);
+    const endTime = Number(req.body?.endTime);
+    const calendarId = String(req.body?.calendarId || "primary").trim() || "primary";
+    const participants = Array.isArray(req.body?.participants)
+      ? req.body.participants
+      : [];
+    const wantVideo = req.body?.addConferencing !== false;
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: "title is required",
+      });
+    }
+    if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid startTime and endTime (unix seconds) are required",
+      });
+    }
+
+    const conferencingProvider = wantVideo
+      ? resolveConferencingProvider(
+          req.body?.conferencingProvider,
+          connected.grant.email
+        )
+      : null;
+
+    const config = getNylasConfig();
+    let event;
+    try {
+      event = await createNylasEvent({
+        apiKey: config.apiKey,
+        apiUri: config.apiUri,
+        grantId: connected.grant.grantId,
+        calendarId,
+        title,
+        description,
+        location,
+        startTime,
+        endTime,
+        timezone,
+        participants,
+        conferencingProvider,
+      });
+    } catch (error) {
+      // Retry without conferencing if provider autocreate fails (scope / plan)
+      if (conferencingProvider) {
+        console.warn("Calendar conferencing failed, retrying without:", error.message);
+        event = await createNylasEvent({
+          apiKey: config.apiKey,
+          apiUri: config.apiUri,
+          grantId: connected.grant.grantId,
+          calendarId,
+          title,
+          description,
+          location,
+          startTime,
+          endTime,
+          timezone,
+          participants,
+          conferencingProvider: null,
+        });
+      } else {
+        throw error;
+      }
+    }
+
+    return res.status(201).json({
+      success: true,
+      event: {
+        id: event.id || null,
+        calendarId: event.calendar_id || calendarId,
+        title: event.title || title,
+        htmlLink: event.html_link || null,
+        conferenceUrl: extractConferenceUrl(event),
+        conferenceProvider: event.conferencing?.provider || conferencingProvider,
+        when: event.when || null,
+      },
+    });
+  } catch (error) {
+    console.error("Create calendar event error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Could not create calendar event",
+    });
+  }
+};
+
+/** PUT /api/email/calendar/events/:eventId — update time / fields */
+export const updateCalendarEvent = async (req, res) => {
+  try {
+    if (!EMPLOYER_TYPES.has(req.user?.accountType)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only recruiters and companies can update calendar events",
+      });
+    }
+
+    const connected = await requireConnectedGrant(req.authorizationHeader);
+    if (!connected.ok) {
+      return res.status(connected.status).json({
+        success: false,
+        message: connected.message,
+      });
+    }
+
+    const eventId = String(req.params.eventId || "").trim();
+    if (!eventId) {
+      return res.status(400).json({
+        success: false,
+        message: "eventId is required",
+      });
+    }
+
+    const calendarId = String(req.body?.calendarId || "primary").trim() || "primary";
+    const timezone = String(req.body?.timezone || "UTC").trim() || "UTC";
+    const startTime = req.body?.startTime != null ? Number(req.body.startTime) : null;
+    const endTime = req.body?.endTime != null ? Number(req.body.endTime) : null;
+
+    if (startTime != null || endTime != null) {
+      if (!Number.isFinite(startTime) || !Number.isFinite(endTime) || endTime <= startTime) {
+        return res.status(400).json({
+          success: false,
+          message: "Valid startTime and endTime (unix seconds) are required to reschedule",
+        });
+      }
+    }
+
+    const config = getNylasConfig();
+    const event = await updateNylasEvent({
+      apiKey: config.apiKey,
+      apiUri: config.apiUri,
+      grantId: connected.grant.grantId,
+      eventId,
+      calendarId,
+      title: req.body?.title,
+      description: req.body?.description,
+      location: req.body?.location,
+      startTime,
+      endTime,
+      timezone,
+    });
+
+    return res.status(200).json({
+      success: true,
+      event: {
+        id: event.id || eventId,
+        calendarId: event.calendar_id || calendarId,
+        title: event.title || null,
+        htmlLink: event.html_link || null,
+        when: event.when || null,
+      },
+    });
+  } catch (error) {
+    console.error("Update calendar event error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Could not update calendar event",
+    });
+  }
+};
+
+/** DELETE /api/email/calendar/events/:eventId */
+export const deleteCalendarEvent = async (req, res) => {
+  try {
+    if (!EMPLOYER_TYPES.has(req.user?.accountType)) {
+      return res.status(403).json({
+        success: false,
+        message: "Only recruiters and companies can delete calendar events",
+      });
+    }
+
+    const connected = await requireConnectedGrant(req.authorizationHeader);
+    if (!connected.ok) {
+      return res.status(connected.status).json({
+        success: false,
+        message: connected.message,
+      });
+    }
+
+    const eventId = String(req.params.eventId || "").trim();
+    const calendarId = String(req.query.calendarId || req.body?.calendarId || "primary").trim();
+    if (!eventId) {
+      return res.status(400).json({
+        success: false,
+        message: "eventId is required",
+      });
+    }
+
+    const config = getNylasConfig();
+    await deleteNylasEvent({
+      apiKey: config.apiKey,
+      apiUri: config.apiUri,
+      grantId: connected.grant.grantId,
+      eventId,
+      calendarId,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Calendar event deleted",
+    });
+  } catch (error) {
+    console.error("Delete calendar event error:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Could not delete calendar event",
     });
   }
 };

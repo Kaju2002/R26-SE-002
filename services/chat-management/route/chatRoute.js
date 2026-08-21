@@ -7,6 +7,7 @@ import {
   updateConversationStatus,
 } from "../controller/conversationController.js";
 import { getMessages, sendMessage, markConversationRead, deleteMessage, clearConversation } from "../controller/messageController.js";
+import { postInterviewReminder } from "../controller/internalController.js";
 import { uploadChatAttachment } from "../config/multer.js";
 
 const router = Router();
@@ -27,6 +28,8 @@ router.get("/me", authMiddleware, (req, res) => {
   });
 });
 
+/** Service-to-service interview reminders (no user JWT). */
+router.post("/internal/interview-reminder", postInterviewReminder);
 /**
  * GET /api/chat/conversations
  * List inbox conversations for the logged-in user.

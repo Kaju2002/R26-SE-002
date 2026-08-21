@@ -217,3 +217,156 @@ export const getMessage = async ({ apiKey, apiUri, grantId, messageId }) => {
 
   return data.data || data;
 };
+
+/**
+ * Create a calendar event (Nylas v3). Use calendar_id=primary for the default calendar.
+ * conferencing.provider: "Google Meet" | "Microsoft Teams" | "Zoom Meeting"
+ */
+export const createEvent = async ({
+  apiKey,
+  apiUri,
+  grantId,
+  calendarId = "primary",
+  title,
+  description,
+  location,
+  startTime,
+  endTime,
+  timezone = "UTC",
+  participants = [],
+  conferencingProvider,
+  busy = true,
+}) => {
+  const body = {
+    title,
+    description: description || undefined,
+    location: location || undefined,
+    busy,
+    participants: (Array.isArray(participants) ? participants : [])
+      .filter((p) => p?.email)
+      .map((p) => ({
+        email: String(p.email).trim(),
+        name: p.name ? String(p.name).trim() : undefined,
+      })),
+    when: {
+      start_time: Math.floor(Number(startTime)),
+      end_time: Math.floor(Number(endTime)),
+      start_timezone: timezone,
+      end_timezone: timezone,
+    },
+  };
+
+  if (conferencingProvider) {
+    body.conferencing = {
+      provider: conferencingProvider,
+      autocreate: {},
+    };
+  }
+
+  const params = new URLSearchParams({
+    calendar_id: calendarId || "primary",
+    notify_participants: "true",
+  });
+
+  const response = await fetch(
+    `${apiUri}/v3/grants/${grantId}/events?${params.toString()}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(nylasErrorMessage(data, "Failed to create calendar event"));
+  }
+
+  return data.data || data;
+};
+
+export const deleteEvent = async ({
+  apiKey,
+  apiUri,
+  grantId,
+  eventId,
+  calendarId = "primary",
+}) => {
+  const params = new URLSearchParams({
+    calendar_id: calendarId || "primary",
+    notify_participants: "true",
+  });
+
+  const response = await fetch(
+    `${apiUri}/v3/grants/${grantId}/events/${encodeURIComponent(eventId)}?${params.toString()}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+    }
+  );
+
+  if (!response.ok && response.status !== 404) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(nylasErrorMessage(data, "Failed to delete calendar event"));
+  }
+};
+
+/** Update event time (and optional fields). Nylas v3 PUT. */
+export const updateEvent = async ({
+  apiKey,
+  apiUri,
+  grantId,
+  eventId,
+  calendarId = "primary",
+  title,
+  description,
+  location,
+  startTime,
+  endTime,
+  timezone = "UTC",
+}) => {
+  const body = {};
+  if (title !== undefined) body.title = title;
+  if (description !== undefined) body.description = description;
+  if (location !== undefined) body.location = location;
+  if (startTime != null && endTime != null) {
+    body.when = {
+      start_time: Math.floor(Number(startTime)),
+      end_time: Math.floor(Number(endTime)),
+      start_timezone: timezone,
+      end_timezone: timezone,
+    };
+  }
+
+  const params = new URLSearchParams({
+    calendar_id: calendarId || "primary",
+    notify_participants: "true",
+  });
+
+  const response = await fetch(
+    `${apiUri}/v3/grants/${grantId}/events/${encodeURIComponent(eventId)}?${params.toString()}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+        Accept: "application/json",
+      },
+      body: JSON.stringify(body),
+    }
+  );
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(nylasErrorMessage(data, "Failed to update calendar event"));
+  }
+
+  return data.data || data;
+};

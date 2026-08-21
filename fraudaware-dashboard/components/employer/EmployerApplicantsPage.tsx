@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react';
 import EmailComposeModal from '@/components/employer/EmailComposeModal';
+import ScheduleInterviewModal from '@/components/employer/ScheduleInterviewModal';
 import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceContext';
 import { createChatConversation } from '@/lib/api/chatApi';
 import { getEmailConnectUrl, getEmailStatus } from '@/lib/api/emailApi';
@@ -197,6 +198,7 @@ function EmployerApplicantsContent({
   const [error, setError] = useState<string | null>(null);
   const [messagingId, setMessagingId] = useState<string | null>(null);
   const [emailTarget, setEmailTarget] = useState<JobApplication | null>(null);
+  const [scheduleTarget, setScheduleTarget] = useState<JobApplication | null>(null);
   const [emailConnected, setEmailConnected] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [queryInput, setQueryInput] = useState('');
@@ -975,6 +977,19 @@ function EmployerApplicantsContent({
                               </svg>
                             </ActionIconButton>
 
+                            <ActionIconButton
+                              label="Schedule interview"
+                              onClick={() => setScheduleTarget(application)}
+                            >
+                              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5"
+                                />
+                              </svg>
+                            </ActionIconButton>
+
                             {resumeHref ? (
                               <ActionIconButton label="Open resume" href={resumeHref}>
                                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">
@@ -1175,6 +1190,14 @@ function EmployerApplicantsContent({
                   Email
                 </button>
               </div>
+              <button
+                type="button"
+                onClick={() => setScheduleTarget(detailApplication)}
+                className="flex w-full items-center justify-center rounded-xl border border-[#202871] px-4 py-2.5 text-sm font-semibold transition hover:bg-[#F7F8FE]"
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                Schedule interview
+              </button>
             </div>
           </aside>
         </div>
@@ -1194,6 +1217,24 @@ function EmployerApplicantsContent({
           onNeedConnect={() => {
             setEmailTarget(null);
             void connectMailbox();
+          }}
+        />
+      ) : null}
+
+      {scheduleTarget ? (
+        <ScheduleInterviewModal
+          open
+          candidate={{
+            applicationId: scheduleTarget.id,
+            fullName: scheduleTarget.fullName,
+            email: scheduleTarget.email,
+            jobTitle: scheduleTarget.jobTitle || selectedJob?.title || '',
+          }}
+          onClose={() => setScheduleTarget(null)}
+          onScheduled={(message) => {
+            setScheduleTarget(null);
+            setInfo(message);
+            void loadApplications({ silent: true });
           }}
         />
       ) : null}

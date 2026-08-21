@@ -33,6 +33,14 @@ import {
   unsaveJob,
 } from "../controller/savedJobController.js";
 import {
+  cancelInterview,
+  createInterview,
+  getInterview,
+  listInterviews,
+  runInterviewRemindersNow,
+  updateInterview,
+} from "../controller/interviewController.js";
+import {
   getMyWorkspace,
   listMyWorkspaces,
 } from "../controller/employerWorkspaceController.js";
@@ -53,6 +61,12 @@ router.get("/workspaces", authMiddleware, listMyWorkspaces);
 router.get("/workspaces/:workspaceId", authMiddleware, getMyWorkspace);
 router.get("/saved", authMiddleware, getSavedJobs);
 router.get("/applied", authMiddleware, getAppliedJobs);
+router.get("/interviews", authMiddleware, listInterviews);
+router.post("/interviews", authMiddleware, createInterview);
+router.post("/interviews/reminders/run", authMiddleware, runInterviewRemindersNow);
+router.get("/interviews/:interviewId", authMiddleware, getInterview);
+router.patch("/interviews/:interviewId", authMiddleware, updateInterview);
+router.post("/interviews/:interviewId/cancel", authMiddleware, cancelInterview);
 router.get("/recruiter/:userId", optionalAuthMiddleware, getJobsByRecruiter);
 router.get(
   "/applications/:applicationId/resume",

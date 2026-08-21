@@ -1040,7 +1040,7 @@ export default function EmployerDashboardPage({
               </p>
             </div>
             <Link
-              href={applicantsHref(config.basePath, 'interview')}
+              href={`${config.basePath}/interviews`}
               className="text-xs font-medium hover:underline"
               style={{ color: colors.navy }}
             >
@@ -1050,10 +1050,10 @@ export default function EmployerDashboardPage({
           <ul className="grid gap-2 sm:grid-cols-2">
             {interviewQueue.map((app) => (
               <li key={app.id}>
-                <Link
-                  href={applicantsHref(config.basePath, 'interview')}
-                  className="flex items-center gap-3 rounded-xl border border-[#EEF0F8] bg-white px-3 py-2.5 transition hover:border-[#D8DCF0]"
-                >
+                  <Link
+                    href={`${config.basePath}/interviews`}
+                    className="flex items-center gap-3 rounded-xl border border-[#EEF0F8] bg-white px-3 py-2.5 transition hover:border-[#D8DCF0]"
+                  >
                   <span
                     className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
                     style={{ backgroundColor: '#F3E5F5', color: '#6A1B9A' }}
