@@ -1,7 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import {
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -27,14 +28,51 @@ import { colors } from '@/lib/theme/colors';
 
 const ALL_JOBS = 'all';
 
+/** Recruiter pipeline stages (Phase 1). */
 const STATUS_OPTIONS = [
-  { value: 'pending', label: 'Pending' },
-  { value: 'accepted', label: 'Accepted' },
+  { value: 'applied', label: 'Applied' },
+  { value: 'screened', label: 'Screened' },
+  { value: 'shortlisted', label: 'Shortlisted' },
+  { value: 'interview', label: 'Interview' },
+  { value: 'offered', label: 'Offered' },
+  { value: 'hired', label: 'Hired' },
   { value: 'rejected', label: 'Rejected' },
 ] as const;
 
 type PipelineStatus = (typeof STATUS_OPTIONS)[number]['value'];
-type StatusFilter = 'all' | PipelineStatus | 'sent';
+type StatusFilter = 'all' | PipelineStatus;
+
+const PIPELINE_VALUES = new Set<string>(STATUS_OPTIONS.map((s) => s.value));
+
+/** Map legacy DB values onto the Phase 1 pipeline. */
+function normalizePipelineStatus(status: string): PipelineStatus {
+  if (status === 'sent' || status === 'pending') return 'applied';
+  if (status === 'accepted') return 'shortlisted';
+  if (PIPELINE_VALUES.has(status)) return status as PipelineStatus;
+  return 'applied';
+}
+
+function statusLabel(status: string): string {
+  const canonical = normalizePipelineStatus(status);
+  return STATUS_OPTIONS.find((s) => s.value === canonical)?.label || canonical;
+}
+
+function statusStyles(status: string): { color: string; background: string } {
+  const canonical = normalizePipelineStatus(status);
+  if (canonical === 'hired' || canonical === 'offered') {
+    return { color: '#2E7D32', background: '#E8F5E9' };
+  }
+  if (canonical === 'shortlisted') return { color: '#1565C0', background: '#E3F2FD' };
+  if (canonical === 'interview') return { color: '#6A1B9A', background: '#F3E5F5' };
+  if (canonical === 'screened') return { color: '#EF6C00', background: '#FFF3E0' };
+  if (canonical === 'rejected') return { color: '#C62828', background: '#FFEBEE' };
+  return { color: '#5B6473', background: '#EEF0F8' }; // applied
+}
+
+function statusMatchesFilter(rawStatus: string, filter: StatusFilter): boolean {
+  if (filter === 'all') return true;
+  return normalizePipelineStatus(rawStatus) === filter;
+}
 
 function initialsFromName(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -51,28 +89,6 @@ function formatAppliedAt(value: string): string {
     month: 'short',
     day: 'numeric',
   });
-}
-
-function statusLabel(status: string): string {
-  if (status === 'accepted') return 'Accepted';
-  if (status === 'rejected') return 'Rejected';
-  if (status === 'pending') return 'Pending';
-  if (status === 'sent') return 'Sent';
-  return status.replace(/_/g, ' ');
-}
-
-function statusStyles(status: string): { color: string; background: string } {
-  if (status === 'accepted') return { color: '#2E7D32', background: '#E8F5E9' };
-  if (status === 'rejected') return { color: '#C62828', background: '#FFEBEE' };
-  if (status === 'pending') return { color: '#EF6C00', background: '#FFF3E0' };
-  return { color: '#5B6473', background: '#EEF0F8' };
-}
-
-function normalizePipelineStatus(status: string): PipelineStatus {
-  if (status === 'accepted' || status === 'rejected' || status === 'pending') {
-    return status;
-  }
-  return 'pending';
 }
 
 function ActionIconButton({
@@ -164,6 +180,7 @@ function EmployerApplicantsContent({
   portal: Extract<PortalType, 'recruiter' | 'company'>;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     activeWorkspace,
     loading: workspaceLoading,
@@ -189,6 +206,19 @@ function EmployerApplicantsContent({
   const [detailId, setDetailId] = useState<string | null>(null);
   const [bulkBusy, setBulkBusy] = useState(false);
   const [jobsReady, setJobsReady] = useState(false);
+
+  /** Deep-link from Dashboard: /applicants?status=interview */
+  useEffect(() => {
+    const raw = searchParams.get('status');
+    if (!raw) return;
+    if (raw === 'all') {
+      setStatusFilter('all');
+      return;
+    }
+    if (PIPELINE_VALUES.has(raw)) {
+      setStatusFilter(raw as PipelineStatus);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (workspaceLoading) return;
@@ -290,12 +320,19 @@ function EmployerApplicantsContent({
     jobFilterId === ALL_JOBS ? null : jobs.find((job) => job.id === jobFilterId) || null;
 
   const stageCounts = useMemo(() => {
-    const counts = { all: applications.length, pending: 0, accepted: 0, rejected: 0, sent: 0 };
+    const counts: Record<StatusFilter, number> = {
+      all: applications.length,
+      applied: 0,
+      screened: 0,
+      shortlisted: 0,
+      interview: 0,
+      offered: 0,
+      hired: 0,
+      rejected: 0,
+    };
     for (const item of applications) {
-      if (item.status === 'pending') counts.pending += 1;
-      else if (item.status === 'accepted') counts.accepted += 1;
-      else if (item.status === 'rejected') counts.rejected += 1;
-      else if (item.status === 'sent') counts.sent += 1;
+      const key = normalizePipelineStatus(item.status);
+      counts[key] += 1;
     }
     return counts;
   }, [applications]);
@@ -303,7 +340,7 @@ function EmployerApplicantsContent({
   const displayedApplications = useMemo(() => {
     const q = query.trim().toLowerCase();
     return applications.filter((application) => {
-      if (statusFilter !== 'all' && application.status !== statusFilter) return false;
+      if (!statusMatchesFilter(application.status, statusFilter)) return false;
       if (!q) return true;
       return (
         application.fullName.toLowerCase().includes(q) ||
@@ -452,13 +489,12 @@ function EmployerApplicantsContent({
 
   const stageChips: { value: StatusFilter; label: string; count: number }[] = [
     { value: 'all', label: 'All', count: stageCounts.all },
-    { value: 'pending', label: 'Pending', count: stageCounts.pending },
-    { value: 'accepted', label: 'Accepted', count: stageCounts.accepted },
-    { value: 'rejected', label: 'Rejected', count: stageCounts.rejected },
+    ...STATUS_OPTIONS.map((option) => ({
+      value: option.value as StatusFilter,
+      label: option.label,
+      count: stageCounts[option.value],
+    })),
   ];
-  if (stageCounts.sent > 0) {
-    stageChips.push({ value: 'sent', label: 'Sent', count: stageCounts.sent });
-  }
 
   return (
     <>
@@ -640,20 +676,29 @@ function EmployerApplicantsContent({
                 <button
                   type="button"
                   disabled={bulkBusy}
-                  onClick={() => void handleBulkStatus('pending')}
+                  onClick={() => void handleBulkStatus('screened')}
                   className="rounded-lg border border-[#E5E7EE] bg-white px-3 py-1.5 text-xs font-semibold transition hover:bg-[#F7F8FE] disabled:opacity-60"
                   style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
                 >
-                  Mark pending
+                  Screened
                 </button>
                 <button
                   type="button"
                   disabled={bulkBusy}
-                  onClick={() => void handleBulkStatus('accepted')}
-                  className="rounded-lg bg-[#E8F5E9] px-3 py-1.5 text-xs font-semibold text-[#2E7D32] transition hover:bg-[#DDEEDF] disabled:opacity-60"
+                  onClick={() => void handleBulkStatus('shortlisted')}
+                  className="rounded-lg bg-[#E3F2FD] px-3 py-1.5 text-xs font-semibold text-[#1565C0] transition hover:bg-[#D6EAFB] disabled:opacity-60"
                   style={{ fontFamily: 'var(--font-poppins)' }}
                 >
-                  Accept
+                  Shortlist
+                </button>
+                <button
+                  type="button"
+                  disabled={bulkBusy}
+                  onClick={() => void handleBulkStatus('interview')}
+                  className="rounded-lg bg-[#F3E5F5] px-3 py-1.5 text-xs font-semibold text-[#6A1B9A] transition hover:bg-[#EBD9F0] disabled:opacity-60"
+                  style={{ fontFamily: 'var(--font-poppins)' }}
+                >
+                  Interview
                 </button>
                 <button
                   type="button"
@@ -1161,5 +1206,15 @@ export default function EmployerApplicantsPage({
 }: {
   portal: Extract<PortalType, 'recruiter' | 'company'>;
 }) {
-  return <EmployerApplicantsContent portal={portal} />;
+  return (
+    <Suspense
+      fallback={
+        <div className="rounded-2xl border border-[#EEF0F8] bg-white p-8 text-sm text-[#858BBD]">
+          Loading applicants…
+        </div>
+      }
+    >
+      <EmployerApplicantsContent portal={portal} />
+    </Suspense>
+  );
 }
