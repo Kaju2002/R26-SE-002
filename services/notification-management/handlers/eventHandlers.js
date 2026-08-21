@@ -7,6 +7,7 @@ import {
 import { sendExpoPushToUser } from "../utils/expoPushClient.js";
 import { findJobseekersMatchingSkills, listSuperadmins } from "../utils/userManagementClient.js";
 import { sendApplicationThankYouEmail } from "../utils/sendApplicationThankYouEmail.js";
+import { sendInterviewReminderEmail } from "../utils/sendInterviewReminderEmail.js";
 
 const STATUS_TITLES = {
   applied: "Application Submitted",
@@ -473,6 +474,94 @@ const handleJobFlaggedForReview = async (event) => {
   return { created: createdCount > 0, createdCount };
 };
 
+const handleInterviewReminder = async (event) => {
+  const payload = event.payload || {};
+  const {
+    interviewId,
+    applicationId,
+    applicantId,
+    jobId,
+    jobTitle = "",
+    companyName = "",
+    candidateName = "",
+    candidateEmail = "",
+    startsAt,
+    timezone = "UTC",
+    conferenceUrl = null,
+    reminderKind = "24h",
+    title = "",
+    body = "",
+  } = payload;
+
+  if (!applicantId || !interviewId) {
+    throw new Error("interview.reminder payload missing applicantId or interviewId");
+  }
+
+  if (await hasProcessedEvent(event.eventId)) {
+    return { skipped: true, reason: "duplicate-event" };
+  }
+
+  const reminderTitle = title || "Interview reminder";
+  const reminderBody =
+    body || `Your interview for ${jobTitle} is coming up.`;
+
+  // General tab shows title/body; Applications tab only shows job/status cards.
+  const notification = await createNotification({
+    userId: String(applicantId),
+    category: "general",
+    type: "system",
+    title: reminderTitle,
+    body: reminderBody,
+    metadata: {
+      applicationId: applicationId ? String(applicationId) : undefined,
+      jobId: jobId ? String(jobId) : undefined,
+      jobTitle,
+      companyName,
+      applicationStatus: "interview",
+    },
+    sourceEventId: event.eventId,
+  });
+
+  let emailResult = { skipped: true, reason: "not-attempted" };
+  try {
+    emailResult = await sendInterviewReminderEmail({
+      candidateEmail,
+      candidateName,
+      jobTitle,
+      companyName,
+      startsAt,
+      timezone,
+      conferenceUrl,
+      reminderKind,
+      title: reminderTitle,
+      body: reminderBody,
+    });
+  } catch (error) {
+    console.error("Interview reminder email error:", error.message);
+    emailResult = { skipped: false, ok: false, message: error.message };
+  }
+
+  try {
+    await sendExpoPushToUser(String(applicantId), {
+      title: reminderTitle,
+      body: reminderBody,
+      data: {
+        type: "interview_reminder",
+        interviewId: String(interviewId),
+        applicationId: applicationId ? String(applicationId) : undefined,
+      },
+    });
+  } catch (error) {
+    console.warn("Interview reminder push warning:", error.message);
+  }
+
+  return {
+    created: Boolean(notification),
+    emailResult,
+    reminderKind,
+  };
+};
+
 export const handleEvent = async (event) => {
   if (!event?.eventType) {
     throw new Error("Event envelope missing eventType");
@@ -493,6 +582,8 @@ export const handleEvent = async (event) => {
       return handleJobCreated(event);
     case EVENT_TYPES.JOB_FLAGGED_FOR_REVIEW:
       return handleJobFlaggedForReview(event);
+    case EVENT_TYPES.INTERVIEW_REMINDER:
+      return handleInterviewReminder(event);
     default:
       return { skipped: true, reason: "unsupported-event" };
   }

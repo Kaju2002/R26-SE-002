@@ -78,7 +78,7 @@ Same sidebar and features for both portals (`EmployerShell`).
 | Dashboard | `/recruiter/dashboard` | Live (welcome + links; **polish last**) |
 | Jobs | `/recruiter/jobs` | Live (list + post/edit) |
 | Applicants | `/recruiter/applicants` | Live (pipeline: all jobs, stages, bulk) |
-| Interviews | `/recruiter/interviews` | **Coming soon** placeholder |
+| Interviews | `/recruiter/interviews` | Live (agenda + schedule via Nylas calendar / Meet / Teams) |
 | InChat | `/recruiter/inchat` | Live |
 | Email | `/recruiter/email` | Live (Nylas connect) |
 | Templates | `/recruiter/templates` | **Coming soon** placeholder |
@@ -109,10 +109,12 @@ Company uses the same paths under `/company/...`.
 ### Pending — placeholder pages (build later)
 
 #### Interviews (`/interviews`)
-- Book slots with applicants
-- Calendar: day / week / month
-- Reminders via Email + InChat
-- Link interview → `applicationId` + `jobId` + pipeline status
+- [x] **P1:** Interview entity + agenda UI + schedule from Applicants
+- [x] Nylas calendar event + Google Meet / Microsoft Teams autocreate
+- [x] Invite email + application status → `interview`
+- [x] P2: Week/month calendar + drag reschedule (Nylas event update)
+- [x] P3: T−24h / T−1h reminders (Email SMTP + in-app push + InChat); test mode T−5m / T−2m
+- [ ] P4: Candidate self-booking links
 
 #### Templates (`/templates`)
 - Screening, interview invite, reject, offer templates

@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import "dotenv/config";
 import connectDB from "./config/mongodb.js";
 import jobRoute from "./route/jobRoute.js";
+import { startInterviewReminderPoller } from "./jobs/interviewReminderPoller.js";
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -82,4 +83,5 @@ app.use((err, req, res, next) => {
 app.listen(PORT, () => {
   console.log(`Job Management Service running on http://localhost:${PORT}`);
   console.log(`Health check: GET http://localhost:${PORT}/health`);
+  startInterviewReminderPoller();
 });

@@ -6,6 +6,7 @@ export const EVENT_TYPES = {
   CHAT_MESSAGE_CREATED: "chat.message.created",
   JOB_CREATED: "job.created",
   JOB_FLAGGED_FOR_REVIEW: "job.flagged_for_review",
+  INTERVIEW_REMINDER: "interview.reminder",
 };
 
 export const ROUTING_KEYS = Object.values(EVENT_TYPES);
