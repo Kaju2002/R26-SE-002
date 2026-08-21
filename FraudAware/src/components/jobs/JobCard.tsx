@@ -45,6 +45,48 @@ const STATUS_META: Record<
   ApplicationStatus,
   { icon: keyof typeof Ionicons.glyphMap; color: string; bg: string; label: string }
 > = {
+  applied: {
+    icon: 'paper-plane',
+    color: '#42498A',
+    bg: '#E8EBFA',
+    label: 'Applied',
+  },
+  screened: {
+    icon: 'time-outline',
+    color: '#C47F08',
+    bg: '#FFF5E6',
+    label: 'Under review',
+  },
+  shortlisted: {
+    icon: 'star-outline',
+    color: '#1565C0',
+    bg: '#E3F2FD',
+    label: 'Shortlisted',
+  },
+  interview: {
+    icon: 'calendar-outline',
+    color: '#6A1B9A',
+    bg: '#F3E5F5',
+    label: 'Interview',
+  },
+  offered: {
+    icon: 'checkmark-circle',
+    color: '#1B7A3D',
+    bg: '#E8F6EE',
+    label: 'Offer',
+  },
+  hired: {
+    icon: 'checkmark-done-circle',
+    color: '#1B7A3D',
+    bg: '#E8F6EE',
+    label: 'Hired',
+  },
+  rejected: {
+    icon: 'close-circle',
+    color: '#C62828',
+    bg: '#FDEDEE',
+    label: 'Rejected',
+  },
   sent: {
     icon: 'paper-plane',
     color: '#42498A',
@@ -55,19 +97,13 @@ const STATUS_META: Record<
     icon: 'time-outline',
     color: '#C47F08',
     bg: '#FFF5E6',
-    label: 'Pending',
+    label: 'Under review',
   },
   accepted: {
-    icon: 'checkmark-circle',
-    color: '#1B7A3D',
-    bg: '#E8F6EE',
-    label: 'Accepted',
-  },
-  rejected: {
-    icon: 'close-circle',
-    color: '#C62828',
-    bg: '#FDEDEE',
-    label: 'Rejected',
+    icon: 'star-outline',
+    color: '#1565C0',
+    bg: '#E3F2FD',
+    label: 'Shortlisted',
   },
 };
 

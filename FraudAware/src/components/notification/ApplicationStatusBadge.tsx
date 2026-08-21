@@ -3,16 +3,57 @@ import { StyleSheet, Text, View } from 'react-native';
 import type { ApplicationStatus } from '../../../data/applicationNotifications';
 
 const LABELS: Record<ApplicationStatus, string> = {
-  sent: 'Application Sent',
-  pending: 'Application Pending',
-  accepted: 'Application Accepted',
-  rejected: 'Application Rejected',
+  applied: 'Applied',
+  screened: 'Under review',
+  shortlisted: 'Shortlisted',
+  interview: 'Interview',
+  offered: 'Offer received',
+  hired: 'Hired',
+  rejected: 'Rejected',
+  sent: 'Applied',
+  pending: 'Under review',
+  accepted: 'Shortlisted',
 };
 
 const STYLES: Record<
   ApplicationStatus,
   { bg: string; text: string; border: string }
 > = {
+  applied: {
+    bg: '#E8EBFA',
+    text: '#42498A',
+    border: '#C5CBE8',
+  },
+  screened: {
+    bg: '#FFF5E6',
+    text: '#C47F08',
+    border: '#FFD699',
+  },
+  shortlisted: {
+    bg: '#E3F2FD',
+    text: '#1565C0',
+    border: '#90CAF9',
+  },
+  interview: {
+    bg: '#F3E5F5',
+    text: '#6A1B9A',
+    border: '#CE93D8',
+  },
+  offered: {
+    bg: '#E8F6EE',
+    text: '#1B7A3D',
+    border: '#B8E0C8',
+  },
+  hired: {
+    bg: '#E8F6EE',
+    text: '#1B7A3D',
+    border: '#B8E0C8',
+  },
+  rejected: {
+    bg: '#FDEDEE',
+    text: '#C62828',
+    border: '#F5C6CA',
+  },
   sent: {
     bg: '#E8EBFA',
     text: '#42498A',
@@ -24,14 +65,9 @@ const STYLES: Record<
     border: '#FFD699',
   },
   accepted: {
-    bg: '#E8F6EE',
-    text: '#1B7A3D',
-    border: '#B8E0C8',
-  },
-  rejected: {
-    bg: '#FDEDEE',
-    text: '#C62828',
-    border: '#F5C6CA',
+    bg: '#E3F2FD',
+    text: '#1565C0',
+    border: '#90CAF9',
   },
 };
 
@@ -40,10 +76,11 @@ type Props = {
 };
 
 export default function ApplicationStatusBadge({ status }: Props) {
-  const c = STYLES[status];
+  const c = STYLES[status] || STYLES.applied;
+  const label = LABELS[status] || 'Applied';
   return (
     <View style={[styles.wrap, { backgroundColor: c.bg, borderColor: c.border }]}>
-      <Text style={[styles.label, { color: c.text }]}>{LABELS[status]}</Text>
+      <Text style={[styles.label, { color: c.text }]}>{label}</Text>
     </View>
   );
 }

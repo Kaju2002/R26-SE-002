@@ -1,6 +1,19 @@
 import mongoose from "mongoose";
 
-const APPLICATION_STATUSES = ["sent", "pending", "accepted", "rejected"];
+const APPLICATION_STATUSES = [
+  // Pipeline (Phase 1)
+  "applied",
+  "screened",
+  "shortlisted",
+  "interview",
+  "offered",
+  "hired",
+  "rejected",
+  // Legacy (kept so existing documents remain valid)
+  "sent",
+  "pending",
+  "accepted",
+];
 
 const applicationSchema = new mongoose.Schema(
   {
@@ -48,7 +61,7 @@ const applicationSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: APPLICATION_STATUSES,
-      default: "sent",
+      default: "applied",
       index: true,
     },
     appliedAt: {

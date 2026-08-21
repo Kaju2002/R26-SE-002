@@ -9,25 +9,43 @@ import { findJobseekersMatchingSkills, listSuperadmins } from "../utils/userMana
 import { sendApplicationThankYouEmail } from "../utils/sendApplicationThankYouEmail.js";
 
 const STATUS_TITLES = {
+  applied: "Application Submitted",
+  screened: "Application Under Review",
+  shortlisted: "You've Been Shortlisted",
+  interview: "Interview Update",
+  offered: "Job Offer",
+  hired: "You're Hired",
+  rejected: "Application Update",
   sent: "Application Submitted",
   pending: "Application Under Review",
-  accepted: "Application Accepted",
-  rejected: "Application Rejected",
+  accepted: "You've Been Shortlisted",
 };
 
 const STATUS_BODIES = {
+  applied: (jobTitle, companyName) =>
+    `Your application for ${jobTitle} at ${companyName} was submitted.`,
+  screened: (jobTitle, companyName) =>
+    `Your application for ${jobTitle} at ${companyName} is under review.`,
+  shortlisted: (jobTitle, companyName) =>
+    `Great news — you've been shortlisted for ${jobTitle} at ${companyName}.`,
+  interview: (jobTitle, companyName) =>
+    `There's an interview update for ${jobTitle} at ${companyName}.`,
+  offered: (jobTitle, companyName) =>
+    `Congratulations! You received an offer for ${jobTitle} at ${companyName}.`,
+  hired: (jobTitle, companyName) =>
+    `Congratulations! You've been hired for ${jobTitle} at ${companyName}.`,
+  rejected: (jobTitle, companyName) =>
+    `Your application for ${jobTitle} at ${companyName} was not selected this time.`,
   sent: (jobTitle, companyName) =>
     `Your application for ${jobTitle} at ${companyName} was sent.`,
   pending: (jobTitle, companyName) =>
     `Your application for ${jobTitle} at ${companyName} is now under review.`,
   accepted: (jobTitle, companyName) =>
-    `Congratulations! Your application for ${jobTitle} at ${companyName} was accepted.`,
-  rejected: (jobTitle, companyName) =>
-    `Your application for ${jobTitle} at ${companyName} was not selected this time.`,
+    `Great news — you've been shortlisted for ${jobTitle} at ${companyName}.`,
 };
 
 const buildApplicationCopy = (status, jobTitle, companyName) => {
-  const safeStatus = STATUS_BODIES[status] ? status : "sent";
+  const safeStatus = STATUS_BODIES[status] ? status : "applied";
   return {
     title: STATUS_TITLES[safeStatus],
     body: STATUS_BODIES[safeStatus](jobTitle, companyName),
@@ -58,7 +76,7 @@ const handleApplicationCreated = async (event) => {
     applicantName = "",
     companyWebsite = "",
     hrEmail = "",
-    status = "sent",
+    status = "applied",
   } = payload;
 
   if (!applicationId || !applicantId) {

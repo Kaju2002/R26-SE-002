@@ -11,8 +11,19 @@ import {
   WorkspaceAccessError,
 } from "../service/employerWorkspaceService.js";
 
-/** Statuses a recruiter can set via PATCH (not the initial "sent" state). */
-const RECRUITER_UPDATABLE_STATUSES = ["pending", "accepted", "rejected"];
+/** Statuses a recruiter can set via PATCH. */
+const RECRUITER_UPDATABLE_STATUSES = [
+  "applied",
+  "screened",
+  "shortlisted",
+  "interview",
+  "offered",
+  "hired",
+  "rejected",
+  // Legacy aliases still accepted from older clients
+  "pending",
+  "accepted",
+];
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
@@ -116,7 +127,7 @@ export const applyToJob = async (req, res) => {
       motivation: payload.motivation,
       resumeUrl: payload.resumeUrl,
       resumeName: payload.resumeName,
-      status: "sent",
+      status: "applied",
     });
 
     await Job.findByIdAndUpdate(job._id, {
