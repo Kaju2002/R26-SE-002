@@ -1209,6 +1209,7 @@ function EmployerApplicantsContent({
           applicantName={emailTarget.fullName}
           applicationId={emailTarget.id}
           jobTitle={emailTarget.jobTitle || selectedJob?.title}
+          companyName={activeWorkspace?.name || selectedJob?.companyName}
           onClose={() => setEmailTarget(null)}
           onSent={() => {
             setEmailTarget(null);

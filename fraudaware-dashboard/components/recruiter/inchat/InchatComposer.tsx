@@ -1,12 +1,14 @@
 'use client';
 
 import { useCallback, useState } from 'react';
+import TemplateInsertControl from '@/components/employer/TemplateInsertControl';
 import {
   MicrophoneIcon,
   PaperclipIcon,
   SendIcon,
   XIcon,
 } from '@/components/recruiter/inchat/InchatIcons';
+import type { TemplateVariables } from '@/lib/api/templateApi';
 import { INCHAT_BORDER } from '@/lib/inchat/inchatStyles';
 
 const MAX_CHARS = 2000;
@@ -17,6 +19,7 @@ type Props = {
   onSend: () => void;
   sending?: boolean;
   disabled?: boolean;
+  templateVariables?: TemplateVariables;
 };
 
 export default function InchatComposer({
@@ -25,6 +28,7 @@ export default function InchatComposer({
   onSend,
   sending,
   disabled = false,
+  templateVariables,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const trimmedLen = value.trim().length;
@@ -47,6 +51,18 @@ export default function InchatComposer({
 
   return (
     <div className="border-t bg-white px-3 pb-3 pt-2" style={{ borderColor: INCHAT_BORDER }}>
+      {!disabled ? (
+        <div className="mb-2 flex justify-end">
+          <TemplateInsertControl
+            bodyOnly
+            variables={templateVariables}
+            onApply={({ body }) => {
+              const next = body.length <= MAX_CHARS ? body : body.slice(0, MAX_CHARS);
+              onChange(next);
+            }}
+          />
+        </div>
+      ) : null}
       <div className="flex items-end gap-2">
         <button
           type="button"

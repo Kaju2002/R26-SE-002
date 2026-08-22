@@ -41,6 +41,14 @@ import {
   updateInterview,
 } from "../controller/interviewController.js";
 import {
+  createTemplate,
+  deleteTemplate,
+  getTemplate,
+  listTemplates,
+  updateTemplate,
+} from "../controller/messageTemplateController.js";
+import { getEmployerAnalytics } from "../controller/analyticsController.js";
+import {
   getMyWorkspace,
   listMyWorkspaces,
 } from "../controller/employerWorkspaceController.js";
@@ -67,6 +75,14 @@ router.post("/interviews/reminders/run", authMiddleware, runInterviewRemindersNo
 router.get("/interviews/:interviewId", authMiddleware, getInterview);
 router.patch("/interviews/:interviewId", authMiddleware, updateInterview);
 router.post("/interviews/:interviewId/cancel", authMiddleware, cancelInterview);
+
+router.get("/templates", authMiddleware, listTemplates);
+router.post("/templates", authMiddleware, createTemplate);
+router.get("/templates/:templateId", authMiddleware, getTemplate);
+router.patch("/templates/:templateId", authMiddleware, updateTemplate);
+router.delete("/templates/:templateId", authMiddleware, deleteTemplate);
+
+router.get("/analytics", authMiddleware, getEmployerAnalytics);
 router.get("/recruiter/:userId", optionalAuthMiddleware, getJobsByRecruiter);
 router.get(
   "/applications/:applicationId/resume",

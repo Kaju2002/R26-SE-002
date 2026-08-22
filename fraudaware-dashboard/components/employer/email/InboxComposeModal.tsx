@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import TemplateInsertControl from '@/components/employer/TemplateInsertControl';
 import { sendApplicantEmail } from '@/lib/api/emailApi';
 import { getStoredToken } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
@@ -10,6 +11,7 @@ type Props = {
   initialTo?: string;
   initialSubject?: string;
   initialBody?: string;
+  companyName?: string;
   onClose: () => void;
   onSent: () => void;
 };
@@ -19,6 +21,7 @@ export default function InboxComposeModal({
   initialTo = '',
   initialSubject = '',
   initialBody = '',
+  companyName,
   onClose,
   onSent,
 }: Props) {
@@ -57,12 +60,21 @@ export default function InboxComposeModal({
         onSubmit={handleSubmit}
         className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
       >
-        <h3
-          className="text-lg font-semibold"
-          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-        >
-          {title}
-        </h3>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <h3
+            className="text-lg font-semibold"
+            style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+          >
+            {title}
+          </h3>
+          <TemplateInsertControl
+            variables={{ company: companyName }}
+            onApply={({ subject: nextSubject, body: nextBody }) => {
+              if (nextSubject.trim()) setSubject(nextSubject);
+              setBody(nextBody);
+            }}
+          />
+        </div>
 
         {error ? (
           <p className="mt-3 text-sm text-red-600" style={{ fontFamily: 'var(--font-poppins)' }}>

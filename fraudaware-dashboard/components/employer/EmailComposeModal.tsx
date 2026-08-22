@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import TemplateInsertControl from '@/components/employer/TemplateInsertControl';
 import { sendApplicantEmail } from '@/lib/api/emailApi';
 import { getStoredToken } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
@@ -10,6 +11,7 @@ type Props = {
   applicantName: string;
   applicationId: string;
   jobTitle?: string;
+  companyName?: string;
   onClose: () => void;
   onSent: () => void;
   onNeedConnect: () => void;
@@ -20,6 +22,7 @@ export default function EmailComposeModal({
   applicantName,
   applicationId,
   jobTitle,
+  companyName,
   onClose,
   onSent,
   onNeedConnect,
@@ -67,18 +70,33 @@ export default function EmailComposeModal({
         onSubmit={handleSubmit}
         className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
       >
-        <h3
-          className="text-lg font-semibold"
-          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-        >
-          Email applicant
-        </h3>
-        <p
-          className="mt-1 text-sm"
-          style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-        >
-          To: {to}
-        </p>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3
+              className="text-lg font-semibold"
+              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+            >
+              Email applicant
+            </h3>
+            <p
+              className="mt-1 text-sm"
+              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+            >
+              To: {to}
+            </p>
+          </div>
+          <TemplateInsertControl
+            variables={{
+              name: applicantName,
+              jobTitle,
+              company: companyName,
+            }}
+            onApply={({ subject: nextSubject, body: nextBody }) => {
+              if (nextSubject.trim()) setSubject(nextSubject);
+              setBody(nextBody);
+            }}
+          />
+        </div>
 
         {error ? (
           <p className="mt-3 text-sm text-red-600" style={{ fontFamily: 'var(--font-poppins)' }}>

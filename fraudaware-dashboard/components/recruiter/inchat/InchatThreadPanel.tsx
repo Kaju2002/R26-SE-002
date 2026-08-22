@@ -358,6 +358,10 @@ export default function InchatThreadPanel({
           onSend={() => void onSend()}
           sending={sendBusy}
           disabled={isBlocked}
+          templateVariables={{
+            name: thread.participantName,
+            jobTitle: thread.subtitle,
+          }}
         />
       </div>
     </div>
