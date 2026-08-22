@@ -81,8 +81,8 @@ Same sidebar and features for both portals (`EmployerShell`).
 | Interviews | `/recruiter/interviews` | Live (agenda + schedule via Nylas calendar / Meet / Teams) |
 | InChat | `/recruiter/inchat` | Live |
 | Email | `/recruiter/email` | Live (Nylas connect) |
-| Templates | `/recruiter/templates` | **Coming soon** placeholder |
-| Analytics | `/recruiter/analytics` | **Coming soon** placeholder |
+| Templates | `/recruiter/templates` | Live (CRUD + Use template in Email / InChat) |
+| Analytics | `/recruiter/analytics` | Live (funnel, KPIs, jobs breakdown, range filter) |
 | Team | `/recruiter/team` | **Coming soon** placeholder |
 | Billing | `/recruiter/billing` | **Coming soon** placeholder |
 | Profile | `/recruiter/profile` | Live (view + edit account/company + mailbox) |
@@ -114,19 +114,21 @@ Company uses the same paths under `/company/...`.
 - [x] Invite email + application status → `interview`
 - [x] P2: Week/month calendar + drag reschedule (Nylas event update)
 - [x] P3: T−24h / T−1h reminders (Email SMTP + in-app push + InChat); test mode T−5m / T−2m
-- [ ] P4: Candidate self-booking links
+- [ ] P4: Candidate self-booking links (optional / later — employer-assigned slots are the MVP path)
 
 #### Templates (`/templates`)
-- Screening, interview invite, reject, offer templates
-- Variables: name, job title, company
-- Share across workspace team
-- Use from Applicants, Email, InChat
+- [x] Screening, interview invite, reject, offer templates (seeded defaults)
+- [x] Variables: `{{name}}`, `{{jobTitle}}`, `{{company}}`
+- [x] CRUD on Templates page (recruiter + company)
+- [x] Use from Applicants email compose, Email inbox compose, InChat composer
+- [ ] Share across workspace team (multi-member) — later with Team
 
 #### Analytics (`/analytics`)
-- Job views + apply conversion
-- Funnel: applied → shortlisted → interview → hired
-- Time-to-fill, response metrics
-- Export for stakeholders
+- [x] Job applicants + conversion (→ interview / hire)
+- [x] Funnel: applied → screened → shortlisted → interview → offered → hired
+- [x] KPIs: active jobs, needs action, interviews this week, queue age
+- [x] Applicants-over-time bar series + jobs breakdown table
+- [ ] Export for stakeholders (CSV) — later
 
 #### Team (`/team`)
 - Invite by email

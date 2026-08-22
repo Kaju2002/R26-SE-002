@@ -6,6 +6,7 @@ import EmailDetailPane from '@/components/employer/email/EmailDetailPane';
 import EmailFolderNav from '@/components/employer/email/EmailFolderNav';
 import EmailMessageRow from '@/components/employer/email/EmailMessageRow';
 import InboxComposeModal from '@/components/employer/email/InboxComposeModal';
+import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceContext';
 import {
   ensureFwdSubject,
   ensureReSubject,
@@ -47,6 +48,7 @@ export default function EmployerEmailPage({
   portal: Extract<PortalType, 'recruiter' | 'company'>;
 }) {
   const basePath = portalConfigs[portal].basePath;
+  const { activeWorkspace } = useEmployerWorkspace();
   const [status, setStatus] = useState<EmailStatus | null>(null);
   const [folders, setFolders] = useState<EmailFolder[]>(DEFAULT_FOLDERS);
   const [folderKey, setFolderKey] = useState('inbox');
@@ -403,6 +405,7 @@ export default function EmployerEmailPage({
           initialTo={compose.to}
           initialSubject={compose.subject}
           initialBody={compose.body}
+          companyName={activeWorkspace?.name}
           onClose={() => setCompose(null)}
           onSent={() => {
             setCompose(null);
