@@ -11,6 +11,8 @@ export type ManagedUser = {
   emailVerified: boolean;
   organization?: string | null;
   location?: string | null;
+  /** Profile photo, or company logo for company accounts. */
+  avatarUrl?: string | null;
   createdAt: string;
   lastLoginAt?: string | null;
 };

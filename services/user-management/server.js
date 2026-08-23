@@ -5,6 +5,7 @@ import connectDB from "./config/mongodb.js";
 import userRoute from "./route/userRoute.js";
 import profileRoute from "./route/profileRoute.js";
 import internalRoute from "./route/internalRoute.js";
+import adminRoute from "./route/adminRoute.js";
 
 // ==== APP CONFIG ====
 const app = express();
@@ -30,6 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/auth", userRoute);
 app.use("/api/profile", profileRoute);
 app.use("/api/internal", internalRoute);
+app.use("/api/admin", adminRoute);
 
 // ==== HEALTH CHECK ====
 app.get("/health", (req, res) => {
@@ -65,6 +67,10 @@ app.get("/", (req, res) => {
         languages: "POST/PUT/DELETE /api/profile/languages/:itemId",
         avatar: "PATCH /api/profile/avatar",
         cv: "POST/DELETE /api/profile/cv/:cvId",
+      },
+      admin: {
+        listUsers: "GET /api/admin/users (superadmin)",
+        updateUserStatus: "PATCH /api/admin/users/:userId/status (superadmin)",
       },
       health: "GET /health",
     },

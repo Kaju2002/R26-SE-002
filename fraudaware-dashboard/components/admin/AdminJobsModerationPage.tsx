@@ -13,13 +13,6 @@ import { colors } from '@/lib/theme/colors';
 
 type StatusFilter = 'all' | JobModerationStatus;
 
-const FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
-  { value: 'all', label: 'All listings' },
-  { value: 'flagged', label: 'Flagged' },
-  { value: 'cleared', label: 'Cleared' },
-  { value: 'force_closed', label: 'Force-closed' },
-];
-
 const FLAG_LABELS: Record<string, string> = {
   fake_job_model: 'Fake-job model',
   user_report: 'User report',
@@ -41,7 +34,22 @@ function formatDate(value?: string | null): string {
   });
 }
 
-function scoreStyles(score: number): { label: string; color: string; background: string } {
+function formatDateShort(value?: string | null): string {
+  if (!value) return '—';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '—';
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function scoreStyles(score: number): {
+  label: string;
+  color: string;
+  background: string;
+} {
   if (score < 0.35) {
     return { label: 'Low fake risk', color: '#2E7D32', background: '#E8F5E9' };
   }
@@ -51,7 +59,7 @@ function scoreStyles(score: number): { label: string; color: string; background:
   return { label: 'High fake risk', color: '#C62828', background: '#FFEBEE' };
 }
 
-function moderationStyles(status: JobModerationStatus): {
+function moderationStyles(status: string): {
   color: string;
   background: string;
   label: string;
@@ -63,6 +71,13 @@ function moderationStyles(status: JobModerationStatus): {
     return { color: '#C62828', background: '#FFEBEE', label: 'Force-closed' };
   }
   return { color: '#EF6C00', background: '#FFF3E0', label: 'Flagged' };
+}
+
+function listingStyles(status: string): { color: string; background: string } {
+  if (status === 'active') return { color: '#2E7D32', background: '#E8F5E9' };
+  if (status === 'pending_review')
+    return { color: '#EF6C00', background: '#FFF3E0' };
+  return { color: '#C62828', background: '#FFEBEE' };
 }
 
 export default function AdminJobsModerationPage() {
@@ -86,7 +101,7 @@ export default function AdminJobsModerationPage() {
   const reload = useCallback(async () => {
     const token = getStoredToken();
     if (!token) {
-      setError('Your session has expired. Please sign in again.');
+      setError('Sign in as a super admin to moderate jobs.');
       setLoading(false);
       return;
     }
@@ -122,6 +137,13 @@ export default function AdminJobsModerationPage() {
 
   const selected = jobs.find((job) => job.id === selectedId) ?? jobs[0] ?? null;
 
+  const applyFilter = (next: StatusFilter) => {
+    setFilter(next);
+    setMessage(null);
+    setError(null);
+    setCloseReason('');
+  };
+
   const clearListing = async (id: string) => {
     const token = getStoredToken();
     const target = jobs.find((job) => job.id === id);
@@ -132,11 +154,13 @@ export default function AdminJobsModerationPage() {
     setError(null);
     try {
       await moderateJob(token, id, 'approve');
-      setMessage(`“${target.title}” was cleared and published to job seekers.`);
+      setMessage(`“${target.title}” cleared and published.`);
       await reload();
     } catch (requestError: unknown) {
       setError(
-        requestError instanceof Error ? requestError.message : 'Could not clear this listing.'
+        requestError instanceof Error
+          ? requestError.message
+          : 'Could not clear this listing.'
       );
     } finally {
       setSaving(false);
@@ -149,7 +173,8 @@ export default function AdminJobsModerationPage() {
     if (!token || !target || target.moderationStatus !== 'flagged') return;
 
     if (!closeReason.trim()) {
-      setMessage('Add a force-close reason before closing this listing.');
+      setError('Add a force-close reason before closing.');
+      setMessage(null);
       return;
     }
 
@@ -159,7 +184,7 @@ export default function AdminJobsModerationPage() {
     try {
       await moderateJob(token, id, 'reject', closeReason.trim());
       setCloseReason('');
-      setMessage(`“${target.title}” was force-closed and hidden from job seekers.`);
+      setMessage(`“${target.title}” force-closed.`);
       await reload();
     } catch (requestError: unknown) {
       setError(
@@ -174,181 +199,248 @@ export default function AdminJobsModerationPage() {
 
   return (
     <AdminShell title="Job Moderation">
-      <div className="space-y-5">
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total reviewed set" value={counts.total} />
-          <StatCard label="Flagged open" value={counts.flagged} />
-          <StatCard label="Cleared" value={counts.cleared} />
-          <StatCard label="Force-closed" value={counts.forceClosed} />
+      <div className="space-y-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <FilterChip
+            label="All"
+            count={counts.total}
+            active={filter === 'all'}
+            onClick={() => applyFilter('all')}
+          />
+          <FilterChip
+            label="Flagged"
+            count={counts.flagged}
+            active={filter === 'flagged'}
+            onClick={() => applyFilter('flagged')}
+            tone="flagged"
+          />
+          <FilterChip
+            label="Cleared"
+            count={counts.cleared}
+            active={filter === 'cleared'}
+            onClick={() => applyFilter('cleared')}
+            tone="cleared"
+          />
+          <FilterChip
+            label="Force-closed"
+            count={counts.forceClosed}
+            active={filter === 'force_closed'}
+            onClick={() => applyFilter('force_closed')}
+            tone="force_closed"
+          />
         </div>
 
-        <div className="rounded-2xl border border-[#EEF0F8] bg-white p-5 shadow-sm md:p-6">
-          <div>
-            <h2
-              className="text-lg font-semibold"
-              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+        <div className="overflow-hidden rounded-2xl border border-[#EEF0F8] bg-white shadow-sm">
+          <div className="flex flex-col gap-3 border-b border-[#EEF0F8] px-4 py-3 sm:flex-row sm:items-center sm:px-5">
+            <form
+              className="flex min-w-0 flex-1 gap-2"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setQuery(queryInput.trim());
+              }}
             >
-              Flagged & fake job posts
-            </h2>
-            <p
-              className="mt-1 text-sm"
-              style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
-            >
-              Review fake-job model results, then publish a listing to job seekers
-              or force-close it. Flagged posts stay hidden on mobile until you act.
-            </p>
+              <label className="block min-w-0 flex-1">
+                <span className="sr-only">Search jobs</span>
+                <input
+                  type="search"
+                  value={queryInput}
+                  onChange={(event) => setQueryInput(event.target.value)}
+                  placeholder="Search title, company, poster…"
+                  className="w-full rounded-xl border border-[#E5E7EE] bg-[#F7F8FE] px-3 py-2 text-sm outline-none transition focus:border-[#202871]"
+                  style={{
+                    color: colors.navy,
+                    fontFamily: 'var(--font-poppins)',
+                  }}
+                />
+              </label>
+              <button
+                type="submit"
+                className="shrink-0 rounded-xl bg-[#202871] px-4 py-2 text-sm font-semibold text-white"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                Search
+              </button>
+            </form>
+            <div className="flex shrink-0 items-center gap-2">
+              <p
+                className="text-xs"
+                style={{
+                  color: colors.muted,
+                  fontFamily: 'var(--font-poppins)',
+                }}
+              >
+                {jobs.length} in queue
+                {filter !== 'all' ? ` · ${filter.replace('_', ' ')}` : ''}
+              </p>
+              <button
+                type="button"
+                onClick={() => void reload()}
+                disabled={loading}
+                className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-sm font-semibold disabled:opacity-60"
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                {loading ? 'Loading…' : 'Refresh'}
+              </button>
+            </div>
           </div>
 
-          <form
-            className="mt-5 grid gap-3 md:grid-cols-[1fr_200px]"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setQuery(queryInput.trim());
-            }}
-          >
-            <input
-              type="search"
-              value={queryInput}
-              onChange={(event) => setQueryInput(event.target.value)}
-              placeholder="Search title, company, poster…"
-              className="w-full rounded-xl border border-[#E5E7EE] bg-[#F7F8FE] px-3 py-2.5 text-sm outline-none transition focus:border-[#202871]"
-              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-            />
-            <select
-              value={filter}
-              onChange={(event) => setFilter(event.target.value as StatusFilter)}
-              className="rounded-xl border border-[#E5E7EE] bg-[#F7F8FE] px-3 py-2.5 text-sm outline-none focus:border-[#202871]"
-              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+          {message ? (
+            <div
+              className="border-b border-[#C8E6C9] bg-[#E8F5E9] px-4 py-2.5 text-sm text-[#2E7D32] sm:px-5"
+              style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              {FILTER_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </form>
-
+              {message}
+            </div>
+          ) : null}
           {error ? (
             <div
-              className="mt-4 rounded-xl border border-[#FFCDD2] bg-[#FFEBEE] px-4 py-3 text-sm text-[#C62828]"
+              className="border-b border-[#FFCDD2] bg-[#FFEBEE] px-4 py-2.5 text-sm text-[#C62828] sm:px-5"
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
               {error}
             </div>
           ) : null}
 
-          {message ? (
-            <div
-              className="mt-4 rounded-xl border border-[#C8E6C9] bg-[#E8F5E9] px-4 py-3 text-sm text-[#2E7D32]"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              {message}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
-          <div className="overflow-hidden rounded-2xl border border-[#EEF0F8] bg-white shadow-sm">
-            {loading ? (
-              <p
-                className="px-5 py-10 text-center text-sm"
-                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-              >
-                Loading jobs...
-              </p>
-            ) : jobs.length === 0 ? (
-              <p
-                className="px-5 py-10 text-center text-sm"
-                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-              >
-                No job listings match your filters.
-              </p>
-            ) : (
-              <ul className="divide-y divide-[#EEF0F8]">
-                {jobs.map((job) => {
-                  const active = selected?.id === job.id;
-                  const score = scoreStyles(job.fakeJobScore);
-                  return (
-                    <li key={job.id}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedId(job.id);
-                          setCloseReason('');
-                          setMessage(null);
-                        }}
-                        className={`w-full px-4 py-4 text-left transition ${
-                          active ? 'bg-[#F7F8FE]' : 'hover:bg-[#FAFBFF]'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-2">
-                          <p
-                            className="text-sm font-semibold"
-                            style={{
-                              color: colors.navy,
-                              fontFamily: 'var(--font-poppins)',
-                            }}
-                          >
-                            {job.title}
-                          </p>
-                          <ModerationBadge status={job.moderationStatus} />
-                        </div>
-                        <p
-                          className="mt-1 text-xs"
-                          style={{
-                            color: colors.muted,
-                            fontFamily: 'var(--font-poppins)',
+          <div className="grid lg:grid-cols-[minmax(280px,38%)_minmax(0,1fr)]">
+            <div className="max-h-[min(70vh,720px)] overflow-y-auto border-b border-[#EEF0F8] lg:border-b-0 lg:border-r">
+              {loading && jobs.length === 0 ? (
+                <p
+                  className="px-5 py-16 text-center text-sm"
+                  style={{
+                    color: colors.muted,
+                    fontFamily: 'var(--font-poppins)',
+                  }}
+                >
+                  Loading jobs…
+                </p>
+              ) : jobs.length === 0 ? (
+                <div className="px-5 py-16 text-center">
+                  <p
+                    className="text-sm font-semibold"
+                    style={{
+                      color: colors.navy,
+                      fontFamily: 'var(--font-poppins)',
+                    }}
+                  >
+                    No listings found
+                  </p>
+                  <p
+                    className="mt-1 text-sm"
+                    style={{
+                      color: colors.muted,
+                      fontFamily: 'var(--font-poppins)',
+                    }}
+                  >
+                    Try another search or switch filter chips.
+                  </p>
+                </div>
+              ) : (
+                <ul className="divide-y divide-[#EEF0F8]">
+                  {jobs.map((job) => {
+                    const active = selected?.id === job.id;
+                    const score = scoreStyles(job.fakeJobScore);
+                    return (
+                      <li key={job.id}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedId(job.id);
+                            setCloseReason('');
+                            setMessage(null);
+                            setError(null);
                           }}
+                          className={`flex w-full items-start gap-3 px-4 py-3.5 text-left transition sm:px-5 ${
+                            active
+                              ? 'border-l-[3px] border-l-[#202871] bg-[#F7F8FE]'
+                              : 'border-l-[3px] border-l-transparent hover:bg-[#FAFBFF]'
+                          }`}
                         >
-                          {job.companyName} · {job.posterType}
-                        </p>
-                        <div className="mt-2 flex flex-wrap items-center gap-2">
-                          <span
-                            className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                            style={{
-                              color: score.color,
-                              backgroundColor: score.background,
-                              fontFamily: 'var(--font-poppins)',
-                            }}
-                          >
-                            {Math.round(job.fakeJobScore * 100)}% fake score
-                          </span>
-                          <span
-                            className="text-[11px]"
-                            style={{
-                              color: colors.muted,
-                              fontFamily: 'var(--font-poppins)',
-                            }}
-                          >
-                            {job.reportCount} reports
-                          </span>
-                        </div>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start justify-between gap-2">
+                              <p
+                                className="line-clamp-2 text-sm font-semibold"
+                                style={{
+                                  color: colors.navy,
+                                  fontFamily: 'var(--font-poppins)',
+                                }}
+                              >
+                                {job.title}
+                              </p>
+                              <ModerationBadge status={job.moderationStatus} />
+                            </div>
+                            <p
+                              className="mt-0.5 truncate text-xs"
+                              style={{
+                                color: colors.muted,
+                                fontFamily: 'var(--font-poppins)',
+                              }}
+                            >
+                              {job.companyName} · {job.posterType}
+                            </p>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              <span
+                                className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                style={{
+                                  color: score.color,
+                                  backgroundColor: score.background,
+                                  fontFamily: 'var(--font-poppins)',
+                                }}
+                              >
+                                {Math.round(job.fakeJobScore * 100)}% fake
+                              </span>
+                              <span
+                                className="text-[11px]"
+                                style={{
+                                  color: colors.muted,
+                                  fontFamily: 'var(--font-poppins)',
+                                }}
+                              >
+                                {job.reportCount} reports
+                              </span>
+                              <span
+                                className="text-[11px]"
+                                style={{
+                                  color: colors.muted,
+                                  fontFamily: 'var(--font-poppins)',
+                                }}
+                              >
+                                {formatDateShort(job.flaggedAt || job.postedAt)}
+                              </span>
+                            </div>
+                          </div>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </div>
 
-          <div className="rounded-2xl border border-[#EEF0F8] bg-white p-5 shadow-sm md:p-6">
-            {!selected ? (
-              <p
-                className="py-16 text-center text-sm"
-                style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-              >
-                Select a flagged job to review signals and take action.
-              </p>
-            ) : (
-              <JobDetail
-                job={selected}
-                closeReason={closeReason}
-                saving={saving}
-                onCloseReasonChange={setCloseReason}
-                onClear={() => void clearListing(selected.id)}
-                onForceClose={() => void forceCloseListing(selected.id)}
-              />
-            )}
+            <div className="flex max-h-[min(70vh,720px)] min-h-[420px] flex-col">
+              {!selected ? (
+                <p
+                  className="m-auto px-6 py-16 text-center text-sm"
+                  style={{
+                    color: colors.muted,
+                    fontFamily: 'var(--font-poppins)',
+                  }}
+                >
+                  Select a listing from the queue to review.
+                </p>
+              ) : (
+                <JobDetail
+                  job={selected}
+                  closeReason={closeReason}
+                  saving={saving}
+                  onCloseReasonChange={(value) => {
+                    setCloseReason(value);
+                    setError(null);
+                  }}
+                  onClear={() => void clearListing(selected.id)}
+                  onForceClose={() => void forceCloseListing(selected.id)}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -373,152 +465,174 @@ function JobDetail({
 }) {
   const score = scoreStyles(job.fakeJobScore);
   const flagged = job.moderationStatus === 'flagged';
+  const listing = listingStyles(job.listingStatus);
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3
-            className="text-xl font-semibold"
-            style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+        {/* 1. Identity */}
+        <section>
+          <div className="flex flex-wrap items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h3
+                className="text-lg font-semibold"
+                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+              >
+                {job.title}
+              </h3>
+              <p
+                className="mt-0.5 text-sm"
+                style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
+              >
+                {job.companyName} · {job.location} · {job.mode} · {job.type}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <ModerationBadge status={job.moderationStatus} />
+              <span
+                className="rounded-full px-2.5 py-1 text-xs font-semibold capitalize"
+                style={{
+                  color: listing.color,
+                  backgroundColor: listing.background,
+                  fontFamily: 'var(--font-poppins)',
+                }}
+              >
+                Listing {job.listingStatus.replaceAll('_', ' ')}
+              </span>
+            </div>
+          </div>
+
+          <dl className="mt-4 grid gap-2 sm:grid-cols-2">
+            <DetailRow label="Salary" value={job.salaryLabel} />
+            <DetailRow label="Applicants" value={String(job.applicants)} />
+            <DetailRow
+              label="Posted by"
+              value={`${job.posterName} (${job.posterType})`}
+            />
+            <DetailRow label="Poster email" value={job.posterEmail} />
+            <DetailRow label="Posted" value={formatDate(job.postedAt)} />
+            <DetailRow label="Flagged" value={formatDate(job.flaggedAt)} />
+            <DetailRow label="Reviewed" value={formatDate(job.reviewedAt)} />
+            <DetailRow label="User reports" value={String(job.reportCount)} />
+          </dl>
+        </section>
+
+        {/* 2. Why flagged */}
+        <section>
+          <h4
+            className="text-xs font-semibold uppercase tracking-wide"
+            style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
           >
-            {job.title}
-          </h3>
+            Fake-job score
+          </h4>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <span
+              className="rounded-full px-3 py-1 text-xs font-semibold"
+              style={{
+                color: score.color,
+                backgroundColor: score.background,
+                fontFamily: 'var(--font-poppins)',
+              }}
+            >
+              {score.label} · {Math.round(job.fakeJobScore * 100)}%
+            </span>
+            <div className="h-2 min-w-[120px] flex-1 overflow-hidden rounded-full bg-[#EEF0F8]">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${Math.min(Math.round(job.fakeJobScore * 100), 100)}%`,
+                  backgroundColor: score.color,
+                }}
+              />
+            </div>
+          </div>
+
+          <h4
+            className="mt-4 text-xs font-semibold uppercase tracking-wide"
+            style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+          >
+            Flag reasons
+          </h4>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {job.flagReasons.length === 0 ? (
+              <span
+                className="text-xs"
+                style={{
+                  color: colors.muted,
+                  fontFamily: 'var(--font-poppins)',
+                }}
+              >
+                No reasons recorded
+              </span>
+            ) : (
+              job.flagReasons.map((reason) => (
+                <span
+                  key={reason}
+                  className="rounded-full border border-[#E5E7EE] bg-[#F7F8FE] px-3 py-1 text-xs font-medium"
+                  style={{
+                    color: colors.navy,
+                    fontFamily: 'var(--font-poppins)',
+                  }}
+                >
+                  {FLAG_LABELS[reason] || reason}
+                </span>
+              ))
+            )}
+          </div>
+
+          {job.riskMessage ? (
+            <p
+              className="mt-3 rounded-xl border border-[#FFE0B2] bg-[#FFF8E1] px-4 py-3 text-sm"
+              style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
+            >
+              {job.riskPrediction ? (
+                <span className="font-semibold">{job.riskPrediction}: </span>
+              ) : null}
+              {job.riskMessage}
+            </p>
+          ) : null}
+        </section>
+
+        {/* 3. Description */}
+        <section>
+          <h4
+            className="text-xs font-semibold uppercase tracking-wide"
+            style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+          >
+            Job description
+          </h4>
           <p
-            className="mt-1 text-sm"
+            className="mt-2 whitespace-pre-wrap rounded-xl bg-[#F7F8FE] px-4 py-3 text-sm leading-relaxed"
             style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
           >
-            {job.companyName} · {job.location} · {job.mode} · {job.type}
+            {job.description?.trim() || '—'}
           </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <ModerationBadge status={job.moderationStatus as JobModerationStatus} />
-          <span
-            className="rounded-full px-2.5 py-1 text-xs font-semibold capitalize"
-            style={{
-              color:
-                job.listingStatus === 'active'
-                  ? '#2E7D32'
-                  : job.listingStatus === 'pending_review'
-                    ? '#EF6C00'
-                    : '#C62828',
-              backgroundColor:
-                job.listingStatus === 'active'
-                  ? '#E8F5E9'
-                  : job.listingStatus === 'pending_review'
-                    ? '#FFF3E0'
-                    : '#FFEBEE',
-              fontFamily: 'var(--font-poppins)',
-            }}
-          >
-            Listing {job.listingStatus.replace('_', ' ')}
-          </span>
-        </div>
-      </div>
+        </section>
 
-      <p
-        className="rounded-xl bg-[#F7F8FE] px-4 py-3 text-sm leading-relaxed"
-        style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
-      >
-        {job.description}
-      </p>
-
-      {job.riskMessage ? (
-        <p
-          className="rounded-xl border border-[#FFE0B2] bg-[#FFF8E1] px-4 py-3 text-sm"
-          style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
-        >
-          {job.riskPrediction ? `${job.riskPrediction}: ` : ''}
-          {job.riskMessage}
-        </p>
-      ) : null}
-
-      <dl className="grid gap-3 sm:grid-cols-2">
-        <DetailRow label="Salary" value={job.salaryLabel} />
-        <DetailRow label="Applicants" value={String(job.applicants)} />
-        <DetailRow
-          label="Posted by"
-          value={`${job.posterName} (${job.posterType})`}
-        />
-        <DetailRow label="Poster email" value={job.posterEmail} />
-        <DetailRow label="Posted" value={formatDate(job.postedAt)} />
-        <DetailRow label="Flagged" value={formatDate(job.flaggedAt)} />
-        <DetailRow label="Reviewed" value={formatDate(job.reviewedAt)} />
-        <DetailRow label="User reports" value={String(job.reportCount)} />
-      </dl>
-
-      <div>
-        <h4
-          className="text-sm font-semibold"
-          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-        >
-          Fake-job score
-        </h4>
-        <div className="mt-2 flex flex-wrap items-center gap-3">
-          <span
-            className="rounded-full px-3 py-1 text-xs font-semibold"
-            style={{
-              color: score.color,
-              backgroundColor: score.background,
-              fontFamily: 'var(--font-poppins)',
-            }}
-          >
-            {score.label} · {Math.round(job.fakeJobScore * 100)}%
-          </span>
-          <div className="h-2 min-w-[160px] flex-1 overflow-hidden rounded-full bg-[#EEF0F8]">
-            <div
-              className="h-full rounded-full"
-              style={{
-                width: `${Math.round(job.fakeJobScore * 100)}%`,
-                backgroundColor: score.color,
-              }}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h4
-          className="text-sm font-semibold"
-          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-        >
-          Flag reasons
-        </h4>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {job.flagReasons.map((reason) => (
-            <span
-              key={reason}
-              className="rounded-full border border-[#E5E7EE] bg-[#F7F8FE] px-3 py-1 text-xs font-medium"
-              style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+        {job.moderationStatus === 'force_closed' && job.closeReason ? (
+          <div className="rounded-xl border border-[#FFCDD2] bg-[#FFEBEE] px-4 py-3">
+            <p
+              className="text-xs font-semibold uppercase tracking-wide text-[#C62828]"
+              style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              {FLAG_LABELS[reason] || reason}
-            </span>
-          ))}
-        </div>
+              Force-close reason
+            </p>
+            <p
+              className="mt-1 text-sm text-[#C62828]"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {job.closeReason}
+            </p>
+          </div>
+        ) : null}
       </div>
 
-      {job.moderationStatus === 'force_closed' && job.closeReason ? (
-        <div className="rounded-xl border border-[#FFCDD2] bg-[#FFEBEE] px-4 py-3">
-          <p
-            className="text-xs font-semibold uppercase tracking-wide text-[#C62828]"
-            style={{ fontFamily: 'var(--font-poppins)' }}
-          >
-            Force-close reason
-          </p>
-          <p
-            className="mt-1 text-sm text-[#C62828]"
-            style={{ fontFamily: 'var(--font-poppins)' }}
-          >
-            {job.closeReason}
-          </p>
-        </div>
-      ) : null}
-
+      {/* 4. Sticky actions */}
       {flagged ? (
-        <div className="space-y-3 border-t border-[#EEF0F8] pt-5">
+        <div className="shrink-0 space-y-3 border-t border-[#EEF0F8] bg-white px-4 py-4 sm:px-6">
           <label className="block">
             <span
-              className="mb-2 block text-xs font-semibold uppercase tracking-wide"
+              className="mb-1.5 block text-xs font-semibold uppercase tracking-wide"
               style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
             >
               Force-close reason (required to close)
@@ -526,13 +640,13 @@ function JobDetail({
             <textarea
               value={closeReason}
               onChange={(event) => onCloseReasonChange(event.target.value)}
-              rows={3}
-              placeholder="Explain why this listing should be removed from the platform…"
-              className="w-full rounded-xl border border-[#E5E7EE] px-3 py-2.5 text-sm outline-none focus:border-[#202871]"
+              rows={2}
+              placeholder="Why this listing should be removed…"
+              className="w-full rounded-xl border border-[#E5E7EE] px-3 py-2 text-sm outline-none focus:border-[#202871]"
               style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
             />
           </label>
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2">
             <button
               type="button"
               disabled={saving}
@@ -540,45 +654,89 @@ function JobDetail({
               className="rounded-xl bg-[#2E7D32] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-70"
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              {saving ? 'Saving…' : 'Approve & publish'}
+              {saving ? 'Saving…' : 'Clear & publish'}
             </button>
             <button
               type="button"
               disabled={saving}
               onClick={onForceClose}
-              className="rounded-xl border border-[#FFCDD2] px-5 py-2.5 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE] disabled:opacity-70"
+              className="rounded-xl border border-[#FFCDD2] bg-[#FFF5F5] px-5 py-2.5 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE] disabled:opacity-70"
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              Force-close listing
+              Force-close
             </button>
           </div>
         </div>
-      ) : null}
+      ) : (
+        <div
+          className="shrink-0 border-t border-[#EEF0F8] px-4 py-3 text-xs sm:px-6"
+          style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+        >
+          Decision already recorded
+          {job.reviewedAt ? ` · ${formatDate(job.reviewedAt)}` : ''}.
+        </div>
+      )}
     </div>
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-2xl border border-[#EEF0F8] bg-white px-5 py-4 shadow-sm">
-      <p
-        className="text-xs font-semibold uppercase tracking-wide"
-        style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+function FilterChip({
+  label,
+  count,
+  active,
+  onClick,
+  tone,
+}: {
+  label: string;
+  count: number;
+  active: boolean;
+  onClick: () => void;
+  tone?: JobModerationStatus;
+}) {
+  if (tone && !active) {
+    const styles = moderationStyles(tone);
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className="inline-flex items-center gap-1.5 rounded-full border border-transparent px-3 py-1.5 text-xs font-semibold transition hover:opacity-90"
+        style={{
+          backgroundColor: styles.background,
+          color: styles.color,
+          fontFamily: 'var(--font-poppins)',
+        }}
       >
         {label}
-      </p>
-      <p
-        className="mt-2 text-2xl font-semibold"
-        style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+        <span className="font-bold">{count}</span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition ${
+        active
+          ? 'border-[#202871] bg-[#202871] text-white'
+          : 'border-[#E5E7EE] bg-white text-[#202871] hover:border-[#202871]/40 hover:bg-[#F7F8FE]'
+      }`}
+      style={{ fontFamily: 'var(--font-poppins)' }}
+    >
+      {label}
+      <span
+        className={`rounded-full px-1.5 py-0.5 text-[10px] font-bold ${
+          active ? 'bg-white/20 text-white' : 'bg-[#F2F6FF] text-[#202871]'
+        }`}
       >
-        {value}
-      </p>
-    </div>
+        {count}
+      </span>
+    </button>
   );
 }
 
 function ModerationBadge({ status }: { status: string }) {
-  const styles = moderationStyles(status as JobModerationStatus);
+  const styles = moderationStyles(status);
   return (
     <span
       className="inline-flex shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold"
@@ -603,10 +761,10 @@ function DetailRow({ label, value }: { label: string; value: string }) {
         {label}
       </dt>
       <dd
-        className="mt-1 text-sm"
+        className="mt-1 break-words text-sm"
         style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
       >
-        {value}
+        {value?.trim() ? value : '—'}
       </dd>
     </div>
   );
