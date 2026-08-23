@@ -69,3 +69,22 @@ export const authMiddleware = async (req, res, next) => {
     });
   }
 };
+
+export const requireSuperAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.userId).select("accountType");
+    if (!user || user.accountType !== "superadmin") {
+      return res.status(403).json({
+        success: false,
+        message: "Super admin access required",
+      });
+    }
+    next();
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Authorization error",
+      error: error.message,
+    });
+  }
+};
