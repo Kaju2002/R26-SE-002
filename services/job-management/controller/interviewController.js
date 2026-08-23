@@ -13,6 +13,10 @@ import {
   updateCalendarEvent,
 } from "../config/emailManagementClient.js";
 import {
+  buildInterviewInviteHtml,
+  buildInterviewInviteSubject,
+} from "../config/interviewInviteTemplate.js";
+import {
   getOrCreateHomeWorkspace,
   WorkspaceAccessError,
 } from "../service/employerWorkspaceService.js";
@@ -54,48 +58,19 @@ const formatInterview = (interview) => ({
   updatedAt: toIso(interview.updatedAt),
 });
 
-const formatWhenForEmail = (startsAt, timezone) => {
-  try {
-    return new Date(startsAt).toLocaleString(undefined, {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: timezone || undefined,
-    });
-  } catch {
-    return new Date(startsAt).toISOString();
-  }
-};
-
-const buildInviteBody = (interview) => {
-  const when = formatWhenForEmail(interview.startsAt, interview.timezone);
-  const join =
-    interview.conferenceUrl
-      ? `<p><strong>Join video:</strong> <a href="${interview.conferenceUrl}">${interview.conferenceUrl}</a></p>`
-      : "";
-  const location =
-    interview.location
-      ? `<p><strong>Location:</strong> ${interview.location}</p>`
-      : "";
-  const notes = interview.notes
-    ? `<p><strong>Notes:</strong> ${interview.notes}</p>`
-    : "";
-
-  return `
-    <p>Hi ${interview.candidateName},</p>
-    <p>You are invited to an interview for <strong>${interview.jobTitle}</strong> at <strong>${interview.companyName || "our company"}</strong>.</p>
-    <p><strong>When:</strong> ${when} (${interview.timezone || "UTC"})</p>
-    <p><strong>Type:</strong> ${interview.type}</p>
-    ${join}
-    ${location}
-    ${notes}
-    <p>A calendar invitation has also been sent to this email if your recruiter has mailbox connected.</p>
-    <p>— FraudAware Hiring</p>
-  `.trim();
-};
+const buildInviteBody = (interview, job = null) =>
+  buildInterviewInviteHtml({
+    candidateName: interview.candidateName,
+    jobTitle: interview.jobTitle || job?.title,
+    companyName: interview.companyName || job?.companyName,
+    startsAt: interview.startsAt,
+    timezone: interview.timezone,
+    type: interview.type,
+    conferenceUrl: interview.conferenceUrl,
+    location: interview.location,
+    notes: interview.notes,
+    companyWebsite: job?.contact?.website || "",
+  });
 
 const assertJobOwner = async (req, application) => {
   const job = await Job.findById(application.jobId);
@@ -268,6 +243,10 @@ export const createInterview = async (req, res) => {
         jobTitle: job.title,
         companyName: job.companyName,
         companyLogo: job.companyLogo || null,
+        applicantEmail: application.email || "",
+        applicantName: application.fullName || "",
+        companyWebsite: job.contact?.website?.trim() || "",
+        hrEmail: job.contact?.email?.trim() || "",
         status: application.status,
         previousStatus,
       });
@@ -277,8 +256,8 @@ export const createInterview = async (req, res) => {
     if (sendInvite) {
       const invite = await sendInviteEmail(authHeader, {
         to: application.email,
-        subject: `Interview invitation: ${job.title}`,
-        body: buildInviteBody(interview),
+        subject: buildInterviewInviteSubject(job.title, job.companyName),
+        body: buildInviteBody(interview, job),
         applicationId: String(application._id),
       }).catch((error) => ({
         ok: false,
@@ -614,6 +593,10 @@ export const cancelInterview = async (req, res) => {
           jobTitle: job.title,
           companyName: job.companyName,
           companyLogo: job.companyLogo || null,
+          applicantEmail: application.email || "",
+          applicantName: application.fullName || "",
+          companyWebsite: job.contact?.website?.trim() || "",
+          hrEmail: job.contact?.email?.trim() || "",
           status: application.status,
           previousStatus: "interview",
         });

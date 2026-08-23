@@ -30,6 +30,9 @@ export function emptyJobForm(companyName = ''): CreateJobPayload {
     skills: '',
     benefits: '',
     about: '',
+    email: '',
+    phone: '',
+    website: '',
     jobLevel: '',
     education: '',
     experience: '',
@@ -134,6 +137,9 @@ export default function EmployerJobForm({
       skills: form.skills?.trim() || '',
       benefits: form.benefits?.trim() || '',
       about: form.about?.trim() || '',
+      email: form.email?.trim() || '',
+      phone: form.phone?.trim() || '',
+      website: form.website?.trim() || '',
       posterImage: form.posterImage?.trim() || '',
     };
 
@@ -259,11 +265,35 @@ export default function EmployerJobForm({
         hint="One benefit per line."
       />
       <TextAreaField
-        label="About the role / company"
+        label="About the company"
         value={form.about || ''}
         onChange={(about) => setForm((prev) => ({ ...prev, about }))}
         rows={3}
+        hint="Shown under Company details on the job page."
       />
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <TextField
+          label="Application email"
+          type="email"
+          value={form.email || ''}
+          onChange={(email) => setForm((prev) => ({ ...prev, email }))}
+        />
+        <TextField
+          label="Phone"
+          type="tel"
+          value={form.phone || ''}
+          onChange={(phone) => setForm((prev) => ({ ...prev, phone }))}
+        />
+        <div className="sm:col-span-2">
+          <TextField
+            label="Website"
+            type="url"
+            value={form.website || ''}
+            onChange={(website) => setForm((prev) => ({ ...prev, website }))}
+          />
+        </div>
+      </div>
 
       <div>
         <p

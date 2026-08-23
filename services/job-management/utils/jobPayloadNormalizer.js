@@ -300,7 +300,20 @@ export const normalizeJobUpdateInput = (
     hasField(data, "website")
   ) {
     const location = patch.location || existingJob.location;
-    patch.contact = normalizeContact(data, location);
+    const next = normalizeContact(data, location);
+    const prev =
+      existingJob.contact && typeof existingJob.contact === "object"
+        ? existingJob.contact
+        : {};
+    // Merge so a partial dashboard/mobile payload does not wipe other contact fields.
+    patch.contact = {
+      location: next.location || prev.location || location || "",
+      email: next.email || prev.email || "",
+      phone: next.phone || prev.phone || "",
+      website: next.website || prev.website || "",
+    };
+    const hasValue = Object.values(patch.contact).some(Boolean);
+    if (!hasValue) patch.contact = {};
   }
 
   if (hasField(data, "closingDate") || hasField(data, "endsAt")) {

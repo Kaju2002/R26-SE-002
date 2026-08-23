@@ -52,6 +52,7 @@ export function getStoredUser(): AuthUser | null {
 export function updateStoredUser(user: AuthUser) {
   if (typeof window === 'undefined') return;
   localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+  window.dispatchEvent(new CustomEvent('fa-auth-user-updated', { detail: user }));
 }
 
 export function clearSession() {

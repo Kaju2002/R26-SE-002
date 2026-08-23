@@ -28,6 +28,40 @@ export const formatWorkspace = (workspace) => ({
   })),
 });
 
+/**
+ * Keep workspace branding in sync with company profile logo (and name when provided).
+ * Profile uploads update user.company.logo; older workspaces often still have logo=null.
+ */
+export const syncWorkspaceBrandingFromUser = async (workspace, user) => {
+  if (!workspace) return workspace;
+
+  const logo = user?.company?.logo || null;
+  const profileName = String(user?.company?.name || "")
+    .trim()
+    .replace(/\s+/g, " ");
+
+  let dirty = false;
+
+  if (logo && workspace.logo !== logo) {
+    workspace.logo = logo;
+    dirty = true;
+  }
+
+  if (profileName) {
+    const normalizedName = normalizeWorkspaceName(profileName);
+    if (
+      workspace.normalizedName === normalizedName &&
+      workspace.name !== profileName
+    ) {
+      workspace.name = profileName;
+      dirty = true;
+    }
+  }
+
+  if (dirty) await workspace.save();
+  return workspace;
+};
+
 export const loadWorkspace = async (workspaceId) => {
   const id = String(workspaceId || "").trim();
   if (!id) {
@@ -95,7 +129,9 @@ export const getOrCreateHomeWorkspace = async (user) => {
     const named = memberships.find(
       (workspace) => workspace.normalizedName === normalizedName
     );
-    if (named) return named;
+    if (named) {
+      return syncWorkspaceBrandingFromUser(named, user);
+    }
 
     return resolveOrCreateEmployerWorkspace({
       userId,
@@ -104,13 +140,19 @@ export const getOrCreateHomeWorkspace = async (user) => {
     });
   }
 
-  if (memberships.length === 1) return memberships[0];
+  let home = null;
+  if (memberships.length === 1) home = memberships[0];
+  else {
+    const owned = memberships.filter(
+      (workspace) => String(workspace.ownerId) === userId
+    );
+    if (owned.length) home = owned[0];
+    else if (memberships.length) home = memberships[0];
+  }
 
-  const owned = memberships.filter(
-    (workspace) => String(workspace.ownerId) === userId
-  );
-  if (owned.length) return owned[0];
-  if (memberships.length) return memberships[0];
+  if (home) {
+    return syncWorkspaceBrandingFromUser(home, user);
+  }
 
   throw new WorkspaceAccessError(
     "Set a company or agency name on this account before using the employer dashboard",
@@ -162,6 +204,10 @@ export const resolveOrCreateEmployerWorkspace = async ({
         "The matching workspace is not active for this user",
         403
       );
+    }
+    if (logo && existing.logo !== logo) {
+      existing.logo = logo;
+      await existing.save();
     }
     return existing;
   }

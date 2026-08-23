@@ -348,6 +348,13 @@ export const sendEmail = async (req, res) => {
       });
     }
 
+    const rawBody = String(body);
+    const looksLikeHtml =
+      /<!DOCTYPE\s+html/i.test(rawBody) ||
+      /<\s*html[\s>]/i.test(rawBody) ||
+      /<\s*(table|div|p|br|a|strong|span)[\s/>]/i.test(rawBody);
+    const htmlBody = looksLikeHtml ? rawBody : rawBody.replace(/\n/g, "<br/>");
+
     const config = getNylasConfig();
     await sendMessage({
       apiKey: config.apiKey,
@@ -355,7 +362,7 @@ export const sendEmail = async (req, res) => {
       grantId: grant.grantId,
       to: String(to).trim(),
       subject: String(subject).trim(),
-      body: String(body).replace(/\n/g, "<br/>"),
+      body: htmlBody,
     });
 
     return res.status(200).json({

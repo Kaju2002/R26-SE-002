@@ -13,6 +13,7 @@ import {
 import EmailComposeModal from '@/components/employer/EmailComposeModal';
 import ScheduleInterviewModal from '@/components/employer/ScheduleInterviewModal';
 import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceContext';
+import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
 import { createChatConversation } from '@/lib/api/chatApi';
 import { getEmailConnectUrl, getEmailStatus } from '@/lib/api/emailApi';
 import {
@@ -187,6 +188,7 @@ function EmployerApplicantsContent({
     loading: workspaceLoading,
     error: workspaceError,
   } = useEmployerWorkspace();
+  const { upsertConversation } = useInchat();
   const activeWorkspaceId = activeWorkspace?.id;
   const basePath = portalConfigs[portal].basePath;
 
@@ -365,7 +367,8 @@ function EmployerApplicantsContent({
       const token = getStoredToken();
       if (!token || messagingId) return;
 
-      if (!application.workspaceId) {
+      const workspaceId = application.workspaceId || activeWorkspaceId;
+      if (!workspaceId) {
         setError(
           'This application has no workspace assignment. Run the employer workspace migration before starting a chat.'
         );
@@ -379,8 +382,9 @@ function EmployerApplicantsContent({
         const conversation = await createChatConversation(
           token,
           application.id,
-          application.workspaceId
+          workspaceId
         );
+        await upsertConversation(conversation);
         router.push(`${basePath}/inchat?thread=${conversation.id}`);
       } catch (requestError: unknown) {
         setError(
@@ -388,10 +392,11 @@ function EmployerApplicantsContent({
             ? requestError.message
             : 'Could not start the conversation.'
         );
+      } finally {
         setMessagingId(null);
       }
     },
-    [basePath, messagingId, router]
+    [activeWorkspaceId, basePath, messagingId, router, upsertConversation]
   );
 
   const connectMailbox = async () => {

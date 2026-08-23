@@ -831,7 +831,7 @@ export default function EmployerDashboardPage({
           </div>
           <div className="flex flex-wrap gap-2">
             {quickActions.map((action) => (
-              <Link
+          <Link
                 key={action.label}
                 href={action.href}
                 className={
@@ -1144,7 +1144,7 @@ export default function EmployerDashboardPage({
                         <p className="mt-1.5 text-xs font-medium" style={{ color: colors.navy }}>
                           {stage.label}
                         </p>
-                      </Link>
+          </Link>
                     );
                   })}
                 </div>
@@ -1200,7 +1200,7 @@ export default function EmployerDashboardPage({
             <ul className="max-h-[320px] space-y-2 overflow-y-auto pr-0.5">
               {attentionItems.map((item) => (
                 <li key={item.id}>
-                  <Link
+          <Link
                     href={item.href}
                     className="flex items-start gap-3 rounded-xl border border-[#EEF0F8] bg-[#F7F8FE] px-3 py-3 transition hover:border-[#D8DCF0] hover:bg-white"
                   >
@@ -1241,12 +1241,12 @@ export default function EmployerDashboardPage({
             <p className="mt-1 text-xs text-white/80">
               Message shortlisted candidates without leaving FraudAware.
             </p>
-            <Link
-              href={`${config.basePath}/inchat`}
+          <Link
+            href={`${config.basePath}/inchat`}
               className="mt-3 inline-flex rounded-lg bg-white/15 px-3 py-1.5 text-xs font-medium backdrop-blur transition hover:bg-white/25"
-            >
-              Open InChat
-            </Link>
+          >
+            Open InChat
+          </Link>
           </div>
         </Card>
       </div>
@@ -1495,14 +1495,14 @@ export default function EmployerDashboardPage({
             <h2 className="text-base font-semibold" style={{ color: colors.navy }}>
               Your jobs
             </h2>
-            <Link
+          <Link
               href={`${config.basePath}/jobs`}
               className="text-xs font-medium hover:underline"
               style={{ color: colors.navy }}
             >
               Manage
-            </Link>
-          </div>
+          </Link>
+        </div>
 
           {loading ? (
             <div className="space-y-3">

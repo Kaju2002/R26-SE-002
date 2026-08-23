@@ -314,6 +314,16 @@ export default function EmployerShell({
     };
   }, [router, portal, config.loginPath]);
 
+  // Profile / logo saves update localStorage; keep shell user (and sidebar brand) in sync.
+  useEffect(() => {
+    const onUserUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<AuthUser>).detail;
+      if (detail?.id) setUser(detail);
+    };
+    window.addEventListener('fa-auth-user-updated', onUserUpdated);
+    return () => window.removeEventListener('fa-auth-user-updated', onUserUpdated);
+  }, []);
+
   const handleLogout = async () => {
     const token = getStoredToken();
     setIsLoggingOut(true);
