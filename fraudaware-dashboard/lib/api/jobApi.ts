@@ -56,17 +56,17 @@ export type JobSummary = {
   experience?: string;
   benefits?: string[];
   perks?: string[];
-};
-
-export type JobDetail = JobSummary & {
-  postedBy?: string;
-  isVerified?: boolean;
   contact?: {
     location?: string;
     email?: string;
     phone?: string;
     website?: string;
   };
+};
+
+export type JobDetail = JobSummary & {
+  postedBy?: string;
+  isVerified?: boolean;
 };
 
 export type JobApplication = {
@@ -113,6 +113,9 @@ export type CreateJobPayload = {
   skills?: string;
   benefits?: string;
   about?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
   jobLevel?: string;
   education?: string;
   experience?: string;

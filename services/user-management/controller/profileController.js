@@ -158,29 +158,28 @@ export const updateBasicProfile = async (req, res) => {
           isVerified: user.company?.isVerified ?? false,
         };
       } else {
+        const keep = (incoming, existing) => {
+          if (incoming === undefined) return existing ?? null;
+          const trimmed =
+            incoming === null || incoming === undefined
+              ? ""
+              : String(incoming).trim();
+          // Blank string keeps prior value so partial clients do not wipe details.
+          if (trimmed === "") return existing ?? null;
+          return trimmed;
+        };
+
         user.company = {
           name: company.name?.trim() || user.company?.name || "",
           logo: company.logo ?? user.company?.logo ?? null,
-          website:
-            company.website !== undefined
-              ? company.website
-              : user.company?.website ?? null,
-          industry:
-            company.industry !== undefined
-              ? company.industry
-              : user.company?.industry ?? null,
-          address:
-            company.address !== undefined
-              ? company.address
-              : user.company?.address ?? null,
-          description:
-            company.description !== undefined
-              ? company.description
-              : user.company?.description ?? null,
-          registrationNumber:
-            company.registrationNumber !== undefined
-              ? company.registrationNumber
-              : user.company?.registrationNumber ?? null,
+          website: keep(company.website, user.company?.website),
+          industry: keep(company.industry, user.company?.industry),
+          address: keep(company.address, user.company?.address),
+          description: keep(company.description, user.company?.description),
+          registrationNumber: keep(
+            company.registrationNumber,
+            user.company?.registrationNumber
+          ),
           isVerified: company.isVerified ?? user.company?.isVerified ?? false,
         };
       }

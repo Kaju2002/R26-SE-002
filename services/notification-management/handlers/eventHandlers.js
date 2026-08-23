@@ -7,6 +7,7 @@ import {
 import { sendExpoPushToUser } from "../utils/expoPushClient.js";
 import { findJobseekersMatchingSkills, listSuperadmins } from "../utils/userManagementClient.js";
 import { sendApplicationThankYouEmail } from "../utils/sendApplicationThankYouEmail.js";
+import { sendApplicationStatusEmail } from "../utils/sendApplicationStatusEmail.js";
 import { sendInterviewReminderEmail } from "../utils/sendInterviewReminderEmail.js";
 
 const STATUS_TITLES = {
@@ -144,6 +145,10 @@ const handleApplicationStatusUpdated = async (event) => {
     jobTitle = "",
     companyName = "",
     companyLogo = null,
+    applicantEmail = "",
+    applicantName = "",
+    companyWebsite = "",
+    hrEmail = "",
     status = "pending",
   } = payload;
 
@@ -169,6 +174,7 @@ const handleApplicationStatusUpdated = async (event) => {
 
   const existing = await findApplicationNotification(applicantId, applicationId);
 
+  let notificationResult;
   if (existing) {
     existing.title = copy.title;
     existing.body = copy.body;
@@ -176,20 +182,41 @@ const handleApplicationStatusUpdated = async (event) => {
     existing.read = false;
     existing.sourceEventId = event.eventId;
     await existing.save();
-    return { updated: true };
+    notificationResult = { updated: true };
+  } else {
+    const notification = await createNotification({
+      userId: String(applicantId),
+      category: "applications",
+      type: "application",
+      title: copy.title,
+      body: copy.body,
+      metadata,
+      sourceEventId: event.eventId,
+    });
+    notificationResult = { created: Boolean(notification) };
   }
 
-  const notification = await createNotification({
-    userId: String(applicantId),
-    category: "applications",
-    type: "application",
-    title: copy.title,
-    body: copy.body,
-    metadata,
-    sourceEventId: event.eventId,
-  });
+  let emailResult = { skipped: true, reason: "not-attempted" };
+  if (status === "offered" || status === "hired") {
+    try {
+      emailResult = await sendApplicationStatusEmail({
+        applicationId,
+        status,
+        applicantEmail,
+        applicantName,
+        jobTitle,
+        companyName,
+        companyWebsite,
+        hrEmail,
+        sourceEventId: event.eventId,
+      });
+    } catch (error) {
+      console.error("Application status email error:", error.message);
+      emailResult = { sent: false, error: error.message };
+    }
+  }
 
-  return { created: Boolean(notification) };
+  return { ...notificationResult, email: emailResult };
 };
 
 const handleAuthPasswordUpdated = async (event) => {

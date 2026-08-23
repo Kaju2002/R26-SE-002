@@ -539,9 +539,14 @@ export const updateJob = async (req, res) => {
       : null;
 
     // Company posters cannot rename the employer brand on their jobs.
+    // Prefer workspace branding when present; never force-clear a job logo to null.
     if (workspace) {
       body.companyName = workspace.name;
-      body.companyLogo = workspace.logo || null;
+      if (workspace.logo) {
+        body.companyLogo = workspace.logo;
+      } else {
+        delete body.companyLogo;
+      }
     } else if (posterType === "company") {
       delete body.companyName;
       if (req.user?.company?.name) {
@@ -569,7 +574,10 @@ export const updateJob = async (req, res) => {
 
     if (workspace) {
       job.companyName = workspace.name;
-      job.companyLogo = workspace.logo || null;
+      if (workspace.logo) {
+        job.companyLogo = workspace.logo;
+      }
+      // else keep job.companyLogo from patch (upload) or existing document
     } else if (posterType === "company" && req.user?.company?.name) {
       job.companyName = req.user.company.name;
       if (req.user.company.logo) {

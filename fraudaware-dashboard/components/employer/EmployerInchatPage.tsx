@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import InchatConversationHeader from '@/components/recruiter/inchat/InchatConversationHeader';
 import InchatEmptyState from '@/components/recruiter/inchat/InchatEmptyState';
 import InchatFilterChips from '@/components/recruiter/inchat/InchatFilterChips';
@@ -43,6 +43,13 @@ function matchesQuery(thread: InchatThread, query: string): boolean {
   );
 }
 
+function preferredFilterForThread(thread: InchatThread): InchatFilterId {
+  if (thread.status === 'archived') return 'archived';
+  if (thread.saved) return 'saved';
+  if (thread.jobId) return 'jobs';
+  return 'focused';
+}
+
 function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
   const router = useRouter();
   const basePath = useInchatBasePath();
@@ -52,6 +59,7 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
     loaded,
     error,
     threadsForList,
+    refreshConversations,
     isPeerTyping,
     getPeerPresence,
     clearConversation,
@@ -62,20 +70,27 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
   const [query, setQuery] = useState('');
   const [filterId, setFilterId] = useState<InchatFilterId>('focused');
   const [statusError, setStatusError] = useState<string | null>(null);
-
-  const threads = useMemo(
-    () =>
-      threadsForList.filter(
-        (thread) =>
-          matchesFilter(thread, filterId) && matchesQuery(thread, query)
-      ),
-    [filterId, query, threadsForList]
-  );
+  const refreshedMissingThreadRef = useRef<string | null>(null);
 
   const selectedThreadId = searchParams.get('thread');
   const selectedThread = selectedThreadId
     ? threadsForList.find((thread) => thread.id === selectedThreadId)
     : undefined;
+
+  const threads = useMemo(() => {
+    const filtered = threadsForList.filter(
+      (thread) => matchesFilter(thread, filterId) && matchesQuery(thread, query)
+    );
+    // Keep a deep-linked / active thread visible even when the current chip would hide it.
+    if (
+      selectedThread &&
+      !filtered.some((thread) => thread.id === selectedThread.id)
+    ) {
+      return [selectedThread, ...filtered];
+    }
+    return filtered;
+  }, [filterId, query, selectedThread, threadsForList]);
+
   const selectedPresence = selectedThread
     ? getPeerPresence(selectedThread.id)
     : { isOnline: false, lastSeenAt: null };
@@ -84,16 +99,51 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
     queueMicrotask(() => setUser(getStoredUser()));
   }, []);
 
+  // Deep-link from Applicants: refresh once if the thread id is not in the inbox yet.
   useEffect(() => {
-    if (!isDesktop || !loaded || threads.length === 0) return;
-
-    const hasValidSelection =
-      selectedThreadId && threads.some((thread) => thread.id === selectedThreadId);
-
-    if (!hasValidSelection) {
-      router.replace(`${basePath}/inchat?thread=${threads[0].id}`, { scroll: false });
+    if (!loaded || !selectedThreadId) return;
+    if (threadsForList.some((thread) => thread.id === selectedThreadId)) {
+      refreshedMissingThreadRef.current = null;
+      return;
     }
-  }, [basePath, isDesktop, loaded, router, selectedThreadId, threads]);
+    if (refreshedMissingThreadRef.current === selectedThreadId) return;
+    refreshedMissingThreadRef.current = selectedThreadId;
+    void refreshConversations();
+  }, [loaded, refreshConversations, selectedThreadId, threadsForList]);
+
+  // When opening a thread that Focused/search would hide, switch chip so the list matches.
+  useEffect(() => {
+    if (!selectedThread) return;
+    if (matchesFilter(selectedThread, filterId)) return;
+    setFilterId(preferredFilterForThread(selectedThread));
+  }, [filterId, selectedThread]);
+
+  useEffect(() => {
+    if (!isDesktop || !loaded) return;
+
+    // Valid selection is against the full inbox, not the filtered chip list.
+    const hasValidSelection =
+      Boolean(selectedThreadId) &&
+      threadsForList.some((thread) => thread.id === selectedThreadId);
+
+    if (hasValidSelection) return;
+
+    // Keep deep-link URL while a refresh may still bring the conversation in.
+    if (selectedThreadId) return;
+
+    const fallback = threads[0] ?? threadsForList[0];
+    if (!fallback) return;
+
+    router.replace(`${basePath}/inchat?thread=${fallback.id}`, { scroll: false });
+  }, [
+    basePath,
+    isDesktop,
+    loaded,
+    router,
+    selectedThreadId,
+    threads,
+    threadsForList,
+  ]);
 
   const rowMode = isDesktop ? 'split' : 'stack';
   const displayName =
@@ -171,7 +221,11 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
                 className="px-4 py-8 text-center text-sm"
                 style={{ color: INCHAT_MUTED, fontFamily: 'var(--font-poppins)' }}
               >
-                No conversations match your search.
+                {threadsForList.length === 0
+                  ? 'No conversations yet.'
+                  : query.trim()
+                    ? 'No conversations match your search.'
+                    : 'No conversations match this filter.'}
               </p>
             ) : (
               threads.map((thread) => (

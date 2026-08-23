@@ -48,6 +48,8 @@ type InchatContextValue = {
   loaded: boolean;
   error: string | null;
   threadsForList: InchatThread[];
+  refreshConversations: () => Promise<void>;
+  upsertConversation: (conversation: ChatConversation) => Promise<void>;
   appendRecruiterMessage: (threadId: string, body: string) => Promise<void>;
   deleteMessage: (
     threadId: string,
@@ -286,6 +288,38 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       if (activeWorkspaceIdRef.current === workspaceId) setLoaded(true);
     }
   }, [activeWorkspaceId, workspaceError, workspaceLoading]);
+
+  /** Merge a newly created/opened conversation into inbox state without waiting for a full reload. */
+  const upsertConversation = useCallback(
+    async (conversation: ChatConversation) => {
+      const workspaceId = activeWorkspaceId;
+      if (!workspaceId) return;
+
+      setConversations((prev) => {
+        const index = prev.findIndex((entry) => entry.id === conversation.id);
+        if (index >= 0) {
+          const next = [...prev];
+          next[index] = conversation;
+          return next;
+        }
+        return [conversation, ...prev];
+      });
+      setLoaded(true);
+      setError(null);
+
+      const token = getStoredToken();
+      if (!token) return;
+
+      try {
+        const peers = await loadPeerMetaForConversations(token, [conversation], workspaceId);
+        if (activeWorkspaceIdRef.current !== workspaceId) return;
+        setPeerByConversationId((prev) => ({ ...prev, ...peers }));
+      } catch {
+        // List row can still render with fallback peer labels.
+      }
+    },
+    [activeWorkspaceId]
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -874,6 +908,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       loaded,
       error,
       threadsForList,
+      refreshConversations,
+      upsertConversation,
       appendRecruiterMessage,
       deleteMessage,
       clearConversation,
@@ -890,6 +926,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       loaded,
       error,
       threadsForList,
+      refreshConversations,
+      upsertConversation,
       appendRecruiterMessage,
       deleteMessage,
       clearConversation,

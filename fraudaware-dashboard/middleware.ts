@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const PUBLIC_AUTH_PATHS = new Set([
+  '/login',
   '/recruiter/login',
   '/recruiter/register',
   '/company/login',
@@ -57,16 +58,14 @@ export function middleware(request: NextRequest) {
   }
 
   if (!token) {
-    const loginPath = isAdminArea
-      ? '/admin/login'
-      : isCompanyArea
-        ? '/company/login'
-        : '/recruiter/login';
+    const loginPath = isAdminArea || isCompanyArea
+      ? '/login'
+      : '/recruiter/login';
     return NextResponse.redirect(new URL(loginPath, request.url));
   }
 
   if (isAdminArea && accountType !== 'superadmin') {
-    return NextResponse.redirect(new URL('/admin/login', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   if (isRecruiterArea && accountType !== 'recruiter') {
@@ -74,7 +73,7 @@ export function middleware(request: NextRequest) {
   }
 
   if (isCompanyArea && accountType !== 'company') {
-    return NextResponse.redirect(new URL('/company/login', request.url));
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next();

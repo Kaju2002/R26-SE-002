@@ -489,6 +489,10 @@ export const updateApplicationStatus = async (req, res) => {
       jobTitle: job.title,
       companyName: job.companyName,
       companyLogo: job.companyLogo || null,
+      applicantEmail: application.email || "",
+      applicantName: application.fullName || "",
+      companyWebsite: job.contact?.website?.trim() || "",
+      hrEmail: job.contact?.email?.trim() || "",
       status: application.status,
     });
 

@@ -30,8 +30,8 @@ export const portalConfigs: Record<PortalType, PortalConfig> = {
     leftDescription:
       'Monitor platform activity, manage users, and keep FraudAware secure for job seekers and recruiters.',
     requiredAccountType: 'superadmin',
-    loginPath: '/admin/login',
-    registerPath: '/admin/login',
+    loginPath: '/login',
+    registerPath: '/login',
     dashboardPath: '/admin/dashboard',
     basePath: '/admin',
   },
@@ -62,7 +62,7 @@ export const portalConfigs: Record<PortalType, PortalConfig> = {
     leftDescription:
       'Register your company, post official openings, review applications, and email candidates from your mailbox.',
     requiredAccountType: 'company',
-    loginPath: '/company/login',
+    loginPath: '/login',
     registerPath: '/company/register',
     dashboardPath: '/company/dashboard',
     basePath: '/company',

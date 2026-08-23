@@ -92,7 +92,7 @@ export default function EmployerProfilePage({
 }) {
   const basePath = portalConfigs[portal].basePath;
   const isCompany = portal === 'company';
-  const { activeWorkspace } = useEmployerWorkspace();
+  const { activeWorkspace, refreshWorkspaces } = useEmployerWorkspace();
   const avatarInputRef = useRef<HTMLInputElement>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
@@ -121,9 +121,33 @@ export default function EmployerProfilePage({
 
     const token = getStoredToken();
     if (!token) return;
+
+    let cancelled = false;
+    getCurrentUser(token)
+      .then((response) => {
+        if (cancelled) return;
+        setUser(response.user);
+        updateStoredUser(response.user);
+        setAccountForm(accountFormFromUser(response.user));
+        setCompanyForm(companyFormFromUser(response.user));
+      })
+      .catch(() => {
+        /* keep stored session snapshot */
+      });
+
     getEmailStatus(token)
-      .then(setEmailStatus)
-      .catch(() => setEmailStatus({ connected: false, email: null, connectedAt: null }));
+      .then((status) => {
+        if (!cancelled) setEmailStatus(status);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setEmailStatus({ connected: false, email: null, connectedAt: null });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -315,20 +339,33 @@ export default function EmployerProfilePage({
     setError(null);
     setMessage(null);
     try {
+      // Prefer form values; if a field is left blank, keep the existing profile value
+      // so a partial edit does not wipe website / industry / etc.
       await updateBasicProfile(token, {
         company: {
           name,
-          website: companyForm.website.trim() || null,
-          industry: companyForm.industry.trim() || null,
-          address: companyForm.address.trim() || null,
-          registrationNumber: companyForm.registrationNumber.trim() || null,
-          description: companyForm.description.trim() || null,
+          website:
+            companyForm.website.trim() || user?.company?.website || null,
+          industry:
+            companyForm.industry.trim() || user?.company?.industry || null,
+          address:
+            companyForm.address.trim() || user?.company?.address || null,
+          registrationNumber:
+            companyForm.registrationNumber.trim() ||
+            user?.company?.registrationNumber ||
+            null,
+          description:
+            companyForm.description.trim() ||
+            user?.company?.description ||
+            null,
         },
       });
       if (logoFile) {
         await updateCompanyLogo(token, logoFile);
       }
       await refreshUser(token);
+      // Sync workspace.logo from company profile so sidebar brand updates.
+      await refreshWorkspaces().catch(() => undefined);
       clearFilePreviews();
       setEditMode('none');
       setMessage(isCompany ? 'Company details updated.' : 'Workspace company details updated.');
