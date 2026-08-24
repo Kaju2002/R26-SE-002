@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import AdminShell from '@/components/admin/AdminShell';
 import { MOCK_VERIFICATION_QUEUE } from '@/lib/admin/mockVerificationQueue';
 import type {
   CompanyVerificationRequest,
@@ -176,7 +175,7 @@ export default function AdminVerificationPage() {
   };
 
   return (
-    <AdminShell title="Verification Queue">
+    <>
       <div className="space-y-4">
         {/* Compact filter chips — same pattern as Users */}
         <div className="flex flex-wrap items-center gap-2">
@@ -397,7 +396,7 @@ export default function AdminVerificationPage() {
           </div>
         </div>
       </div>
-    </AdminShell>
+    </>
   );
 }
 

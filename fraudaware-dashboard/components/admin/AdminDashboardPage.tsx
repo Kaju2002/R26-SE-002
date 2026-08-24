@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import AdminShell from '@/components/admin/AdminShell';
 import { MOCK_VERIFICATION_QUEUE } from '@/lib/admin/mockVerificationQueue';
 import {
   listManagedUsers,
@@ -228,7 +227,7 @@ export default function AdminDashboardPage() {
     verificationCounts.pending + jobCounts.flagged + userCounts.banned;
 
   return (
-    <AdminShell title="Admin Dashboard">
+    <>
       <div className="space-y-5">
         {/* Hero strip */}
         <div className="overflow-hidden rounded-2xl border border-[#EEF0F8] bg-gradient-to-br from-[#F7F8FE] via-white to-[#EEF2FF] p-5 shadow-sm md:p-6">
@@ -577,7 +576,7 @@ export default function AdminDashboardPage() {
           </div>
         </div>
       </div>
-    </AdminShell>
+    </>
   );
 }
 

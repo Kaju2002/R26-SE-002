@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import AdminShell from '@/components/admin/AdminShell';
+import { useSearchParams } from 'next/navigation';
 import type { JobModerationStatus } from '@/lib/admin/jobModerationTypes';
 import {
   listModerationJobs,
@@ -81,6 +81,9 @@ function listingStyles(status: string): { color: string; background: string } {
 }
 
 export default function AdminJobsModerationPage() {
+  const searchParams = useSearchParams();
+  const initialQ = (searchParams.get('q') || '').trim();
+
   const [jobs, setJobs] = useState<ModeratedJobRecord[]>([]);
   const [counts, setCounts] = useState({
     total: 0,
@@ -88,15 +91,25 @@ export default function AdminJobsModerationPage() {
     cleared: 0,
     forceClosed: 0,
   });
-  const [queryInput, setQueryInput] = useState('');
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<StatusFilter>('flagged');
+  const [queryInput, setQueryInput] = useState(initialQ);
+  const [query, setQuery] = useState(initialQ);
+  const [filter, setFilter] = useState<StatusFilter>(
+    initialQ ? 'all' : 'flagged'
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [closeReason, setCloseReason] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    const next = (searchParams.get('q') || '').trim();
+    if (!next) return;
+    setQueryInput(next);
+    setQuery(next);
+    setFilter('all');
+  }, [searchParams]);
 
   const reload = useCallback(async () => {
     const token = getStoredToken();
@@ -117,6 +130,16 @@ export default function AdminJobsModerationPage() {
       setCounts(result.counts);
       setError(null);
       setSelectedId((current) => {
+        const fromUrl = (searchParams.get('q') || '').trim();
+        if (fromUrl) {
+          const match = result.jobs.find(
+            (job) =>
+              job.id === fromUrl ||
+              job.title.toLowerCase().includes(fromUrl.toLowerCase()) ||
+              job.companyName.toLowerCase().includes(fromUrl.toLowerCase())
+          );
+          if (match) return match.id;
+        }
         if (current && result.jobs.some((job) => job.id === current)) return current;
         return result.jobs[0]?.id ?? null;
       });
@@ -129,7 +152,7 @@ export default function AdminJobsModerationPage() {
     } finally {
       setLoading(false);
     }
-  }, [filter, query]);
+  }, [filter, query, searchParams]);
 
   useEffect(() => {
     void reload();
@@ -170,7 +193,14 @@ export default function AdminJobsModerationPage() {
   const forceCloseListing = async (id: string) => {
     const token = getStoredToken();
     const target = jobs.find((job) => job.id === id);
-    if (!token || !target || target.moderationStatus !== 'flagged') return;
+    if (
+      !token ||
+      !target ||
+      (target.moderationStatus !== 'flagged' &&
+        target.moderationStatus !== 'cleared')
+    ) {
+      return;
+    }
 
     if (!closeReason.trim()) {
       setError('Add a force-close reason before closing.');
@@ -198,7 +228,7 @@ export default function AdminJobsModerationPage() {
   };
 
   return (
-    <AdminShell title="Job Moderation">
+    <>
       <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <FilterChip
@@ -444,7 +474,7 @@ export default function AdminJobsModerationPage() {
           </div>
         </div>
       </div>
-    </AdminShell>
+    </>
   );
 }
 
@@ -465,6 +495,8 @@ function JobDetail({
 }) {
   const score = scoreStyles(job.fakeJobScore);
   const flagged = job.moderationStatus === 'flagged';
+  const canForceClose =
+    job.moderationStatus === 'flagged' || job.moderationStatus === 'cleared';
   const listing = listingStyles(job.listingStatus);
 
   return (
@@ -628,7 +660,7 @@ function JobDetail({
       </div>
 
       {/* 4. Sticky actions */}
-      {flagged ? (
+      {flagged || canForceClose ? (
         <div className="shrink-0 space-y-3 border-t border-[#EEF0F8] bg-white px-4 py-4 sm:px-6">
           <label className="block">
             <span
@@ -647,24 +679,28 @@ function JobDetail({
             />
           </label>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={saving}
-              onClick={onClear}
-              className="rounded-xl bg-[#2E7D32] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-70"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              {saving ? 'Saving…' : 'Clear & publish'}
-            </button>
-            <button
-              type="button"
-              disabled={saving}
-              onClick={onForceClose}
-              className="rounded-xl border border-[#FFCDD2] bg-[#FFF5F5] px-5 py-2.5 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE] disabled:opacity-70"
-              style={{ fontFamily: 'var(--font-poppins)' }}
-            >
-              Force-close
-            </button>
+            {flagged ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={onClear}
+                className="rounded-xl bg-[#2E7D32] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-70"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                {saving ? 'Saving…' : 'Clear & publish'}
+              </button>
+            ) : null}
+            {canForceClose ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={onForceClose}
+                className="rounded-xl border border-[#FFCDD2] bg-[#FFF5F5] px-5 py-2.5 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE] disabled:opacity-70"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                Force-close
+              </button>
+            ) : null}
           </div>
         </div>
       ) : (

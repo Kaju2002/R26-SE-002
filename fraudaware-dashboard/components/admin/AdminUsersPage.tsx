@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
-import AdminShell from '@/components/admin/AdminShell';
 import type {
   ManagedAccountStatus,
   ManagedAccountType,
@@ -212,7 +211,7 @@ export default function AdminUsersPage() {
   };
 
   return (
-    <AdminShell title="User Management">
+    <>
       <div className="space-y-4">
         {/* Compact overview — also acts as filters */}
         <div className="flex flex-wrap items-center gap-2">
@@ -472,7 +471,7 @@ export default function AdminUsersPage() {
           onRestore={() => void changeStatus(modalUser.id, 'active')}
         />
       ) : null}
-    </AdminShell>
+    </>
   );
 }
 
