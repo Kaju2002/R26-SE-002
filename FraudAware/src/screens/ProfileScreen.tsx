@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Button,
   Linking,
   ScrollView,
   StyleSheet,
@@ -238,11 +237,6 @@ export default function ProfileScreen() {
             if (file) confirmDeleteCv(id, file.name);
           }}
           onPressFile={openCvFile}
-        />
-
-        <Button
-          title="View AI Recommendations"
-          onPress={() => navigation.navigate('SafeJobRecommendations')}
         />
       </ScrollView>
 
