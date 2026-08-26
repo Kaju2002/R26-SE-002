@@ -37,4 +37,8 @@ export type ModeratedJob = {
   riskPrediction?: string;
   textPrediction?: string;
   imagePrediction?: string;
+  textLime?: Array<{ token: string; weight: number; toward: string }>;
+  textShap?: Array<{ token: string; weight: number; toward: string }>;
+  imageLime?: Array<{ token: string; weight: number; toward: string }>;
+  imageShap?: Array<{ token: string; weight: number; toward: string }>;
 };

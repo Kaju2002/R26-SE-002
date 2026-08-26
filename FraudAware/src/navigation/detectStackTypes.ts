@@ -18,6 +18,12 @@ export type AnalysisPayload = {
 /** Raw `/classify` or `/classify-image` response; mapped via `analysisPayloadFromApi`. */
 export type MergeableApiResult = Record<string, unknown>;
 
+export type JobPostHighlight = {
+  token: string;
+  weight: number;
+  toward: 'fake' | 'legitimate' | string;
+};
+
 export type JobPostResultParams = {
   prediction: string;
   confidence: number;
@@ -26,6 +32,8 @@ export type JobPostResultParams = {
   extracted_text: string;
   message: string;
   imageUri: string;
+  lime?: JobPostHighlight[];
+  shap?: JobPostHighlight[];
 };
 
 export type DetectStackParamList = {

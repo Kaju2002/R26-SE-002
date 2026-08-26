@@ -1,8 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import {
-  Animated,
   Image,
-  Platform,
   ScrollView,
   Share,
   StyleSheet,
@@ -14,13 +12,14 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
-import type { DetectStackParamList } from '../navigation/detectStackTypes';
+import { MaterialIcons } from '@expo/vector-icons';
+import type { DetectStackParamList, JobPostHighlight } from '../navigation/detectStackTypes';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'JobPostResult'>;
 
-const BUTTON_NAVY = '#202871';
+const NAVY = '#202871';
 const GREY_TEXT = '#6B7280';
+const GREY_CARD = '#F3F5F8';
 const STORAGE_KEY = 'fraudaware_job_scans';
 
 type Verdict = 'fake' | 'suspicious' | 'legitimate';
@@ -32,113 +31,122 @@ function resolveVerdict(prediction: string): Verdict {
   return 'legitimate';
 }
 
-const VERDICT_CONFIG = {
+const COPY: Record<
+  Verdict,
+  {
+    badge: string;
+    headline: string;
+    body: string;
+    accent: string;
+    accentBg: string;
+    cardBg: string;
+    next: string[];
+  }
+> = {
   fake: {
-    color: '#DC2626',
-    bgColor: '#FEF2F2',
-    emoji: '⚠️',
-    title: 'FAKE JOB POST DETECTED',
-    icon: 'shield-alert' as const,
-    advice: [
-      { icon: '🚫', text: 'Do not apply for this job' },
-      { icon: '🚫', text: 'Do not share personal documents' },
-      { icon: '✅', text: 'Report this post to the platform' },
+    badge: 'High risk',
+    headline: 'This job post looks fake.',
+    body: 'The wording matches patterns we often see in scam listings. Do not apply or send documents until you can verify the employer independently.',
+    accent: '#C62828',
+    accentBg: '#FDECEA',
+    cardBg: '#FFF8F7',
+    next: [
+      'Do not apply through this listing.',
+      'Do not share ID copies, bank details, or pay any fee.',
+      'Report the post on the site where you found it.',
     ],
   },
   suspicious: {
-    color: '#D97706',
-    bgColor: '#FFFBEB',
-    emoji: '⚠️',
-    title: 'SUSPICIOUS POST',
-    icon: 'shield-half-full' as const,
-    advice: [
-      { icon: '⚠️', text: 'Research the company independently' },
-      { icon: '⚠️', text: 'Never pay upfront fees' },
-      { icon: '✅', text: 'Check company registration' },
-      { icon: '✅', text: 'Verify contact details' },
+    badge: 'Needs review',
+    headline: 'This post needs a closer look.',
+    body: 'Some details look off, but it is not a clear fake. Check the company through official channels before you apply.',
+    accent: '#EF6C00',
+    accentBg: '#FFF3E0',
+    cardBg: '#FFFBF5',
+    next: [
+      'Look up the company on a registry or their real website.',
+      'Never pay an upfront fee to get the job.',
+      'Confirm the recruiter using a published company email, not WhatsApp alone.',
     ],
   },
   legitimate: {
-    color: '#16A34A',
-    bgColor: '#F0FDF4',
-    emoji: '✅',
-    title: 'LEGITIMATE JOB POST',
-    icon: 'shield-check' as const,
-    advice: [
-      { icon: '✅', text: 'This post appears genuine' },
-      { icon: '✅', text: 'Always research the company' },
-      { icon: '✅', text: 'Apply through official channels' },
+    badge: 'Low risk',
+    headline: 'This job post looks legitimate.',
+    body: 'We did not find the usual scam signals in this poster. Still confirm the employer before you share personal details.',
+    accent: '#1B5E20',
+    accentBg: '#E8F5E9',
+    cardBg: '#F7FBF8',
+    next: [
+      'Apply through the company’s official careers page when you can.',
+      'Keep communication on the platform or a company email.',
+      'Treat any request for payment as a warning sign.',
     ],
   },
 };
 
-function ProbabilityBar({
+function ScoreRow({
   label,
   value,
   color,
-  delay,
 }: {
   label: string;
   value: number;
   color: string;
-  delay: number;
 }) {
-  const anim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.timing(anim, {
-      toValue: value,
-      duration: 800,
-      delay,
-      useNativeDriver: false,
-    }).start();
-  }, [anim, value, delay]);
-
-  const pct = Math.round(value * 100);
-  const width = anim.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
-
+  const pct = Math.max(0, Math.min(100, Math.round(value * 100)));
   return (
-    <View style={barStyles.row}>
-      <Text style={barStyles.label}>{label}</Text>
-      <View style={barStyles.track}>
-        <Animated.View style={[barStyles.fill, { width, backgroundColor: color }]} />
+    <View>
+      <View style={styles.scoreRowTop}>
+        <Text style={styles.scoreLabel}>{label}</Text>
+        <Text style={[styles.scoreValue, { color }]}>{pct}%</Text>
       </View>
-      <Text style={[barStyles.pct, { color }]}>{pct}%</Text>
+      <View style={styles.scoreTrack}>
+        <View style={[styles.scoreFill, { width: `${pct}%`, backgroundColor: color }]} />
+      </View>
     </View>
   );
 }
 
-const barStyles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-    gap: 10,
-  },
-  label: {
-    width: 80,
-    fontSize: 13,
-    fontWeight: '600',
-    color: GREY_TEXT,
-  },
-  track: {
-    flex: 1,
-    height: 10,
-    borderRadius: 6,
-    backgroundColor: '#E5E7EB',
-    overflow: 'hidden',
-  },
-  fill: {
-    height: '100%',
-    borderRadius: 6,
-  },
-  pct: {
-    width: 36,
-    fontSize: 13,
-    fontWeight: '700',
-    textAlign: 'right',
-  },
-});
+function mergeHighlights(lime: JobPostHighlight[], shap: JobPostHighlight[]) {
+  const seen = new Set<string>();
+  const out: JobPostHighlight[] = [];
+  for (const item of [...lime, ...shap]) {
+    const key = item.token.trim().toLowerCase();
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
+  }
+  return out.slice(0, 16);
+}
+
+function WordChips({ items }: { items: JobPostHighlight[] }) {
+  if (!items.length) return null;
+  return (
+    <View style={styles.chipWrap}>
+      {items.map((item) => {
+        const towardFake = item.toward !== 'legitimate';
+        return (
+          <View
+            key={`${item.token}-${item.weight}`}
+            style={[
+              styles.chip,
+              { backgroundColor: towardFake ? '#FDECEA' : '#E8F5E9' },
+            ]}
+          >
+            <Text
+              style={[
+                styles.chipText,
+                { color: towardFake ? '#C62828' : '#1B5E20' },
+              ]}
+            >
+              {item.token}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
 
 export default function JobPostResultScreen({ navigation, route }: Props) {
   const {
@@ -149,33 +157,18 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
     extracted_text,
     message,
     imageUri,
+    lime = [],
+    shap = [],
   } = route.params;
 
   const verdict = resolveVerdict(prediction);
-  const config = VERDICT_CONFIG[verdict];
-
+  const copy = COPY[verdict];
   const [showFullText, setShowFullText] = useState(false);
   const [saved, setSaved] = useState(false);
   const tabBarHeight = useBottomTabBarHeight();
-
-  // Slide-up banner animation
-  const slideAnim = useRef(new Animated.Value(40)).current;
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(slideAnim, {
-        toValue: 0,
-        duration: 420,
-        useNativeDriver: true,
-      }),
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 420,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, [slideAnim, fadeAnim]);
+  const highlightItems = mergeHighlights(lime, shap);
+  const previewText =
+    extracted_text.length > 220 ? `${extracted_text.slice(0, 220)}…` : extracted_text;
 
   const onSave = useCallback(async () => {
     if (saved) return;
@@ -194,24 +187,18 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0, 50)));
       setSaved(true);
     } catch {
-      // silently fail — user can retry
+      // keep the screen usable if storage fails
     }
   }, [saved, prediction, confidence, message]);
 
   const onShare = useCallback(async () => {
-    const pct = Math.round(confidence * 100);
     await Share.share({
-      message: `FraudAware Job Post Scan\n\nVerdict: ${config.title}\nConfidence: ${pct}%\n\n${message}`,
+      message: `FraudAware job post scan\n${copy.headline}\n${Math.round(confidence * 100)}% model confidence\n\n${message}`,
     });
-  }, [config.title, confidence, message]);
-
-  const confPct = Math.round(confidence * 100);
-  const previewText =
-    extracted_text.length > 200 ? extracted_text.slice(0, 200) + '…' : extracted_text;
+  }, [copy.headline, confidence, message]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.headerSide}
@@ -219,7 +206,7 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
           accessibilityRole="button"
           accessibilityLabel="Go back"
         >
-          <MaterialIcons name="arrow-back" size={24} color={BUTTON_NAVY} />
+          <MaterialIcons name="arrow-back" size={24} color={NAVY} />
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle}>Scan Result</Text>
@@ -230,72 +217,80 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
           accessibilityRole="button"
           accessibilityLabel="Share result"
         >
-          <MaterialIcons
-            name={Platform.OS === 'ios' ? 'ios-share' : 'share'}
-            size={22}
-            color={BUTTON_NAVY}
-          />
+          <MaterialIcons name="share" size={22} color={NAVY} />
         </TouchableOpacity>
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, { paddingBottom: tabBarHeight + 20 }]}
+        contentContainerStyle={[styles.scroll, { paddingBottom: tabBarHeight + 28 }]}
         showsVerticalScrollIndicator={false}
       >
-        {/* Result banner with slide-up animation */}
-        <Animated.View
+        <View
           style={[
-            styles.banner,
-            { backgroundColor: config.color },
-            { transform: [{ translateY: slideAnim }], opacity: fadeAnim },
+            styles.summaryCard,
+            { borderColor: copy.accent, backgroundColor: copy.cardBg },
           ]}
         >
-          <View style={styles.bannerIconOuter}>
-            <MaterialCommunityIcons name={config.icon} size={40} color="#fff" />
+          <View style={[styles.badge, { backgroundColor: copy.accentBg }]}>
+            <Text style={[styles.badgeText, { color: copy.accent }]}>{copy.badge}</Text>
           </View>
-          <Text style={styles.bannerTitle}>{config.title}</Text>
-          <Text style={styles.bannerConfidence}>{confPct}% Confidence</Text>
-          {message ? <Text style={styles.bannerMessage}>{message}</Text> : null}
-        </Animated.View>
-
-        {/* Scanned image */}
-        <Text style={styles.sectionLabel}>SCANNED IMAGE</Text>
-        <View style={styles.card}>
-          <Image source={{ uri: imageUri }} style={styles.scannedImage} resizeMode="cover" />
+          <Text style={styles.summaryTitle}>Quick summary</Text>
+          <Text style={[styles.headline, { color: copy.accent }]}>{copy.headline}</Text>
+          <Text style={styles.body}>{copy.body}</Text>
+          <Text style={styles.metaLine}>
+            Model confidence{' '}
+            <Text style={[styles.metaStrong, { color: copy.accent }]}>
+              {Math.round(confidence * 100)}%
+            </Text>
+          </Text>
         </View>
 
-        {/* Probability analysis */}
-        <Text style={styles.sectionLabel}>DETECTION ANALYSIS</Text>
-        <View style={styles.card}>
-          <ProbabilityBar
-            label="Legitimate"
-            value={legitimate_probability}
-            color="#16A34A"
-            delay={100}
-          />
-          <ProbabilityBar
-            label="Fake"
-            value={fake_probability}
-            color="#DC2626"
-            delay={250}
-          />
+        {imageUri ? (
+          <>
+            <Text style={styles.sectionTitle}>Job poster</Text>
+            <View style={styles.posterWrap}>
+              <Image
+                source={{ uri: imageUri }}
+                style={styles.poster}
+                resizeMode="contain"
+              />
+            </View>
+          </>
+        ) : null}
+
+        <Text style={styles.sectionTitle}>How the score was calculated</Text>
+        <View style={styles.sectionCard}>
+          <ScoreRow label="Legitimate" value={legitimate_probability} color="#1B5E20" />
+          <ScoreRow label="Fake" value={fake_probability} color="#C62828" />
         </View>
 
-        {/* Extracted text */}
+        {highlightItems.length ? (
+          <>
+            <Text style={styles.sectionTitle}>Words that stood out</Text>
+            <View style={styles.sectionCard}>
+              <WordChips items={highlightItems} />
+              <Text style={styles.hint}>
+                Red words pulled the result toward fake. Green words pulled it toward
+                legitimate.
+              </Text>
+            </View>
+          </>
+        ) : null}
+
         {extracted_text ? (
           <>
-            <Text style={styles.sectionLabel}>EXTRACTED TEXT</Text>
-            <View style={[styles.card, styles.textCard]}>
-              <Text style={styles.extractedText}>
+            <Text style={styles.sectionTitle}>Text we read from the image</Text>
+            <View style={styles.textBox}>
+              <Text style={styles.analyzedText}>
                 {showFullText ? extracted_text : previewText}
               </Text>
-              {extracted_text.length > 200 ? (
+              {extracted_text.length > 220 ? (
                 <TouchableOpacity
-                  onPress={() => setShowFullText((v) => !v)}
+                  onPress={() => setShowFullText((open) => !open)}
                   style={styles.toggleBtn}
                 >
                   <Text style={styles.toggleBtnText}>
-                    {showFullText ? 'Show Less' : 'Show More'}
+                    {showFullText ? 'Show less' : 'Show more'}
                   </Text>
                 </TouchableOpacity>
               ) : null}
@@ -303,46 +298,37 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
           </>
         ) : null}
 
-        {/* Advice */}
-        <Text style={styles.sectionLabel}>WHAT THIS MEANS</Text>
-        <View style={styles.card}>
-          {config.advice.map((item, i) => (
-            <View key={i} style={styles.adviceRow}>
-              <Text style={styles.adviceEmoji}>{item.icon}</Text>
-              <Text style={styles.adviceText}>{item.text}</Text>
-            </View>
+        <Text style={styles.sectionTitle}>What to do next</Text>
+        <View style={styles.sectionCard}>
+          {copy.next.map((step) => (
+            <Text key={step} style={styles.nextText}>
+              • {step}
+            </Text>
           ))}
         </View>
 
-        {/* Action buttons */}
-        <TouchableOpacity
-          style={[styles.saveBtn, saved && styles.saveBtnDone]}
-          onPress={onSave}
-          disabled={saved}
-          activeOpacity={0.85}
-        >
-          <MaterialIcons
-            name={saved ? 'check-circle' : 'save'}
-            size={18}
-            color="#fff"
-            style={styles.btnIcon}
-          />
-          <Text style={styles.saveBtnText}>{saved ? 'Result Saved' : 'Save Result'}</Text>
-        </TouchableOpacity>
+        <Text style={styles.disclaimer}>
+          This is a model estimate. Always verify the employer yourself before sharing
+          personal or financial details.
+        </Text>
 
-        <TouchableOpacity
-          style={styles.scanAnotherBtn}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.85}
-        >
-          <MaterialCommunityIcons
-            name="magnify"
-            size={18}
-            color={BUTTON_NAVY}
-            style={styles.btnIcon}
-          />
-          <Text style={styles.scanAnotherText}>Scan Another</Text>
-        </TouchableOpacity>
+        <View style={styles.footerRow}>
+          <TouchableOpacity
+            style={[styles.btnOutline, saved && styles.btnOutlineSaved]}
+            onPress={onSave}
+            disabled={saved}
+          >
+            <Text style={[styles.btnOutlineText, saved && styles.btnOutlineTextSaved]}>
+              {saved ? 'Saved' : 'Save'}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.btnFilled}
+            onPress={() => navigation.goBack()}
+          >
+            <Text style={styles.btnFilledText}>Scan another</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -351,7 +337,7 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#FAFAFB',
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
@@ -381,99 +367,135 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: BUTTON_NAVY,
+    color: NAVY,
   },
   scroll: {
     paddingHorizontal: 16,
-    paddingTop: 20,
+    paddingTop: 16,
   },
-  banner: {
-    borderRadius: 16,
-    paddingVertical: 28,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    marginBottom: 22,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 10,
-      },
-      android: { elevation: 6 },
-    }),
-  },
-  bannerIconOuter: {
-    width: 76,
-    height: 76,
-    borderRadius: 38,
-    backgroundColor: 'rgba(255,255,255,0.22)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.85)',
-  },
-  bannerTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    color: '#fff',
-    letterSpacing: 0.6,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  bannerConfidence: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: '#fff',
-    marginBottom: 8,
-  },
-  bannerMessage: {
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.92)',
-    textAlign: 'center',
-    lineHeight: 20,
-    paddingHorizontal: 8,
-  },
-  sectionLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    color: GREY_TEXT,
-    marginBottom: 10,
-    marginTop: 4,
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 14,
+  summaryCard: {
+    borderRadius: 12,
+    padding: 16,
     marginBottom: 20,
-    borderWidth: 1,
-    borderColor: '#E8EDF3',
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 4,
-      },
-      android: { elevation: 2 },
-    }),
+    borderWidth: 2,
   },
-  scannedImage: {
+  badge: {
+    alignSelf: 'flex-start',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  posterWrap: {
+    height: 144,
     width: '100%',
-    height: 180,
-    borderRadius: 10,
-    backgroundColor: '#F0F0F0',
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#F7F8FE',
+    borderWidth: 1,
+    borderColor: '#C9D2E0',
+    marginBottom: 18,
   },
-  textCard: {
-    backgroundColor: '#F9FAFB',
+  poster: {
+    width: '100%',
+    height: '100%',
   },
-  extractedText: {
+  summaryTitle: {
+    color: NAVY,
+    fontWeight: '700',
     fontSize: 13,
+    marginBottom: 6,
+  },
+  headline: {
+    fontSize: 18,
+    fontWeight: '700',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  body: {
+    fontSize: 14,
+    lineHeight: 21,
     color: '#374151',
+  },
+  metaLine: {
+    marginTop: 12,
+    fontSize: 13,
+    color: GREY_TEXT,
+  },
+  metaStrong: {
+    fontWeight: '700',
+  },
+  sectionTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: NAVY,
+    marginBottom: 8,
+  },
+  sectionCard: {
+    backgroundColor: GREY_CARD,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 18,
+    gap: 12,
+  },
+  scoreRowTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 6,
+  },
+  scoreLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: NAVY,
+  },
+  scoreValue: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  scoreTrack: {
+    height: 8,
+    borderRadius: 6,
+    backgroundColor: '#E5E7EB',
+    overflow: 'hidden',
+  },
+  scoreFill: {
+    height: '100%',
+    borderRadius: 6,
+  },
+  chipWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  chip: {
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  chipText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  hint: {
+    marginTop: 10,
+    fontSize: 12,
+    lineHeight: 17,
+    color: GREY_TEXT,
+  },
+  textBox: {
+    backgroundColor: GREY_CARD,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 18,
+  },
+  analyzedText: {
+    fontSize: 13,
     lineHeight: 20,
-    fontStyle: 'italic',
+    color: '#374151',
   },
   toggleBtn: {
     marginTop: 10,
@@ -482,59 +504,54 @@ const styles = StyleSheet.create({
   toggleBtnText: {
     fontSize: 13,
     fontWeight: '700',
-    color: BUTTON_NAVY,
-    textDecorationLine: 'underline',
+    color: NAVY,
   },
-  adviceRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 10,
-    gap: 10,
-  },
-  adviceEmoji: {
-    fontSize: 16,
-    lineHeight: 22,
-  },
-  adviceText: {
-    flex: 1,
+  nextText: {
     fontSize: 14,
+    lineHeight: 21,
     color: '#374151',
-    lineHeight: 22,
-    fontWeight: '500',
   },
-  saveBtn: {
+  disclaimer: {
+    fontSize: 12,
+    lineHeight: 17,
+    color: GREY_TEXT,
+    marginBottom: 16,
+  },
+  footerRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: BUTTON_NAVY,
-    borderRadius: 12,
-    paddingVertical: 15,
-    marginBottom: 12,
+    gap: 12,
+    marginBottom: 8,
   },
-  saveBtnDone: {
-    backgroundColor: '#16A34A',
-  },
-  saveBtnText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '800',
-  },
-  btnIcon: {
-    marginRight: 8,
-  },
-  scanAnotherBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  btnOutline: {
+    flex: 1,
     borderWidth: 1.5,
-    borderColor: BUTTON_NAVY,
-    borderRadius: 12,
-    paddingVertical: 14,
+    borderColor: NAVY,
+    borderRadius: 10,
+    paddingVertical: 13,
+    alignItems: 'center',
     backgroundColor: '#fff',
   },
-  scanAnotherText: {
-    color: BUTTON_NAVY,
-    fontSize: 16,
+  btnOutlineSaved: {
+    borderColor: '#1B5E20',
+  },
+  btnOutlineText: {
+    color: NAVY,
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  btnOutlineTextSaved: {
+    color: '#1B5E20',
+  },
+  btnFilled: {
+    flex: 1,
+    backgroundColor: NAVY,
+    borderRadius: 10,
+    paddingVertical: 13,
+    alignItems: 'center',
+  },
+  btnFilledText: {
+    color: '#fff',
+    fontSize: 15,
     fontWeight: '700',
   },
 });

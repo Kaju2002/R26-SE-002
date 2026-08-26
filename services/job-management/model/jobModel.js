@@ -15,6 +15,15 @@ const contactSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const highlightSchema = new mongoose.Schema(
+  {
+    token: { type: String, trim: true, default: "" },
+    weight: { type: Number, default: 0 },
+    toward: { type: String, trim: true, default: "fake" },
+  },
+  { _id: false }
+);
+
 const riskSourceSchema = new mongoose.Schema(
   {
     prediction: { type: String, trim: true, default: null },
@@ -23,6 +32,8 @@ const riskSourceSchema = new mongoose.Schema(
     confidence: { type: Number, default: null },
     message: { type: String, trim: true, default: "" },
     extractedText: { type: String, trim: true, default: "" },
+    lime: { type: [highlightSchema], default: [] },
+    shap: { type: [highlightSchema], default: [] },
   },
   { _id: false }
 );

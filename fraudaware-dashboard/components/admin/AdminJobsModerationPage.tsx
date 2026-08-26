@@ -6,6 +6,7 @@ import type { JobModerationStatus } from '@/lib/admin/jobModerationTypes';
 import {
   listModerationJobs,
   moderateJob,
+  type ExplanationHighlight,
   type ModeratedJobRecord,
 } from '@/lib/api/jobApi';
 import { getStoredToken } from '@/lib/auth/session';
@@ -162,6 +163,45 @@ function RiskMeter({
           className="h-full rounded-full transition-[width]"
           style={{ width: `${width}%`, backgroundColor: tone.bar }}
         />
+      </div>
+    </div>
+  );
+}
+
+function HighlightChips({
+  title,
+  items,
+}: {
+  title: string;
+  items?: ExplanationHighlight[] | null;
+}) {
+  if (!items?.length) return null;
+  return (
+    <div className="mt-3">
+      <p
+        className="text-[11px] font-semibold uppercase tracking-wide"
+        style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+      >
+        {title}
+      </p>
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {items.map((item) => {
+          const towardFake = item.toward !== 'legitimate';
+          return (
+            <span
+              key={`${title}-${item.token}-${item.weight}`}
+              className="rounded-full px-2.5 py-1 text-[11px] font-medium"
+              style={{
+                color: towardFake ? '#C62828' : '#2E7D32',
+                backgroundColor: towardFake ? '#FFEBEE' : '#E8F5E9',
+                fontFamily: 'var(--font-poppins)',
+              }}
+            >
+              {item.token} {item.weight >= 0 ? '+' : ''}
+              {item.weight.toFixed(2)}
+            </span>
+          );
+        })}
       </div>
     </div>
   );
@@ -703,16 +743,45 @@ function JobDetail({
             </p>
           </div>
           <div className="mt-3 grid gap-3 sm:grid-cols-2">
-            <RiskMeter
-              label="Listing text"
-              prediction={job.textPrediction}
-              fakeProbability={job.textFakeProbability}
-            />
-            <RiskMeter
-              label="Job poster"
-              prediction={job.imagePrediction}
-              fakeProbability={job.imageFakeProbability}
-            />
+            <div className="space-y-1">
+              <RiskMeter
+                label="Listing text"
+                prediction={job.textPrediction}
+                fakeProbability={job.textFakeProbability}
+              />
+              <div className="rounded-xl border border-[#EEF0F8] bg-[#F7F8FE] px-3 py-3">
+                <HighlightChips title="LIME" items={job.textLime} />
+                <HighlightChips title="SHAP" items={job.textShap} />
+                {!job.textLime?.length && !job.textShap?.length ? (
+                  <p
+                    className="text-[11px]"
+                    style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                  >
+                    No text explanation yet. New posts include LIME and SHAP
+                    highlights.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            <div className="space-y-1">
+              <RiskMeter
+                label="Job poster"
+                prediction={job.imagePrediction}
+                fakeProbability={job.imageFakeProbability}
+              />
+              <div className="rounded-xl border border-[#EEF0F8] bg-[#F7F8FE] px-3 py-3">
+                <HighlightChips title="LIME" items={job.imageLime} />
+                <HighlightChips title="SHAP" items={job.imageShap} />
+                {!job.imageLime?.length && !job.imageShap?.length ? (
+                  <p
+                    className="text-[11px]"
+                    style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                  >
+                    No poster explanation yet.
+                  </p>
+                ) : null}
+              </div>
+            </div>
           </div>
 
           <h4

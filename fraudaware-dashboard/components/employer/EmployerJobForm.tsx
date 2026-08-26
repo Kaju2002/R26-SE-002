@@ -393,7 +393,7 @@ export default function EmployerJobForm({
           >
             {posterPreview ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={posterPreview} alt="" className="h-full w-full object-cover" />
+              <img src={posterPreview} alt="" className="h-full w-full object-contain" />
             ) : (
               <span className="flex flex-col items-center gap-2 px-4">
                 <FileUploadIcon className="h-8 w-8 text-[#202871]" />

@@ -13,7 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
-import { getFakeJobPredictUrl } from '../config/fakeJobDetectionApi';
+import { predictJobPosterFromUri } from '../config/fakeJobDetectionApi';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'JobPost'>;
 
@@ -24,12 +24,16 @@ const JOB_BLUE = '#0D47A1';
 const JOB_BLUE_BG = '#EAF2FF';
 
 const LOADING_STEPS = [
-  '📄 Extracting text from image...',
-  '🔍 Analyzing for fraud signals...',
+  'Reading text from the image…',
+  'Checking for fraud signals…',
+  'Finding words that stood out…',
 ];
 
 export default function JobPostScreen({ navigation }: Props) {
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [imageMeta, setImageMeta] = useState<{ name: string; type: string } | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [loadingStep, setLoadingStep] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -50,7 +54,12 @@ export default function JobPostScreen({ navigation }: Props) {
       allowsEditing: true,
     });
     if (!result.canceled && result.assets?.[0]?.uri) {
-      setImageUri(result.assets[0].uri);
+      const asset = result.assets[0];
+      setImageUri(asset.uri);
+      setImageMeta({
+        name: asset.fileName ?? 'job_post.jpg',
+        type: asset.mimeType ?? 'image/jpeg',
+      });
       setError(null);
     }
   }, []);
@@ -63,7 +72,12 @@ export default function JobPostScreen({ navigation }: Props) {
       allowsEditing: true,
     });
     if (!result.canceled && result.assets?.[0]?.uri) {
-      setImageUri(result.assets[0].uri);
+      const asset = result.assets[0];
+      setImageUri(asset.uri);
+      setImageMeta({
+        name: asset.fileName ?? 'job_post.jpg',
+        type: asset.mimeType ?? 'image/jpeg',
+      });
       setError(null);
     }
   }, []);
@@ -77,38 +91,32 @@ export default function JobPostScreen({ navigation }: Props) {
     stepTimerRef.current = setTimeout(() => setLoadingStep(1), 2000);
 
     try {
-      const formData = new FormData();
-      formData.append('image', {
-        uri: imageUri,
-        type: 'image/jpeg',
-        name: 'job_post.jpg',
-      } as any);
-
-      const response = await fetch(getFakeJobPredictUrl(), {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-      const result = await response.json();
+      const explainTimer = setTimeout(() => setLoadingStep(2), 8000);
+      const result = await predictJobPosterFromUri(imageUri, imageMeta ?? undefined);
+      clearTimeout(explainTimer);
 
       navigation.navigate('JobPostResult', {
-        prediction: result.prediction ?? 'Unknown',
-        confidence: result.confidence ?? 0,
-        legitimate_probability: result.legitimate_probability ?? 0,
-        fake_probability: result.fake_probability ?? 0,
-        extracted_text: result.extracted_text ?? '',
-        message: result.message ?? '',
+        prediction: String(result.prediction ?? 'Unknown'),
+        confidence: Number(result.confidence ?? 0),
+        legitimate_probability: Number(result.legitimate_probability ?? 0),
+        fake_probability: Number(result.fake_probability ?? 0),
+        extracted_text: String(result.extracted_text ?? ''),
+        message: String(result.message ?? ''),
         imageUri,
+        lime: Array.isArray(result.lime) ? result.lime : [],
+        shap: Array.isArray(result.shap) ? result.shap : [],
       });
-    } catch {
-      setError('Could not analyze image. Make sure backend is running and try again.');
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Could not analyze image. Make sure backend is running and try again.'
+      );
     } finally {
       if (stepTimerRef.current) clearTimeout(stepTimerRef.current);
       setLoading(false);
     }
-  }, [imageUri, navigation]);
+  }, [imageUri, imageMeta, navigation]);
 
   const hasImage = imageUri !== null;
 
@@ -158,7 +166,7 @@ export default function JobPostScreen({ navigation }: Props) {
         {/* Upload zone / Image preview */}
         {hasImage ? (
           <View style={styles.previewWrap}>
-            <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="cover" />
+            <Image source={{ uri: imageUri }} style={styles.previewImage} resizeMode="contain" />
             <TouchableOpacity
               style={styles.changeBtn}
               onPress={pickFromGallery}
@@ -338,9 +346,11 @@ const styles = StyleSheet.create({
   },
   previewImage: {
     width: '100%',
-    height: 220,
+    height: 144,
     borderRadius: 12,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#F7F8FE',
+    borderWidth: 1,
+    borderColor: '#C9D2E0',
   },
   changeBtn: {
     alignSelf: 'center',

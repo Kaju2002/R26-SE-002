@@ -1,9 +1,27 @@
 const DEFAULT_BASE_URL = "http://127.0.0.1:8003";
 const TEXT_TIMEOUT_MS = 20000;
 const IMAGE_TIMEOUT_MS = 90000;
+const EXPLAIN_TIMEOUT_MS = 60000;
 
 const getBaseUrl = () =>
   process.env.FAKE_JOB_API_BASE_URL?.trim().replace(/\/$/, "") || DEFAULT_BASE_URL;
+
+const emptyHighlights = () => ({ lime: [], shap: [] });
+
+const parseHighlights = (items) => {
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((item) => {
+      const token = String(item?.token || "").trim();
+      const weight = Number(item?.weight);
+      if (!token || !Number.isFinite(weight)) return null;
+      const toward =
+        item?.toward === "legitimate" || weight < 0 ? "legitimate" : "fake";
+      return { token, weight, toward };
+    })
+    .filter(Boolean)
+    .slice(0, 12);
+};
 
 export const toRiskResult = (partial = {}) => ({
   prediction: String(partial.prediction || "error").toLowerCase(),
@@ -17,6 +35,8 @@ export const toRiskResult = (partial = {}) => ({
   message: String(partial.message || "Fake-job check failed."),
   extractedText:
     typeof partial.extractedText === "string" ? partial.extractedText : "",
+  lime: parseHighlights(partial.lime),
+  shap: parseHighlights(partial.shap),
   checkedAt: new Date(),
 });
 
@@ -43,6 +63,8 @@ const fromApiData = (data) =>
     message: data.message,
     extractedText:
       typeof data.extracted_text === "string" ? data.extracted_text : "",
+    lime: data.lime,
+    shap: data.shap,
   });
 
 const classifyUnavailable = (detail) =>
@@ -183,5 +205,37 @@ export const classifyJobPosterImage = async ({ file, url } = {}) => {
       message:
         "Job poster could not be checked. Held for admin review.",
     });
+  }
+};
+
+/**
+ * LIME + SHAP highlights for listing text. Never throws.
+ */
+export const explainJobPostText = async (text) => {
+  const clipped = String(text || "").trim();
+  if (clipped.length < 15) return emptyHighlights();
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), EXPLAIN_TIMEOUT_MS);
+    const response = await fetch(`${getBaseUrl()}/explain-text`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: clipped.slice(0, 8000) }),
+      signal: controller.signal,
+    });
+    clearTimeout(timeout);
+    const data = await parseClassifyResponse(response);
+    if (!response.ok) {
+      console.error("Fake-job explain failed:", data.detail || response.status);
+      return emptyHighlights();
+    }
+    return {
+      lime: parseHighlights(data.lime),
+      shap: parseHighlights(data.shap),
+    };
+  } catch (error) {
+    console.error("Fake-job explain client error:", error.message);
+    return emptyHighlights();
   }
 };

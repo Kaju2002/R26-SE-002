@@ -7,6 +7,9 @@ python-multipart
 transformers
 torch
 pillow
+numpy
+lime
+scikit-learn
 
 # Vision → text (job post OCR path)
 anthropic

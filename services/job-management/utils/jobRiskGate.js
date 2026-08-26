@@ -1,4 +1,4 @@
-import { classifyJobPostText, classifyJobPosterImage } from "./fakeJobDetectionClient.js";
+import { classifyJobPostText, classifyJobPosterImage, explainJobPostText } from "./fakeJobDetectionClient.js";
 
 const asLines = (value) => {
   if (Array.isArray(value)) {
@@ -146,6 +146,9 @@ export const combineRiskResults = (textRisk, imageRisk) => {
       legitimateProbability: text.legitimateProbability ?? null,
       confidence: text.confidence ?? null,
       message: text.message || "",
+      extractedText: text.extractedText || "",
+      lime: Array.isArray(text.lime) ? text.lime : [],
+      shap: Array.isArray(text.shap) ? text.shap : [],
     },
     image: {
       prediction: image.prediction || "error",
@@ -154,6 +157,8 @@ export const combineRiskResults = (textRisk, imageRisk) => {
       confidence: image.confidence ?? null,
       message: image.message || "",
       extractedText: image.extractedText || "",
+      lime: Array.isArray(image.lime) ? image.lime : [],
+      shap: Array.isArray(image.shap) ? image.shap : [],
     },
   };
 };
@@ -218,13 +223,27 @@ const logRiskPercents = (jobLike, textRisk, imageRisk, combined) => {
 };
 
 export const runJobRiskGate = async (jobLike, requestedStatus, options = {}) => {
+  const listingText = buildJobRiskText(jobLike);
   const [textRisk, imageRisk] = await Promise.all([
-    classifyJobPostText(buildJobRiskText(jobLike)),
+    classifyJobPostText(listingText),
     classifyJobPosterImage({
       file: options.posterFile || null,
       url: options.posterUrl || jobLike?.posterImage || null,
     }),
   ]);
+
+  const [textExplain, imageExplain] = await Promise.all([
+    explainJobPostText(listingText),
+    imageRisk.lime?.length || imageRisk.shap?.length
+      ? Promise.resolve({ lime: imageRisk.lime, shap: imageRisk.shap })
+      : explainJobPostText(imageRisk.extractedText || ""),
+  ]);
+
+  textRisk.lime = textExplain.lime;
+  textRisk.shap = textExplain.shap;
+  imageRisk.lime = imageExplain.lime;
+  imageRisk.shap = imageExplain.shap;
+
   const risk = combineRiskResults(textRisk, imageRisk);
   logRiskPercents(jobLike, textRisk, imageRisk, risk);
   const decision = applyRiskDecision(requestedStatus, risk);

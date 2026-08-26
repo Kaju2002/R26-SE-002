@@ -399,6 +399,12 @@ export type ModerationCounts = {
   forceClosed: number;
 };
 
+export type ExplanationHighlight = {
+  token: string;
+  weight: number;
+  toward: 'fake' | 'legitimate' | string;
+};
+
 export type ModeratedJobRecord = {
   id: string;
   title: string;
@@ -428,6 +434,10 @@ export type ModeratedJobRecord = {
   riskPrediction?: string;
   textPrediction?: string;
   imagePrediction?: string;
+  textLime?: ExplanationHighlight[];
+  textShap?: ExplanationHighlight[];
+  imageLime?: ExplanationHighlight[];
+  imageShap?: ExplanationHighlight[];
 };
 
 export async function listModerationJobs(

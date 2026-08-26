@@ -115,6 +115,8 @@ export const formatJob = (job, extras = {}) => {
                 prediction: job.riskCheck.text.prediction || undefined,
                 fakeProbability: job.riskCheck.text.fakeProbability ?? undefined,
                 message: job.riskCheck.text.message || undefined,
+                lime: job.riskCheck.text.lime || [],
+                shap: job.riskCheck.text.shap || [],
               }
             : undefined,
           image: job.riskCheck.image
@@ -122,6 +124,8 @@ export const formatJob = (job, extras = {}) => {
                 prediction: job.riskCheck.image.prediction || undefined,
                 fakeProbability: job.riskCheck.image.fakeProbability ?? undefined,
                 message: job.riskCheck.image.message || undefined,
+                lime: job.riskCheck.image.lime || [],
+                shap: job.riskCheck.image.shap || [],
               }
             : undefined,
         }
@@ -187,6 +191,10 @@ export const formatModeratedJob = (job) => {
     riskPrediction: job.riskCheck?.prediction || "",
     textPrediction: job.riskCheck?.text?.prediction || "",
     imagePrediction: job.riskCheck?.image?.prediction || "",
+    textLime: job.riskCheck?.text?.lime || [],
+    textShap: job.riskCheck?.text?.shap || [],
+    imageLime: job.riskCheck?.image?.lime || [],
+    imageShap: job.riskCheck?.image?.shap || [],
   };
 };
 

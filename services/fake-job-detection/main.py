@@ -7,6 +7,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import anthropic
+from explain import explain_text
 
 MODEL_DIR = "./fake_job_model"
 
@@ -139,6 +140,14 @@ def _run_text_inference(text: str) -> dict:
     }
 
 
+def _with_explanations(result: dict, text: str) -> dict:
+    try:
+        explanations = explain_text(text, state["tokenizer"], state["model"])
+    except Exception:
+        explanations = {"lime": [], "shap": []}
+    return {**result, "lime": explanations.get("lime") or [], "shap": explanations.get("shap") or []}
+
+
 @app.post("/predict-text")
 async def predict_text(payload: dict):
     """Classify a job post from raw text (dashboard / API clients)."""
@@ -156,8 +165,32 @@ async def predict_text(payload: dict):
 
     return {
         **result,
-        "extracted_text": text[:300],
+        "extracted_text": text[:2000],
+        "lime": [],
+        "shap": [],
     }
+
+
+@app.post("/explain-text")
+async def explain_job_text(payload: dict):
+    """LIME + SHAP token highlights for a job-post text blob."""
+    text = str(payload.get("text") or "").strip()
+    if len(text) < 15:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide at least 15 characters of job post text.",
+        )
+
+    try:
+        result = _run_text_inference(text)
+        return {
+            **_with_explanations(result, text),
+            "extracted_text": text[:2000],
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Explanation failed: {e}")
 
 
 @app.post("/predict")
@@ -176,7 +209,9 @@ async def predict(image: UploadFile = File(...)):
             "legitimate_probability": None,
             "fake_probability": None,
             "message": "Poster image had too little text to classify.",
-            "extracted_text": extracted_text[:300],
+            "extracted_text": extracted_text[:2000],
+            "lime": [],
+            "shap": [],
         }
 
     try:
@@ -185,6 +220,6 @@ async def predict(image: UploadFile = File(...)):
         raise HTTPException(status_code=500, detail=f"Model inference failed: {e}")
 
     return {
-        **result,
-        "extracted_text": extracted_text[:300],
+        **_with_explanations(result, extracted_text),
+        "extracted_text": extracted_text[:2000],
     }
