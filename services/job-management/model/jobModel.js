@@ -15,6 +15,18 @@ const contactSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const riskSourceSchema = new mongoose.Schema(
+  {
+    prediction: { type: String, trim: true, default: null },
+    fakeProbability: { type: Number, default: null, min: 0, max: 1 },
+    legitimateProbability: { type: Number, default: null, min: 0, max: 1 },
+    confidence: { type: Number, default: null },
+    message: { type: String, trim: true, default: "" },
+    extractedText: { type: String, trim: true, default: "" },
+  },
+  { _id: false }
+);
+
 const riskCheckSchema = new mongoose.Schema(
   {
     prediction: { type: String, trim: true, default: null },
@@ -23,6 +35,8 @@ const riskCheckSchema = new mongoose.Schema(
     confidence: { type: Number, default: null },
     message: { type: String, trim: true, default: "" },
     checkedAt: { type: Date, default: null },
+    text: { type: riskSourceSchema, default: () => ({}) },
+    image: { type: riskSourceSchema, default: () => ({}) },
   },
   { _id: false }
 );

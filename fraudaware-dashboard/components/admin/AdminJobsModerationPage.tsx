@@ -14,7 +14,8 @@ import { colors } from '@/lib/theme/colors';
 type StatusFilter = 'all' | JobModerationStatus;
 
 const FLAG_LABELS: Record<string, string> = {
-  fake_job_model: 'Fake-job model',
+  fake_job_model: 'Fake listing text',
+  fake_job_poster: 'Fake job poster',
   user_report: 'User report',
   payment_request: 'Payment request',
   suspicious_employer: 'Suspicious employer',
@@ -45,18 +46,125 @@ function formatDateShort(value?: string | null): string {
   });
 }
 
-function scoreStyles(score: number): {
+function formatPercent(value?: number | null): string {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? `${Math.round(value * 100)}%`
+    : 'n/a';
+}
+
+function percentWidth(value?: number | null): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+  return Math.min(Math.max(Math.round(value * 100), 0), 100);
+}
+
+function predictionStyles(prediction?: string | null): {
   label: string;
   color: string;
   background: string;
+  bar: string;
 } {
-  if (score < 0.35) {
-    return { label: 'Low fake risk', color: '#2E7D32', background: '#E8F5E9' };
+  const value = String(prediction || 'unknown').toLowerCase();
+  if (value === 'legitimate') {
+    return {
+      label: 'Legitimate',
+      color: '#2E7D32',
+      background: '#E8F5E9',
+      bar: '#2E7D32',
+    };
   }
-  if (score < 0.7) {
-    return { label: 'Medium fake risk', color: '#EF6C00', background: '#FFF3E0' };
+  if (value === 'suspicious') {
+    return {
+      label: 'Suspicious',
+      color: '#EF6C00',
+      background: '#FFF3E0',
+      bar: '#EF6C00',
+    };
   }
-  return { label: 'High fake risk', color: '#C62828', background: '#FFEBEE' };
+  if (value === 'fake') {
+    return {
+      label: 'Fake',
+      color: '#C62828',
+      background: '#FFEBEE',
+      bar: '#C62828',
+    };
+  }
+  if (value === 'skipped') {
+    return {
+      label: 'Skipped',
+      color: '#5C6378',
+      background: '#EEF0F8',
+      bar: '#C9D2E0',
+    };
+  }
+  return {
+    label: value === 'error' ? 'Unavailable' : 'Unknown',
+    color: '#5C6378',
+    background: '#EEF0F8',
+    bar: '#9AA3B8',
+  };
+}
+
+function PredictionBadge({ prediction }: { prediction?: string | null }) {
+  const tone = predictionStyles(prediction);
+  return (
+    <span
+      className="rounded-full px-2.5 py-0.5 text-[11px] font-semibold capitalize"
+      style={{
+        color: tone.color,
+        backgroundColor: tone.background,
+        fontFamily: 'var(--font-poppins)',
+      }}
+    >
+      {tone.label}
+    </span>
+  );
+}
+
+function RiskMeter({
+  label,
+  prediction,
+  fakeProbability,
+}: {
+  label: string;
+  prediction?: string | null;
+  fakeProbability?: number | null;
+}) {
+  const tone = predictionStyles(prediction);
+  const width = percentWidth(fakeProbability);
+
+  return (
+    <div className="rounded-xl border border-[#EEF0F8] bg-white px-3 py-3">
+      <div className="flex items-center justify-between gap-2">
+        <p
+          className="text-xs font-semibold"
+          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+        >
+          {label}
+        </p>
+        <PredictionBadge prediction={prediction} />
+      </div>
+      <div className="mt-3 flex items-end justify-between gap-2">
+        <p
+          className="text-2xl font-semibold leading-none"
+          style={{ color: tone.color, fontFamily: 'var(--font-poppins)' }}
+        >
+          {formatPercent(fakeProbability)}
+        </p>
+        <p
+          className="text-[11px]"
+          style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+        >
+          fake probability
+        </p>
+      </div>
+      <div className="mt-3 h-2 overflow-hidden rounded-full bg-[#EEF0F8]">
+        <div
+          className="h-full rounded-full transition-[width]"
+          style={{ width: `${width}%`, backgroundColor: tone.bar }}
+        />
+      </div>
+    </div>
+  );
 }
 
 function moderationStyles(status: string): {
@@ -368,7 +476,8 @@ export default function AdminJobsModerationPage() {
                 <ul className="divide-y divide-[#EEF0F8]">
                   {jobs.map((job) => {
                     const active = selected?.id === job.id;
-                    const score = scoreStyles(job.fakeJobScore);
+                    const textTone = predictionStyles(job.textPrediction);
+                    const posterTone = predictionStyles(job.imagePrediction);
                     return (
                       <li key={job.id}>
                         <button
@@ -407,17 +516,29 @@ export default function AdminJobsModerationPage() {
                             >
                               {job.companyName} · {job.posterType}
                             </p>
-                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <div className="mt-2 flex flex-wrap items-center gap-1.5">
                               <span
                                 className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
                                 style={{
-                                  color: score.color,
-                                  backgroundColor: score.background,
+                                  color: textTone.color,
+                                  backgroundColor: textTone.background,
                                   fontFamily: 'var(--font-poppins)',
                                 }}
                               >
-                                {Math.round(job.fakeJobScore * 100)}% fake
+                                Text {formatPercent(job.textFakeProbability)}
                               </span>
+                              <span
+                                className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                style={{
+                                  color: posterTone.color,
+                                  backgroundColor: posterTone.background,
+                                  fontFamily: 'var(--font-poppins)',
+                                }}
+                              >
+                                Poster {formatPercent(job.imageFakeProbability)}
+                              </span>
+                            </div>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
                               <span
                                 className="text-[11px]"
                                 style={{
@@ -493,7 +614,6 @@ function JobDetail({
   onClear: () => void;
   onForceClose: () => void;
 }) {
-  const score = scoreStyles(job.fakeJobScore);
   const flagged = job.moderationStatus === 'flagged';
   const canForceClose =
     job.moderationStatus === 'flagged' || job.moderationStatus === 'cleared';
@@ -555,28 +675,44 @@ function JobDetail({
             className="text-xs font-semibold uppercase tracking-wide"
             style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
           >
-            Fake-job score
+            Fake-job check
           </h4>
-          <div className="mt-2 flex flex-wrap items-center gap-3">
-            <span
-              className="rounded-full px-3 py-1 text-xs font-semibold"
-              style={{
-                color: score.color,
-                backgroundColor: score.background,
-                fontFamily: 'var(--font-poppins)',
-              }}
+          <div
+            className="mt-2 rounded-xl px-4 py-3"
+            style={{
+              color: predictionStyles(job.riskPrediction).color,
+              backgroundColor: predictionStyles(job.riskPrediction).background,
+            }}
+          >
+            <p
+              className="text-[11px] font-semibold uppercase tracking-wide"
+              style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              {score.label} · {Math.round(job.fakeJobScore * 100)}%
-            </span>
-            <div className="h-2 min-w-[120px] flex-1 overflow-hidden rounded-full bg-[#EEF0F8]">
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${Math.min(Math.round(job.fakeJobScore * 100), 100)}%`,
-                  backgroundColor: score.color,
-                }}
-              />
-            </div>
+              Combined result
+            </p>
+            <p
+              className="mt-1 text-sm font-semibold"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {predictionStyles(job.riskPrediction).label}
+              {job.riskPrediction === 'fake' || job.riskPrediction === 'suspicious'
+                ? ' — send to review / keep held'
+                : job.riskPrediction === 'legitimate'
+                  ? ' — both checks passed'
+                  : ''}
+            </p>
+          </div>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <RiskMeter
+              label="Listing text"
+              prediction={job.textPrediction}
+              fakeProbability={job.textFakeProbability}
+            />
+            <RiskMeter
+              label="Job poster"
+              prediction={job.imagePrediction}
+              fakeProbability={job.imageFakeProbability}
+            />
           </div>
 
           <h4

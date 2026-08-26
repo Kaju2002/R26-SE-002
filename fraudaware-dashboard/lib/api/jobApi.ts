@@ -44,6 +44,8 @@ export type JobSummary = {
     prediction?: string;
     fakeProbability?: number;
     message?: string;
+    text?: { prediction?: string; fakeProbability?: number; message?: string };
+    image?: { prediction?: string; fakeProbability?: number; message?: string };
   };
   description?: string[];
   requirements?: string[];
@@ -412,6 +414,9 @@ export type ModeratedJobRecord = {
   listingStatus: string;
   moderationStatus: 'flagged' | 'cleared' | 'force_closed' | string;
   fakeJobScore: number;
+  textFakeProbability?: number | null;
+  imageFakeProbability?: number | null;
+  riskSummary?: string;
   flagReasons: string[];
   reportCount: number;
   applicants: number;
@@ -421,6 +426,8 @@ export type ModeratedJobRecord = {
   closeReason?: string | null;
   riskMessage?: string;
   riskPrediction?: string;
+  textPrediction?: string;
+  imagePrediction?: string;
 };
 
 export async function listModerationJobs(

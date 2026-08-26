@@ -2,6 +2,7 @@ export type JobModerationStatus = 'flagged' | 'cleared' | 'force_closed';
 
 export type JobFlagReason =
   | 'fake_job_model'
+  | 'fake_job_poster'
   | 'user_report'
   | 'payment_request'
   | 'suspicious_employer'
@@ -22,6 +23,9 @@ export type ModeratedJob = {
   listingStatus: 'active' | 'closed' | 'pending_review' | 'draft';
   moderationStatus: JobModerationStatus;
   fakeJobScore: number;
+  textFakeProbability?: number | null;
+  imageFakeProbability?: number | null;
+  riskSummary?: string;
   flagReasons: JobFlagReason[];
   reportCount: number;
   applicants: number;
@@ -31,4 +35,6 @@ export type ModeratedJob = {
   closeReason?: string | null;
   riskMessage?: string;
   riskPrediction?: string;
+  textPrediction?: string;
+  imagePrediction?: string;
 };

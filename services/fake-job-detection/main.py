@@ -169,6 +169,16 @@ async def predict(image: UploadFile = File(...)):
         raise HTTPException(status_code=400, detail=f"Image text extraction failed: {e}")
 
     # --- Step 2: run XLM-RoBERTa inference ---
+    if len(extracted_text) < 15:
+        return {
+            "prediction": "skipped",
+            "confidence": 0,
+            "legitimate_probability": None,
+            "fake_probability": None,
+            "message": "Poster image had too little text to classify.",
+            "extracted_text": extracted_text[:300],
+        }
+
     try:
         result = _run_text_inference(extracted_text)
     except Exception as e:

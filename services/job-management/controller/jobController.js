@@ -210,12 +210,15 @@ const publishJobFlaggedEvent = async (job) => {
 };
 
 const attachRiskDecision = (target, risk, decision) => {
+  const storedRisk = { ...(risk || {}) };
+  delete storedRisk.flagReasons;
+
   target.status = decision.status;
   target.isVerified = decision.isVerified;
   target.moderationStatus = decision.moderationStatus;
   target.flagReasons = decision.flagReasons;
-  target.riskCheck = risk;
-  target.flaggedAt = decision.moderationStatus === "flagged" ? risk.checkedAt : null;
+  target.riskCheck = storedRisk;
+  target.flaggedAt = decision.moderationStatus === "flagged" ? storedRisk.checkedAt : null;
   if (decision.moderationStatus !== "force_closed") {
     target.closeReason = null;
   }
@@ -272,7 +275,11 @@ export const createJob = async (req, res) => {
 
       const { risk, decision } = await runJobRiskGate(
         document,
-        normalized.document.status
+        normalized.document.status,
+        {
+          posterFile: getUploadedFile(req, "poster"),
+          posterUrl: document.posterImage,
+        }
       );
       attachRiskDecision(document, risk, decision);
 
@@ -596,7 +603,10 @@ export const updateJob = async (req, res) => {
       previousModeration === "flagged";
 
     if (shouldScan) {
-      const { risk, decision } = await runJobRiskGate(job, requestedStatus);
+      const { risk, decision } = await runJobRiskGate(job, requestedStatus, {
+        posterFile: getUploadedFile(req, "poster"),
+        posterUrl: job.posterImage,
+      });
       attachRiskDecision(job, risk, decision);
     }
 

@@ -1,3 +1,5 @@
+import { formatRiskSummaryLine } from "./jobRiskGate.js";
+
 const FALLBACK_PALETTE = [
   { bg: "#FBE0B6", color: "#7A5418" },
   { bg: "#1F2A6E", color: "#FFFFFF" },
@@ -108,6 +110,20 @@ export const formatJob = (job, extras = {}) => {
           confidence: job.riskCheck.confidence ?? undefined,
           message: job.riskCheck.message || undefined,
           checkedAt: toIsoString(job.riskCheck.checkedAt),
+          text: job.riskCheck.text
+            ? {
+                prediction: job.riskCheck.text.prediction || undefined,
+                fakeProbability: job.riskCheck.text.fakeProbability ?? undefined,
+                message: job.riskCheck.text.message || undefined,
+              }
+            : undefined,
+          image: job.riskCheck.image
+            ? {
+                prediction: job.riskCheck.image.prediction || undefined,
+                fakeProbability: job.riskCheck.image.fakeProbability ?? undefined,
+                message: job.riskCheck.image.message || undefined,
+              }
+            : undefined,
         }
       : undefined,
     ...extras,
@@ -148,6 +164,14 @@ export const formatModeratedJob = (job) => {
     moderationStatus:
       job.moderationStatus === "none" ? "cleared" : job.moderationStatus,
     fakeJobScore: job.riskCheck?.fakeProbability ?? 0,
+    textFakeProbability: job.riskCheck?.text?.fakeProbability ?? null,
+    imageFakeProbability: job.riskCheck?.image?.fakeProbability ?? null,
+    riskSummary: formatRiskSummaryLine(
+      job,
+      job.riskCheck?.text,
+      job.riskCheck?.image,
+      job.riskCheck
+    ),
     flagReasons: Array.isArray(job.flagReasons) && job.flagReasons.length
       ? job.flagReasons
       : job.moderationStatus === "flagged"
@@ -161,6 +185,8 @@ export const formatModeratedJob = (job) => {
     closeReason: job.closeReason || null,
     riskMessage: job.riskCheck?.message || "",
     riskPrediction: job.riskCheck?.prediction || "",
+    textPrediction: job.riskCheck?.text?.prediction || "",
+    imagePrediction: job.riskCheck?.image?.prediction || "",
   };
 };
 
