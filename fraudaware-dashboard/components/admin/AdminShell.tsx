@@ -12,8 +12,26 @@ import { colors } from '@/lib/theme/colors';
 
 type Props = {
   children: ReactNode;
+  /** Optional override; otherwise derived from the current admin route. */
   title?: string;
 };
+
+const PAGE_TITLES: Record<string, string> = {
+  dashboard: 'Admin Dashboard',
+  users: 'User Management',
+  verification: 'Verification Queue',
+  jobs: 'Job Moderation',
+  reports: 'Reports & Flags',
+  audit: 'Audit log',
+  settings: 'Settings',
+  support: 'Support tickets',
+};
+
+function titleFromPath(pathname: string): string | undefined {
+  const segment = pathname.replace(config.basePath, '').split('/').filter(Boolean)[0];
+  if (!segment) return undefined;
+  return PAGE_TITLES[segment];
+}
 
 type NavIconId =
   | 'dashboard'
@@ -187,10 +205,20 @@ function SidebarBrand({ collapsed = false }: { collapsed?: boolean }) {
 export default function AdminShell({ children, title }: Props) {
   const router = useRouter();
   const pathname = usePathname();
+  const resolvedTitle = title ?? titleFromPath(pathname);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('fraudaware.admin.sidebarCollapsed');
+      if (raw === '1') setSidebarCollapsed(true);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -333,7 +361,20 @@ export default function AdminShell({ children, title }: Props) {
           isLoggingOut={isLoggingOut}
           onLogout={handleLogout}
           sidebarCollapsed={sidebarCollapsed}
-          onToggleSidebar={() => setSidebarCollapsed((value) => !value)}
+          onToggleSidebar={() =>
+            setSidebarCollapsed((value) => {
+              const next = !value;
+              try {
+                sessionStorage.setItem(
+                  'fraudaware.admin.sidebarCollapsed',
+                  next ? '1' : '0'
+                );
+              } catch {
+                /* ignore */
+              }
+              return next;
+            })
+          }
         />
 
         <div className="sticky top-0 z-40 bg-white md:hidden">
@@ -367,7 +408,7 @@ export default function AdminShell({ children, title }: Props) {
           </div>
         </div>
 
-        {title ? (
+        {resolvedTitle ? (
           <div className="border-b border-[#EEF0F8] bg-white px-4 py-4 md:px-6 lg:px-8">
             <p
               className="text-xs font-semibold uppercase tracking-wide"
@@ -379,7 +420,7 @@ export default function AdminShell({ children, title }: Props) {
               className="mt-1 text-xl font-semibold md:text-2xl"
               style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
             >
-              {title}
+              {resolvedTitle}
             </h1>
           </div>
         ) : null}

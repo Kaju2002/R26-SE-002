@@ -478,6 +478,107 @@ export async function moderateJob(
   return (await parseJson<{ job: ModeratedJobRecord }>(response)).job;
 }
 
+export type PlatformReportRecord = {
+  id: string;
+  targetType: 'job' | 'user' | 'company' | 'message' | string;
+  targetId: string;
+  targetLabel: string;
+  reporterId?: string;
+  reporterName: string;
+  reporterEmail: string;
+  reasonCode: string;
+  details: string;
+  status: 'new' | 'reviewing' | 'resolved' | 'dismissed' | string;
+  createdAt: string;
+  resolvedAt?: string | null;
+  adminNote?: string | null;
+};
+
+export async function listPlatformReports(
+  token: string,
+  params: { status?: string; limit?: number; page?: number } = {}
+): Promise<{ reports: PlatformReportRecord[]; total: number }> {
+  const search = new URLSearchParams();
+  search.set('limit', String(params.limit ?? 100));
+  search.set('page', String(params.page ?? 1));
+  if (params.status && params.status !== 'all') {
+    search.set('status', params.status);
+  }
+
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/reports?${search.toString()}`,
+    {
+      method: 'GET',
+      headers: authHeaders(token),
+      cache: 'no-store',
+    }
+  );
+
+  const data = await parseJson<{
+    success: boolean;
+    reports: PlatformReportRecord[];
+    pagination?: { total: number };
+  }>(response);
+
+  return {
+    reports: data.reports ?? [],
+    total: data.pagination?.total ?? data.reports?.length ?? 0,
+  };
+}
+
+export async function updatePlatformReport(
+  token: string,
+  reportId: string,
+  payload: { status: string; adminNote?: string }
+): Promise<PlatformReportRecord> {
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/reports/${encodeURIComponent(reportId)}`,
+    {
+      method: 'PATCH',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return (await parseJson<{ report: PlatformReportRecord }>(response)).report;
+}
+
+export async function flagJobFromPlatformReport(
+  token: string,
+  reportId: string
+): Promise<{ message: string; jobId: string; moderationStatus: string }> {
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/reports/${encodeURIComponent(reportId)}/flag-job`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+    }
+  );
+
+  return parseJson<{
+    message: string;
+    jobId: string;
+    moderationStatus: string;
+  }>(response);
+}
+
+export async function forceCloseJobFromPlatformReport(
+  token: string,
+  reportId: string,
+  payload: { closeReason: string; adminNote?: string }
+): Promise<PlatformReportRecord> {
+  const response = await fetch(
+    `${getJobManagementBaseUrl()}/api/jobs/reports/${encodeURIComponent(reportId)}/force-close`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: JSON.stringify(payload),
+    }
+  );
+
+  return (await parseJson<{ report: PlatformReportRecord }>(response)).report;
+}
+
 export function descriptionToText(value?: string[] | string | null): string {
   if (!value) return '';
   if (Array.isArray(value)) return value.join('\n');

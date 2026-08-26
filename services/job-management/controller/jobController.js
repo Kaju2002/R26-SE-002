@@ -690,13 +690,17 @@ export const listModerationJobs = async (req, res) => {
 
     const q = req.query.q?.trim();
     if (q) {
-      filter.$or = [
+      const or = [
         { title: { $regex: q, $options: "i" } },
         { companyName: { $regex: q, $options: "i" } },
         { posterName: { $regex: q, $options: "i" } },
         { posterEmail: { $regex: q, $options: "i" } },
         { location: { $regex: q, $options: "i" } },
       ];
+      if (isValidObjectId(q)) {
+        or.push({ _id: q });
+      }
+      filter.$or = or;
     }
 
     const { page, limit, skip } = parsePagination(req.query);
@@ -761,19 +765,24 @@ export const moderateJob = async (req, res) => {
       });
     }
 
-    if (job.moderationStatus !== "flagged") {
-      return res.status(400).json({
-        success: false,
-        message: "Only flagged jobs can be moderated",
-      });
-    }
-
     if (action === "approve") {
+      if (job.moderationStatus !== "flagged") {
+        return res.status(400).json({
+          success: false,
+          message: "Only flagged jobs can be cleared",
+        });
+      }
       job.status = "active";
       job.isVerified = true;
       job.moderationStatus = "cleared";
       job.closeReason = null;
     } else {
+      if (job.moderationStatus === "force_closed") {
+        return res.status(400).json({
+          success: false,
+          message: "This job is already force-closed",
+        });
+      }
       const closeReason = String(req.body?.closeReason || "").trim();
       if (!closeReason) {
         return res.status(400).json({

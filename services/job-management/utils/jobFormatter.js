@@ -153,7 +153,7 @@ export const formatModeratedJob = (job) => {
       : job.moderationStatus === "flagged"
         ? ["fake_job_model"]
         : [],
-    reportCount: 0,
+    reportCount: Number(job.reportCount) || 0,
     applicants: job.applicantsCount ?? 0,
     postedAt: toIsoString(job.postedAt) || new Date().toISOString(),
     flaggedAt: toIsoString(job.flaggedAt || job.riskCheck?.checkedAt) || new Date().toISOString(),

@@ -53,6 +53,10 @@ app.get("/", (req, res) => {
       applyToJob: "POST /api/jobs/:id/apply",
       moderationList: "GET /api/jobs/moderation (superadmin)",
       moderateJob: "PATCH /api/jobs/:id/moderation (superadmin)",
+      createJobReport: "POST /api/jobs/:id/report",
+      myJobReport: "GET /api/jobs/:id/report/me",
+      listReports: "GET /api/jobs/reports (superadmin)",
+      updateReport: "PATCH /api/jobs/reports/:reportId (superadmin)",
     },
   });
 });

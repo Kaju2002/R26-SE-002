@@ -52,12 +52,39 @@ import {
   getMyWorkspace,
   listMyWorkspaces,
 } from "../controller/employerWorkspaceController.js";
+import {
+  createJobReport,
+  flagJobFromReport,
+  forceCloseJobFromReport,
+  getMyJobReport,
+  listReports,
+  updateReportStatus,
+} from "../controller/reportController.js";
 
 const router = express.Router();
 
 // Specific paths before /:id
 router.get("/me/ping", authMiddleware, authPing);
 router.get("/mine", authMiddleware, getMyJobs);
+router.get("/reports", authMiddleware, requireSuperAdmin, listReports);
+router.patch(
+  "/reports/:reportId",
+  authMiddleware,
+  requireSuperAdmin,
+  updateReportStatus
+);
+router.post(
+  "/reports/:reportId/flag-job",
+  authMiddleware,
+  requireSuperAdmin,
+  flagJobFromReport
+);
+router.post(
+  "/reports/:reportId/force-close",
+  authMiddleware,
+  requireSuperAdmin,
+  forceCloseJobFromReport
+);
 router.get("/moderation", authMiddleware, requireSuperAdmin, listModerationJobs);
 router.patch(
   "/:id/moderation",
@@ -104,6 +131,8 @@ router.post("/", authMiddleware, optionalJobLogoUpload, createJob);
 router.get("/:id/applications", authMiddleware, getJobApplications);
 router.post("/:id/apply", authMiddleware, optionalResumeUpload, applyToJob);
 router.post("/:id/notify-matches", authMiddleware, notifyJobSkillMatches);
+router.post("/:id/report", authMiddleware, createJobReport);
+router.get("/:id/report/me", authMiddleware, getMyJobReport);
 router.get("/:id", optionalAuthMiddleware, getJobById);
 router.put("/:id", authMiddleware, optionalJobLogoUpload, updateJob);
 router.delete("/:id", authMiddleware, deleteJob);

@@ -4,6 +4,7 @@ import {
   Alert,
   Image,
   Linking,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -27,6 +28,7 @@ import {
 import LogoFallback from '../components/profile/LogoFallback';
 import JobTagChip from '../components/jobs/JobTagChip';
 import { HeroRecruiterSlot } from '../components/jobs/JobPostedByRow';
+import ReportJobSheet from '../components/jobs/ReportJobSheet';
 import ChatIcon from '../components/icons/ChatIcon';
 import {
   formatPostedAt,
@@ -35,6 +37,11 @@ import {
   type Job,
 } from '../../data/jobs';
 import { getAppliedJobs, getJobById } from '../api/jobApi';
+import {
+  createJobReport,
+  getMyJobReport,
+  type ReportReasonCode,
+} from '../api/reportApi';
 import { getPublicRecruiterProfile } from '../api/recruiterApi';
 import { mapApiJobToJob } from '../utils/jobMapper';
 import { useBookmarks } from '../context/BookmarksContext';
@@ -69,12 +76,17 @@ export default function JobDetailsScreen() {
   const [recruiterLoading, setRecruiterLoading] = useState(false);
   const [startingChat, setStartingChat] = useState(false);
   const [tab, setTab] = useState<Tab>('overview');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportSubmitting, setReportSubmitting] = useState(false);
+  const [alreadyReported, setAlreadyReported] = useState(false);
   const { isBookmarked, toggleBookmark } = useBookmarks();
 
   useEffect(() => {
     if (!jobId) {
       setJob(undefined);
       setApplicationId(undefined);
+      setAlreadyReported(false);
       setLoading(false);
       return;
     }
@@ -101,13 +113,26 @@ export default function JobDetailsScreen() {
               setApplicationId(undefined);
             }
           }
+
+          try {
+            const openReport = await getMyJobReport(token, jobId);
+            if (!cancelled) {
+              setAlreadyReported(Boolean(openReport));
+            }
+          } catch {
+            if (!cancelled) {
+              setAlreadyReported(false);
+            }
+          }
         } else if (!cancelled) {
           setApplicationId(undefined);
+          setAlreadyReported(false);
         }
       } catch {
         if (!cancelled) {
           setJob(undefined);
           setApplicationId(undefined);
+          setAlreadyReported(false);
         }
       } finally {
         if (!cancelled) {
@@ -236,6 +261,48 @@ export default function JobDetailsScreen() {
     }
   };
 
+  const openReportFlow = () => {
+    setMenuOpen(false);
+    if (!token) {
+      Alert.alert('Sign in required', 'Log in to report this job.');
+      return;
+    }
+    if (alreadyReported) {
+      Alert.alert(
+        'Already reported',
+        'You already reported this job. Our team is reviewing it.'
+      );
+      return;
+    }
+    setReportOpen(true);
+  };
+
+  const handleSubmitReport = async (payload: {
+    reasonCode: ReportReasonCode;
+    details: string;
+  }) => {
+    if (!token || !job) {
+      throw new Error('Sign in required to report this job.');
+    }
+    setReportSubmitting(true);
+    try {
+      await createJobReport(token, job.id, payload);
+      setAlreadyReported(true);
+    } catch (err) {
+      const status =
+        err && typeof err === 'object' && 'status' in err
+          ? Number((err as { status?: number }).status)
+          : undefined;
+      if (status === 409) {
+        setAlreadyReported(true);
+        throw new Error('You already reported this job.');
+      }
+      throw err instanceof Error ? err : new Error('Could not submit report');
+    } finally {
+      setReportSubmitting(false);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
       <DetailHeader
@@ -244,6 +311,8 @@ export default function JobDetailsScreen() {
         onBookmark={() => {
           if (job) toggleBookmark(job.id);
         }}
+        showMore={!isOwnJob}
+        onMore={() => setMenuOpen(true)}
       />
       <View style={styles.fixedTop}>
         <HeroCard
@@ -313,6 +382,59 @@ export default function JobDetailsScreen() {
           </Pressable>
         </View>
       </View>
+
+      <Modal
+        visible={menuOpen}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setMenuOpen(false)}
+      >
+        <Pressable
+          style={styles.menuBackdrop}
+          onPress={() => setMenuOpen(false)}
+        >
+          <Pressable
+            style={styles.menuCard}
+            onPress={(e) => e.stopPropagation?.()}
+          >
+            <Pressable
+              onPress={openReportFlow}
+              disabled={alreadyReported}
+              style={({ pressed }) => [
+                styles.menuRow,
+                pressed && { opacity: 0.7 },
+                alreadyReported && { opacity: 0.45 },
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel={
+                alreadyReported ? 'Already reported' : 'Report this job'
+              }
+            >
+              <Ionicons
+                name="flag-outline"
+                size={18}
+                color={alreadyReported ? MUTED : '#B42318'}
+              />
+              <Text
+                style={[
+                  styles.menuRowText,
+                  !alreadyReported && styles.menuRowTextDanger,
+                ]}
+              >
+                {alreadyReported ? 'Already reported' : 'Report this job'}
+              </Text>
+            </Pressable>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      <ReportJobSheet
+        visible={reportOpen}
+        jobTitle={job.title}
+        submitting={reportSubmitting}
+        onClose={() => setReportOpen(false)}
+        onSubmit={handleSubmitReport}
+      />
     </SafeAreaView>
   );
 }
@@ -321,10 +443,14 @@ function DetailHeader({
   onBack,
   isBookmarked,
   onBookmark,
+  showMore,
+  onMore,
 }: {
   onBack: () => void;
   isBookmarked: boolean;
   onBookmark: () => void;
+  showMore?: boolean;
+  onMore?: () => void;
 }) {
   return (
     <View style={styles.header}>
@@ -341,27 +467,43 @@ function DetailHeader({
         <Ionicons name="chevron-back" size={26} color={NAVY} />
       </Pressable>
 
-      <Pressable
-        onPress={onBookmark}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={
-          isBookmarked ? 'Remove bookmark' : 'Bookmark job'
-        }
-        style={({ pressed }) => [
-          styles.headerBtn,
-          pressed && { opacity: 0.6 },
-        ]}
-      >
-        <Image
-          source={require('../../assets/icons/Vector (1).png')}
-          style={[
-            styles.bookmarkIcon,
-            isBookmarked && { tintColor: '#2E7DEB' },
+      <View style={styles.headerRight}>
+        <Pressable
+          onPress={onBookmark}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={
+            isBookmarked ? 'Remove bookmark' : 'Bookmark job'
+          }
+          style={({ pressed }) => [
+            styles.headerBtn,
+            pressed && { opacity: 0.6 },
           ]}
-          resizeMode="contain"
-        />
-      </Pressable>
+        >
+          <Image
+            source={require('../../assets/icons/Vector (1).png')}
+            style={[
+              styles.bookmarkIcon,
+              isBookmarked && { tintColor: '#2E7DEB' },
+            ]}
+            resizeMode="contain"
+          />
+        </Pressable>
+        {showMore ? (
+          <Pressable
+            onPress={onMore}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="More actions"
+            style={({ pressed }) => [
+              styles.headerBtn,
+              pressed && { opacity: 0.6 },
+            ]}
+          >
+            <Ionicons name="ellipsis-horizontal" size={22} color={NAVY} />
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -713,10 +855,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   bookmarkIcon: {
     width: 22,
     height: 22,
     tintColor: NAVY,
+  },
+  menuBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(18, 24, 58, 0.35)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    paddingTop: 56,
+    paddingRight: 16,
+  },
+  menuCard: {
+    minWidth: 200,
+    backgroundColor: PAGE_BG,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: BORDER,
+    paddingVertical: 6,
+    shadowColor: '#12183A',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 4,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+  },
+  menuRowText: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 14,
+    color: MUTED,
+  },
+  menuRowTextDanger: {
+    color: '#B42318',
   },
   fixedTop: {
     paddingHorizontal: 16,

@@ -194,6 +194,11 @@ const jobSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    reportCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     moderatedAt: {
       type: Date,
       default: null,
