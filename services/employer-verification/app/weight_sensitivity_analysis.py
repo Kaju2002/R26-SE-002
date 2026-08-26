@@ -440,6 +440,28 @@ def main() -> None:
     profile_results = evaluate_profiles(df, PROFILES)
     print_table(_format_profile_table(profile_results), "EXPERIMENT 1: PREDEFINED WEIGHT PROFILES")
     profile_results.to_csv(args.output_dir / "weight_profile_comparison.csv", index=False)
+    # Clear percent table for Excel / viva (decimals are hard to read)
+    _clear = profile_results.copy()
+    for _col in ("Accuracy", "Precision", "Recall", "F1-Score", "Fraud Recall", "False Positive Rate"):
+        if _col in _clear.columns:
+            _clear[_col] = _clear[_col].map(lambda v: f"{float(v) * 100:.1f}%")
+    _parts = _clear["Weights (ML/Registry/Reputation/Website)"].str.split("/", expand=True)
+    if _parts.shape[1] == 4:
+        _clear.insert(1, "ML %", _parts[0].str.strip().map(lambda s: f"{float(s) * 100:.0f}%"))
+        _clear.insert(2, "Registry %", _parts[1].str.strip().map(lambda s: f"{float(s) * 100:.0f}%"))
+        _clear.insert(3, "Reputation %", _parts[2].str.strip().map(lambda s: f"{float(s) * 100:.0f}%"))
+        _clear.insert(4, "Website %", _parts[3].str.strip().map(lambda s: f"{float(s) * 100:.0f}%"))
+    _clear.to_csv(args.output_dir / "weight_profile_comparison_clear.csv", index=False)
+    (args.output_dir / "weight_sensitivity_report.txt").write_text(
+        "WEIGHT PROFILE COMPARISON (clear table)\n"
+        + "=" * 100
+        + "\n"
+        + _clear.to_string(index=False)
+        + "\n",
+        encoding="utf-8",
+    )
+    print(f"Clear profile table saved: {args.output_dir / 'weight_profile_comparison_clear.csv'}")
+    print(f"Text table saved: {args.output_dir / 'weight_sensitivity_report.txt'}")
 
     grid_results = grid_search_weights(df, step=args.grid_step)
     top_grid = grid_results.head(10)[["Weights (ML/Registry/Reputation/Website)", "Accuracy", "Precision", "Recall", "F1-Score", "Fraud Recall", "False Positive Rate"]]
@@ -464,6 +486,7 @@ def main() -> None:
             f"F1-score     : {_percent(float(best['F1-Score']))}",
             f"Fraud Recall : {_percent(float(best['Fraud Recall']))}",
             f"FPR          : {_percent(float(best['False Positive Rate']))}",
+            "Note: grid-search best is metric-only; product baseline remains 40/30/20/10.",
         ]
         _print_block("BEST GRID-SEARCH PROFILE", best_lines)
 

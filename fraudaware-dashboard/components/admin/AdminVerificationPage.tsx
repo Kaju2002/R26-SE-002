@@ -1,11 +1,16 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { MOCK_VERIFICATION_QUEUE } from '@/lib/admin/mockVerificationQueue';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  decideVerificationRequest,
+  listVerificationRequests,
+  type VerificationCounts,
+} from '@/lib/api/adminVerificationApi';
 import type {
   CompanyVerificationRequest,
   VerificationDecision,
 } from '@/lib/admin/verificationTypes';
+import { getStoredToken } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
 
 type DecisionFilter = 'all' | VerificationDecision;
@@ -69,49 +74,70 @@ function companyInitials(name: string): string {
 }
 
 export default function AdminVerificationPage() {
-  const [items, setItems] = useState<CompanyVerificationRequest[]>(
-    MOCK_VERIFICATION_QUEUE
-  );
+  const [items, setItems] = useState<CompanyVerificationRequest[]>([]);
+  const [serverCounts, setServerCounts] = useState<VerificationCounts>({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<DecisionFilter>('pending');
-  const [selectedId, setSelectedId] = useState<string | null>(
-    MOCK_VERIFICATION_QUEUE.find((item) => item.decision === 'pending')?.id ??
-      MOCK_VERIFICATION_QUEUE[0]?.id ??
-      null
-  );
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [acting, setActing] = useState(false);
+
+  const reload = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) {
+      setError('Sign in as a super admin to manage verification.');
+      setItems([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await listVerificationRequests(token, {
+        q: query,
+        decision: 'all',
+        limit: 100,
+      });
+      setItems(result.items);
+      setServerCounts(result.counts);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load verification queue.');
+      setItems([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [query]);
+
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   const counts = useMemo(
     () => ({
-      total: items.length,
-      pending: items.filter((item) => item.decision === 'pending').length,
-      approved: items.filter((item) => item.decision === 'approved').length,
-      rejected: items.filter((item) => item.decision === 'rejected').length,
+      total: serverCounts.total,
+      pending: serverCounts.pending,
+      approved: serverCounts.approved,
+      rejected: serverCounts.rejected,
     }),
-    [items]
+    [serverCounts]
   );
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     return items.filter((item) => {
       if (filter !== 'all' && item.decision !== filter) return false;
-      if (!q) return true;
-      const haystack = [
-        item.companyName,
-        item.registrationNumber,
-        item.submittedByName,
-        item.submittedByEmail,
-        item.industry,
-        item.address,
-      ]
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(q);
+      return true;
     });
-  }, [items, query, filter]);
+  }, [items, filter]);
 
   useEffect(() => {
     if (filtered.length === 0) {
@@ -133,13 +159,13 @@ export default function AdminVerificationPage() {
     setError(null);
   };
 
-  const applyDecision = (
+  const applyDecision = async (
     id: string,
     decision: Extract<VerificationDecision, 'approved' | 'rejected'>,
     reason?: string
   ) => {
     const target = items.find((item) => item.id === id);
-    if (!target || target.decision !== 'pending') return;
+    if (!target || target.decision !== 'pending' || acting) return;
 
     if (decision === 'rejected' && !reason?.trim()) {
       setError('Add a rejection reason before rejecting.');
@@ -147,31 +173,48 @@ export default function AdminVerificationPage() {
       return;
     }
 
+    const token = getStoredToken();
+    if (!token) {
+      setError('Sign in as a super admin to decide verification.');
+      return;
+    }
+
     const nextPending = items.find(
       (item) => item.id !== id && item.decision === 'pending'
     );
 
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              decision,
-              reviewedAt: new Date().toISOString(),
-              rejectionReason:
-                decision === 'rejected' ? reason?.trim() ?? null : null,
-            }
-          : item
-      )
-    );
-    setRejectionReason('');
+    setActing(true);
     setError(null);
-    setMessage(
-      decision === 'approved'
-        ? `${target.companyName} approved.`
-        : `${target.companyName} rejected.`
-    );
-    setSelectedId(nextPending?.id ?? id);
+    try {
+      const updated = await decideVerificationRequest(
+        token,
+        id,
+        decision,
+        reason?.trim()
+      );
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...updated } : item))
+      );
+      setServerCounts((prev) => ({
+        ...prev,
+        pending: Math.max(0, prev.pending - 1),
+        approved: prev.approved + (decision === 'approved' ? 1 : 0),
+        rejected: prev.rejected + (decision === 'rejected' ? 1 : 0),
+      }));
+      setRejectionReason('');
+      setMessage(
+        decision === 'approved'
+          ? `${target.companyName} approved — Verified badge granted.`
+          : `${target.companyName} rejected.`
+      );
+      setSelectedId(nextPending?.id ?? id);
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : 'Could not save verification decision.'
+      );
+    } finally {
+      setActing(false);
+    }
   };
 
   return (
@@ -239,12 +282,23 @@ export default function AdminVerificationPage() {
               >
                 Search
               </button>
+              <button
+                type="button"
+                onClick={() => void reload()}
+                disabled={loading}
+                className="shrink-0 rounded-xl border border-[#E5E7EE] bg-white px-4 py-2 text-sm font-semibold text-[#202871] disabled:opacity-60"
+                style={{ fontFamily: 'var(--font-poppins)' }}
+              >
+                {loading ? 'Loading…' : 'Refresh'}
+              </button>
             </form>
             <p
               className="shrink-0 text-xs"
               style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
             >
-              {filtered.length} in queue
+              {loading && items.length === 0
+                ? 'Loading…'
+                : `${filtered.length} in queue`}
               {filter !== 'all' ? ` · ${filter}` : ''}
             </p>
           </div>
@@ -269,7 +323,19 @@ export default function AdminVerificationPage() {
           <div className="grid lg:grid-cols-[minmax(280px,38%)_minmax(0,1fr)]">
             {/* Left: queue */}
             <div className="max-h-[min(70vh,720px)] overflow-y-auto border-b border-[#EEF0F8] lg:border-b-0 lg:border-r">
-              {filtered.length === 0 ? (
+              {loading && items.length === 0 ? (
+                <div className="px-5 py-16 text-center">
+                  <p
+                    className="text-sm font-semibold"
+                    style={{
+                      color: colors.navy,
+                      fontFamily: 'var(--font-poppins)',
+                    }}
+                  >
+                    Loading verification queue…
+                  </p>
+                </div>
+              ) : filtered.length === 0 ? (
                 <div className="px-5 py-16 text-center">
                   <p
                     className="text-sm font-semibold"
@@ -287,7 +353,7 @@ export default function AdminVerificationPage() {
                       fontFamily: 'var(--font-poppins)',
                     }}
                   >
-                    Try another search or switch filter chips.
+                    Company registrations auto-queue here when not auto-verified.
                   </p>
                 </div>
               ) : (
@@ -382,13 +448,14 @@ export default function AdminVerificationPage() {
                 <VerificationDetail
                   item={selected}
                   rejectionReason={rejectionReason}
+                  acting={acting}
                   onRejectionReasonChange={(value) => {
                     setRejectionReason(value);
                     setError(null);
                   }}
-                  onApprove={() => applyDecision(selected.id, 'approved')}
+                  onApprove={() => void applyDecision(selected.id, 'approved')}
                   onReject={() =>
-                    applyDecision(selected.id, 'rejected', rejectionReason)
+                    void applyDecision(selected.id, 'rejected', rejectionReason)
                   }
                 />
               )}
@@ -403,12 +470,14 @@ export default function AdminVerificationPage() {
 function VerificationDetail({
   item,
   rejectionReason,
+  acting,
   onRejectionReasonChange,
   onApprove,
   onReject,
 }: {
   item: CompanyVerificationRequest;
   rejectionReason: string;
+  acting?: boolean;
   onRejectionReasonChange: (value: string) => void;
   onApprove: () => void;
   onReject: () => void;
@@ -442,7 +511,7 @@ function VerificationDetail({
                       fontFamily: 'var(--font-poppins)',
                     }}
                   >
-                    Reg. {item.registrationNumber}
+                    Reg. {item.registrationNumber || '—'}
                     {item.website ? (
                       <>
                         {' · '}
@@ -461,6 +530,14 @@ function VerificationDetail({
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <DecisionBadge decision={item.decision} />
+                  {item.decisionSource === 'auto' ? (
+                    <span
+                      className="rounded-full bg-[#E8EAF6] px-2.5 py-1 text-xs font-semibold text-[#202871]"
+                      style={{ fontFamily: 'var(--font-poppins)' }}
+                    >
+                      Auto
+                    </span>
+                  ) : null}
                   <span
                     className="rounded-full px-2.5 py-1 text-xs font-semibold"
                     style={{
@@ -594,15 +671,17 @@ function VerificationDetail({
             <button
               type="button"
               onClick={onApprove}
-              className="rounded-xl bg-[#2E7D32] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95"
+              disabled={acting}
+              className="rounded-xl bg-[#2E7D32] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-95 disabled:opacity-60"
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
-              Approve
+              {acting ? 'Saving…' : 'Approve'}
             </button>
             <button
               type="button"
               onClick={onReject}
-              className="rounded-xl border border-[#FFCDD2] bg-[#FFF5F5] px-5 py-2.5 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE]"
+              disabled={acting}
+              className="rounded-xl border border-[#FFCDD2] bg-[#FFF5F5] px-5 py-2.5 text-sm font-semibold text-[#C62828] transition hover:bg-[#FFEBEE] disabled:opacity-60"
               style={{ fontFamily: 'var(--font-poppins)' }}
             >
               Reject

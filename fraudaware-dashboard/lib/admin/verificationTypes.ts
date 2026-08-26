@@ -8,6 +8,7 @@ export type RegistrySignal = {
 
 export type CompanyVerificationRequest = {
   id: string;
+  userId?: string | null;
   companyName: string;
   registrationNumber: string;
   website: string | null;
@@ -20,6 +21,7 @@ export type CompanyVerificationRequest = {
   summary: string;
   registrySignals: RegistrySignal[];
   decision: VerificationDecision;
+  decisionSource?: 'auto' | 'admin';
   reviewedAt?: string | null;
   rejectionReason?: string | null;
 };

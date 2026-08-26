@@ -2,11 +2,14 @@
 
 import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { MOCK_VERIFICATION_QUEUE } from '@/lib/admin/mockVerificationQueue';
 import {
   listManagedUsers,
   type ManagedUserCounts,
 } from '@/lib/api/adminUsersApi';
+import {
+  listVerificationRequests,
+  type VerificationCounts,
+} from '@/lib/api/adminVerificationApi';
 import {
   listModerationJobs,
   type ModeratedJobRecord,
@@ -14,6 +17,7 @@ import {
 } from '@/lib/api/jobApi';
 import { getStoredToken } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
+import type { CompanyVerificationRequest } from '@/lib/admin/verificationTypes';
 
 type AttentionItem = {
   id: string;
@@ -87,24 +91,15 @@ export default function AdminDashboardPage() {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const verificationCounts = useMemo(() => {
-    const pending = MOCK_VERIFICATION_QUEUE.filter(
-      (item) => item.decision === 'pending'
-    ).length;
-    const approved = MOCK_VERIFICATION_QUEUE.filter(
-      (item) => item.decision === 'approved'
-    ).length;
-    const rejected = MOCK_VERIFICATION_QUEUE.filter(
-      (item) => item.decision === 'rejected'
-    ).length;
-    return {
-      total: MOCK_VERIFICATION_QUEUE.length,
-      pending,
-      approved,
-      rejected,
-    };
-  }, []);
+  const [verificationCounts, setVerificationCounts] = useState<VerificationCounts>({
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
+  const [pendingVerifications, setPendingVerifications] = useState<
+    CompanyVerificationRequest[]
+  >([]);
 
   const reload = useCallback(async () => {
     const token = getStoredToken();
@@ -125,13 +120,21 @@ export default function AdminDashboardPage() {
     const flagBuckets = { ...joinBuckets };
 
     try {
-      const [usersResult, jobsResult, flaggedResult] = await Promise.all([
-        listManagedUsers(token, { limit: 100 }),
-        listModerationJobs(token, { moderationStatus: 'all', limit: 50 }),
-        listModerationJobs(token, { moderationStatus: 'flagged', limit: 10 }),
-      ]);
+      const [usersResult, jobsResult, flaggedResult, verificationResult] =
+        await Promise.all([
+          listManagedUsers(token, { limit: 100 }),
+          listModerationJobs(token, { moderationStatus: 'all', limit: 50 }),
+          listModerationJobs(token, { moderationStatus: 'flagged', limit: 10 }),
+          listVerificationRequests(token, { decision: 'all', limit: 100 }),
+        ]);
 
       setUserCounts(usersResult.counts);
+      setVerificationCounts(verificationResult.counts);
+      setPendingVerifications(
+        verificationResult.items
+          .filter((item) => item.decision === 'pending')
+          .slice(0, 4)
+      );
       setJobCounts(jobsResult.counts);
       setFlaggedJobs(flaggedResult.jobs);
 
@@ -166,9 +169,7 @@ export default function AdminDashboardPage() {
   const attention = useMemo((): AttentionItem[] => {
     const items: AttentionItem[] = [];
 
-    for (const request of MOCK_VERIFICATION_QUEUE.filter(
-      (item) => item.decision === 'pending'
-    ).slice(0, 4)) {
+    for (const request of pendingVerifications) {
       items.push({
         id: `ver-${request.id}`,
         kind: 'verification',
@@ -220,7 +221,7 @@ export default function AdminDashboardPage() {
         return tb - ta;
       })
       .slice(0, 8);
-  }, [flaggedJobs, userCounts.banned, userCounts.suspended]);
+  }, [flaggedJobs, pendingVerifications, userCounts.banned, userCounts.suspended]);
 
   const dayLabels = last7DayLabels().map((d) => d.label);
   const urgentCount =
@@ -300,7 +301,7 @@ export default function AdminDashboardPage() {
           <KpiCard
             label="Pending verification"
             value={verificationCounts.pending}
-            hint={`${verificationCounts.total} in queue · mock`}
+            hint={`${verificationCounts.total} in queue`}
             href="/admin/verification"
             loading={loading}
             tone={verificationCounts.pending > 0 ? 'warn' : 'neutral'}
@@ -569,7 +570,7 @@ export default function AdminDashboardPage() {
                 />
                 <SnapshotRow
                   label="Verification approved"
-                  value={`${verificationCounts.approved} (mock)`}
+                  value={`${verificationCounts.approved}`}
                 />
               </dl>
             </section>

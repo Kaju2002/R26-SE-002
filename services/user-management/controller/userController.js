@@ -7,6 +7,7 @@ import {
   PASSWORD_RESET_TEMPLATE,
 } from "../config/emailTemplate.js";
 import { publishEvent } from "../utils/publishEvent.js";
+import { scheduleHybridCompanyVerification } from "../utils/companyVerification.js";
 
 const OTP_VALIDITY_MS = 24 * 60 * 60 * 1000;
 const RESET_OTP_VALIDITY_MS = 15 * 60 * 1000;
@@ -443,6 +444,10 @@ export const registerRecruiter = async (req, res) => {
         : undefined,
     });
 
+    if (agency) {
+      scheduleHybridCompanyVerification(newUser._id);
+    }
+
     return registrationSuccessResponse(
       res,
       newUser,
@@ -512,6 +517,8 @@ export const registerCompany = async (req, res) => {
         isVerified: false,
       },
     });
+
+    scheduleHybridCompanyVerification(newUser._id);
 
     return registrationSuccessResponse(
       res,

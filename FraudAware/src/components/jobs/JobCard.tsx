@@ -12,6 +12,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LogoFallback from '../profile/LogoFallback';
 import JobTagChip, { type ChipTone } from './JobTagChip';
 import ChatIcon from '../icons/ChatIcon';
+import VerifiedUserOutlineIcon from '../icons/VerifiedUserOutlineIcon';
 import {
   formatPostedAt,
   formatSalaryRange,
@@ -173,11 +174,9 @@ export default function JobCard({
                 {job.companyName}
               </Text>
               {job.isVerified && (
-                <Ionicons
-                  name="checkmark-circle"
+                <VerifiedUserOutlineIcon
                   size={14}
                   color={VERIFIED}
-                  style={styles.verifiedIcon}
                 />
               )}
             </View>

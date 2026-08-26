@@ -5,7 +5,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import time
 
-def get_website_text_headless(url, wait_time=5):
+def get_website_text_headless(url, wait_time=2):
     options = Options()
     options.add_argument('--headless')
     options.add_argument('--disable-gpu')
@@ -15,6 +15,7 @@ def get_website_text_headless(url, wait_time=5):
     options.add_argument('--lang=en-US')
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
     try:
+        driver.set_page_load_timeout(8)
         driver.get(url)
         time.sleep(wait_time)  # Wait for JS to render
         body = driver.find_element(By.TAG_NAME, 'body')
