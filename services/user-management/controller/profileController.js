@@ -3,6 +3,7 @@ import User from "../model/userModel.js";
 import { deleteFile, getFileUrl } from "../utils/cloudinaryHelper.js";
 import { formatPublicRecruiterProfile } from "../utils/formatPublicRecruiterProfile.js";
 import { formatProfileResponse } from "../utils/profileFormatter.js";
+import { scheduleHybridCompanyVerification } from "../utils/companyVerification.js";
 
 const findUserOr404 = async (userId, res) => {
   const user = await User.findById(userId);
@@ -145,7 +146,12 @@ export const updateBasicProfile = async (req, res) => {
       user.dateOfBirth = nextDob ? new Date(nextDob) : null;
     }
 
+    let companyIdentityChanged = false;
     if (company !== undefined) {
+      const prevName = String(user.company?.name || "").trim();
+      const prevWebsite = String(user.company?.website || "").trim();
+      const prevReg = String(user.company?.registrationNumber || "").trim();
+
       if (typeof company === "string") {
         user.company = {
           name: company.trim(),
@@ -155,6 +161,7 @@ export const updateBasicProfile = async (req, res) => {
           address: user.company?.address ?? null,
           description: user.company?.description ?? null,
           registrationNumber: user.company?.registrationNumber ?? null,
+          // Never trust client for verification badge
           isVerified: user.company?.isVerified ?? false,
         };
       } else {
@@ -180,12 +187,29 @@ export const updateBasicProfile = async (req, res) => {
             company.registrationNumber,
             user.company?.registrationNumber
           ),
-          isVerified: company.isVerified ?? user.company?.isVerified ?? false,
+          isVerified: user.company?.isVerified ?? false,
         };
       }
+
+      const nextName = String(user.company?.name || "").trim();
+      const nextWebsite = String(user.company?.website || "").trim();
+      const nextReg = String(user.company?.registrationNumber || "").trim();
+      companyIdentityChanged =
+        nextName !== prevName ||
+        nextWebsite !== prevWebsite ||
+        nextReg !== prevReg;
     }
 
     await user.save();
+
+    if (
+      companyIdentityChanged &&
+      ["company", "recruiter"].includes(user.accountType) &&
+      String(user.company?.name || "").trim().length >= 2
+    ) {
+      scheduleHybridCompanyVerification(user._id);
+    }
+
     sendProfile(res, user, "Basic profile updated successfully");
   } catch (error) {
     console.error("Update basic profile error:", error);

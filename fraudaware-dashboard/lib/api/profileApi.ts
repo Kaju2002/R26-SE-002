@@ -78,3 +78,48 @@ export async function updateCompanyLogo(token: string, file: File): Promise<Prof
 
   return parseJson<ProfileApiResponse>(response);
 }
+
+export type CompanyVerificationStatus = {
+  success: boolean;
+  isVerified: boolean;
+  status: 'none' | 'pending' | 'verified' | 'rejected';
+  latest: {
+    id: string;
+    decision: string;
+    summary?: string;
+    rejectionReason?: string | null;
+  } | null;
+};
+
+export async function getCompanyVerificationStatus(
+  token: string
+): Promise<CompanyVerificationStatus> {
+  const response = await fetch(`${getUserManagementBaseUrl()}/api/profile/verification`, {
+    method: 'GET',
+    headers: authHeaders(token),
+  });
+  return parseJson<CompanyVerificationStatus>(response);
+}
+
+export async function requestCompanyVerification(
+  token: string,
+  options: { sync?: boolean } = {}
+): Promise<{
+  success: boolean;
+  message: string;
+  isVerified?: boolean;
+}> {
+  const query = options.sync ? '?sync=1' : '';
+  const response = await fetch(
+    `${getUserManagementBaseUrl()}/api/profile/verification/request${query}`,
+    {
+      method: 'POST',
+      headers: {
+        ...authHeaders(token),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ sync: options.sync ? 1 : undefined }),
+    }
+  );
+  return parseJson(response);
+}

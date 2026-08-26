@@ -1,0 +1,21 @@
+WEIGHT PROFILE COMPARISON (clear table)
+====================================================================================================
+Profile              ML %  Registry %  Reputation %  Website %  Accuracy  Precision  Recall  F1-Score  Fraud Recall  False Positive Rate
+Proposed Baseline    40%   30%         20%           10%        76.5%     78.1%      88.4%   83.0%     54.9%         45.1%
+ML-Dominant          70%   10%         10%           10%        77.8%     77.3%      92.9%   84.4%     50.2%         49.8%
+Registry-Heavy       20%   60%         10%           10%        72.9%     74.7%      87.9%   80.8%     45.5%         54.5%
+Equal Weights        25%   25%         25%           25%        76.5%     78.7%      87.2%   82.7%     56.9%         43.1%
+Reputation-Ignored   50%   40%          0%           10%        75.7%     75.0%      93.5%   83.2%     43.3%         56.7%
+
+TOP GRID-SEARCH (by F1) — metric-only; product still uses 40/30/20/10
+====================================================================================================
+Weights (ML/Registry/Reputation/Website)  Accuracy  Precision  Recall  F1-Score  Fraud Recall  FPR
+0.60 / 0.00 / 0.40 / 0.00                 86.2%     93.5%      84.6%   88.8%     89.2%         10.8%
+0.60 / 0.05 / 0.35 / 0.00                 85.9%     91.5%      86.1%   88.7%     85.5%         14.5%
+0.65 / 0.00 / 0.35 / 0.00                 85.5%     90.8%      86.2%   88.5%     84.1%         15.9%
+0.55 / 0.05 / 0.40 / 0.00                 85.9%     93.8%      83.6%   88.4%     89.9%         10.1%
+0.60 / 0.00 / 0.35 / 0.05                 85.4%     90.9%      86.0%   88.4%     84.3%         15.7%
+
+NOTE: Grid-search "best" often zeros Registry. FraudAware keeps 40/30/20/10 for
+explainable Sri Lanka registration evidence. Registry-Heavy / Reputation-Ignored
+have the worst false-positive rates for SMEs.

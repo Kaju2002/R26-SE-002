@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import VerifiedUserOutlineIcon from '../components/icons/VerifiedUserOutlineIcon';
 import {
   useNavigation,
   useRoute,
@@ -235,7 +236,7 @@ export default function RecruiterProfileScreen() {
                   />
                   <Text style={styles.companyName}>{recruiter.company.name}</Text>
                   {recruiter.company.isVerified ? (
-                    <Ionicons name="checkmark-circle" size={14} color={VERIFIED} />
+                    <VerifiedUserOutlineIcon size={16} color={VERIFIED} />
                   ) : null}
                 </View>
               ) : null}
@@ -253,10 +254,10 @@ export default function RecruiterProfileScreen() {
                   <Text style={styles.statValue}>{activeJobsCount}</Text>
                   <Text style={styles.statLabel}>Active jobs</Text>
                 </View>
-                {recruiter.isVerified ? (
+                {recruiter.company.isVerified ? (
                   <View style={styles.statCard}>
-                    <Ionicons name="shield-checkmark" size={18} color={VERIFIED} />
-                    <Text style={styles.statLabel}>Verified</Text>
+                    <VerifiedUserOutlineIcon size={18} color={VERIFIED} />
+                    <Text style={styles.statLabel}>Verified employer</Text>
                   </View>
                 ) : null}
               </View>
@@ -285,6 +286,9 @@ export default function RecruiterProfileScreen() {
                       borderRadius={10}
                     />
                     <Text style={styles.infoTitle}>{recruiter.company.name}</Text>
+                    {recruiter.company.isVerified ? (
+                      <VerifiedUserOutlineIcon size={18} color={VERIFIED} />
+                    ) : null}
                   </View>
                   {contextJob?.about ? (
                     <Text style={styles.bodyText}>{contextJob.about}</Text>
@@ -310,7 +314,7 @@ export default function RecruiterProfileScreen() {
               <View style={styles.infoCard}>
                 {recruiter.company.isVerified ? (
                   <View style={styles.trustRow}>
-                    <Ionicons name="shield-checkmark-outline" size={18} color={VERIFIED} />
+                    <VerifiedUserOutlineIcon size={18} color={VERIFIED} />
                     <Text style={styles.trustText}>Verified employer</Text>
                   </View>
                 ) : (

@@ -21,6 +21,10 @@ import {
   uploadCv as uploadCvController,
   deleteCv,
 } from "../controller/profileController.js";
+import {
+  getMyVerificationStatus,
+  requestCompanyVerification,
+} from "../controller/verificationController.js";
 
 const router = express.Router();
 
@@ -31,6 +35,8 @@ router.use(authMiddleware);
 router.get("/me", getMyProfile);
 router.get("/public/:userId", getPublicRecruiterProfile);
 router.patch("/basic", updateBasicProfile);
+router.get("/verification", getMyVerificationStatus);
+router.post("/verification/request", requestCompanyVerification);
 router.patch("/summary", updateSummary);
 router.put("/skills", updateSkills);
 

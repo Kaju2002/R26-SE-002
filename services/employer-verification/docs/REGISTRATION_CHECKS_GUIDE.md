@@ -1,11 +1,36 @@
 # Registration Checks Integration Guide
 
 ## Overview
-The employer verification system uses a multi-layered approach to verify company registration status across various Sri Lankan government and official registries.
+The employer verification system verifies company registration across **all available sources in parallel/sequence and merges results** (not first-hit-wins). OpenCorporates is an **additional** source alongside CSE, eROC, CBSL, known entities, and DDGS — it does not replace them.
 
-## Registration Check Order & Methods
+## Registration sources (aggregated)
 
-### Layer 1: eROC (Department of Registrar of Companies)
+Order of attempts (signals are merged; later sources can add CSE/CBSL/etc. even after an earlier hit):
+
+1. **Known curated entities** (CSE/CBSL banks & PLCs)
+2. **SLAASMB SBE list** (cached public list from slaasmb.gov.lk — Specified Business Enterprises)
+3. **CSE API + OpenCorporates** (parallel)
+4. **eROC** (Selenium if enabled; skipped for banks / when DRC already confirmed)
+5. **Official domain search** (CBSL, BOI, IRCSL, SLAASMB web search fallback)
+6. **Website heuristics** (hint only → `unverified`, never sole “registered”)
+7. **Compact DDGS** (CSE / CBSL / BOI)
+
+Final status uses merged flags; `registration_sources` lists every method that contributed (e.g. `cse_api+slaasmb_sbe_list`).
+
+### SLAASMB SBE list
+**Source:** https://slaasmb.gov.lk/list-of-companies/  
+**Module:** `slaasmb_lookup.py`  
+**Behavior:** Loads ~1700 SBE names (live fetch + disk cache, offline seed fallback). Fuzzy name match sets `is_slaasmb_registered`.  
+**Note:** SBE ≠ DRC registration. It means the entity is on SLAASMB’s monitoring list (typically large / regulated).
+
+### OpenCorporates API
+**Condition:** Only if `OPEN_CORPORATES_API_TOKEN` is configured in `.env`
+**Function:** `_opencorporates_registration_lookup(company_name)`
+**Behavior:** Prefers `jurisdiction_code=lk`; returns `reg_name`, `reg_number`, `opencorporates_url` when matched.
+
+---
+
+### eROC (Department of Registrar of Companies)
 **Function:** `check_eroc_registration(company_name)`
 **Methods:**
 1. Selenium-based rendering (if `EROC_USE_SELENIUM=1`)
@@ -15,14 +40,7 @@ The employer verification system uses a multi-layered approach to verify company
 
 ---
 
-### Layer 2: OpenCorporates API
-**Condition:** Only if `OPEN_CORPORATES_API_TOKEN` is configured
-**Function:** `_opencorporates_registration_lookup(company_name)`
-**Returns:** Registry signals for CSE, DRC, CBSL, BOI
-
----
-
-### Layer 3: Official Registry Search (DDGS)
+### Official Registry Search (DDGS)
 **Registries Checked:**
 - DRC / eROC
 - CBSL (Central Bank)
@@ -34,11 +52,11 @@ The employer verification system uses a multi-layered approach to verify company
 
 ---
 
-### Layer 4: **CSE (PRIMARY - DIRECT API)** ⭐
+### CSE (direct API)
 **Function:** `_check_cse_with_api(company_name)` 
 **Endpoint:** `https://www.cse.lk/api/allSecurityCode`
 **Speed:** <500ms
-**Accuracy:** 100% on listed companies
+**Accuracy:** High on listed companies
 
 **Returns:**
 ```python

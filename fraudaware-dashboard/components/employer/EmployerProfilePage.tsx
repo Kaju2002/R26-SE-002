@@ -13,10 +13,13 @@ import {
 } from '@/lib/api/emailApi';
 import { listMyJobs } from '@/lib/api/jobApi';
 import {
+  getCompanyVerificationStatus,
+  requestCompanyVerification,
   updateAvatar,
   updateBasicProfile,
   updateCompanyLogo,
 } from '@/lib/api/profileApi';
+import VerifiedUserOutlineIcon from '@/components/icons/VerifiedUserOutlineIcon';
 import type { PortalType } from '@/lib/auth/portalConfig';
 import { portalConfigs } from '@/lib/auth/portalConfig';
 import { getStoredToken, getStoredUser, updateStoredUser } from '@/lib/auth/session';
@@ -112,12 +115,17 @@ export default function EmployerProfilePage({
   const [jobCount, setJobCount] = useState(0);
   const [applicantCount, setApplicantCount] = useState(0);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [verificationStatus, setVerificationStatus] = useState<
+    'none' | 'pending' | 'verified' | 'rejected'
+  >('none');
+  const [verifyBusy, setVerifyBusy] = useState(false);
 
   useEffect(() => {
     const stored = getStoredUser();
     setUser(stored);
     setAccountForm(accountFormFromUser(stored));
     setCompanyForm(companyFormFromUser(stored));
+    if (stored?.company?.isVerified) setVerificationStatus('verified');
 
     const token = getStoredToken();
     if (!token) return;
@@ -130,9 +138,22 @@ export default function EmployerProfilePage({
         updateStoredUser(response.user);
         setAccountForm(accountFormFromUser(response.user));
         setCompanyForm(companyFormFromUser(response.user));
+        if (response.user.company?.isVerified) setVerificationStatus('verified');
       })
       .catch(() => {
         /* keep stored session snapshot */
+      });
+
+    getCompanyVerificationStatus(token)
+      .then((status) => {
+        if (cancelled) return;
+        setVerificationStatus(status.status);
+        if (status.isVerified && stored) {
+          /* badge already reflected via isVerified */
+        }
+      })
+      .catch(() => {
+        /* optional endpoint */
       });
 
     getEmailStatus(token)
@@ -225,7 +246,43 @@ export default function EmployerProfilePage({
     updateStoredUser(response.user);
     setAccountForm(accountFormFromUser(response.user));
     setCompanyForm(companyFormFromUser(response.user));
+    try {
+      const status = await getCompanyVerificationStatus(token);
+      setVerificationStatus(status.status);
+    } catch {
+      if (response.user.company?.isVerified) setVerificationStatus('verified');
+    }
     return response.user;
+  };
+
+  const runCompanyVerification = async () => {
+    const token = getStoredToken();
+    if (!token) {
+      setError('Sign in again to request verification.');
+      return;
+    }
+    if (!user?.company?.name?.trim()) {
+      setError('Add a company name before requesting verification.');
+      return;
+    }
+
+    setVerifyBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const result = await requestCompanyVerification(token, { sync: true });
+      await refreshUser(token);
+      setMessage(
+        result.isVerified
+          ? 'Company auto-verified — badge granted.'
+          : result.message || 'Submitted for admin review.'
+      );
+      if (!result.isVerified) setVerificationStatus('pending');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Verification request failed.');
+    } finally {
+      setVerifyBusy(false);
+    }
   };
 
   const clearFilePreviews = () => {
@@ -953,8 +1010,18 @@ export default function EmployerProfilePage({
                             : 'No workspace selected')}
                       </p>
                     </div>
-                    {user?.company?.isVerified ? (
-                      <StatusPill tone="success" label="Verified" />
+                    {user?.company?.isVerified || verificationStatus === 'verified' ? (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full bg-[#E8F5E9] px-2.5 py-1 text-[11px] font-semibold text-[#2E7D32]"
+                        style={{ fontFamily: 'var(--font-poppins)' }}
+                      >
+                        <VerifiedUserOutlineIcon size={16} color="#2E7D32" title="" />
+                        Verified
+                      </span>
+                    ) : verificationStatus === 'pending' ? (
+                      <StatusPill tone="warn" label="Under review" />
+                    ) : verificationStatus === 'rejected' ? (
+                      <StatusPill tone="warn" label="Not verified" />
                     ) : null}
                   </div>
 
@@ -971,6 +1038,31 @@ export default function EmployerProfilePage({
                       value={user?.company?.registrationNumber}
                     />
                   </dl>
+
+                  {!user?.company?.isVerified && verificationStatus !== 'verified' ? (
+                    <div className="mt-5 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => void runCompanyVerification()}
+                        disabled={verifyBusy || verificationStatus === 'pending'}
+                        className="inline-flex items-center gap-2 rounded-xl bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
+                        style={{ fontFamily: 'var(--font-poppins)' }}
+                      >
+                        <VerifiedUserOutlineIcon size={18} color="#FFFFFF" title="" />
+                        {verifyBusy
+                          ? 'Checking…'
+                          : verificationStatus === 'pending'
+                            ? 'Check in progress'
+                            : 'Request verification'}
+                      </button>
+                      <p
+                        className="text-xs"
+                        style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+                      >
+                        Clear registry match auto-grants the badge; otherwise admins review.
+                      </p>
+                    </div>
+                  ) : null}
 
                   {user?.company?.description ? (
                     <div className="mt-5">

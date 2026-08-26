@@ -4,7 +4,9 @@ import base64
 import logging
 import os
 import re
+import time
 import warnings
+from copy import deepcopy
 from typing import Dict
 
 import requests
@@ -17,11 +19,52 @@ try:
 except ImportError:
     pass
 
-# Optional Selenium support for rendering JS-heavy eROC site
+# Optional Selenium (slow). eROC ON improves Pvt Ltd detection; CSE stays API-only.
 USE_EROC_SELENIUM = os.getenv("EROC_USE_SELENIUM", "0") == "1"
-USE_CSE_SELENIUM = os.getenv("CSE_USE_SELENIUM", "1") == "1"
+USE_CSE_SELENIUM = os.getenv("CSE_USE_SELENIUM", "0") == "1"
+EROC_SELENIUM_TIMEOUT = float(os.getenv("EROC_SELENIUM_TIMEOUT", "18"))
+SKIP_HEAVY_DDGS_AFTER_SELENIUM = os.getenv("REG_SKIP_HEAVY_DDGS_AFTER_SELENIUM", "1") == "1"
+CSE_API_TIMEOUT = float(os.getenv("CSE_API_TIMEOUT", "6"))
+REG_HTTP_TIMEOUT = float(os.getenv("REG_HTTP_TIMEOUT", "5"))
 _CSE_ALL_SECURITY_CODE_URL = "https://www.cse.lk/api/allSecurityCode"
 _CSE_API_KEY = os.getenv("CSE_API_KEY", "Cse123Api").strip()
+_CHROME_SERVICE = None
+_CHROME_SERVICE_TRIED = False
+
+logger = logging.getLogger(__name__)
+
+
+def _get_chrome_service():
+    """Reuse ChromeDriver path across lookups (webdriver-manager install is expensive)."""
+    global _CHROME_SERVICE, _CHROME_SERVICE_TRIED
+    if _CHROME_SERVICE_TRIED:
+        return _CHROME_SERVICE
+    _CHROME_SERVICE_TRIED = True
+    try:
+        from selenium.webdriver.chrome.service import Service
+        from webdriver_manager.chrome import ChromeDriverManager
+
+        _CHROME_SERVICE = Service(ChromeDriverManager().install())
+    except Exception as exc:
+        logger.debug("[REG] ChromeDriverManager unavailable: %s", str(exc)[:160])
+        _CHROME_SERVICE = None
+    return _CHROME_SERVICE
+
+
+def _chrome_options():
+    from selenium.webdriver.chrome.options import Options
+
+    options = Options()
+    options.add_argument("--headless=new")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1280,900")
+    options.add_argument("--blink-settings=imagesEnabled=false")
+    options.add_argument("--disable-extensions")
+    options.page_load_strategy = "eager"
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+    return options
 
 
 def _normalize_url(url: str) -> str:
@@ -41,140 +84,146 @@ def _normalize_url(url: str) -> str:
     # Handle both https;// and http; patterns
     url = re.sub(r'^([a-z]+);/?/?', r'\1://', url, flags=re.IGNORECASE)
     
-    # Ensure URL has a scheme
+    # Ensure URL has a scheme (prefer https for live checks)
     if not re.match(r'^[a-z]+://', url, re.IGNORECASE):
-        url = 'http://' + url
+        url = 'https://' + url
     
     return url
 
 
-def _check_eroc_with_selenium(company_name: str, timeout: int = 12) -> Dict[str, object]:
-    """Attempt to render eROC with Selenium (headless Chrome) and extract results.
+def _check_eroc_with_selenium(company_name: str, timeout: float | None = None) -> Dict[str, object]:
+    """Render eROC with headless Chrome. Capped (~18s) so /predict stays under ~1 minute."""
+    if timeout is None:
+        timeout = EROC_SELENIUM_TIMEOUT
+    timeout = max(8.0, min(float(timeout), 25.0))
 
-    This is opt-in and will silently return empty if Selenium or driver isn't available.
-    Ensure `EROC_USE_SELENIUM=1` in the environment to enable.
-    """
     result = {
         "is_registered": False,
         "reg_number": None,
         "reg_name": None,
-        "source": "eROC - Department of Registrar of Companies (rendered)",
+        "source": "eROC - Department of Registrar of Companies (Selenium)",
     }
+    t0 = time.time()
 
     try:
-        # Lazy imports so package is optional
         from selenium import webdriver
         from selenium.webdriver.common.by import By
-        from selenium.webdriver.chrome.options import Options
-        from selenium.webdriver.chrome.service import Service
+        from selenium.webdriver.common.keys import Keys
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
-        # Try webdriver-manager if available to simplify driver installation
-        try:
-            from webdriver_manager.chrome import ChromeDriverManager
-            driver_path = ChromeDriverManager().install()
-            service = Service(driver_path)
-        except Exception:
-            # Fallback to system chromedriver in PATH
-            service = None
 
-        options = Options()
-        options.add_argument("--headless=new")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--user-agent=Mozilla/5.0 (compatible; verifier/1.0)")
-
-        if service is not None:
-            driver = webdriver.Chrome(service=service, options=options)
-        else:
-            driver = webdriver.Chrome(options=options)
+        service = _get_chrome_service()
+        options = _chrome_options()
+        driver = (
+            webdriver.Chrome(service=service, options=options)
+            if service is not None
+            else webdriver.Chrome(options=options)
+        )
 
         try:
-            driver.set_page_load_timeout(timeout)
+            driver.set_page_load_timeout(int(timeout))
             driver.get("https://eroc.drc.gov.lk/")
-
             wait = WebDriverWait(driver, timeout)
 
-            # Try a few likely selectors for the search box/button used by the SPA
             search_el = None
-            for sel in ["input[type='search']", "input[placeholder*='Search']", "input[placeholder*='Company']", "#search"]:
+            for sel in [
+                "input[type='search']",
+                "input[placeholder*='Search']",
+                "input[placeholder*='Company']",
+                "input[placeholder*='search']",
+                "input[name*='search']",
+                "#search",
+                "input[type='text']",
+            ]:
                 try:
                     search_el = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, sel)))
-                    if search_el:
+                    if search_el and search_el.is_displayed():
                         break
                 except Exception:
+                    search_el = None
                     continue
 
             if not search_el:
-                # Try any input element as last resort
                 try:
                     search_el = wait.until(EC.presence_of_element_located((By.TAG_NAME, "input")))
                 except Exception:
-                    pass
+                    logger.info("[REG:eROC:Selenium] no search input (%.1fs)", time.time() - t0)
+                    return result
 
-            if not search_el:
-                return result
-
-            # Enter company name and submit
             try:
                 search_el.clear()
             except Exception:
                 pass
             search_el.send_keys(company_name)
-            # Attempt to press enter via JS in case button isn't visible
-            driver.execute_script("arguments[0].dispatchEvent(new KeyboardEvent('keydown',{'key':'Enter'}));", search_el)
-
-            # Wait for results area to appear - common patterns include tables or divs
             try:
-                wait.until(
+                search_el.send_keys(Keys.ENTER)
+            except Exception:
+                driver.execute_script(
+                    "arguments[0].dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));",
+                    search_el,
+                )
+
+            remaining = max(2.0, timeout - (time.time() - t0))
+            try:
+                WebDriverWait(driver, remaining).until(
                     EC.any_of(
                         EC.presence_of_element_located((By.TAG_NAME, "table")),
-                        EC.presence_of_element_located((By.CSS_SELECTOR, ".search-results")),
-                        EC.presence_of_element_located((By.CSS_SELECTOR, ".result")),
+                        EC.presence_of_element_located(
+                            (By.CSS_SELECTOR, ".search-results, .result, [class*='result']")
+                        ),
                     )
                 )
             except Exception:
-                # proceed to parse whatever is rendered after a short sleep
-                pass
+                time.sleep(min(1.5, remaining))
 
             page = driver.page_source
             soup = BeautifulSoup(page, "html.parser")
+            tokens = [w for w in (company_name or "").lower().split() if len(w) > 2]
 
-            # Try to parse table rows first
-            rows = soup.find_all("tr")
-            for row in rows:
+            for row in soup.find_all("tr"):
                 cells = [c.get_text(strip=True) for c in row.find_all(["td", "th"])]
                 if not cells:
                     continue
                 joined = " ".join(cells).lower()
-                if any(tok in joined for tok in [w for w in company_name.lower().split() if len(w) > 3]):
+                if tokens and sum(1 for tok in tokens if tok in joined) >= max(1, min(2, len(tokens))):
                     result["is_registered"] = True
-                    # heuristics: first cell name, second maybe reg no
                     result["reg_name"] = cells[0]
                     if len(cells) > 1:
                         result["reg_number"] = cells[1]
+                    logger.info(
+                        "[REG:eROC:Selenium] match %r / %r in %.1fs",
+                        result.get("reg_name"),
+                        result.get("reg_number"),
+                        time.time() - t0,
+                    )
                     return result
 
-            # Fallback: look for divs/spans that contain registration keywords
-            candidates = soup.find_all(string=lambda s: s and any(k in s.lower() for k in ["registrar of companies", "registration no", "reg no", "registration number"]))
+            candidates = soup.find_all(
+                string=lambda s: s
+                and any(
+                    k in s.lower()
+                    for k in ("registration no", "reg no", "registration number", "pv0", "pv ")
+                )
+            )
             for c in candidates:
                 parent = c.parent
                 text = parent.get_text(" ", strip=True)
-                if any(tok in text.lower() for tok in [w for w in company_name.lower().split() if len(w) > 3]):
+                if tokens and any(tok in text.lower() for tok in tokens):
                     result["is_registered"] = True
-                    # try to extract reg number via regex
-                    import re
-
-                    m = re.search(r"(reg(istration)?\s*(no|number)[:\s]*([A-Za-z0-9\-\/]+))", text, re.I)
+                    m = re.search(
+                        r"(PV\d+[A-Za-z0-9]*|reg(istration)?\s*(no|number)?[:\s]*([A-Za-z0-9\-\/]+))",
+                        text,
+                        re.I,
+                    )
                     if m:
-                        result["reg_number"] = m.group(4)
-                    # attempt to set reg_name as nearby heading
+                        result["reg_number"] = m.group(0)
                     heading = parent.find_previous(["h1", "h2", "h3"]) or parent.find_previous("strong")
                     if heading:
                         result["reg_name"] = heading.get_text(strip=True)
+                    logger.info("[REG:eROC:Selenium] keyword match in %.1fs", time.time() - t0)
                     return result
 
+            logger.info("[REG:eROC:Selenium] no match for %r (%.1fs)", company_name, time.time() - t0)
             return result
         finally:
             try:
@@ -182,17 +231,12 @@ def _check_eroc_with_selenium(company_name: str, timeout: int = 12) -> Dict[str,
             except Exception:
                 pass
     except Exception as exc:
-        logger.debug("[REG:eROC:Selenium] Selenium attempt failed or not available: %s", str(exc)[:200])
+        logger.warning("[REG:eROC:Selenium] failed: %s", str(exc)[:200])
         return result
 
 
 def _check_cse_with_selenium(company_name: str, timeout: int = 12) -> Dict[str, object]:
-    """Search the CSE listed-company directory using Selenium.
-
-    The CSE directory is JavaScript-driven and exposes a client-side search box.
-    This helper loads the directory, filters by company name, and extracts the
-    matching row or company profile link.
-    """
+    """Search the CSE listed-company directory using Selenium (kept OFF by default)."""
     result = {
         "is_registered": False,
         "symbol": None,
@@ -207,27 +251,16 @@ def _check_cse_with_selenium(company_name: str, timeout: int = 12) -> Dict[str, 
         from selenium import webdriver
         from selenium.webdriver.common.by import By
         from selenium.webdriver.common.keys import Keys
-        from selenium.webdriver.chrome.options import Options
-        from selenium.webdriver.chrome.service import Service
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
 
-        try:
-            from webdriver_manager.chrome import ChromeDriverManager
-
-            driver_path = ChromeDriverManager().install()
-            service = Service(driver_path)
-        except Exception:
-            service = None
-
-        options = Options()
-        options.add_argument("--headless=new")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--disable-dev-shm-usage")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--user-agent=Mozilla/5.0 (compatible; verifier/1.0)")
-
-        driver = webdriver.Chrome(service=service, options=options) if service is not None else webdriver.Chrome(options=options)
+        service = _get_chrome_service()
+        options = _chrome_options()
+        driver = (
+            webdriver.Chrome(service=service, options=options)
+            if service is not None
+            else webdriver.Chrome(options=options)
+        )
         try:
             driver.set_page_load_timeout(timeout)
             driver.get("https://www.cse.lk/listed-entities/listed-company-directory?page=ALPHABETICAL")
@@ -264,9 +297,6 @@ def _check_cse_with_selenium(company_name: str, timeout: int = 12) -> Dict[str, 
                     result["reg_name"] = company_name
                 return result
 
-            # If the body shows the company-profile table but the exact company is not visible,
-            # keep the result as not registered for this lookup.
-
             return result
         finally:
             try:
@@ -278,8 +308,40 @@ def _check_cse_with_selenium(company_name: str, timeout: int = 12) -> Dict[str, 
         return result
 
 
-def _check_cse_with_api(company_name: str, timeout: int = 12) -> Dict[str, object]:
+_CSE_LISTINGS_CACHE: list | None = None
+_CSE_LISTINGS_CACHE_TS: float = 0.0
+_CSE_CACHE_TTL_SEC = float(os.getenv("CSE_CACHE_TTL_SEC", "3600"))
+_REG_RESULT_CACHE: dict[str, tuple[float, dict]] = {}
+_REG_RESULT_CACHE_TTL_SEC = float(os.getenv("REG_RESULT_CACHE_TTL_SEC", "1800"))
+
+
+def _get_cse_listings(timeout: float) -> list:
+    """Fetch CSE listings once and reuse for ~1 hour (big latency win)."""
+    import time as _time
+
+    global _CSE_LISTINGS_CACHE, _CSE_LISTINGS_CACHE_TS
+    now = _time.time()
+    if _CSE_LISTINGS_CACHE is not None and (now - _CSE_LISTINGS_CACHE_TS) < _CSE_CACHE_TTL_SEC:
+        return _CSE_LISTINGS_CACHE
+
+    api_key = base64.b64encode(_CSE_API_KEY.encode("utf-8")).decode("ascii")
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; verifier/1.0)",
+        "x-api-key": api_key,
+    }
+    response = requests.get(_CSE_ALL_SECURITY_CODE_URL, headers=headers, timeout=timeout)
+    response.raise_for_status()
+    payload = response.json()
+    if isinstance(payload, list):
+        _CSE_LISTINGS_CACHE = payload
+        _CSE_LISTINGS_CACHE_TS = now
+    return payload if isinstance(payload, list) else []
+
+
+def _check_cse_with_api(company_name: str, timeout: float | None = None) -> Dict[str, object]:
     """Query the CSE listed-company API directly and match the returned listings."""
+    if timeout is None:
+        timeout = CSE_API_TIMEOUT
     result = {
         "is_registered": False,
         "symbol": None,
@@ -291,14 +353,7 @@ def _check_cse_with_api(company_name: str, timeout: int = 12) -> Dict[str, objec
         return result
 
     try:
-        api_key = base64.b64encode(_CSE_API_KEY.encode("utf-8")).decode("ascii")
-        headers = {
-            "User-Agent": "Mozilla/5.0 (compatible; verifier/1.0)",
-            "x-api-key": api_key,
-        }
-        response = requests.get(_CSE_ALL_SECURITY_CODE_URL, headers=headers, timeout=timeout)
-        response.raise_for_status()
-        payload = response.json()
+        payload = _get_cse_listings(timeout)
     except Exception as exc:
         logger.debug("[REG:CSE:API] Direct lookup failed for %s: %s", company_name, str(exc)[:200])
         return result
@@ -321,7 +376,14 @@ def _check_cse_with_api(company_name: str, timeout: int = 12) -> Dict[str, objec
 
         if normalized_name and normalized_name not in _normalize_company(name):
             if not _text_mentions_company(name, company_name):
-                continue
+                # Also allow strong token overlap (Dialog vs Dialog Axiata PLC)
+                q_tokens = set(_company_search_tokens(company_name))
+                n_tokens = set(_company_search_tokens(name))
+                if not q_tokens or not n_tokens:
+                    continue
+                overlap = q_tokens & n_tokens
+                if len(overlap) < max(1, min(2, len(q_tokens))):
+                    continue
 
         result["is_registered"] = True
         result["symbol"] = symbol or None
@@ -331,10 +393,7 @@ def _check_cse_with_api(company_name: str, timeout: int = 12) -> Dict[str, objec
     logger.debug("[REG:CSE:API] No direct name match found for %s using tokens=%s", company_name, search_tokens)
     return result
 
-
 from app.employer_verification_model.review_aggregator import aggregate_review_signals
-
-logger = logging.getLogger(__name__)
 
 OPEN_CORPORATES_API_URL = "https://api.opencorporates.com/v0.4/companies/search"
 OPEN_CORPORATES_API_TOKEN = os.getenv("OPEN_CORPORATES_API_TOKEN", "").strip()
@@ -350,6 +409,33 @@ OFFICIAL_REGISTRY_SOURCES = [
 LEGAL_SUFFIXES = {
     "pvt", "private", "limited", "ltd", "plc", "inc", "incorporated", "company", "co", "corporation", "corp",
 }
+
+def _looks_like_regulated_finance(company_name: str) -> bool:
+    """Banks/finance firms are confirmed via CSE/CBSL, not eROC Selenium."""
+    n = (company_name or "").lower()
+    markers = (
+        "bank",
+        "finance",
+        "leasing",
+        "insurance",
+        "cbsl",
+        "hnb",
+        "boc",
+        "combank",
+        "sampath",
+        "nsb",
+        "ndb",
+        "dfcc",
+        "seylan",
+        "pan asia",
+        "union bank",
+        "commercial bank",
+        "people's bank",
+        "peoples bank",
+        "peoples' bank",
+    )
+    return any(m in n for m in markers)
+
 
 def _normalize_company(company_name: str) -> str:
     text = re.sub(r"[\u2018\u2019\u201c\u201d'\"()\[\],.&/\\-]", " ", (company_name or "").lower())
@@ -451,75 +537,213 @@ def _fetch_page(url: str, timeout: int = 6) -> str:
         return ""
 
 
-def _opencorporates_registration_lookup(company_name: str) -> Dict[str, int]:
-    """Use OpenCorporates API when a token is available."""
+def _opencorporates_registration_lookup(company_name: str) -> dict:
+    """
+    OpenCorporates company search (extra registry source — does not replace CSE/eROC/CBSL).
+    Prefers Sri Lanka (jurisdiction_code=lk). Requires OPEN_CORPORATES_API_TOKEN.
+    """
     if not OPEN_CORPORATES_API_TOKEN:
-        logger.debug("[REG] OpenCorporates API token not configured")
+        logger.info("[REG:OC] skipped — OPEN_CORPORATES_API_TOKEN not set")
         return {}
 
-    params = {
-        "q": company_name,
-        "per_page": 10,
-        "normalise_company_name": "true",
-        "api_token": OPEN_CORPORATES_API_TOKEN,
-    }
-
-    try:
-        response = requests.get(OPEN_CORPORATES_API_URL, params=params, timeout=8)
-        response.raise_for_status()
-        payload = response.json()
-    except Exception as exc:
-        logger.debug("[REG] OpenCorporates lookup failed for %s: %s", company_name, str(exc)[:160])
+    company_name = (company_name or "").strip()
+    if not company_name:
         return {}
 
-    results = payload.get("results", {}).get("companies", []) or []
-    if not results:
-        logger.debug("[REG] OpenCorporates returned no matches for %s", company_name)
-        return {}
-
-    normalized_name = _normalize_company(company_name)
-    for item in results:
-        company = item.get("company", {})
-        name = _normalize_company(company.get("name", ""))
-        registry_url = (company.get("registry_url") or "").lower()
-        source = company.get("source") or {}
-        source_url = (source.get("url") or "").lower()
-        publisher = (source.get("publisher") or "").lower()
-        jurisdiction = (company.get("jurisdiction_code") or "").lower()
-        text = " ".join([name, registry_url, source_url, publisher, jurisdiction])
-
-        if normalized_name and normalized_name not in name:
-            continue
-
-        result = {
-            "is_cse_listed": int("cse" in text or "stock exchange" in text),
-            "is_boi_registered": int("boi" in text or "board of investment" in text),
-            "is_cbsl_licensed": int("cbsl" in text or "central bank" in text),
-            "is_drc_registered": int(jurisdiction == "lk" or "sri lanka" in text or "registrar of companies" in text),
+    def _search(extra: dict) -> list:
+        params = {
+            "q": company_name,
+            "per_page": 10,
+            "normalise_company_name": "true",
+            "order": "score",
+            "api_token": OPEN_CORPORATES_API_TOKEN,
+            **extra,
         }
+        try:
+            response = requests.get(OPEN_CORPORATES_API_URL, params=params, timeout=10)
+            response.raise_for_status()
+            payload = response.json()
+            return payload.get("results", {}).get("companies", []) or []
+        except Exception as exc:
+            logger.warning("[REG:OC] lookup failed for %s: %s", company_name, str(exc)[:160])
+            return []
 
-        if any(result.values()):
-            logger.debug("[REG] OpenCorporates matched %s -> %s", normalized_name, result)
-            return result
+    # 1) Sri Lanka only  2) fallback global if nothing in lk
+    rows = _search({"jurisdiction_code": "lk", "inactive": "false"})
+    if not rows:
+        rows = _search({"jurisdiction_code": "lk"})
+    if not rows:
+        rows = _search({"inactive": "false"})
 
-    logger.debug("[REG] OpenCorporates found a name match for %s but no registry signals", company_name)
-    return {}
+    if not rows:
+        logger.info("[REG:OC] no matches for %r", company_name)
+        return {}
 
+    q_norm = _normalize_company(company_name)
+    q_tokens = set(_company_search_tokens(company_name))
+
+    best = None
+    best_score = -1
+    for item in rows:
+        company = item.get("company", {}) or {}
+        name = str(company.get("name") or "")
+        name_norm = _normalize_company(name)
+        jurisdiction = str(company.get("jurisdiction_code") or "").lower()
+        inactive = bool(company.get("inactive"))
+
+        if q_norm and q_norm not in name_norm and name_norm not in q_norm:
+            n_tokens = set(_company_search_tokens(name))
+            overlap = len(q_tokens & n_tokens) if q_tokens and n_tokens else 0
+            if overlap < max(1, min(2, len(q_tokens) or 1)):
+                continue
+
+        score = 0
+        if jurisdiction == "lk":
+            score += 5
+        if not inactive:
+            score += 2
+        if q_norm and (q_norm == name_norm or q_norm in name_norm):
+            score += 3
+        if score > best_score:
+            best_score = score
+            best = company
+
+    if not best:
+        logger.info("[REG:OC] name matches found but none passed filters for %r", company_name)
+        return {}
+
+    jurisdiction = str(best.get("jurisdiction_code") or "").lower()
+    registry_url = (best.get("registry_url") or "").lower()
+    source = best.get("source") or {}
+    publisher = (source.get("publisher") or "").lower()
+    blob = " ".join(
+        [
+            str(best.get("name") or "").lower(),
+            registry_url,
+            publisher,
+            jurisdiction,
+            str(best.get("current_status") or "").lower(),
+        ]
+    )
+
+    out = {
+        "is_drc_registered": int(jurisdiction == "lk" or "sri lanka" in blob or "registrar" in blob),
+        "is_cse_listed": int("cse" in blob or "stock exchange" in blob),
+        "is_boi_registered": int("boi" in blob or "board of investment" in blob),
+        "is_cbsl_licensed": int("cbsl" in blob or "central bank" in blob),
+        "reg_name": best.get("name"),
+        "reg_number": best.get("company_number"),
+        "reg_source": f"OpenCorporates ({jurisdiction or 'unknown'})",
+        "opencorporates_url": best.get("opencorporates_url"),
+        "opencorporates_status": best.get("current_status"),
+        "opencorporates_inactive": int(bool(best.get("inactive"))),
+    }
+    # If OC found an active LK company, treat as DRC-equivalent registration signal
+    if jurisdiction == "lk" and not best.get("inactive"):
+        out["is_drc_registered"] = 1
+
+    if not any(out.get(k) for k in ("is_drc_registered", "is_cse_listed", "is_boi_registered", "is_cbsl_licensed")):
+        # Still count a clear name hit in LK as registration evidence
+        if jurisdiction == "lk":
+            out["is_drc_registered"] = 1
+        else:
+            logger.info("[REG:OC] matched %r outside LK (%s) — not counting as LK registry", company_name, jurisdiction)
+            return {}
+
+    logger.info(
+        "[REG:OC] matched %r -> %s (%s) inactive=%s",
+        company_name,
+        out.get("reg_name"),
+        out.get("reg_number"),
+        best.get("inactive"),
+    )
+    return out
+
+
+def _merge_registry_hit(results: dict, hit: dict, *, method: str, trace_source: str, detail: str, step: int) -> None:
+    """Merge flags/metadata from one registry source into the aggregated result."""
+    if not hit:
+        return
+    flag_keys = (
+        "is_cse_listed",
+        "is_boi_registered",
+        "is_cbsl_licensed",
+        "is_drc_registered",
+        "is_ircsl_registered",
+        "is_slaasmb_registered",
+    )
+    any_flag = False
+    for k in flag_keys:
+        if hit.get(k):
+            results[k] = 1
+            any_flag = True
+    if not any_flag and not hit.get("is_registered"):
+        return
+    if hit.get("is_registered"):
+        # CSE-style helpers
+        results["is_cse_listed"] = 1
+        any_flag = True
+
+    for meta in (
+        "reg_name",
+        "reg_number",
+        "reg_source",
+        "cse_symbol",
+        "cse_registered_name",
+        "opencorporates_url",
+        "opencorporates_status",
+        "matched_lookup_name",
+        "slaasmb_sbe_name",
+    ):
+        if hit.get(meta) and not results.get(meta):
+            results[meta] = hit.get(meta)
+
+    sources = results.setdefault("registration_sources", [])
+    if method and method not in sources:
+        sources.append(method)
+    results["registration_method"] = "+".join(sources) if sources else method
+
+    _append_registration_trace(
+        results["registration_trace"],
+        step,
+        trace_source,
+        "registered",
+        detail,
+        **{k: hit.get(k) for k in ("reg_name", "reg_number", "lookup_name", "symbol") if hit.get(k)},
+    )
 
 def _apply_government_registration_verdict(result: dict) -> dict:
+    methods = result.get("registration_sources") or []
+    method_blob = " ".join(str(m) for m in methods) + " " + str(result.get("registration_method") or "")
+
+    # Website-only keyword hints must never count as official registration
+    website_only = (
+        method_blob.strip() == "website_heuristics"
+        or (result.get("registration_method") == "website_heuristics" and not methods)
+    )
+
     official_sources = []
-    if result.get("is_drc_registered"):
-        official_sources.append("DRC / eROC")
-    if result.get("is_boi_registered"):
+    if result.get("is_drc_registered") and not website_only:
+        if any("eroc" in str(s).lower() for s in methods) or "drc_record" in methods or "known_entity" in methods:
+            official_sources.append("DRC / eROC")
+        if "opencorporates" in methods:
+            official_sources.append("OpenCorporates")
+        if not any(x in official_sources for x in ("DRC / eROC", "OpenCorporates")):
+            official_sources.append("DRC / eROC")
+    if result.get("is_boi_registered") and not website_only:
         official_sources.append("BOI")
-    if result.get("is_cse_listed"):
+    if result.get("is_cse_listed") and not website_only:
         official_sources.append("CSE")
-    if result.get("is_cbsl_licensed"):
+    if result.get("is_cbsl_licensed") and not website_only:
         official_sources.append("CBSL")
-    if result.get("is_ircsl_registered"):
+    if result.get("is_ircsl_registered") and not website_only:
         official_sources.append("IRCSL")
-    if result.get("is_slaasmb_registered"):
+    if result.get("is_slaasmb_registered") and not website_only:
         official_sources.append("SLAASMB")
+
+    # De-dupe while preserving order
+    seen = set()
+    official_sources = [s for s in official_sources if not (s in seen or seen.add(s))]
 
     if official_sources:
         result["government_registration_status"] = "registered"
@@ -528,7 +752,7 @@ def _apply_government_registration_verdict(result: dict) -> dict:
     else:
         result["is_government_registered"] = 0
         result["government_registration_source"] = None
-        if result.get("registration_method") in {"website_heuristics", "ddgs_fallback"}:
+        if website_only or "website_heuristics" in method_blob:
             result["government_registration_status"] = "unverified"
         else:
             result["government_registration_status"] = "not_found"
@@ -536,13 +760,10 @@ def _apply_government_registration_verdict(result: dict) -> dict:
     return result
 
 
-def check_eroc_registration(company_name: str) -> Dict[str, object]:
+def check_eroc_registration(company_name: str, *, use_selenium: bool | None = None) -> Dict[str, object]:
     """
     Query Sri Lanka's official eROC (DRC) search and return registration details.
-    Note: eROC is a JavaScript SPA that requires browser rendering for full functionality.
-    Static HTTP requests return the app shell without results.
-    Future: integrate Selenium or use eROC API when available.
-    Returns a dict with boolean flag `is_registered` and optional `reg_number` and `reg_name`.
+    When Selenium is enabled, render the SPA once (capped timeout) for accuracy.
     """
     result = {
         "is_registered": False,
@@ -551,12 +772,17 @@ def check_eroc_registration(company_name: str) -> Dict[str, object]:
         "source": "eROC - Department of Registrar of Companies",
     }
 
-    # If enabled, try Selenium-based rendering first for SPA results
-    if USE_EROC_SELENIUM:
+    if use_selenium is None:
+        use_selenium = USE_EROC_SELENIUM
+
+    if use_selenium:
         try:
-            selenium_result = _check_eroc_with_selenium(company_name)
+            selenium_result = _check_eroc_with_selenium(company_name, timeout=EROC_SELENIUM_TIMEOUT)
             if selenium_result.get("is_registered"):
                 return selenium_result
+            # Keep selenium source note even on miss so callers know we tried the SPA
+            result["source"] = selenium_result.get("source") or result["source"]
+            result["selenium_attempted"] = True
         except Exception:
             logger.debug("[REG:eROC] Selenium branch raised an exception, falling back to static request")
 
@@ -565,11 +791,10 @@ def check_eroc_registration(company_name: str) -> Dict[str, object]:
         search_url = "https://eroc.drc.gov.lk/home/search"
         headers = {"User-Agent": "Mozilla/5.0", "Content-Type": "application/x-www-form-urlencoded"}
         payload = {"search": company_name}
-        resp = requests.post(search_url, data=payload, headers=headers, timeout=10)
+        resp = requests.post(search_url, data=payload, headers=headers, timeout=min(8, REG_HTTP_TIMEOUT + 3))
         resp.raise_for_status()
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        # Try to find table rows that contain results
         rows = soup.find_all("tr")
         for row in rows:
             cells = row.find_all("td")
@@ -584,15 +809,46 @@ def check_eroc_registration(company_name: str) -> Dict[str, object]:
     except Exception as exc:
         logger.debug("[REG:eROC] Static lookup failed (expected for SPA): %s", str(exc)[:200])
 
-    logger.debug("[REG:eROC] No results (static lookup skipped for SPA)")
+    logger.debug("[REG:eROC] No results for %s", company_name)
     return result
 
 
 def check_registration_status(company_name: str, website_url: str | None = None) -> dict:
     """
     Check if company is officially registered in Sri Lanka (CSE, BOI, CBSL, DRC).
-    Tries in order: eROC → OpenCorporates → website heuristics → DDGS fallback
+    Tries user name plus brand/domain aliases (e.g. Arpico -> Richard Pieris PLC).
+    Positive hits are cached longer; misses are cached briefly so fixes apply quickly.
     """
+    from app.employer_verification_model.review_aggregator import normalize_company_name
+
+    company_name = normalize_company_name(company_name)
+    cache_key = f"{(company_name or '').strip().lower()}|{(_normalize_url(website_url) or '').lower()}"
+    now = time.time()
+    cached = _REG_RESULT_CACHE.get(cache_key)
+    if cached is not None:
+        ts, payload = cached
+        status = (payload or {}).get("government_registration_status")
+        ttl = _REG_RESULT_CACHE_TTL_SEC if status == "registered" else min(120.0, _REG_RESULT_CACHE_TTL_SEC)
+        if (now - ts) < ttl:
+            logger.info("[REG] cache hit for %r (status=%s)", company_name, status)
+            return deepcopy(payload)
+
+    results = _check_registration_status_uncached(company_name, website_url)
+    _REG_RESULT_CACHE[cache_key] = (now, deepcopy(results))
+    return results
+
+
+def _check_registration_status_uncached(company_name: str, website_url: str | None = None) -> dict:
+    """
+    Check registration across ALL available sources and merge signals:
+    known entities, CSE API, OpenCorporates, eROC, CBSL/BOI search.
+    OpenCorporates is an extra source — it does not replace CSE/eROC/CBSL.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+    from app.employer_verification_model.company_aliases import resolve_lookup_names
+    from app.employer_verification_model.known_registered import lookup_known_registered
+    from app.employer_verification_model.slaasmb_lookup import lookup_slaasmb_sbe
+
     results = {
         "is_cse_listed": 0,
         "is_boi_registered": 0,
@@ -600,214 +856,433 @@ def check_registration_status(company_name: str, website_url: str | None = None)
         "is_drc_registered": 0,
         "is_ircsl_registered": 0,
         "is_slaasmb_registered": 0,
+        "registration_sources": [],
         "registration_trace": _init_registration_trace(company_name, website_url),
     }
 
-    # 0) Try official eROC first (best source, though may not work due to SPA)
-    try:
-        eroc = check_eroc_registration(company_name)
-        if eroc.get("is_registered"):
-            results["is_drc_registered"] = 1
-            results["reg_number"] = eroc.get("reg_number")
-            results["reg_name"] = eroc.get("reg_name")
-            results["reg_source"] = eroc.get("source")
-            results["registration_method"] = "eroc"
-            _apply_government_registration_verdict(results)
-            _append_registration_trace(results["registration_trace"], 1, "eROC", "registered", "Official eROC lookup confirmed a match", reg_number=results.get("reg_number"), reg_name=results.get("reg_name"))
-            logger.debug("[REG:eROC] Found official registration for %s -> %s", company_name, eroc)
-            return results
-        _append_registration_trace(results["registration_trace"], 1, "eROC", "not_found", "No eROC match returned")
-    except Exception:
-        _append_registration_trace(results["registration_trace"], 1, "eROC", "error", "eROC lookup raised an exception")
-        logger.debug("[REG] eROC lookup error for %s", company_name)
+    lookup_names = resolve_lookup_names(company_name, website_url)
+    names_for_rest = lookup_names[:2]
+    primary = names_for_rest[0] if names_for_rest else company_name
+    finance_like = _looks_like_regulated_finance(company_name) or any(
+        _looks_like_regulated_finance(n) for n in names_for_rest
+    )
 
-    # 1) Prefer authoritative OpenCorporates when a token is configured
-    api_results = _opencorporates_registration_lookup(company_name)
-    if api_results:
-        results.update(api_results)
-        results["registration_method"] = "opencorporates"
-        _apply_government_registration_verdict(results)
-        _append_registration_trace(results["registration_trace"], 2, "OpenCorporates", "registered" if any(api_results.values()) else "not_found", "OpenCorporates lookup returned official registry signals" if any(api_results.values()) else "OpenCorporates returned no registry signals", signals=api_results)
-        return results
-    _append_registration_trace(results["registration_trace"], 2, "OpenCorporates", "not_found", "OpenCorporates returned no registry signals")
+    if len(lookup_names) > 1:
+        _append_registration_trace(
+            results["registration_trace"],
+            0,
+            "alias_resolver",
+            "expanded",
+            "Expanded brand/domain aliases for registry lookup",
+            lookup_names=lookup_names,
+        )
 
-    # 2) Prefer the direct CSE API, then fall back to Selenium if needed.
-    if not results.get("is_cse_listed"):
-        try:
-            cse = _check_cse_with_api(company_name)
-            if cse.get("is_registered"):
-                results["is_cse_listed"] = 1
-                results["reg_source"] = cse.get("source")
-                results["registration_method"] = "cse_api"
-                results["cse_symbol"] = cse.get("symbol")
-                results["cse_registered_name"] = cse.get("reg_name")
-                _apply_government_registration_verdict(results)
-                _append_registration_trace(results["registration_trace"], 3, "Colombo Stock Exchange (CSE)", "registered", "CSE API confirmed a match", symbol=cse.get("symbol"), reg_name=cse.get("reg_name"))
-                logger.debug("[REG:CSE] Found CSE listing via API for %s -> %s", company_name, cse)
-                return results
-            _append_registration_trace(results["registration_trace"], 3, "Colombo Stock Exchange (CSE)", "not_found", "No CSE API match found")
-        except Exception:
-            _append_registration_trace(results["registration_trace"], 3, "Colombo Stock Exchange (CSE)", "error", "CSE API lookup raised an exception")
+    # --- 1) Known curated entities (merge, do not stop) ---
+    # Label methods as CSE/CBSL (not "known_entity") so the UI shows real registries.
+    for lookup_name in lookup_names:
+        known = lookup_known_registered(lookup_name)
+        if not known:
+            continue
+        hit = dict(known)
+        hit["matched_lookup_name"] = lookup_name
+        if known.get("cse_registered_name"):
+            hit["reg_name"] = known.get("cse_registered_name")
 
-        if USE_CSE_SELENIUM and not results.get("is_cse_listed"):
+        method_labels: list[tuple[str, str]] = []
+        if known.get("is_cse_listed"):
+            method_labels.append(("cse_listing", "Colombo Stock Exchange (CSE)"))
+        if known.get("is_cbsl_licensed"):
+            method_labels.append(("cbsl_licence", "Central Bank of Sri Lanka (CBSL)"))
+        if known.get("is_boi_registered"):
+            method_labels.append(("boi_listing", "Board of Investment (BOI)"))
+        if known.get("is_drc_registered"):
+            method_labels.append(("drc_record", "DRC / eROC"))
+        if not method_labels:
+            method_labels.append(("registry_record", "Official Sri Lanka registry"))
+
+        primary_method, primary_trace = method_labels[0]
+        _merge_registry_hit(
+            results,
+            hit,
+            method=primary_method,
+            trace_source=primary_trace,
+            detail="Confirmed against public CSE/CBSL (or related) registry records",
+            step=1,
+        )
+        sources = results.setdefault("registration_sources", [])
+        for method_name, _trace in method_labels[1:]:
+            if method_name not in sources:
+                sources.append(method_name)
+        results["registration_method"] = "+".join(sources) if sources else primary_method
+        logger.info("[REG] curated registry hit for %r via %r -> %s", company_name, lookup_name, sources)
+        break
+
+    # --- 1b) SLAASMB SBE public list (cached; merge, do not stop) ---
+    if not results.get("is_slaasmb_registered"):
+        slaasmb_hit = {}
+        for lookup_name in lookup_names:
+            slaasmb_hit = lookup_slaasmb_sbe(lookup_name)
+            if slaasmb_hit:
+                slaasmb_hit["matched_lookup_name"] = lookup_name
+                slaasmb_hit["lookup_name"] = lookup_name
+                break
+        if slaasmb_hit:
+            _merge_registry_hit(
+                results,
+                slaasmb_hit,
+                method="slaasmb_sbe_list",
+                trace_source="SLAASMB",
+                detail="Matched SLAASMB Specified Business Enterprise (SBE) list",
+                step=1,
+            )
+        else:
+            _append_registration_trace(
+                results["registration_trace"],
+                1,
+                "SLAASMB",
+                "not_found",
+                "No match on SLAASMB public SBE company list",
+            )
+
+    # --- 2) Fast parallel: CSE API + OpenCorporates (all lookup names, first hits merged) ---
+    def _cse_any() -> dict:
+        for lookup_name in lookup_names:
             try:
-                cse = _check_cse_with_selenium(company_name)
+                cse = _check_cse_with_api(lookup_name)
                 if cse.get("is_registered"):
-                    results["is_cse_listed"] = 1
-                    results["reg_source"] = cse.get("source")
-                    results["registration_method"] = "cse_directory_selenium"
-                    results["cse_symbol"] = cse.get("symbol")
-                    results["cse_registered_name"] = cse.get("reg_name")
-                    _apply_government_registration_verdict(results)
-                    _append_registration_trace(results["registration_trace"], 3, "Colombo Stock Exchange (CSE)", "registered", "CSE listed-company directory confirmed a match", symbol=cse.get("symbol"), reg_name=cse.get("reg_name"))
-                    logger.debug("[REG:CSE] Found CSE listing via Selenium for %s -> %s", company_name, cse)
-                    return results
+                    return {
+                        "is_registered": True,
+                        "is_cse_listed": 1,
+                        "reg_source": cse.get("source"),
+                        "cse_symbol": cse.get("symbol"),
+                        "cse_registered_name": cse.get("reg_name"),
+                        "reg_name": cse.get("reg_name"),
+                        "matched_lookup_name": lookup_name,
+                        "symbol": cse.get("symbol"),
+                    }
             except Exception:
-                _append_registration_trace(results["registration_trace"], 3, "Colombo Stock Exchange (CSE)", "error", "CSE directory lookup raised an exception")
+                continue
+        return {}
 
-    # 3) Probe the remaining official Sri Lankan registry domains directly via search.
-    for flag_name, source_name, domains in OFFICIAL_REGISTRY_SOURCES:
-        if source_name == "Colombo Stock Exchange (CSE)":
-            continue
-        if results.get(flag_name):
-            continue
-        official_match = _search_official_registry(company_name, domains)
-        if official_match:
-            results[flag_name] = 1
-            results["reg_source"] = source_name
-            results["registration_method"] = f"official_registry_search:{official_match.get('source', domains[0])}"
-            results["official_registry_query"] = official_match.get("query")
-            results["official_registry_match"] = official_match.get("match")
-            _apply_government_registration_verdict(results)
-            _append_registration_trace(results["registration_trace"], 3, source_name, "registered", "Official registry search confirmed a match", query=official_match.get("query"), domain=official_match.get("source", domains[0]))
-            logger.debug("[REG:official-search] Found %s for %s via %s", source_name, company_name, official_match.get("source"))
-            return results
-        _append_registration_trace(results["registration_trace"], 3, source_name, "not_found", "No official registry match found", domains=domains)
+    def _oc_any() -> dict:
+        if not OPEN_CORPORATES_API_TOKEN:
+            return {}
+        for lookup_name in names_for_rest:
+            hit = _opencorporates_registration_lookup(lookup_name)
+            if hit:
+                hit["matched_lookup_name"] = lookup_name
+                hit["lookup_name"] = lookup_name
+                return hit
+        return {}
 
-    # 3) If official registry search returned nothing and we have a website,
-    # use simple heuristics on the site's text to detect local registry mentions.
-    if website_url:
-        page_text = _fetch_page(website_url, timeout=6).lower()
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        f_cse = pool.submit(_cse_any)
+        f_oc = pool.submit(_oc_any)
+        cse_hit = f_cse.result()
+        oc_hit = f_oc.result()
 
-        # Registrar of Companies / DRC signals
-        if any(k in page_text for k in ["registrar of companies", "registration no", "company registration", "reg no", "registered in sri lanka"]):
-            results["is_drc_registered"] = 1
+    if cse_hit:
+        _merge_registry_hit(
+            results,
+            cse_hit,
+            method="cse_api",
+            trace_source="Colombo Stock Exchange (CSE)",
+            detail="CSE API confirmed a match",
+            step=1,
+        )
+        logger.info("[REG:CSE] matched %r -> %s", company_name, cse_hit.get("reg_name"))
+    else:
+        _append_registration_trace(
+            results["registration_trace"],
+            1,
+            "Colombo Stock Exchange (CSE)",
+            "not_found",
+            "No CSE API match for input name or aliases",
+            lookup_names=lookup_names,
+        )
 
-        # Colombo Stock Exchange (CSE)
-        if any(k in page_text for k in ["colombo stock exchange", "cse", "stock exchange"]):
-            results["is_cse_listed"] = 1
+    if oc_hit:
+        _merge_registry_hit(
+            results,
+            oc_hit,
+            method="opencorporates",
+            trace_source="OpenCorporates",
+            detail="OpenCorporates confirmed a company registry match",
+            step=3,
+        )
+    else:
+        _append_registration_trace(
+            results["registration_trace"],
+            3,
+            "OpenCorporates",
+            "skipped" if not OPEN_CORPORATES_API_TOKEN else "not_found",
+            "OPEN_CORPORATES_API_TOKEN not configured"
+            if not OPEN_CORPORATES_API_TOKEN
+            else "OpenCorporates returned no Sri Lanka registry match",
+        )
 
-        # Board of Investment
-        if any(k in page_text for k in ["board of investment", "boi", "board of investment of sri lanka"]):
-            results["is_boi_registered"] = 1
+    already_strong = bool(
+        results.get("is_cse_listed")
+        or results.get("is_cbsl_licensed")
+        or results.get("is_drc_registered")
+        or results.get("is_boi_registered")
+        or results.get("is_slaasmb_registered")
+    )
 
-        # Central Bank licensing
-        if any(k in page_text for k in ["central bank", "cbsl", "central bank of sri lanka"]):
-            results["is_cbsl_licensed"] = 1
+    # --- 3) eROC (Selenium) — still try for non-banks if DRC not yet confirmed ---
+    eroc_selenium_used = False
+    if not results.get("is_drc_registered") and not finance_like:
+        for idx, lookup_name in enumerate(names_for_rest):
+            try:
+                use_sel = USE_EROC_SELENIUM and idx == 0
+                if use_sel:
+                    eroc_selenium_used = True
+                eroc = check_eroc_registration(lookup_name, use_selenium=use_sel)
+                if eroc.get("is_registered"):
+                    _merge_registry_hit(
+                        results,
+                        {
+                            "is_drc_registered": 1,
+                            "reg_number": eroc.get("reg_number"),
+                            "reg_name": eroc.get("reg_name"),
+                            "reg_source": eroc.get("source"),
+                            "matched_lookup_name": lookup_name,
+                            "lookup_name": lookup_name,
+                        },
+                        method="eroc_selenium" if use_sel else "eroc",
+                        trace_source="eROC",
+                        detail="Official eROC lookup confirmed a match"
+                        + (" (Selenium)" if use_sel else ""),
+                        step=2,
+                    )
+                    break
+            except Exception:
+                logger.debug("[REG] eROC lookup error for %s", lookup_name)
+        if not results.get("is_drc_registered"):
+            _append_registration_trace(
+                results["registration_trace"],
+                2,
+                "eROC",
+                "not_found",
+                "No eROC match returned"
+                + (" after Selenium attempt" if eroc_selenium_used else ""),
+            )
+    elif finance_like:
+        _append_registration_trace(
+            results["registration_trace"],
+            2,
+            "eROC",
+            "skipped",
+            "Skipped eROC for bank/finance entity (use CSE/CBSL/OpenCorporates)",
+        )
+    else:
+        _append_registration_trace(
+            results["registration_trace"],
+            2,
+            "eROC",
+            "skipped",
+            "Skipped eROC — DRC/OpenCorporates already confirmed",
+        )
 
-        # Insurance regulator
-        if any(k in page_text for k in ["insurance regulatory commission", "ircsl", "insurance board of sri lanka"]):
-            results["is_ircsl_registered"] = 1
+    # Optional CSE selenium (off by default)
+    if USE_CSE_SELENIUM and not results.get("is_cse_listed"):
+        try:
+            cse = _check_cse_with_selenium(company_name, timeout=8)
+            if cse.get("is_registered"):
+                _merge_registry_hit(
+                    results,
+                    {
+                        "is_registered": True,
+                        "is_cse_listed": 1,
+                        "reg_source": cse.get("source"),
+                        "cse_symbol": cse.get("symbol"),
+                        "cse_registered_name": cse.get("reg_name"),
+                        "reg_name": cse.get("reg_name"),
+                        "symbol": cse.get("symbol"),
+                    },
+                    method="cse_directory_selenium",
+                    trace_source="Colombo Stock Exchange (CSE)",
+                    detail="CSE listed-company directory confirmed a match",
+                    step=1,
+                )
+        except Exception:
+            pass
 
-        # Accounting/auditing standards board
-        if any(k in page_text for k in ["slaasmb", "accounting and auditing standards monitoring board", "specified business enterprise"]):
-            results["is_slaasmb_registered"] = 1
+    # --- 4) Compact CBSL/CSE/BOI DDGS — always useful for banks; merge ---
+    skip_heavy_search = eroc_selenium_used and SKIP_HEAVY_DDGS_AFTER_SELENIUM and not finance_like and already_strong
 
-        if any(results.values()):
-            results["registration_method"] = "website_heuristics"
-            _apply_government_registration_verdict(results)
-            _append_registration_trace(results["registration_trace"], 4, "website_heuristics", "unverified", "Website text mentioned a Sri Lanka registry keyword, but no official source was confirmed")
-            logger.debug("[REG:web-heuristics] Website heuristics matched for %s -> %s", company_name, results)
-            return results
-        _append_registration_trace(results["registration_trace"], 4, "website_heuristics", "not_found", "Website check did not show official registry keywords")
+    need_more = not (
+        results.get("is_cse_listed")
+        or results.get("is_cbsl_licensed")
+        or results.get("is_drc_registered")
+        or results.get("is_boi_registered")
+        or results.get("is_slaasmb_registered")
+    )
 
-    # 4) Fallback: try CSE/BOI via DuckDuckGo (DDGS) search if available
-    try:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            from duckduckgo_search import DDGS
+    if need_more or finance_like:
+        if not skip_heavy_search:
+            sources = OFFICIAL_REGISTRY_SOURCES
+            if finance_like:
+                sources = [
+                    s
+                    for s in OFFICIAL_REGISTRY_SOURCES
+                    if s[0]
+                    in (
+                        "is_cbsl_licensed",
+                        "is_ircsl_registered",
+                        "is_drc_registered",
+                        "is_cse_listed",
+                        "is_slaasmb_registered",
+                    )
+                ] or OFFICIAL_REGISTRY_SOURCES
+            found_official = False
+            for lookup_name in names_for_rest:
+                for flag_name, source_name, domains in sources:
+                    if source_name == "Colombo Stock Exchange (CSE)":
+                        continue
+                    if results.get(flag_name):
+                        continue
+                    official_match = _search_official_registry(lookup_name, domains)
+                    if official_match:
+                        _merge_registry_hit(
+                            results,
+                            {
+                                flag_name: 1,
+                                "reg_source": source_name,
+                                "matched_lookup_name": lookup_name,
+                                "lookup_name": lookup_name,
+                            },
+                            method=f"official_registry_search:{official_match.get('source', domains[0])}",
+                            trace_source=source_name,
+                            detail="Official registry search confirmed a match",
+                            step=4,
+                        )
+                        found_official = True
+                        break
+                if found_official:
+                    break
+            if not found_official:
+                _append_registration_trace(
+                    results["registration_trace"],
+                    4,
+                    "official_search",
+                    "not_found",
+                    "No official registry web-search match",
+                )
+        else:
+            _append_registration_trace(
+                results["registration_trace"],
+                4,
+                "official_search",
+                "skipped",
+                "Skipped heavy search — already confirmed by other sources",
+            )
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", RuntimeWarning)
-            with DDGS() as ddgs_client:
-                # CSE
-                try:
-                    r = ddgs_client.text(f'"{company_name}" site:cse.lk', max_results=3)
-                    if r:
-                        results["is_cse_listed"] = 1
-                        results["reg_source"] = "Colombo Stock Exchange (cse.lk)"
-                        results["registration_method"] = "ddgs_fallback"
-                        _apply_government_registration_verdict(results)
-                        _append_registration_trace(results["registration_trace"], 5, "DDGS:CSE", "registered", "DuckDuckGo found a matching CSE result")
-                        logger.debug("[REG:DDGS] Found CSE mention for %s", company_name)
-                        return results
-                except Exception:
-                    pass
+    # Website heuristics: hint only — never set official registry flags from page text alone
+    if website_url and need_more:
+        page_text = _fetch_page(website_url, timeout=int(REG_HTTP_TIMEOUT)).lower()
+        if any(
+            k in page_text
+            for k in [
+                "registrar of companies",
+                "registration no",
+                "company registration",
+                "reg no",
+                "registered in sri lanka",
+            ]
+        ):
+            if not any(
+                results.get(k)
+                for k in ("is_cse_listed", "is_cbsl_licensed", "is_boi_registered", "is_drc_registered")
+            ):
+                results["registration_method"] = "website_heuristics"
+                _append_registration_trace(
+                    results["registration_trace"],
+                    5,
+                    "website_heuristics",
+                    "unverified",
+                    "Website text mentioned a Sri Lanka registry keyword (not counted as official)",
+                )
 
-                # BOI
-                try:
-                    r = ddgs_client.text(f'"{company_name}" site:boi.lk', max_results=3)
-                    if r:
-                        results["is_boi_registered"] = 1
-                        results["reg_source"] = "Board of Investment (boi.lk)"
-                        results["registration_method"] = "ddgs_fallback"
-                        _apply_government_registration_verdict(results)
-                        _append_registration_trace(results["registration_trace"], 5, "DDGS:BOI", "registered", "DuckDuckGo found a matching BOI result")
-                        logger.debug("[REG:DDGS] Found BOI mention for %s", company_name)
-                        return results
-                except Exception:
-                    pass
+    # Compact DDGS CSE/CBSL/BOI — always run when still missing key flags
+    if need_more or finance_like or not results.get("is_cbsl_licensed"):
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                from duckduckgo_search import DDGS
 
-                # CBSL
-                try:
-                    r = ddgs_client.text(f'"{company_name}" site:cbsl.gov.lk', max_results=3)
-                    if r:
-                        results["is_cbsl_licensed"] = 1
-                        results["reg_source"] = "Central Bank of Sri Lanka (cbsl.gov.lk)"
-                        results["registration_method"] = "ddgs_fallback"
-                        _apply_government_registration_verdict(results)
-                        _append_registration_trace(results["registration_trace"], 5, "DDGS:CBSL", "registered", "DuckDuckGo found a matching CBSL result")
-                        logger.debug("[REG:DDGS] Found CBSL mention for %s", company_name)
-                        return results
-                except Exception:
-                    pass
-
-                # IRCSL
-                try:
-                    r = ddgs_client.text(f'"{company_name}" site:ircsl.gov.lk', max_results=3)
-                    if r:
-                        results["is_ircsl_registered"] = 1
-                        results["reg_source"] = "Insurance Regulatory Commission of Sri Lanka (ircsl.gov.lk)"
-                        results["registration_method"] = "ddgs_fallback"
-                        _apply_government_registration_verdict(results)
-                        _append_registration_trace(results["registration_trace"], 5, "DDGS:IRCSL", "registered", "DuckDuckGo found a matching IRCSL result")
-                        logger.debug("[REG:DDGS] Found IRCSL mention for %s", company_name)
-                        return results
-                except Exception:
-                    pass
-
-                # SLAASMB
-                try:
-                    r = ddgs_client.text(f'"{company_name}" site:slaasmb.gov.lk', max_results=3)
-                    if r:
-                        results["is_slaasmb_registered"] = 1
-                        results["reg_source"] = "SLAASMB (slaasmb.gov.lk)"
-                        results["registration_method"] = "ddgs_fallback"
-                        _apply_government_registration_verdict(results)
-                        _append_registration_trace(results["registration_trace"], 5, "DDGS:SLAASMB", "registered", "DuckDuckGo found a matching SLAASMB result")
-                        logger.debug("[REG:DDGS] Found SLAASMB mention for %s", company_name)
-                        return results
-                except Exception:
-                    pass
-    except Exception:
-        logger.debug("[REG] DDGS search unavailable, skipping CSE/BOI fallback")
-
-    if not any(results.values()):
-        logger.debug("[REG] No registration signal found for %s", company_name)
+            ddgs_targets = [
+                ("is_cbsl_licensed", "Central Bank of Sri Lanka (cbsl.gov.lk)", "cbsl.gov.lk", "DDGS:CBSL"),
+                ("is_cse_listed", "Colombo Stock Exchange (cse.lk)", "cse.lk", "DDGS:CSE"),
+                ("is_boi_registered", "Board of Investment (boi.lk)", "boi.lk", "DDGS:BOI"),
+            ]
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                with DDGS() as ddgs_client:
+                    for lookup_name in names_for_rest:
+                        for flag, source, site, trace_name in ddgs_targets:
+                            if results.get(flag):
+                                continue
+                            try:
+                                r = list(ddgs_client.text(f'"{lookup_name}" site:{site}', max_results=3) or [])
+                                if not r and finance_like and flag == "is_cbsl_licensed":
+                                    r = list(
+                                        ddgs_client.text(
+                                            f'"{lookup_name}" licensed OR licence site:cbsl.gov.lk',
+                                            max_results=3,
+                                        )
+                                        or []
+                                    )
+                                if r:
+                                    _merge_registry_hit(
+                                        results,
+                                        {
+                                            flag: 1,
+                                            "reg_source": source,
+                                            "matched_lookup_name": lookup_name,
+                                            "lookup_name": lookup_name,
+                                        },
+                                        method="ddgs_fallback",
+                                        trace_source=trace_name,
+                                        detail=f"DuckDuckGo found a matching {site} result",
+                                        step=6,
+                                    )
+                                    logger.info("[REG] compact DDGS hit %s for %r via %s", flag, lookup_name, site)
+                            except Exception:
+                                continue
+        except Exception:
+            logger.debug("[REG] DDGS search unavailable, skipping fallback")
 
     _apply_government_registration_verdict(results)
-    _append_registration_trace(results["registration_trace"], 6, "final", results["government_registration_status"], "Final registration decision computed", government_source=results.get("government_registration_source"))
+    # Prefer strongest human-readable source label
+    if results.get("is_cse_listed") and not results.get("reg_source"):
+        results["reg_source"] = "Colombo Stock Exchange (CSE)"
+    elif results.get("is_cbsl_licensed") and not results.get("reg_source"):
+        results["reg_source"] = "Central Bank of Sri Lanka (CBSL)"
+    elif results.get("is_drc_registered") and not results.get("reg_source"):
+        results["reg_source"] = results.get("reg_source") or "DRC / eROC / OpenCorporates"
+    elif results.get("is_slaasmb_registered") and not results.get("reg_source"):
+        results["reg_source"] = "SLAASMB Specified Business Enterprise (SBE) list"
 
+    _append_registration_trace(
+        results["registration_trace"],
+        7,
+        "final",
+        results["government_registration_status"],
+        "Final registration decision from merged sources: "
+        + (", ".join(results.get("registration_sources") or []) or "none"),
+        government_source=results.get("government_registration_source"),
+        sources=results.get("registration_sources"),
+    )
+    logger.info(
+        "[REG] final %s sources=%s cse=%s cbsl=%s drc=%s slaasmb=%s",
+        results.get("government_registration_status"),
+        results.get("registration_sources"),
+        results.get("is_cse_listed"),
+        results.get("is_cbsl_licensed"),
+        results.get("is_drc_registered"),
+        results.get("is_slaasmb_registered"),
+    )
     return results
 
 
@@ -820,9 +1295,11 @@ def check_professional_presence(company_name: str, website_url: str | None = Non
     return {
         "has_linkedin": signals.get("has_linkedin", 0),
         "has_topjobs": signals.get("has_topjobs_lk", 0),
+        "has_topjobs_lk": signals.get("has_topjobs_lk", 0),
         "has_glassdoor": signals.get("has_glassdoor", 0),
         "has_indeed": signals.get("has_indeed", 0),
         "has_ftlk": signals.get("has_ft_lk", 0),
+        "has_ft_lk": signals.get("has_ft_lk", 0),
         "has_adaderana": 0,
         "has_trustpilot": signals.get("has_trustpilot", 0),
         "has_sitejabber": signals.get("has_sitejabber", 0),
@@ -832,5 +1309,9 @@ def check_professional_presence(company_name: str, website_url: str | None = Non
         "has_social_youtube": signals.get("has_social_youtube", 0),
         "has_social_reddit": signals.get("has_social_reddit", 0),
         "has_website_reviews": signals.get("has_website_reviews", 0),
-        "has_scam_report": 0,
+        "has_positive_reviews": signals.get("has_positive_reviews", 0),
+        "has_negative_reviews": signals.get("has_negative_reviews", 0),
+        "has_ikman_lk": signals.get("has_ikman_lk", 0),
+        "social_only_presence": signals.get("social_only_presence", 0),
+        "has_scam_report": signals.get("has_scam_report", 0),
     }
