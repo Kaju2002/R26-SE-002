@@ -32,6 +32,7 @@ import InchatApplicationSwitcher from '../components/inchat/InchatApplicationSwi
 import ConversationAnalysisSheet from '../components/analysis/ConversationAnalysisSheet';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from '../components/inchat/inchatStyles';
 import type { MergeableApiResult } from '../navigation/detectStackTypes';
+import { applicationChipLabel } from '../utils/groupInchatInbox';
 
 type Props = NativeStackScreenProps<ChatStackParamList, 'InchatThread'>;
 type ThreadRow =
@@ -96,10 +97,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     [getRelatedThreads, threadId]
   );
   const relatedLabels = useMemo(
-    () =>
-      relatedThreads.map(
-        (entry) => entry.jobTitle || entry.subtitle || 'Application'
-      ),
+    () => relatedThreads.map((entry, index) => applicationChipLabel(entry, index)),
     [relatedThreads]
   );
   const relatedActiveIndex = useMemo(
@@ -586,7 +584,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             <Text style={styles.headerTitle} numberOfLines={1}>
               {thread?.participantName ?? 'Conversation'}
             </Text>
-            {relatedThreads.length <= 1 && thread?.jobTitle ? (
+            {thread?.jobTitle ? (
               <Text style={styles.headerJobTitle} numberOfLines={1}>
                 {thread.jobTitle}
               </Text>
@@ -604,20 +602,6 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             )}
           </View>
         </Pressable>
-        {relatedThreads.length > 1 ? (
-          <View style={styles.headerSwitcherWrap}>
-            <InchatApplicationSwitcher
-              labels={relatedLabels}
-              activeIndex={relatedActiveIndex >= 0 ? relatedActiveIndex : 0}
-              onSelect={(index) => {
-                const next = relatedThreads[index];
-                if (next && next.id !== threadId) {
-                  navigation.replace('InchatThread', { threadId: next.id });
-                }
-              }}
-            />
-          </View>
-        ) : null}
         <View style={styles.headerActions}>
           <Pressable
             style={[
@@ -648,6 +632,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
 
       {relatedThreads.length > 1 ? (
         <View style={styles.headerSwitcherRow}>
+          <Text style={styles.switcherHint}>Applications</Text>
           <InchatApplicationSwitcher
             labels={relatedLabels}
             activeIndex={relatedActiveIndex >= 0 ? relatedActiveIndex : 0}
@@ -909,9 +894,19 @@ const styles = StyleSheet.create({
   },
   headerSwitcherRow: {
     paddingHorizontal: 14,
+    paddingTop: 8,
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: INCHAT_BORDER,
+    backgroundColor: '#FAFBFD',
+    gap: 8,
+  },
+  switcherHint: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: INCHAT_MUTED,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
   listPad: {
     paddingHorizontal: 14,
