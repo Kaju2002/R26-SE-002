@@ -1,0 +1,67 @@
+# FraudAware — Testing Layer
+
+Dedicated test structure for the four ML / detection components.
+Use this folder to explain **Unit → API → Metrics** to the panel.
+
+## Components
+
+| Folder | Service | Focus |
+|--------|---------|--------|
+| `scam_detection/` | `services/scam-detection` | Message / chat scam classify |
+| `fake_job_detection/` | `services/fake-job-detection` | Fake vs real job posts |
+| `employer_verification/` | `services/employer-verification` | Employer risk / legitimacy |
+| `job_recommendation/` | `services/job-recommendation` | Ranking + Precision@K / Recall |
+| `chat/` | mobile / chat helpers | Optional pure-function tests (e.g. thread risk) |
+| `reports/` | generated outputs | Metrics tables / screenshots for viva |
+
+## Layout per component
+
+- `unit/` — model logic, scoring, preprocessing (no network)
+- `api/` — FastAPI endpoint smoke tests (`TestClient`)
+- `fixtures/` — fixed sample inputs (reproducible demos)
+- `metrics/` — evaluation scripts / metric assertions (recommendation)
+
+## How to run (after tests are added)
+
+From repo root:
+
+```bash
+pytest tests/ -v
+```
+
+One component only:
+
+```bash
+pytest tests/scam_detection/ -v
+```
+
+## Order we fill tests
+
+1. `scam_detection` ← **started** (fixtures + unit + mocked API)
+2. `fake_job_detection`
+3. `employer_verification`
+4. `job_recommendation`
+5. Optional `chat/` helpers
+
+### Run scam-detection tests
+
+```bash
+pip install -r tests/requirements.txt
+pip install -r services/scam-detection/requirements.txt   # for app imports (torch, fastapi, …)
+pytest tests/scam_detection/ -v
+```
+
+- **Unit** (`combine`, thresholds, explanations) — always run, no weights needed  
+- **API** — mocked model/DB  
+- **Integration** (`test_predict_integration.py`) — skips if model files missing  
+
+
+## Notes for panel
+
+- Fixtures = controlled cases (not random live data)
+- Unit tests = correctness of logic
+- API tests = service contract (`/classify`, `/predict`, …)
+- Metrics = research evaluation (precision / recall / F1)
+
+CI/CD should run `pytest tests/` after these suites exist.
+Deploy comes after CI is green.

@@ -1,0 +1,7 @@
+# Dev / CI dependencies for the FraudAware tests/ layer
+pytest>=7.0
+# httpx 0.28+ broke Starlette TestClient (`app=` kwarg); pin until FastAPI stack catches up
+httpx>=0.24,<0.28
+fastapi>=0.100
+pydantic>=1.10,<3
+numpy>=1.24

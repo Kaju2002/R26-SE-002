@@ -1,0 +1,39 @@
+{
+  "scam_samples": [
+    {
+      "id": "fee_urgency",
+      "text": "You have already completed 2 interview rounds. To finalize your offer letter, please transfer USD 120 for background verification today. Do not share this with anyone.",
+      "expected_tactics_any_of": ["urgency", "sunk_cost", "fomo", "social_proof"],
+      "notes": "Classic fee + same-day pressure"
+    },
+    {
+      "id": "slot_fee",
+      "text": "Last seat left. Pay 10000 LKR now to keep your slot or we will give it to another candidate.",
+      "expected_tactics_any_of": ["urgency", "fomo", "sunk_cost"],
+      "notes": "Scarcity + payment"
+    },
+    {
+      "id": "otp_pressure",
+      "text": "Send your OTP and bank details immediately or your onboarding will be cancelled within 1 hour.",
+      "expected_tactics_any_of": ["urgency"],
+      "notes": "Credential harvest + urgency"
+    }
+  ],
+  "safe_samples": [
+    {
+      "id": "normal_interview",
+      "text": "Hi, thanks for applying. Are you available for a 30-minute interview tomorrow at 3pm? We can meet on Google Meet.",
+      "notes": "Normal scheduling"
+    },
+    {
+      "id": "role_info",
+      "text": "The role is Hybrid in Colombo. Salary range will be discussed after the technical round. Looking forward to speaking with you.",
+      "notes": "Legitimate recruiter follow-up"
+    },
+    {
+      "id": "docs_request_soft",
+      "text": "Please bring your updated CV and portfolio link to the interview. No payment is required at any stage.",
+      "notes": "Explicitly no fee"
+    }
+  ]
+}
