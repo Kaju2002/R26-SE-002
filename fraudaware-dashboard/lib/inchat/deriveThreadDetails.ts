@@ -52,6 +52,10 @@ export function deriveThreadDetailsFromMessages(
       const name = file.fileName || 'File';
       const id = `${message.id}-${index}`;
 
+      if (message.messageType === 'audio' || mime.toLowerCase().startsWith('audio/')) {
+        return;
+      }
+
       if (isImageAttachment(message.messageType, mime)) {
         media.push({
           id,

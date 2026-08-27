@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const MESSAGE_TYPES = ["text", "image", "file", "system"];
+const MESSAGE_TYPES = ["text", "image", "file", "audio", "system"];
 const MESSAGE_STATUSES = ["sent", "delivered", "read"];
 const SCAM_CHECK_STATUSES = ["not_checked", "pending", "safe", "flagged", "error"];
 
@@ -28,6 +28,11 @@ const attachmentSchema = new mongoose.Schema(
       trim: true,
     },
     size: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    durationMs: {
       type: Number,
       default: 0,
       min: 0,

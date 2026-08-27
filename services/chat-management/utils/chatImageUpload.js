@@ -65,6 +65,38 @@ export const uploadChatDocument = async (file) => {
   };
 };
 
+export const uploadChatAudio = async (file, durationMs = 0) => {
+  if (!file?.buffer) return null;
+  // Always store as mp3 so iOS (iPhone) can play recruiter WebM recordings.
+  const uploaded = await new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder: "fraudaware/chat/audio",
+        resource_type: "video",
+        format: "mp3",
+        public_id: `voice-${Date.now()}`,
+      },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    stream.end(file.buffer);
+  });
+
+  return {
+    url: uploaded.secure_url,
+    publicId: uploaded.public_id || null,
+    fileName: cleanFileName(file.originalname, "voice-message.mp3").replace(
+      /\.(webm|ogg|m4a|mp4|wav)$/i,
+      ".mp3"
+    ),
+    mimeType: "audio/mpeg",
+    size: Number(file.size) || 0,
+    durationMs: Math.max(0, Math.round(Number(durationMs) || 0)),
+  };
+};
+
 export const deleteUploadedAttachment = async (
   publicId,
   resourceType = "image"

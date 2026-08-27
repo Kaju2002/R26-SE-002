@@ -1,9 +1,10 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Alert,
   ActivityIndicator,
   Keyboard,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -11,13 +12,14 @@ import {
   View,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { Audio } from 'expo-av';
 import { INCHAT_BORDER } from './inchatStyles';
 
 const MAX_CHARS = 2000;
-
-/** Brand-aligned send accent (matches reference paper-plane blue tone). */
 const SEND_ICON = '#2563EB';
 const ICON_GRAY = '#5F6368';
+const RECORD_RED = '#E53935';
+const MIN_VOICE_MS = 700;
 
 type AttachmentRow = {
   key: string;
@@ -26,21 +28,32 @@ type AttachmentRow = {
   onPress: () => void;
 };
 
+export type VoiceRecordingPayload = {
+  uri: string;
+  fileName: string;
+  mimeType: string;
+  durationMs: number;
+};
+
 type Props = {
   value: string;
   onChangeText: (text: string) => void;
   onSend: () => void;
   sending?: boolean;
-  /** When true, composer cannot send (e.g. conversation blocked). */
   disabled?: boolean;
   placeholder?: string;
-  /** Camera capture — parent handles permissions + append. */
   onTakePhoto?: () => void | Promise<void>;
-  /** Photo/video from library. */
   onPickFromLibrary?: () => void | Promise<void>;
-  /** PDF, DOC, or DOCX attachment. */
   onPickDocument?: () => void | Promise<void>;
+  onSendVoice?: (payload: VoiceRecordingPayload) => void | Promise<void>;
 };
+
+function formatMmSs(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
 
 export default function InchatComposer({
   value,
@@ -52,15 +65,36 @@ export default function InchatComposer({
   onTakePhoto,
   onPickFromLibrary,
   onPickDocument,
+  onSendVoice,
 }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [elapsedMs, setElapsedMs] = useState(0);
+  const recordingRef = useRef<Audio.Recording | null>(null);
+  const startedAtRef = useRef(0);
+  const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const sendingVoiceRef = useRef(false);
 
   const trimmedLen = value.trim().length;
   const sendDisabled = disabled || sending || trimmedLen === 0;
   const showSend = !disabled && trimmedLen > 0;
-  const resolvedPlaceholder = disabled ? 'You blocked this conversation' : placeholder;
+  const resolvedPlaceholder = disabled
+    ? 'You blocked this conversation'
+    : recording
+      ? 'Recording… release to send'
+      : placeholder;
 
-  const clampText = useCallback((t: string) => (t.length <= MAX_CHARS ? t : t.slice(0, MAX_CHARS)), []);
+  useEffect(() => {
+    return () => {
+      if (tickRef.current) clearInterval(tickRef.current);
+      void recordingRef.current?.stopAndUnloadAsync().catch(() => undefined);
+    };
+  }, []);
+
+  const clampText = useCallback(
+    (t: string) => (t.length <= MAX_CHARS ? t : t.slice(0, MAX_CHARS)),
+    []
+  );
 
   const handleSend = useCallback(() => {
     if (!sendDisabled) {
@@ -77,9 +111,90 @@ export default function InchatComposer({
 
   const closeMenu = useCallback(() => setMenuOpen(false), []);
 
-  const onMicPress = useCallback(() => {
-    Alert.alert('Voice message', 'Voice recording is not available in this demo.');
+  const stopTicker = useCallback(() => {
+    if (tickRef.current) {
+      clearInterval(tickRef.current);
+      tickRef.current = null;
+    }
   }, []);
+
+  const startRecording = useCallback(async () => {
+    if (disabled || sending || sendingVoiceRef.current || recordingRef.current) return;
+    if (!onSendVoice) {
+      Alert.alert('Voice message', 'Voice recording is not available.');
+      return;
+    }
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission needed', 'Allow microphone access to send voice messages.');
+        return;
+      }
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+      const next = new Audio.Recording();
+      await next.prepareToRecordAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY);
+      await next.startAsync();
+      recordingRef.current = next;
+      startedAtRef.current = Date.now();
+      setElapsedMs(0);
+      setRecording(true);
+      setMenuOpen(false);
+      Keyboard.dismiss();
+      stopTicker();
+      tickRef.current = setInterval(() => {
+        setElapsedMs(Date.now() - startedAtRef.current);
+      }, 250);
+    } catch (error) {
+      recordingRef.current = null;
+      setRecording(false);
+      Alert.alert(
+        'Could not record',
+        error instanceof Error ? error.message : 'Microphone failed to start.'
+      );
+    }
+  }, [disabled, onSendVoice, sending, stopTicker]);
+
+  const finishRecording = useCallback(async () => {
+    const active = recordingRef.current;
+    if (!active) {
+      setRecording(false);
+      stopTicker();
+      return;
+    }
+    recordingRef.current = null;
+    stopTicker();
+    setRecording(false);
+    const durationMs = Date.now() - startedAtRef.current;
+    setElapsedMs(0);
+
+    try {
+      await active.stopAndUnloadAsync();
+      await Audio.setAudioModeAsync({ allowsRecordingIOS: false });
+      const uri = active.getURI();
+      if (!uri || !onSendVoice) return;
+      if (durationMs < MIN_VOICE_MS) {
+        Alert.alert('Too short', 'Hold the mic a bit longer to record.');
+        return;
+      }
+      sendingVoiceRef.current = true;
+      await onSendVoice({
+        uri,
+        fileName: `voice-${Date.now()}.m4a`,
+        mimeType: Platform.OS === 'ios' ? 'audio/mp4' : 'audio/mp4',
+        durationMs,
+      });
+    } catch (error) {
+      Alert.alert(
+        'Voice send failed',
+        error instanceof Error ? error.message : 'Could not send voice message.'
+      );
+    } finally {
+      sendingVoiceRef.current = false;
+    }
+  }, [onSendVoice, stopTicker]);
 
   const runAttachment = useCallback(
     async (fn?: () => void | Promise<void>) => {
@@ -119,13 +234,6 @@ export default function InchatComposer({
       onPress: () =>
         Alert.alert('GIF', 'GIF search is not available in this demo.'),
     },
-    {
-      key: 'mention',
-      icon: 'at',
-      label: 'Mention a person',
-      onPress: () =>
-        Alert.alert('Mention', 'Type @ followed by a name in your message.'),
-    },
   ];
 
   const LeftIconBtn = menuOpen ? (
@@ -141,7 +249,7 @@ export default function InchatComposer({
     <TouchableOpacity
       style={styles.iconHit}
       onPress={toggleMenu}
-      disabled={disabled}
+      disabled={disabled || recording}
       accessibilityRole="button"
       accessibilityLabel="Attachments"
     >
@@ -164,19 +272,31 @@ export default function InchatComposer({
       )}
     </TouchableOpacity>
   ) : (
-    <TouchableOpacity
-      style={styles.iconHit}
-      onPress={onMicPress}
-      disabled={disabled}
+    <Pressable
+      style={[styles.iconHit, recording && styles.micRecording]}
+      onPressIn={() => void startRecording()}
+      onPressOut={() => void finishRecording()}
+      disabled={disabled || sending || !onSendVoice}
       accessibilityRole="button"
-      accessibilityLabel="Record voice message"
+      accessibilityLabel="Hold to record voice message"
     >
-      <MaterialCommunityIcons name="microphone" size={26} color={ICON_GRAY} />
-    </TouchableOpacity>
+      <MaterialCommunityIcons
+        name={recording ? 'microphone' : 'microphone'}
+        size={26}
+        color={recording ? '#fff' : ICON_GRAY}
+      />
+    </Pressable>
   );
 
   return (
     <View style={styles.wrap}>
+      {recording ? (
+        <View style={styles.recordingBanner}>
+          <View style={styles.recordingDot} />
+          <Text style={styles.recordingText}>Recording {formatMmSs(elapsedMs)}</Text>
+          <Text style={styles.recordingHint}>Release to send</Text>
+        </View>
+      ) : null}
       <View style={styles.barRow}>
         {LeftIconBtn}
         <TextInput
@@ -187,7 +307,7 @@ export default function InchatComposer({
           placeholderTextColor="#9CA3AF"
           multiline
           maxLength={MAX_CHARS}
-          editable={!sending && !disabled}
+          editable={!sending && !disabled && !recording}
           onFocus={() => setMenuOpen(false)}
         />
         {RightAction}
@@ -223,6 +343,30 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 10,
   },
+  recordingBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+    paddingHorizontal: 8,
+  },
+  recordingDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: RECORD_RED,
+  },
+  recordingText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '700',
+    color: RECORD_RED,
+  },
+  recordingHint: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: ICON_GRAY,
+  },
   barRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -234,6 +378,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 2,
+    borderRadius: 22,
+  },
+  micRecording: {
+    backgroundColor: RECORD_RED,
   },
   inputPill: {
     flex: 1,
@@ -243,7 +391,7 @@ const styles = StyleSheet.create({
     color: '#111827',
     fontWeight: '500',
     paddingHorizontal: 16,
-    paddingVertical: PlatformIOSPadding(),
+    paddingVertical: Platform.OS === 'ios' ? 11 : 10,
     borderRadius: 22,
     backgroundColor: '#F0F2F5',
   },
@@ -265,8 +413,3 @@ const styles = StyleSheet.create({
     color: '#1F2937',
   },
 });
-
-/** Extra vertical padding so single-line text sits centered in the pill */
-function PlatformIOSPadding(): number {
-  return Platform.OS === 'ios' ? 11 : 10;
-}

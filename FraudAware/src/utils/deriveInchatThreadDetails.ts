@@ -46,7 +46,12 @@ export function deriveInchatThreadDetails(
       const mime = file.mimeType || '';
       const fileName = file.fileName || 'File';
 
-      if (isImage(message.messageType, mime)) {
+  // Skip voice notes from Media / Documents (they play in-chat only).
+  if (message.messageType === 'audio' || mime.toLowerCase().startsWith('audio/')) {
+    return;
+  }
+
+  if (isImage(message.messageType, mime)) {
         media.push({ id, url: file.url, fileName });
         return;
       }

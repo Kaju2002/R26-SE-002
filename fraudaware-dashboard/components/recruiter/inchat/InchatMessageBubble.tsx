@@ -2,12 +2,15 @@
 
 import type { InchatMessage } from '@/lib/inchat/types';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
+import InchatVoicePlayer from '@/components/recruiter/inchat/InchatVoicePlayer';
 
 type Props = {
   message: InchatMessage;
   participantName?: string;
   participantInitials?: string;
   participantAvatarUrl?: string;
+  selfAvatarUrl?: string;
+  selfInitials?: string;
 };
 
 type ReceiptStatus = 'sent' | 'delivered' | 'read';
@@ -75,11 +78,34 @@ function CheckIcon() {
   );
 }
 
+function SideAvatar({ url, initials }: { url?: string; initials: string }) {
+  return url ? (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={url}
+      alt=""
+      className="mt-5 h-8 w-8 shrink-0 rounded-full object-cover"
+      style={{ backgroundColor: '#E3E6F5' }}
+    />
+  ) : (
+    <div className="mt-5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E3E6F5]">
+      <span
+        className="text-[10px] font-bold"
+        style={{ color: INCHAT_NAVY, fontFamily: 'var(--font-poppins)' }}
+      >
+        {initials}
+      </span>
+    </div>
+  );
+}
+
 export default function InchatMessageBubble({
   message,
   participantName = 'Applicant',
   participantInitials = 'A',
   participantAvatarUrl,
+  selfAvatarUrl,
+  selfInitials = 'ME',
 }: Props) {
   const mine = message.role === 'recruiter';
   const isUnsent = message.unsent === true;
@@ -92,35 +118,25 @@ export default function InchatMessageBubble({
     message.messageType === 'file'
       ? message.attachments?.find((attachment) => attachment.url)
       : undefined;
+  const audioAttachment =
+    message.messageType === 'audio'
+      ? message.attachments?.find((attachment) => attachment.url)
+      : undefined;
   const compactMeta =
     !imageAttachment &&
     !fileAttachment &&
+    !audioAttachment &&
     message.body.length <= 28 &&
     !message.body.includes('\n');
   // Recruiter portal: never show scam badges (warnings are for jobseekers on mobile).
   const isFlagged = false;
+  const voiceAvatarUrl = mine ? selfAvatarUrl : participantAvatarUrl;
+  const voiceInitials = mine ? selfInitials : participantInitials;
 
   return (
     <div className={`mb-4 flex max-w-[88%] gap-2.5 ${mine ? 'ml-auto justify-end' : 'mr-auto'}`}>
       {!mine ? (
-        participantAvatarUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={participantAvatarUrl}
-            alt=""
-            className="mt-5 h-8 w-8 shrink-0 rounded-full object-cover"
-            style={{ backgroundColor: '#E3E6F5' }}
-          />
-        ) : (
-          <div className="mt-5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#E3E6F5]">
-            <span
-              className="text-[10px] font-bold"
-              style={{ color: INCHAT_NAVY, fontFamily: 'var(--font-poppins)' }}
-            >
-              {participantInitials}
-            </span>
-          </div>
-        )
+        <SideAvatar url={participantAvatarUrl} initials={participantInitials} />
       ) : null}
 
       <div className={mine ? 'text-right' : 'text-left'}>
@@ -131,12 +147,16 @@ export default function InchatMessageBubble({
           {mine ? 'You' : participantName}
         </p>
         <div
-          className={`inline-block max-w-full rounded-md px-3 pb-1.5 pt-2 text-left ${
+          className={`inline-block max-w-full rounded-md text-left ${
             isFlagged
-              ? 'border border-red-300 bg-red-50'
-              : mine
-                ? 'bg-[#EEF0F8]'
-                : 'border bg-[#F3F5F8]'
+              ? 'border border-red-300 bg-red-50 px-3 pb-1.5 pt-2'
+              : audioAttachment
+                ? mine
+                  ? 'bg-[#EEF0F8] px-2.5 pb-1 pt-1.5'
+                  : 'border bg-[#F3F5F8] px-2.5 pb-1 pt-1.5'
+                : mine
+                  ? 'bg-[#EEF0F8] px-3 pb-1.5 pt-2'
+                  : 'border bg-[#F3F5F8] px-3 pb-1.5 pt-2'
           }`}
           style={!mine && !isFlagged ? { borderColor: INCHAT_BORDER } : undefined}
         >
@@ -165,6 +185,15 @@ export default function InchatMessageBubble({
                 className="h-48 w-64 max-w-full rounded-md bg-[#E5E7EB] object-cover"
               />
             </a>
+          ) : null}
+          {audioAttachment ? (
+            <InchatVoicePlayer
+              url={audioAttachment.url}
+              durationMs={audioAttachment.durationMs}
+              mine={mine}
+              avatarUrl={voiceAvatarUrl}
+              initials={voiceInitials}
+            />
           ) : null}
           {fileAttachment ? (
             <a
@@ -232,7 +261,7 @@ export default function InchatMessageBubble({
             </p>
           ) : null}
           {!compactMeta ? (
-            <div className="mt-1 flex items-center justify-end">
+            <div className="mt-0.5 flex items-center justify-end">
               <span
                 className="text-[11px] font-semibold"
                 style={{ color: INCHAT_MUTED, fontFamily: 'var(--font-poppins)' }}

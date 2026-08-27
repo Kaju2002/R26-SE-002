@@ -16,6 +16,30 @@ const ALLOWED_DOCUMENT_MIME_TYPES = new Set([
 ]);
 const ALLOWED_DOCUMENT_EXTENSIONS = new Set([".pdf", ".doc", ".docx"]);
 
+const ALLOWED_AUDIO_MIME_TYPES = new Set([
+  "audio/mp4",
+  "audio/m4a",
+  "audio/x-m4a",
+  "audio/aac",
+  "audio/mpeg",
+  "audio/mp3",
+  "audio/wav",
+  "audio/webm",
+  "audio/ogg",
+  "audio/x-wav",
+  "audio/3gpp",
+]);
+const ALLOWED_AUDIO_EXTENSIONS = new Set([
+  ".m4a",
+  ".mp4",
+  ".aac",
+  ".mp3",
+  ".wav",
+  ".webm",
+  ".ogg",
+  ".3gp",
+]);
+
 const chatAttachmentUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024, files: 1 },
@@ -33,9 +57,18 @@ const chatAttachmentUpload = multer({
       callback(null, true);
       return;
     }
+    if (
+      file.fieldname === "audio" &&
+      (ALLOWED_AUDIO_MIME_TYPES.has(file.mimetype) ||
+        ALLOWED_AUDIO_EXTENSIONS.has(extension) ||
+        file.mimetype.startsWith("audio/"))
+    ) {
+      callback(null, true);
+      return;
+    }
     callback(
       new Error(
-        "Invalid attachment. Use JPG, PNG, GIF, WebP, PDF, DOC, or DOCX."
+        "Invalid attachment. Use JPG, PNG, GIF, WebP, PDF, DOC, DOCX, or audio (m4a/mp3/webm/wav)."
       )
     );
   },
@@ -44,6 +77,7 @@ const chatAttachmentUpload = multer({
 const uploadSingleChatAttachment = chatAttachmentUpload.fields([
   { name: "image", maxCount: 1 },
   { name: "document", maxCount: 1 },
+  { name: "audio", maxCount: 1 },
 ]);
 
 export const uploadChatAttachment = (req, res, next) => {
@@ -55,7 +89,9 @@ export const uploadChatAttachment = (req, res, next) => {
 
     const image = req.files?.image?.[0];
     const document = req.files?.document?.[0];
-    if (image && document) {
+    const audio = req.files?.audio?.[0];
+    const present = [image, document, audio].filter(Boolean);
+    if (present.length > 1) {
       const attachmentError = new Error("Send only one attachment per message.");
       attachmentError.status = 400;
       return next(attachmentError);
@@ -64,6 +100,11 @@ export const uploadChatAttachment = (req, res, next) => {
       const imageError = new Error("Images cannot exceed 5 MB.");
       imageError.status = 413;
       return next(imageError);
+    }
+    if (audio && audio.size > 8 * 1024 * 1024) {
+      const audioError = new Error("Voice messages cannot exceed 8 MB.");
+      audioError.status = 413;
+      return next(audioError);
     }
     return next();
   });

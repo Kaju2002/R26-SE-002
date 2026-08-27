@@ -6,6 +6,7 @@ import InchatComposer from '@/components/recruiter/inchat/InchatComposer';
 import InchatConversationHeader from '@/components/recruiter/inchat/InchatConversationHeader';
 import InchatMessageBubble from '@/components/recruiter/inchat/InchatMessageBubble';
 import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
+import { getStoredUser } from '@/lib/auth/session';
 import { useInchatBasePath } from '@/lib/inchat/InchatBasePathContext';
 import { INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 import type { InchatMessage, InchatThread } from '@/lib/inchat/types';
@@ -29,6 +30,16 @@ function dateLabelForMessage(message: InchatMessage): string {
   return /\d{1,2}:\d{2}/.test(message.timeLabel) ? 'Today' : message.timeLabel;
 }
 
+function initialsFromName(name?: string | null): string {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return 'ME';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+}
+
 type Props = {
   thread: InchatThread;
   showBack?: boolean;
@@ -45,6 +56,7 @@ export default function InchatThreadPanel({
     appendRecruiterMessage,
     appendRecruiterImage,
     appendRecruiterDocument,
+    appendRecruiterAudio,
     deleteMessage,
     clearConversation,
     setConversationSaved,
@@ -58,6 +70,9 @@ export default function InchatThreadPanel({
   } = useInchat();
   const router = useRouter();
   const basePath = useInchatBasePath();
+  const selfUser = useMemo(() => getStoredUser(), []);
+  const selfAvatarUrl = selfUser?.avatar || selfUser?.company?.logo || undefined;
+  const selfInitials = initialsFromName(selfUser?.fullName || selfUser?.firstName);
   const [draft, setDraft] = useState('');
   const [sendBusy, setSendBusy] = useState(false);
   const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
@@ -182,6 +197,20 @@ export default function InchatThreadPanel({
       }
     },
     [appendRecruiterDocument, draft, isBlocked, sendBusy, thread.id]
+  );
+
+  const onAttachAudio = useCallback(
+    async (file: File, durationMs: number) => {
+      if (sendBusy || isBlocked) return;
+      setSendBusy(true);
+      try {
+        await appendRecruiterAudio(thread.id, file, durationMs, draft.trim());
+        setDraft('');
+      } finally {
+        setSendBusy(false);
+      }
+    },
+    [appendRecruiterAudio, draft, isBlocked, sendBusy, thread.id]
   );
 
   const onDelete = useCallback(
@@ -334,6 +363,8 @@ export default function InchatThreadPanel({
                     participantName={thread.participantName}
                     participantInitials={thread.initials}
                     participantAvatarUrl={thread.avatarUrl}
+                    selfAvatarUrl={selfAvatarUrl}
+                    selfInitials={selfInitials}
                   />
                 </button>
                 {menuMessageId === row.message.id ? (
@@ -401,6 +432,7 @@ export default function InchatThreadPanel({
           onSend={() => void onSend()}
           onAttachImage={onAttachImage}
           onAttachDocument={onAttachDocument}
+          onAttachAudio={onAttachAudio}
           sending={sendBusy}
           disabled={isBlocked}
           templateVariables={{

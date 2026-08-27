@@ -62,3 +62,13 @@ export const authMiddleware = (req, res, next) => {
     });
   }
 };
+
+export const requireSuperAdmin = (req, res, next) => {
+  if (req.accountType !== "superadmin") {
+    return res.status(403).json({
+      success: false,
+      message: "Super admin access required",
+    });
+  }
+  next();
+};

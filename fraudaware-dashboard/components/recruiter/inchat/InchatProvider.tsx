@@ -19,6 +19,7 @@ import {
   markConversationRead,
   sendConversationDocumentMessage,
   sendConversationImageMessage,
+  sendConversationAudioMessage,
   sendConversationMessage,
   updateConversationSaved as updateConversationSavedApi,
   updateConversationStatus as updateConversationStatusApi,
@@ -56,6 +57,12 @@ type InchatContextValue = {
   appendRecruiterMessage: (threadId: string, body: string) => Promise<void>;
   appendRecruiterImage: (threadId: string, file: File, caption?: string) => Promise<void>;
   appendRecruiterDocument: (threadId: string, file: File, caption?: string) => Promise<void>;
+  appendRecruiterAudio: (
+    threadId: string,
+    file: File,
+    durationMs?: number,
+    caption?: string
+  ) => Promise<void>;
   deleteMessage: (
     threadId: string,
     messageId: string,
@@ -818,6 +825,29 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [activeWorkspaceId, commitSentAttachment, conversations]
   );
 
+  const appendRecruiterAudio = useCallback(
+    async (threadId: string, file: File, durationMs = 0, caption = '') => {
+      const token = getStoredToken();
+      const workspaceId = activeWorkspaceId;
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!token || !workspaceId || !conversation || !file) return;
+
+      socketRef.current?.emit('typing:stop', { conversationId: threadId, workspaceId });
+      setTypingByThread((previous) => ({ ...previous, [threadId]: false }));
+
+      const sent = await sendConversationAudioMessage(
+        token,
+        threadId,
+        file,
+        workspaceId,
+        durationMs,
+        caption
+      );
+      await commitSentAttachment(threadId, sent);
+    },
+    [activeWorkspaceId, commitSentAttachment, conversations]
+  );
+
   const deleteMessage = useCallback(
     async (threadId: string, messageId: string, mode: DeleteMessageMode) => {
       const token = getStoredToken();
@@ -998,6 +1028,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       appendRecruiterMessage,
       appendRecruiterImage,
       appendRecruiterDocument,
+      appendRecruiterAudio,
       deleteMessage,
       clearConversation,
       setConversationStatus,
@@ -1019,6 +1050,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       appendRecruiterMessage,
       appendRecruiterImage,
       appendRecruiterDocument,
+      appendRecruiterAudio,
       deleteMessage,
       clearConversation,
       setConversationStatus,

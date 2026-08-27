@@ -1,0 +1,2 @@
+# Precision@K / Recall / F1 style metric checks.
+# Can wrap or call scripts under services/job-recommendation/evaluation/

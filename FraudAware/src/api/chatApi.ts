@@ -15,13 +15,14 @@ export type ChatAttachment = {
   fileName: string;
   mimeType: string;
   size: number;
+  durationMs?: number;
 };
 
 export type ChatMessage = {
   id: string;
   conversationId: string;
   senderId: string;
-  messageType: 'text' | 'image' | 'file' | 'system';
+  messageType: 'text' | 'image' | 'file' | 'audio' | 'system';
   body: string;
   attachments: ChatAttachment[];
   status: 'sent' | 'delivered' | 'read';
@@ -210,6 +211,13 @@ export type ChatDocumentUpload = {
   mimeType: string;
 };
 
+export type ChatAudioUpload = {
+  uri: string;
+  fileName?: string | null;
+  mimeType?: string | null;
+  durationMs?: number;
+};
+
 /** Upload and send one PDF, DOC, or DOCX, with an optional caption. */
 export async function sendConversationDocumentMessage(
   token: string,
@@ -226,6 +234,36 @@ export async function sendConversationDocumentMessage(
     document.mimeType
   );
   if (body.trim()) form.append('body', body.trim());
+
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages`,
+    {
+      method: 'POST',
+      headers: authHeaders(token),
+      body: form,
+    }
+  );
+
+  return (await parseJson<SendMessageResponse>(response)).chatMessage;
+}
+
+/** Upload and send one voice note (field: audio). */
+export async function sendConversationAudioMessage(
+  token: string,
+  conversationId: string,
+  audio: ChatAudioUpload,
+  body = ''
+): Promise<ChatMessage> {
+  const form = new FormData();
+  form.append('audio', {
+    uri: audio.uri,
+    name: audio.fileName || 'voice-message.m4a',
+    type: audio.mimeType || 'audio/mp4',
+  } as unknown as Blob);
+  if (body.trim()) form.append('body', body.trim());
+  if (audio.durationMs && audio.durationMs > 0) {
+    form.append('durationMs', String(Math.round(audio.durationMs)));
+  }
 
   const response = await fetch(
     `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages`,

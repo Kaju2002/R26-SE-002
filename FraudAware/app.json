@@ -16,7 +16,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "y",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSMicrophoneUsageDescription": "Allow FraudAware to record voice messages in InChat."
       }
     },
     "android": {
@@ -38,6 +39,12 @@
         "expo-image-picker",
         {
           "photosPermission": "Allow FraudAware to access your photos to upload chat screenshots."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": "Allow FraudAware to record voice messages in InChat."
         }
       ],
       "expo-font",

@@ -25,10 +25,12 @@ import { getOrCreateDeviceUserId } from '../lib/deviceUserId';
 import { readClassifyError } from '../utils/readClassifyError';
 import { promptAnalysisServerReady } from '../utils/analysisServerGate';
 import { useInchat } from '../context/InchatContext';
+import { useProfile } from '../context/ProfileContext';
 import type { InchatMessage } from '../../data/inchatMessages';
 import InchatMessageBubble from '../components/inchat/InchatMessageBubble';
 import InchatComposer from '../components/inchat/InchatComposer';
 import InchatApplicationSwitcher from '../components/inchat/InchatApplicationSwitcher';
+import InchatReportSheet from '../components/inchat/InchatReportSheet';
 import ConversationAnalysisSheet from '../components/analysis/ConversationAnalysisSheet';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from '../components/inchat/inchatStyles';
 import type { MergeableApiResult } from '../navigation/detectStackTypes';
@@ -38,6 +40,16 @@ type Props = NativeStackScreenProps<ChatStackParamList, 'InchatThread'>;
 type ThreadRow =
   | { type: 'date'; id: string; label: string }
   | { type: 'message'; id: string; message: InchatMessage };
+
+function initialsFromName(name?: string | null): string {
+  const parts = String(name || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+  if (!parts.length) return '?';
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return `${parts[0][0] || ''}${parts[1][0] || ''}`.toUpperCase();
+}
 
 function transcriptFromMessages(messages: InchatMessage[]): string {
   return messages
@@ -80,6 +92,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     appendUserMessage,
     appendUserImageMessage,
     appendUserDocumentMessage,
+    appendUserAudioMessage,
     deleteMessage,
     clearConversation,
     setConversationSaved,
@@ -91,7 +104,13 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     getPeerPresence,
     setTyping,
   } = useInchat();
+  const { profile } = useProfile();
   const thread = getThreadById(threadId);
+  const peerAvatarUrl = thread?.avatarUrl;
+  const peerInitials =
+    thread?.initials || initialsFromName(thread?.participantName);
+  const selfAvatarUrl = profile?.avatar || undefined;
+  const selfInitials = initialsFromName(profile?.fullName || profile?.shortName);
   const relatedThreads = useMemo(
     () => getRelatedThreads(threadId),
     [getRelatedThreads, threadId]
@@ -119,6 +138,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
   }>({ visible: false, result: null, pastedMessage: '' });
 
   const [threadMenuVisible, setThreadMenuVisible] = useState(false);
+  const [reportSheetVisible, setReportSheetVisible] = useState(false);
 
   const messages = useMemo(() => getCombinedMessages(threadId), [getCombinedMessages, threadId]);
 
@@ -243,17 +263,27 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
           </View>
         );
       }
+      const bubble = (
+        <InchatMessageBubble
+          message={item.message}
+          peerAvatarUrl={peerAvatarUrl}
+          peerInitials={peerInitials}
+          selfAvatarUrl={selfAvatarUrl}
+          selfInitials={selfInitials}
+          onReportScam={() => setReportSheetVisible(true)}
+        />
+      );
       const canOpenMenu = !item.message.deletedForEveryone && !item.message.unsent;
       if (!canOpenMenu) {
-        return <InchatMessageBubble message={item.message} />;
+        return bubble;
       }
       return (
         <Pressable onLongPress={() => onMessageLongPress(item.message)} delayLongPress={260}>
-          <InchatMessageBubble message={item.message} />
+          {bubble}
         </Pressable>
       );
     },
-    [onMessageLongPress]
+    [onMessageLongPress, peerAvatarUrl, peerInitials, selfAvatarUrl, selfInitials]
   );
 
   const keyExtractor = useCallback((r: ThreadRow) => r.id, []);
@@ -378,6 +408,30 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     thread?.iBlocked,
     threadId,
   ]);
+
+  const onSendVoice = useCallback(
+    async (payload: {
+      uri: string;
+      fileName: string;
+      mimeType: string;
+      durationMs: number;
+    }) => {
+      if (sendBusy || thread?.iBlocked) return;
+      setSendBusy(true);
+      try {
+        await appendUserAudioMessage(threadId, payload, draft.trim());
+        setDraft('');
+      } catch (error) {
+        Alert.alert(
+          'Could not send voice message',
+          error instanceof Error ? error.message : 'Please try again.'
+        );
+      } finally {
+        setSendBusy(false);
+      }
+    },
+    [appendUserAudioMessage, draft, sendBusy, thread?.iBlocked, threadId]
+  );
 
   const onAnalyzeConversation = useCallback(async () => {
     const text = transcript.trim();
@@ -685,6 +739,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
             onPickDocument={onPickDocument}
             onTakePhoto={onTakePhoto}
             onPickFromLibrary={onPickFromLibrary}
+            onSendVoice={onSendVoice}
           />
         </View>
       </KeyboardAvoidingView>
@@ -693,6 +748,13 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         onClose={closeAnalysisSheet}
         result={analysisSheet.result}
         pastedMessage={analysisSheet.pastedMessage}
+      />
+      <InchatReportSheet
+        visible={reportSheetVisible}
+        conversationId={threadId}
+        peerLabel={thread?.participantName}
+        jobLabel={thread?.jobTitle}
+        onClose={() => setReportSheetVisible(false)}
       />
       <Modal
         visible={threadMenuVisible}

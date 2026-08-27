@@ -13,9 +13,19 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { InchatMessage } from '../../../data/inchatMessages';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from './inchatStyles';
+import InchatVoicePlayer from './InchatVoicePlayer';
+import InchatScamSafetyBanner from './InchatScamSafetyBanner';
 
 type Props = {
   message: InchatMessage;
+  /** Contact / peer profile photo (received voice notes). */
+  peerAvatarUrl?: string | null;
+  peerInitials?: string;
+  /** Logged-in user profile photo (sent voice notes). */
+  selfAvatarUrl?: string | null;
+  selfInitials?: string;
+  /** Opens Report → evidence pack for this conversation. */
+  onReportScam?: () => void;
 };
 
 const IMAGE_SIZE = 220;
@@ -138,7 +148,14 @@ function ReceiptTicks({
   );
 }
 
-export default function InchatMessageBubble({ message }: Props) {
+export default function InchatMessageBubble({
+  message,
+  peerAvatarUrl,
+  peerInitials,
+  selfAvatarUrl,
+  selfInitials,
+  onReportScam,
+}: Props) {
   const mine = message.role === 'user';
   const isUnsent = message.unsent === true;
   // FraudAware: warn jobseekers on inbound recruiter messages only.
@@ -152,14 +169,21 @@ export default function InchatMessageBubble({ message }: Props) {
     message.messageType === 'file'
       ? message.attachments?.find((attachment) => attachment.url)
       : undefined;
+  const audioAttachment =
+    message.messageType === 'audio'
+      ? message.attachments?.find((attachment) => attachment.url)
+      : undefined;
+  const voiceAvatarUrl = mine ? selfAvatarUrl : peerAvatarUrl;
+  const voiceInitials = mine ? selfInitials || 'ME' : peerInitials || '?';
   const compactMeta =
     !imageAttachment &&
     !fileAttachment &&
+    !audioAttachment &&
     !isFlagged &&
     message.body.length <= 28 &&
     !message.body.includes('\n');
   const receiptColor =
-    status === 'read' ? '#53BDEB' : mine && !isFlagged ? 'rgba(255,255,255,0.92)' : INCHAT_MUTED;
+    status === 'read' ? '#53BDEB' : mine ? 'rgba(255,255,255,0.92)' : INCHAT_MUTED;
 
   return (
     <View style={[styles.wrap, mine ? styles.wrapMine : styles.wrapTheirs]}>
@@ -168,108 +192,123 @@ export default function InchatMessageBubble({ message }: Props) {
           styles.bubble,
           mine ? styles.bubbleMine : styles.bubbleTheirs,
           isFlagged && styles.bubbleFlagged,
-          Boolean(imageAttachment || fileAttachment) && styles.bubbleWithImage,
+          Boolean(imageAttachment || fileAttachment || audioAttachment) &&
+            !isFlagged &&
+            styles.bubbleWithImage,
+          Boolean(audioAttachment) && !isFlagged && styles.bubbleWithAudio,
+          isFlagged && styles.bubbleCombined,
         ]}
       >
-        {isFlagged ? (
-          <Text style={styles.flagTitle}>
-            ⚠ Potential scam
-            {message.scamAnalysis?.score !== null && message.scamAnalysis?.score !== undefined
-              ? ` · ${Math.round(message.scamAnalysis.score * 100)}% risk`
-              : ''}
-          </Text>
-        ) : null}
-        {imageAttachment ? (
-          <MessageImage
-            uri={imageAttachment.url}
-            label={imageAttachment.fileName || 'Chat image'}
-          />
-        ) : null}
-        {fileAttachment ? (
-          <Pressable
-            style={styles.fileCard}
-            onPress={() => {
-              void Linking.openURL(fileAttachment.url).catch(() => {
-                Alert.alert('Open failed', 'Could not open this document.');
-              });
-            }}
-            accessibilityRole="link"
-            accessibilityLabel={`Open ${displayFileName(fileAttachment.fileName)}`}
-          >
-            <View style={styles.fileIcon}>
-              <MaterialCommunityIcons
-                name="file-document-outline"
-                size={26}
-                color={INCHAT_NAVY}
-              />
-            </View>
-            <View style={styles.fileText}>
-              <Text style={styles.fileName} numberOfLines={2}>
-                {displayFileName(fileAttachment.fileName)}
+        <View
+          style={[
+            isFlagged && styles.bubbleContent,
+            isFlagged &&
+              Boolean(imageAttachment || fileAttachment || audioAttachment) &&
+              styles.bubbleWithImage,
+            isFlagged && Boolean(audioAttachment) && styles.bubbleWithAudio,
+          ]}
+        >
+          {imageAttachment ? (
+            <MessageImage
+              uri={imageAttachment.url}
+              label={imageAttachment.fileName || 'Chat image'}
+            />
+          ) : null}
+          {audioAttachment ? (
+            <InchatVoicePlayer
+              url={audioAttachment.url}
+              durationMs={audioAttachment.durationMs}
+              mine={mine}
+              avatarUrl={voiceAvatarUrl}
+              initials={voiceInitials}
+            />
+          ) : null}
+          {fileAttachment ? (
+            <Pressable
+              style={styles.fileCard}
+              onPress={() => {
+                void Linking.openURL(fileAttachment.url).catch(() => {
+                  Alert.alert('Open failed', 'Could not open this document.');
+                });
+              }}
+              accessibilityRole="link"
+              accessibilityLabel={`Open ${displayFileName(fileAttachment.fileName)}`}
+            >
+              <View style={styles.fileIcon}>
+                <MaterialCommunityIcons
+                  name="file-document-outline"
+                  size={26}
+                  color={INCHAT_NAVY}
+                />
+              </View>
+              <View style={styles.fileText}>
+                <Text style={styles.fileName} numberOfLines={2}>
+                  {displayFileName(fileAttachment.fileName)}
+                </Text>
+                <Text style={styles.fileMeta}>
+                  {displayFileName(fileAttachment.fileName).split('.').pop()?.toUpperCase() ||
+                    'DOCUMENT'}
+                  {fileAttachment.size ? ` · ${formatFileSize(fileAttachment.size)}` : ''}
+                </Text>
+              </View>
+              <MaterialCommunityIcons name="open-in-new" size={19} color={INCHAT_NAVY} />
+            </Pressable>
+          ) : null}
+          {compactMeta ? (
+            <View style={styles.compactRow}>
+              <Text
+                style={[
+                  styles.body,
+                  styles.compactBody,
+                  mine ? styles.bodyMine : styles.bodyTheirs,
+                  isUnsent && styles.bodyUnsent,
+                ]}
+              >
+                {message.body}
               </Text>
-              <Text style={styles.fileMeta}>
-                {displayFileName(fileAttachment.fileName).split('.').pop()?.toUpperCase() ||
-                  'DOCUMENT'}
-                {fileAttachment.size ? ` · ${formatFileSize(fileAttachment.size)}` : ''}
-              </Text>
+              <View style={styles.compactMeta}>
+                <Text style={[styles.time, mine ? styles.timeMine : styles.timeTheirs]}>
+                  {message.timeLabel}
+                </Text>
+                {status ? <ReceiptTicks status={status} color={receiptColor} /> : null}
+              </View>
             </View>
-            <MaterialCommunityIcons name="open-in-new" size={19} color={INCHAT_NAVY} />
-          </Pressable>
-        ) : null}
-        {compactMeta ? (
-          <View style={styles.compactRow}>
+          ) : message.body ? (
             <Text
               style={[
                 styles.body,
-                styles.compactBody,
-                mine && !isFlagged ? styles.bodyMine : styles.bodyTheirs,
+                mine ? styles.bodyMine : styles.bodyTheirs,
                 isUnsent && styles.bodyUnsent,
+                Boolean(imageAttachment || fileAttachment || audioAttachment) &&
+                  styles.inlineWithImage,
               ]}
             >
               {message.body}
             </Text>
-            <View style={styles.compactMeta}>
+          ) : null}
+
+          {!compactMeta ? (
+            <View
+              style={[
+                styles.metaRow,
+                Boolean(imageAttachment || fileAttachment || audioAttachment) &&
+                  styles.inlineWithImage,
+              ]}
+            >
               <Text style={[styles.time, mine ? styles.timeMine : styles.timeTheirs]}>
                 {message.timeLabel}
               </Text>
               {status ? <ReceiptTicks status={status} color={receiptColor} /> : null}
             </View>
-          </View>
-        ) : message.body ? (
-          <Text
-            style={[
-              styles.body,
-              mine && !isFlagged ? styles.bodyMine : styles.bodyTheirs,
-              isUnsent && styles.bodyUnsent,
-              isFlagged && styles.bodyFlagged,
-              Boolean(imageAttachment || fileAttachment) && styles.inlineWithImage,
-            ]}
-          >
-            {message.body}
-          </Text>
-        ) : null}
-        {isFlagged && message.scamAnalysis?.tactics?.length ? (
-          <Text style={styles.flagTactics}>Detected: {message.scamAnalysis.tactics.join(', ')}</Text>
-        ) : null}
+          ) : null}
+        </View>
 
-        {!compactMeta ? (
-          <View
-            style={[
-              styles.metaRow,
-              Boolean(imageAttachment || fileAttachment) && styles.inlineWithImage,
-            ]}
-          >
-            <Text
-              style={[
-                styles.time,
-                mine && !isFlagged ? styles.timeMine : styles.timeTheirs,
-                isFlagged && styles.timeFlagged,
-              ]}
-            >
-              {message.timeLabel}
-            </Text>
-            {status ? <ReceiptTicks status={status} color={receiptColor} /> : null}
-          </View>
+        {isFlagged ? (
+          <InchatScamSafetyBanner
+            score={message.scamAnalysis?.score}
+            tactics={message.scamAnalysis?.tactics}
+            onReport={onReportScam}
+          />
         ) : null}
       </View>
     </View>
@@ -303,6 +342,12 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 4,
   },
+  bubbleWithAudio: {
+    paddingHorizontal: 6,
+    paddingTop: 4,
+    paddingBottom: 4,
+    minWidth: 230,
+  },
   inlineWithImage: {
     paddingHorizontal: 6,
   },
@@ -313,23 +358,17 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   bubbleFlagged: {
-    backgroundColor: '#FEF2F2',
-    borderWidth: 1,
-    borderColor: '#FCA5A5',
-    borderBottomLeftRadius: 4,
-    borderBottomRightRadius: 4,
+    overflow: 'hidden',
   },
-  flagTitle: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#B91C1C',
-    marginBottom: 6,
+  bubbleCombined: {
+    paddingHorizontal: 0,
+    paddingTop: 0,
+    paddingBottom: 0,
   },
-  flagTactics: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: '#DC2626',
-    marginTop: 6,
+  bubbleContent: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 6,
   },
   body: {
     fontSize: 15,
@@ -340,9 +379,6 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   bodyTheirs: {
-    color: '#1F2937',
-  },
-  bodyFlagged: {
     color: '#1F2937',
   },
   bodyUnsent: {
@@ -447,9 +483,6 @@ const styles = StyleSheet.create({
   },
   timeTheirs: {
     color: INCHAT_MUTED,
-  },
-  timeFlagged: {
-    color: '#B91C1C',
   },
   doubleTick: {
     flexDirection: 'row',

@@ -18,13 +18,14 @@ export type ChatAttachment = {
   fileName: string;
   mimeType: string;
   size: number;
+  durationMs?: number;
 };
 
 export type ChatMessage = {
   id: string;
   conversationId: string;
   senderId: string;
-  messageType: 'text' | 'image' | 'file' | 'system';
+  messageType: 'text' | 'image' | 'file' | 'audio' | 'system';
   body: string;
   attachments: ChatAttachment[];
   status: 'sent' | 'delivered' | 'read';
@@ -230,6 +231,32 @@ export async function sendConversationDocumentMessage(
   const form = new FormData();
   form.append('document', file, file.name || 'document.pdf');
   if (body.trim()) form.append('body', body.trim());
+
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages`,
+    {
+      method: 'POST',
+      headers: workspaceMultipartHeaders(token, workspaceId),
+      body: form,
+    }
+  );
+
+  return (await parseJson<SendMessageResponse>(response)).chatMessage;
+}
+
+/** Upload and send one voice note (field name: audio). */
+export async function sendConversationAudioMessage(
+  token: string,
+  conversationId: string,
+  file: File,
+  workspaceId: string,
+  durationMs = 0,
+  body = ''
+): Promise<ChatMessage> {
+  const form = new FormData();
+  form.append('audio', file, file.name || 'voice-message.webm');
+  if (body.trim()) form.append('body', body.trim());
+  if (durationMs > 0) form.append('durationMs', String(Math.round(durationMs)));
 
   const response = await fetch(
     `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages`,

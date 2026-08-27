@@ -21,7 +21,7 @@ const lastMessageSchema = new mongoose.Schema(
     },
     messageType: {
       type: String,
-      enum: ["text", "image", "file", "system"],
+      enum: ["text", "image", "file", "audio", "system"],
       default: "text",
     },
     sentAt: {
