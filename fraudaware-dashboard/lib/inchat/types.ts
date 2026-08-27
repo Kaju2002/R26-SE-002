@@ -15,6 +15,11 @@ export type InchatMessageAttachment = {
 export type InchatThread = {
   id: string;
   jobId?: string;
+  applicationId?: string;
+  /** Grouping key — jobseeker id for recruiter inbox, workspace id for jobseeker inbox. */
+  peerUserId?: string;
+  jobTitle?: string;
+  updatedAtIso?: string;
   participantName: string;
   subtitle?: string;
   avatarKind: InchatAvatarKind;

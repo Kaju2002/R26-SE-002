@@ -28,6 +28,7 @@ import { useInchat } from '../context/InchatContext';
 import type { InchatMessage } from '../../data/inchatMessages';
 import InchatMessageBubble from '../components/inchat/InchatMessageBubble';
 import InchatComposer from '../components/inchat/InchatComposer';
+import InchatApplicationSwitcher from '../components/inchat/InchatApplicationSwitcher';
 import ConversationAnalysisSheet from '../components/analysis/ConversationAnalysisSheet';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from '../components/inchat/inchatStyles';
 import type { MergeableApiResult } from '../navigation/detectStackTypes';
@@ -73,6 +74,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
   const { threadId } = route.params;
   const {
     getThreadById,
+    getRelatedThreads,
     getCombinedMessages,
     appendUserMessage,
     appendUserImageMessage,
@@ -89,6 +91,21 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     setTyping,
   } = useInchat();
   const thread = getThreadById(threadId);
+  const relatedThreads = useMemo(
+    () => getRelatedThreads(threadId),
+    [getRelatedThreads, threadId]
+  );
+  const relatedLabels = useMemo(
+    () =>
+      relatedThreads.map(
+        (entry) => entry.jobTitle || entry.subtitle || 'Application'
+      ),
+    [relatedThreads]
+  );
+  const relatedActiveIndex = useMemo(
+    () => relatedThreads.findIndex((entry) => entry.id === threadId),
+    [relatedThreads, threadId]
+  );
   const insets = useSafeAreaInsets();
   const listRef = useRef<FlatList<ThreadRow>>(null);
   const typingIdleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -553,6 +570,11 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
           <Text style={styles.headerTitle} numberOfLines={1}>
             {thread?.participantName ?? 'Conversation'}
           </Text>
+          {relatedThreads.length <= 1 && thread?.jobTitle ? (
+            <Text style={styles.headerJobTitle} numberOfLines={1}>
+              {thread.jobTitle}
+            </Text>
+          ) : null}
           {peerTyping ? (
             <Text style={styles.typingSub} numberOfLines={1}>
               typing…
@@ -564,6 +586,18 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
                 : presenceLabel(peerPresence.isOnline, peerPresence.lastSeenAt)}
             </Text>
           )}
+          {relatedThreads.length > 1 ? (
+            <InchatApplicationSwitcher
+              labels={relatedLabels}
+              activeIndex={relatedActiveIndex >= 0 ? relatedActiveIndex : 0}
+              onSelect={(index) => {
+                const next = relatedThreads[index];
+                if (next && next.id !== threadId) {
+                  navigation.replace('InchatThread', { threadId: next.id });
+                }
+              }}
+            />
+          ) : null}
         </View>
         <View style={styles.headerActions}>
           <Pressable
@@ -789,6 +823,12 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '800',
     color: INCHAT_NAVY,
+  },
+  headerJobTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: INCHAT_MUTED,
+    marginTop: 1,
   },
   headerSub: {
     fontSize: 12,

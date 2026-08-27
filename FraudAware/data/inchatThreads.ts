@@ -11,6 +11,10 @@ export type InchatThread = {
   id: string;
   /** Job-management id used by the Jobs filter. */
   jobId?: string;
+  applicationId?: string;
+  peerUserId?: string;
+  jobTitle?: string;
+  updatedAtIso?: string;
   participantName: string;
   /** Optional subtitle, e.g. company or “Recruiter” */
   subtitle?: string;
