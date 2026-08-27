@@ -11,12 +11,44 @@ export function jobTitleFromSubtitle(subtitle?: string): string | undefined {
   if (!subtitle) {
     return undefined;
   }
-  const prefix = 'Applied · ';
-  if (subtitle.startsWith(prefix)) {
-    return subtitle.slice(prefix.length).trim() || undefined;
+  let value = subtitle.trim();
+  if (!value) {
+    return undefined;
   }
-  return subtitle.trim() || undefined;
+  const prefixes = ['Applied · ', 'Applied ·', 'Applied - ', 'Job conversation'];
+  for (const prefix of prefixes) {
+    if (value === prefix.trim() || value.startsWith(prefix)) {
+      value = value === prefix.trim() ? '' : value.slice(prefix.length).trim();
+      break;
+    }
+  }
+  // Hide raw application id leftovers: "Application · 4b97b6"
+  if (/^Application\s*[·•\-–]\s*[a-f0-9]+$/i.test(value)) {
+    return undefined;
+  }
+  if (/^Application\s*[·•\-–]/i.test(value)) {
+    value = value.replace(/^Application\s*[·•\-–]\s*/i, '').trim();
+    if (/^[a-f0-9]{4,}$/i.test(value)) {
+      return undefined;
+    }
+  }
+  return value || undefined;
 }
+
+/** Short chip label for multi-application switcher (person with several jobs). */
+export function applicationChipLabel(
+  thread: Pick<InchatThread, 'jobTitle' | 'subtitle'>,
+  index: number
+): string {
+  const fromTitle = thread.jobTitle?.trim();
+  const fromSub = jobTitleFromSubtitle(thread.subtitle);
+  const raw = fromTitle || fromSub;
+  if (raw && !/^Application\s*[·•\-–]/i.test(raw)) {
+    return raw.length > 28 ? `${raw.slice(0, 26).trim()}…` : raw;
+  }
+  return `Role ${index + 1}`;
+}
+
 
 function sortKey(thread: InchatThread): string {
   return thread.updatedAtIso || '';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from './inchatStyles';
 
 type Props = {
@@ -33,8 +33,12 @@ export default function InchatApplicationSwitcher({
             style={[styles.chip, isActive ? styles.chipActive : styles.chipIdle]}
             accessibilityRole="button"
             accessibilityState={{ selected: isActive }}
+            accessibilityLabel={`Switch to ${label}`}
           >
-            <Text style={[styles.chipText, isActive ? styles.chipTextActive : styles.chipTextIdle]}>
+            <Text
+              numberOfLines={1}
+              style={[styles.chipText, isActive ? styles.chipTextActive : styles.chipTextIdle]}
+            >
               {label}
             </Text>
           </Pressable>
@@ -50,29 +54,30 @@ const styles = StyleSheet.create({
   },
   row: {
     gap: 8,
-    paddingVertical: 2,
+    paddingRight: 8,
+    alignItems: 'center',
   },
   chip: {
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    maxWidth: 220,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    maxWidth: 200,
   },
   chipActive: {
     borderColor: INCHAT_NAVY,
-    backgroundColor: '#EEF0F8',
+    backgroundColor: INCHAT_NAVY,
   },
   chipIdle: {
     borderColor: INCHAT_BORDER,
     backgroundColor: '#fff',
   },
   chipText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   chipTextActive: {
-    color: INCHAT_NAVY,
+    color: '#fff',
   },
   chipTextIdle: {
     color: INCHAT_MUTED,

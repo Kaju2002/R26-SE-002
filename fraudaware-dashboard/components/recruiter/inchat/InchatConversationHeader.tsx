@@ -219,7 +219,7 @@ export default function InchatConversationHeader({
           >
             {thread.participantName}
           </p>
-          {thread.jobTitle && relatedThreads.length <= 1 ? (
+          {thread.jobTitle ? (
             <p
               className="truncate text-xs font-semibold"
               style={{ color: INCHAT_MUTED, fontFamily: 'var(--font-poppins)' }}
