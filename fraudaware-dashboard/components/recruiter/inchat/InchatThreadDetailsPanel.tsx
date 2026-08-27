@@ -1,8 +1,10 @@
 'use client';
 
-import { getMockThreadDetails } from '@/lib/inchat/mockThreadDetails';
+import { useMemo } from 'react';
+import { deriveThreadDetailsFromMessages } from '@/lib/inchat/deriveThreadDetails';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 import type { InchatAttachment, InchatAttachmentKind, InchatThread } from '@/lib/inchat/types';
+import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
 
 type Props = {
   thread: InchatThread;
@@ -22,14 +24,20 @@ const FILE_ICON_STYLES: Record<
   image: { bg: '#E8F5E9', label: 'IMG', color: '#388E3C' },
 };
 
+function openUrl(url?: string) {
+  if (!url) return;
+  window.open(url, '_blank', 'noopener,noreferrer');
+}
+
 function AttachmentRow({ file }: { file: InchatAttachment }) {
   const icon = FILE_ICON_STYLES[file.kind];
 
   return (
     <button
       type="button"
-      onClick={() => alert(`"${file.name}" will open when file storage is connected.`)}
-      className="flex w-full items-center gap-3 rounded-xl px-1 py-2.5 text-left transition hover:bg-[#F7F8FE]"
+      onClick={() => openUrl(file.url)}
+      disabled={!file.url}
+      className="flex w-full items-center gap-3 rounded-xl px-1 py-2.5 text-left transition hover:bg-[#F7F8FE] disabled:cursor-default disabled:opacity-70"
     >
       <div
         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-[10px] font-extrabold"
@@ -48,7 +56,7 @@ function AttachmentRow({ file }: { file: InchatAttachment }) {
           className="text-xs font-medium"
           style={{ color: INCHAT_MUTED, fontFamily: 'var(--font-poppins)' }}
         >
-          {file.sizeLabel}
+          {file.sizeLabel || 'Document'}
         </p>
       </div>
     </button>
@@ -59,7 +67,12 @@ export default function InchatThreadDetailsPanel({
   thread,
   hideHeaderSpacer = false,
 }: Props) {
-  const details = getMockThreadDetails(thread.id);
+  const { getCombinedMessages } = useInchat();
+  const messages = getCombinedMessages(thread.id);
+  const details = useMemo(
+    () => deriveThreadDetailsFromMessages(messages),
+    [messages]
+  );
 
   return (
     <aside
@@ -91,17 +104,30 @@ export default function InchatThreadDetailsPanel({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => alert('Media preview will be available when chat service is connected.')}
-                className="h-[72px] w-[72px] overflow-hidden rounded-lg border transition hover:opacity-90"
-                style={{ borderColor: INCHAT_BORDER, backgroundColor: item.tileColor }}
+                onClick={() => openUrl(item.url)}
+                disabled={!item.url}
+                className="h-[72px] w-[72px] overflow-hidden rounded-lg border transition hover:opacity-90 disabled:cursor-default"
+                style={{
+                  borderColor: INCHAT_BORDER,
+                  backgroundColor: item.tileColor,
+                }}
                 title={item.label}
               >
-                <span
-                  className="flex h-full w-full items-center justify-center px-2 text-center text-[11px] font-semibold text-[#42498A]"
-                  style={{ fontFamily: 'var(--font-poppins)' }}
-                >
-                  {item.label}
-                </span>
+                {item.url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.url}
+                    alt={item.label}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <span
+                    className="flex h-full w-full items-center justify-center px-2 text-center text-[11px] font-semibold text-[#42498A]"
+                    style={{ fontFamily: 'var(--font-poppins)' }}
+                  >
+                    {item.label}
+                  </span>
+                )}
               </button>
             ))}
           </div>

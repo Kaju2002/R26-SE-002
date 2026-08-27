@@ -75,12 +75,16 @@ export type InchatAttachment = {
   name: string;
   sizeLabel: string;
   kind: InchatAttachmentKind;
+  /** Cloudinary / CDN URL when available */
+  url?: string;
 };
 
 export type InchatMediaItem = {
   id: string;
   label: string;
   tileColor: string;
+  /** Image URL for thumbnail grid */
+  url?: string;
 };
 
 export type InchatThreadDetails = {
