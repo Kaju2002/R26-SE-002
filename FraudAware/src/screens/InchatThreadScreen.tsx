@@ -30,6 +30,7 @@ import type { InchatMessage } from '../../data/inchatMessages';
 import InchatMessageBubble from '../components/inchat/InchatMessageBubble';
 import InchatComposer from '../components/inchat/InchatComposer';
 import InchatApplicationSwitcher from '../components/inchat/InchatApplicationSwitcher';
+import InchatReportSheet from '../components/inchat/InchatReportSheet';
 import ConversationAnalysisSheet from '../components/analysis/ConversationAnalysisSheet';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from '../components/inchat/inchatStyles';
 import type { MergeableApiResult } from '../navigation/detectStackTypes';
@@ -137,6 +138,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
   }>({ visible: false, result: null, pastedMessage: '' });
 
   const [threadMenuVisible, setThreadMenuVisible] = useState(false);
+  const [reportSheetVisible, setReportSheetVisible] = useState(false);
 
   const messages = useMemo(() => getCombinedMessages(threadId), [getCombinedMessages, threadId]);
 
@@ -268,6 +270,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
           peerInitials={peerInitials}
           selfAvatarUrl={selfAvatarUrl}
           selfInitials={selfInitials}
+          onReportScam={() => setReportSheetVisible(true)}
         />
       );
       const canOpenMenu = !item.message.deletedForEveryone && !item.message.unsent;
@@ -745,6 +748,13 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         onClose={closeAnalysisSheet}
         result={analysisSheet.result}
         pastedMessage={analysisSheet.pastedMessage}
+      />
+      <InchatReportSheet
+        visible={reportSheetVisible}
+        conversationId={threadId}
+        peerLabel={thread?.participantName}
+        jobLabel={thread?.jobTitle}
+        onClose={() => setReportSheetVisible(false)}
       />
       <Modal
         visible={threadMenuVisible}

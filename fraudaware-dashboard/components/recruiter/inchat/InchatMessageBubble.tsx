@@ -273,8 +273,6 @@ export default function InchatMessageBubble({
           ) : null}
         </div>
       </div>
-
-      {mine ? <SideAvatar url={selfAvatarUrl} initials={selfInitials} /> : null}
     </div>
   );
 }
