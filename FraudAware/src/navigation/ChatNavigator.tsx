@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { ChatStackParamList } from './chatStackTypes';
 import InchatInboxScreen from '../screens/InchatInboxScreen';
 import InchatThreadScreen from '../screens/InchatThreadScreen';
+import InchatChatInfoScreen from '../screens/InchatChatInfoScreen';
 
 export type { ChatStackParamList };
 
@@ -13,6 +14,7 @@ export default function ChatNavigator() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="InchatInbox" component={InchatInboxScreen} />
       <Stack.Screen name="InchatThread" component={InchatThreadScreen} />
+      <Stack.Screen name="InchatChatInfo" component={InchatChatInfoScreen} />
     </Stack.Navigator>
   );
 }

@@ -17,6 +17,8 @@ import {
   listChatConversations,
   listConversationMessages,
   markConversationRead,
+  sendConversationDocumentMessage,
+  sendConversationImageMessage,
   sendConversationMessage,
   updateConversationSaved as updateConversationSavedApi,
   updateConversationStatus as updateConversationStatusApi,
@@ -52,6 +54,8 @@ type InchatContextValue = {
   refreshConversations: () => Promise<void>;
   upsertConversation: (conversation: ChatConversation) => Promise<void>;
   appendRecruiterMessage: (threadId: string, body: string) => Promise<void>;
+  appendRecruiterImage: (threadId: string, file: File, caption?: string) => Promise<void>;
+  appendRecruiterDocument: (threadId: string, file: File, caption?: string) => Promise<void>;
   deleteMessage: (
     threadId: string,
     messageId: string,
@@ -756,6 +760,64 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [activeWorkspaceId, conversations, refreshConversations]
   );
 
+  const commitSentAttachment = useCallback(
+    async (threadId: string, sent: ChatMessage) => {
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!conversation) return;
+      const mapped = formatMessage(sent, conversation.recruiterId);
+      setMessagesByThread((previous) => ({
+        ...previous,
+        [threadId]: appendUnique(previous[threadId] ?? [], mapped),
+      }));
+      await refreshConversations();
+    },
+    [conversations, refreshConversations]
+  );
+
+  const appendRecruiterImage = useCallback(
+    async (threadId: string, file: File, caption = '') => {
+      const token = getStoredToken();
+      const workspaceId = activeWorkspaceId;
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!token || !workspaceId || !conversation || !file) return;
+
+      socketRef.current?.emit('typing:stop', { conversationId: threadId, workspaceId });
+      setTypingByThread((previous) => ({ ...previous, [threadId]: false }));
+
+      const sent = await sendConversationImageMessage(
+        token,
+        threadId,
+        file,
+        workspaceId,
+        caption
+      );
+      await commitSentAttachment(threadId, sent);
+    },
+    [activeWorkspaceId, commitSentAttachment, conversations]
+  );
+
+  const appendRecruiterDocument = useCallback(
+    async (threadId: string, file: File, caption = '') => {
+      const token = getStoredToken();
+      const workspaceId = activeWorkspaceId;
+      const conversation = conversations.find((entry) => entry.id === threadId);
+      if (!token || !workspaceId || !conversation || !file) return;
+
+      socketRef.current?.emit('typing:stop', { conversationId: threadId, workspaceId });
+      setTypingByThread((previous) => ({ ...previous, [threadId]: false }));
+
+      const sent = await sendConversationDocumentMessage(
+        token,
+        threadId,
+        file,
+        workspaceId,
+        caption
+      );
+      await commitSentAttachment(threadId, sent);
+    },
+    [activeWorkspaceId, commitSentAttachment, conversations]
+  );
+
   const deleteMessage = useCallback(
     async (threadId: string, messageId: string, mode: DeleteMessageMode) => {
       const token = getStoredToken();
@@ -934,6 +996,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       refreshConversations,
       upsertConversation,
       appendRecruiterMessage,
+      appendRecruiterImage,
+      appendRecruiterDocument,
       deleteMessage,
       clearConversation,
       setConversationStatus,
@@ -953,6 +1017,8 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       refreshConversations,
       upsertConversation,
       appendRecruiterMessage,
+      appendRecruiterImage,
+      appendRecruiterDocument,
       deleteMessage,
       clearConversation,
       setConversationStatus,

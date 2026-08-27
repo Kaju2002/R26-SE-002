@@ -43,6 +43,8 @@ export default function InchatThreadPanel({
   const {
     getCombinedMessages,
     appendRecruiterMessage,
+    appendRecruiterImage,
+    appendRecruiterDocument,
     deleteMessage,
     clearConversation,
     setConversationSaved,
@@ -153,6 +155,34 @@ export default function InchatThreadPanel({
       setSendBusy(false);
     }
   }, [appendRecruiterMessage, draft, isBlocked, sendBusy, setTyping, thread.id]);
+
+  const onAttachImage = useCallback(
+    async (file: File) => {
+      if (sendBusy || isBlocked) return;
+      setSendBusy(true);
+      try {
+        await appendRecruiterImage(thread.id, file, draft.trim());
+        setDraft('');
+      } finally {
+        setSendBusy(false);
+      }
+    },
+    [appendRecruiterImage, draft, isBlocked, sendBusy, thread.id]
+  );
+
+  const onAttachDocument = useCallback(
+    async (file: File) => {
+      if (sendBusy || isBlocked) return;
+      setSendBusy(true);
+      try {
+        await appendRecruiterDocument(thread.id, file, draft.trim());
+        setDraft('');
+      } finally {
+        setSendBusy(false);
+      }
+    },
+    [appendRecruiterDocument, draft, isBlocked, sendBusy, thread.id]
+  );
 
   const onDelete = useCallback(
     async (message: InchatMessage, mode: 'me' | 'everyone') => {
@@ -369,6 +399,8 @@ export default function InchatThreadPanel({
           value={draft}
           onChange={onDraftChange}
           onSend={() => void onSend()}
+          onAttachImage={onAttachImage}
+          onAttachDocument={onAttachDocument}
           sending={sendBusy}
           disabled={isBlocked}
           templateVariables={{

@@ -1,4 +1,8 @@
-import { authHeaders, getChatManagementBaseUrl } from './apiConfig';
+import {
+  authHeaders,
+  authHeadersMultipart,
+  getChatManagementBaseUrl,
+} from './apiConfig';
 
 export type ChatScamAnalysis = {
   status: 'not_checked' | 'pending' | 'safe' | 'flagged' | 'error';
@@ -178,6 +182,61 @@ export async function sendConversationMessage(
       method: 'POST',
       headers: workspaceHeaders(token, workspaceId),
       body: JSON.stringify({ body }),
+    }
+  );
+
+  return (await parseJson<SendMessageResponse>(response)).chatMessage;
+}
+
+function workspaceMultipartHeaders(token: string, workspaceId: string): HeadersInit {
+  return {
+    ...authHeadersMultipart(token),
+    'X-Workspace-Id': workspaceId,
+  };
+}
+
+/** Upload and send one image (field name: image), optional caption. */
+export async function sendConversationImageMessage(
+  token: string,
+  conversationId: string,
+  file: File,
+  workspaceId: string,
+  body = ''
+): Promise<ChatMessage> {
+  const form = new FormData();
+  form.append('image', file, file.name || 'chat-image.jpg');
+  if (body.trim()) form.append('body', body.trim());
+
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages`,
+    {
+      method: 'POST',
+      headers: workspaceMultipartHeaders(token, workspaceId),
+      body: form,
+    }
+  );
+
+  return (await parseJson<SendMessageResponse>(response)).chatMessage;
+}
+
+/** Upload and send one PDF/DOC/DOCX (field name: document), optional caption. */
+export async function sendConversationDocumentMessage(
+  token: string,
+  conversationId: string,
+  file: File,
+  workspaceId: string,
+  body = ''
+): Promise<ChatMessage> {
+  const form = new FormData();
+  form.append('document', file, file.name || 'document.pdf');
+  if (body.trim()) form.append('body', body.trim());
+
+  const response = await fetch(
+    `${getChatManagementBaseUrl()}/api/chat/conversations/${conversationId}/messages`,
+    {
+      method: 'POST',
+      headers: workspaceMultipartHeaders(token, workspaceId),
+      body: form,
     }
   );
 

@@ -563,30 +563,49 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
         >
           <MaterialCommunityIcons name="arrow-left" size={24} color={INCHAT_NAVY} />
         </Pressable>
-        {thread?.avatarUrl ? (
-          <Image source={{ uri: thread.avatarUrl }} style={styles.headerAvatar} resizeMode="cover" />
-        ) : null}
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
-            {thread?.participantName ?? 'Conversation'}
-          </Text>
-          {relatedThreads.length <= 1 && thread?.jobTitle ? (
-            <Text style={styles.headerJobTitle} numberOfLines={1}>
-              {thread.jobTitle}
-            </Text>
-          ) : null}
-          {peerTyping ? (
-            <Text style={styles.typingSub} numberOfLines={1}>
-              typing…
-            </Text>
+        <Pressable
+          style={styles.headerIdentity}
+          onPress={() => navigation.navigate('InchatChatInfo', { threadId })}
+          accessibilityRole="button"
+          accessibilityLabel="Open chat info, media and documents"
+        >
+          {thread?.avatarUrl ? (
+            <Image
+              source={{ uri: thread.avatarUrl }}
+              style={styles.headerAvatar}
+              resizeMode="cover"
+            />
           ) : (
-            <Text style={styles.headerSub} numberOfLines={1}>
-              {isBlocked
-                ? 'Blocked'
-                : presenceLabel(peerPresence.isOnline, peerPresence.lastSeenAt)}
-            </Text>
+            <View style={[styles.headerAvatar, styles.headerAvatarFallback]}>
+              <Text style={styles.headerAvatarInitials}>
+                {(thread?.participantName || 'C').slice(0, 1).toUpperCase()}
+              </Text>
+            </View>
           )}
-          {relatedThreads.length > 1 ? (
+          <View style={styles.headerCenter}>
+            <Text style={styles.headerTitle} numberOfLines={1}>
+              {thread?.participantName ?? 'Conversation'}
+            </Text>
+            {relatedThreads.length <= 1 && thread?.jobTitle ? (
+              <Text style={styles.headerJobTitle} numberOfLines={1}>
+                {thread.jobTitle}
+              </Text>
+            ) : null}
+            {peerTyping ? (
+              <Text style={styles.typingSub} numberOfLines={1}>
+                typing…
+              </Text>
+            ) : (
+              <Text style={styles.headerSub} numberOfLines={1}>
+                {isBlocked
+                  ? 'Blocked'
+                  : presenceLabel(peerPresence.isOnline, peerPresence.lastSeenAt)}
+              </Text>
+            )}
+          </View>
+        </Pressable>
+        {relatedThreads.length > 1 ? (
+          <View style={styles.headerSwitcherWrap}>
             <InchatApplicationSwitcher
               labels={relatedLabels}
               activeIndex={relatedActiveIndex >= 0 ? relatedActiveIndex : 0}
@@ -597,8 +616,8 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
                 }
               }}
             />
-          ) : null}
-        </View>
+          </View>
+        ) : null}
         <View style={styles.headerActions}>
           <Pressable
             style={[
@@ -626,6 +645,21 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
           </Pressable>
         </View>
       </View>
+
+      {relatedThreads.length > 1 ? (
+        <View style={styles.headerSwitcherRow}>
+          <InchatApplicationSwitcher
+            labels={relatedLabels}
+            activeIndex={relatedActiveIndex >= 0 ? relatedActiveIndex : 0}
+            onSelect={(index) => {
+              const next = relatedThreads[index];
+              if (next && next.id !== threadId) {
+                navigation.replace('InchatThread', { threadId: next.id });
+              }
+            }}
+          />
+        </View>
+      ) : null}
 
       <KeyboardAvoidingView
         style={styles.flex}
@@ -809,11 +843,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  headerIdentity: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+    gap: 8,
+  },
   headerAvatar: {
     width: 36,
     height: 36,
     borderRadius: 10,
     backgroundColor: '#F3F5F8',
+  },
+  headerAvatarFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerAvatarInitials: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: INCHAT_NAVY,
   },
   headerCenter: {
     flex: 1,
@@ -856,6 +906,12 @@ const styles = StyleSheet.create({
   },
   headerIconBtnMuted: {
     opacity: 0.38,
+  },
+  headerSwitcherRow: {
+    paddingHorizontal: 14,
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: INCHAT_BORDER,
   },
   listPad: {
     paddingHorizontal: 14,
