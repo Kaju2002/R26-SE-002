@@ -1,10 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import InchatComposer from '@/components/recruiter/inchat/InchatComposer';
 import InchatConversationHeader from '@/components/recruiter/inchat/InchatConversationHeader';
 import InchatMessageBubble from '@/components/recruiter/inchat/InchatMessageBubble';
 import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
+import { useInchatBasePath } from '@/lib/inchat/InchatBasePathContext';
 import { INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 import type { InchatMessage, InchatThread } from '@/lib/inchat/types';
 
@@ -50,7 +52,10 @@ export default function InchatThreadPanel({
     isPeerTyping,
     getPeerPresence,
     setTyping,
+    getRelatedThreads,
   } = useInchat();
+  const router = useRouter();
+  const basePath = useInchatBasePath();
   const [draft, setDraft] = useState('');
   const [sendBusy, setSendBusy] = useState(false);
   const [menuMessageId, setMenuMessageId] = useState<string | null>(null);
@@ -66,6 +71,10 @@ export default function InchatThreadPanel({
   );
   const peerTyping = isPeerTyping(thread.id);
   const peerPresence = getPeerPresence(thread.id);
+  const relatedThreads = useMemo(
+    () => getRelatedThreads(thread.id),
+    [getRelatedThreads, thread.id]
+  );
   const isBlocked = Boolean(thread.iBlocked);
 
   useEffect(() => {
@@ -227,6 +236,10 @@ export default function InchatThreadPanel({
           isTyping={peerTyping}
           isOnline={peerPresence.isOnline}
           lastSeenAt={peerPresence.lastSeenAt}
+          relatedThreads={relatedThreads}
+          onSelectThread={(threadId) =>
+            router.push(`${basePath}/inchat/${threadId}`)
+          }
           onClearChat={() => clearConversation(thread.id)}
           onBlock={onBlock}
           onUnblock={onUnblock}

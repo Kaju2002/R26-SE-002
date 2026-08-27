@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import InchatConversationHeader from '@/components/recruiter/inchat/InchatConversationHeader';
 import InchatEmptyState from '@/components/recruiter/inchat/InchatEmptyState';
 import InchatFilterChips from '@/components/recruiter/inchat/InchatFilterChips';
@@ -9,6 +9,7 @@ import InchatInboxHeader from '@/components/recruiter/inchat/InchatInboxHeader';
 import InchatThreadPanel from '@/components/recruiter/inchat/InchatThreadPanel';
 import InchatThreadDetailsPanel from '@/components/recruiter/inchat/InchatThreadDetailsPanel';
 import InchatThreadRow from '@/components/recruiter/inchat/InchatThreadRow';
+import InchatInboxGroupRow from '@/components/recruiter/inchat/InchatInboxGroupRow';
 import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
 import type { AuthUser } from '@/lib/api/authTypes';
 import type { PortalType } from '@/lib/auth/portalConfig';
@@ -17,6 +18,7 @@ import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
 import { useInchatBasePath } from '@/lib/inchat/InchatBasePathContext';
 import { INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 import { INCHAT_FILTER_OPTIONS, type InchatFilterId, type InchatThread } from '@/lib/inchat/types';
+import { buildInchatInboxRows } from '@/lib/inchat/groupInchatInbox';
 
 function matchesFilter(thread: InchatThread, filterId: InchatFilterId): boolean {
   switch (filterId) {
@@ -39,7 +41,8 @@ function matchesQuery(thread: InchatThread, query: string): boolean {
   return (
     thread.participantName.toLowerCase().includes(search) ||
     thread.lastMessagePreview.toLowerCase().includes(search) ||
-    (thread.subtitle?.toLowerCase().includes(search) ?? false)
+    (thread.subtitle?.toLowerCase().includes(search) ?? false) ||
+    (thread.jobTitle?.toLowerCase().includes(search) ?? false)
   );
 }
 
@@ -65,6 +68,7 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
     clearConversation,
     setConversationSaved,
     setConversationStatus,
+    getRelatedThreads,
   } = useInchat();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [query, setQuery] = useState('');
@@ -90,6 +94,19 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
     }
     return filtered;
   }, [filterId, query, selectedThread, threadsForList]);
+
+  const inboxRows = useMemo(() => buildInchatInboxRows(threads), [threads]);
+
+  const relatedThreads = selectedThreadId
+    ? getRelatedThreads(selectedThreadId)
+    : [];
+
+  const openThread = useCallback(
+    (threadId: string) => {
+      router.push(`${basePath}/inchat?thread=${threadId}`, { scroll: false });
+    },
+    [basePath, router]
+  );
 
   const selectedPresence = selectedThread
     ? getPeerPresence(selectedThread.id)
@@ -131,7 +148,7 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
     // Keep deep-link URL while a refresh may still bring the conversation in.
     if (selectedThreadId) return;
 
-    const fallback = threads[0] ?? threadsForList[0];
+    const fallback = inboxRows[0]?.display ?? threadsForList[0];
     if (!fallback) return;
 
     router.replace(`${basePath}/inchat?thread=${fallback.id}`, { scroll: false });
@@ -141,8 +158,8 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
     loaded,
     router,
     selectedThreadId,
-    threads,
     threadsForList,
+    inboxRows,
   ]);
 
   const rowMode = isDesktop ? 'split' : 'stack';
@@ -216,7 +233,7 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
               >
                 {error}
               </p>
-            ) : threads.length === 0 ? (
+            ) : inboxRows.length === 0 ? (
               <p
                 className="px-4 py-8 text-center text-sm"
                 style={{ color: INCHAT_MUTED, fontFamily: 'var(--font-poppins)' }}
@@ -228,17 +245,13 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
                     : 'No conversations match this filter.'}
               </p>
             ) : (
-              threads.map((thread) => (
-                <InchatThreadRow
-                  key={thread.id}
-                  thread={thread}
+              inboxRows.map((row) => (
+                <InchatInboxGroupRow
+                  key={row.isGrouped ? `group-${row.display.peerUserId}` : row.display.id}
+                  row={row}
                   mode={rowMode}
-                  isActive={thread.id === selectedThreadId}
-                  onSelect={() =>
-                    router.push(`${basePath}/inchat?thread=${thread.id}`, {
-                      scroll: false,
-                    })
-                  }
+                  selectedThreadId={selectedThreadId}
+                  onSelectThread={openThread}
                 />
               ))
             )}
@@ -253,6 +266,8 @@ function InchatWorkspace({ roleLabel }: { roleLabel: string }) {
                 isTyping={isPeerTyping(selectedThread.id)}
                 isOnline={selectedPresence.isOnline}
                 lastSeenAt={selectedPresence.lastSeenAt}
+                relatedThreads={relatedThreads}
+                onSelectThread={openThread}
                 onClearChat={() => clearConversation(selectedThread.id)}
                 onBlock={async () => {
                   setStatusError(null);

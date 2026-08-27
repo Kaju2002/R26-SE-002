@@ -1,4 +1,5 @@
 import type { AnalysisPayload, MergeableApiResult, ParsedTactic } from '../navigation/detectStackTypes';
+import { mergeWordImportance } from './coerceWordImportance';
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === 'object' && !Array.isArray(v);
@@ -161,6 +162,9 @@ export function analysisPayloadFromApi(api: MergeableApiResult, pastedMessage: s
     warning: outWarning,
     reassurance: outReassurance,
     original_text: original_text.length > 0 ? original_text : '(No text)',
-    word_importance: [],
+    word_importance: mergeWordImportance(
+      api?.word_importance ?? api?.wordImportance ?? api?.WordImportance,
+      whatGave
+    ),
   };
 }

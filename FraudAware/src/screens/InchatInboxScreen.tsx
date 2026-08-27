@@ -16,9 +16,10 @@ import {
   type InchatFilterId,
   type InchatThread,
 } from '../../data/inchatThreads';
+import { buildInchatInboxRows, type InchatInboxRow } from '../utils/groupInchatInbox';
 import InchatFilterChips from '../components/inchat/InchatFilterChips';
 import InchatInboxHeader from '../components/inchat/InchatInboxHeader';
-import InchatThreadRow from '../components/inchat/InchatThreadRow';
+import InchatInboxGroupRow from '../components/inchat/InchatInboxGroupRow';
 import { INCHAT_MUTED, INCHAT_NAVY } from '../components/inchat/inchatStyles';
 
 type Props = NativeStackScreenProps<ChatStackParamList, 'InchatInbox'>;
@@ -44,7 +45,8 @@ function matchesQuery(thread: InchatThread, q: string): boolean {
   return (
     thread.participantName.toLowerCase().includes(s) ||
     thread.lastMessagePreview.toLowerCase().includes(s) ||
-    (thread.subtitle?.toLowerCase().includes(s) ?? false)
+    (thread.subtitle?.toLowerCase().includes(s) ?? false) ||
+    (thread.jobTitle?.toLowerCase().includes(s) ?? false)
   );
 }
 
@@ -54,23 +56,32 @@ export default function InchatInboxScreen({ navigation }: Props) {
   const [filterId, setFilterId] = useState<InchatFilterId>('focused');
   const showBack = navigation.canGoBack();
 
-  const data = useMemo(() => {
+  const filteredThreads = useMemo(() => {
     return threadsForList.filter(
       (t) => matchesFilter(t, filterId) && matchesQuery(t, query)
     );
   }, [filterId, query, threadsForList]);
 
-  const renderItem: ListRenderItem<InchatThread> = useCallback(
+  const inboxRows = useMemo(
+    () => buildInchatInboxRows(filteredThreads),
+    [filteredThreads]
+  );
+
+  const renderItem: ListRenderItem<InchatInboxRow> = useCallback(
     ({ item }) => (
-      <InchatThreadRow
-        thread={item}
-        onPress={() => navigation.navigate('InchatThread', { threadId: item.id })}
+      <InchatInboxGroupRow
+        row={item}
+        onSelectThread={(threadId) => navigation.navigate('InchatThread', { threadId })}
       />
     ),
     [navigation]
   );
 
-  const keyExtractor = useCallback((item: InchatThread) => item.id, []);
+  const keyExtractor = useCallback(
+    (item: InchatInboxRow) =>
+      item.isGrouped ? `group-${item.display.peerUserId}` : item.display.id,
+    []
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -90,7 +101,7 @@ export default function InchatInboxScreen({ navigation }: Props) {
       </View>
       <FlatList
         style={styles.list}
-        data={data}
+        data={inboxRows}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         ListEmptyComponent={
@@ -120,7 +131,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
   },
-  /** Pinned under search — does not scroll with threads */
   filterStrip: {
     flexShrink: 0,
     backgroundColor: '#fff',

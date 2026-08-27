@@ -15,6 +15,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { RecentScanItem } from './recentScanTypes';
 import type { ScanDetailApiResponse } from '../../api/fraudawareApi';
 import { fetchScanDetail } from '../../api/fraudawareApi';
+import { mergeWordImportance } from '../../utils/coerceWordImportance';
+import HighlightedAnalyzedText, {
+  WordImportanceChips,
+} from '../analysis/HighlightedAnalyzedText';
 
 type Props = {
   visible: boolean;
@@ -92,6 +96,11 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
     : null;
 
   const fullMessageText = detail?.original_text?.trim() ?? '';
+  const flaggedWords = mergeWordImportance(
+    detail?.word_importance,
+    detail?.what_gave_it_away
+  );
+  const showWordHighlights = flaggedWords.length > 0;
 
   return (
     <Modal
@@ -216,10 +225,20 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
                 ) : null}
 
                 <Text style={styles.sectionLabel}>FULL MESSAGE</Text>
+                {showWordHighlights ? (
+                  <>
+                    <Text style={styles.sectionLabelSub}>Key words flagged</Text>
+                    <WordImportanceChips words={flaggedWords} />
+                  </>
+                ) : null}
                 <View style={styles.messageCard}>
-                  <Text style={styles.messageBody} selectable>
-                    {fullMessageText.length > 0 ? fullMessageText : '—'}
-                  </Text>
+                  <HighlightedAnalyzedText
+                    text={fullMessageText.length > 0 ? fullMessageText : '—'}
+                    wordImportance={flaggedWords}
+                    baseStyle={styles.messageBody}
+                    highlightEnabled={showWordHighlights}
+                    selectable
+                  />
                 </View>
               </>
             )}
@@ -359,6 +378,13 @@ const styles = StyleSheet.create({
     color: GREY_TEXT,
     marginBottom: 8,
     marginTop: 4,
+  },
+  sectionLabelSub: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: GREY_TEXT,
+    marginBottom: 8,
+    marginTop: -4,
   },
   tacticRow: {
     flexDirection: 'row',

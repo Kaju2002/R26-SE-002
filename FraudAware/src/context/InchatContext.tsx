@@ -33,6 +33,7 @@ import { getApplicationById } from '../api/jobApi';
 import { useUser } from './UserContext';
 import type { InchatMessage } from '../../data/inchatMessages';
 import type { InchatThread } from '../../data/inchatThreads';
+import { jobTitleFromSubtitle } from '../utils/groupInchatInbox';
 
 type PeerMeta = {
   name: string;
@@ -63,6 +64,7 @@ type InchatContextValue = {
   incomingNotification: InchatBannerNotification | null;
   dismissIncomingNotification: () => void;
   getThreadById: (threadId: string) => InchatThread | undefined;
+  getRelatedThreads: (threadId: string) => InchatThread[];
   appendUserMessage: (threadId: string, body: string) => Promise<void>;
   appendUserImageMessage: (
     threadId: string,
@@ -121,11 +123,21 @@ function formatThread(
   peerByConversationId: Record<string, PeerMeta>
 ): InchatThread {
   const peer = peerByConversationId[conversation.id];
+  const subtitle =
+    peer?.subtitle || `Application · ${conversation.applicationId.slice(-6)}`;
+
   return {
     id: conversation.id,
     jobId: conversation.jobId,
+    applicationId: conversation.applicationId,
+    peerUserId:
+      conversation.myRole === 'recruiter'
+        ? conversation.jobseekerId
+        : conversation.workspaceId || conversation.recruiterId,
+    jobTitle: jobTitleFromSubtitle(subtitle),
+    updatedAtIso: conversation.updatedAt,
     participantName: peer?.name || (conversation.myRole === 'jobseeker' ? 'Recruiter' : 'Applicant'),
-    subtitle: peer?.subtitle || `Application · ${conversation.applicationId.slice(-6)}`,
+    subtitle,
     avatarKind: peer?.avatarKind ?? (conversation.myRole === 'jobseeker' ? 'company' : 'person'),
     initials: peer?.initials || '?',
     avatarUrl: peer?.avatarUrl,
@@ -876,6 +888,19 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [conversations, peerByConversationId]
   );
 
+  const getRelatedThreads = useCallback(
+    (threadId: string): InchatThread[] => {
+      const current = threadsForList.find((thread) => thread.id === threadId);
+      if (!current?.peerUserId) {
+        return current ? [current] : [];
+      }
+      return threadsForList
+        .filter((thread) => thread.peerUserId === current.peerUserId)
+        .sort((a, b) => (b.updatedAtIso || '').localeCompare(a.updatedAtIso || ''));
+    },
+    [threadsForList]
+  );
+
   const getThreadById = useCallback(
     (threadId: string) => threadsForList.find((thread) => thread.id === threadId),
     [threadsForList]
@@ -901,6 +926,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       incomingNotification,
       dismissIncomingNotification,
       getThreadById,
+      getRelatedThreads,
       appendUserMessage,
       appendUserImageMessage,
       appendUserDocumentMessage,
@@ -924,6 +950,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       incomingNotification,
       dismissIncomingNotification,
       getThreadById,
+      getRelatedThreads,
       appendUserMessage,
       appendUserImageMessage,
       appendUserDocumentMessage,

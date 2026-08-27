@@ -7,6 +7,9 @@ import {
   getConfidenceScoreCopy,
   getSignalStrengthHeadline,
 } from '../../utils/signalStrengthPresentation';
+import HighlightedAnalyzedText, {
+  WordImportanceChips,
+} from './HighlightedAnalyzedText';
 
 const PRIMARY_RED = '#E53535';
 const SUCCESS_GREEN = '#3B6D11';
@@ -129,6 +132,9 @@ export default function AnalysisResultContent({
   });
 
   const showTacticsCounter = isScam || (isInconclusive && tacticCount > 0);
+  const flaggedWords = payload.word_importance ?? [];
+  const showWordHighlights = flaggedWords.length > 0;
+  const highlightAccent = isScam ? PRIMARY_RED : isInconclusive ? AMBER_ALERT : GREY_TEXT;
 
   return (
     <>
@@ -208,8 +214,21 @@ export default function AnalysisResultContent({
       </View>
 
       <Text style={styles.sectionLabel}>ANALYZED TEXT</Text>
+      {showWordHighlights ? (
+        <>
+          <Text style={styles.sectionLabelSub}>
+            {isScam ? 'Key words flagged' : isInconclusive ? 'Notable words' : 'Words checked'}
+          </Text>
+          <WordImportanceChips words={flaggedWords} accent={highlightAccent} />
+        </>
+      ) : null}
       <View style={styles.analyzedWrap}>
-        <Text style={styles.analyzedText}>{payload.original_text}</Text>
+        <HighlightedAnalyzedText
+          text={payload.original_text}
+          wordImportance={flaggedWords}
+          baseStyle={styles.analyzedText}
+          highlightEnabled={showWordHighlights}
+        />
       </View>
     </>
   );
@@ -364,6 +383,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     marginTop: 4,
   },
+  sectionLabelSub: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: GREY_TEXT,
+    marginBottom: 8,
+    marginTop: -4,
+  },
   tacticCard: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -421,8 +447,8 @@ const styles = StyleSheet.create({
   },
   analyzedText: {
     fontSize: 14,
-    color: GREY_TEXT,
+    color: '#374151',
     fontStyle: 'italic',
-    lineHeight: 20,
+    lineHeight: 22,
   },
 });

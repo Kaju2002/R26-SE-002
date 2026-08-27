@@ -15,6 +15,8 @@ type Props = {
   isActive?: boolean;
   mode: 'stack' | 'split';
   onSelect?: () => void;
+  /** Nested inside a grouped inbox row — no outer border. */
+  embedded?: boolean;
 };
 
 function CompanyIcon() {
@@ -120,11 +122,17 @@ function ThreadRowContent({ thread }: { thread: InchatThread }) {
   );
 }
 
-export default function InchatThreadRow({ thread, isActive = false, mode, onSelect }: Props) {
+export default function InchatThreadRow({
+  thread,
+  isActive = false,
+  mode,
+  onSelect,
+  embedded = false,
+}: Props) {
   const basePath = useInchatBasePath();
-  const className = `flex w-full items-stretch gap-3 border-b px-4 py-3 text-left transition ${
-    isActive ? 'bg-[#EEF0F8]' : 'hover:bg-[#FAFBFE]'
-  }`;
+  const className = `flex w-full items-stretch gap-3 text-left transition ${
+    embedded ? 'px-4 py-3' : 'border-b px-4 py-3'
+  } ${isActive ? 'bg-[#EEF0F8]' : embedded ? '' : 'hover:bg-[#FAFBFE]'}`;
 
   if (mode === 'split') {
     return (
@@ -132,7 +140,7 @@ export default function InchatThreadRow({ thread, isActive = false, mode, onSele
         type="button"
         onClick={onSelect}
         className={className}
-        style={{ borderColor: INCHAT_BORDER }}
+        style={embedded ? undefined : { borderColor: INCHAT_BORDER }}
         aria-current={isActive ? 'true' : undefined}
       >
         <ThreadRowContent thread={thread} />
@@ -144,7 +152,7 @@ export default function InchatThreadRow({ thread, isActive = false, mode, onSele
     <Link
       href={`${basePath}/inchat/${thread.id}`}
       className={className}
-      style={{ borderColor: INCHAT_BORDER }}
+      style={embedded ? undefined : { borderColor: INCHAT_BORDER }}
     >
       <ThreadRowContent thread={thread} />
     </Link>

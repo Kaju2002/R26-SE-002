@@ -11,6 +11,7 @@ import {
 import { useInchatBasePath } from '@/lib/inchat/InchatBasePathContext';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from '@/lib/inchat/inchatStyles';
 import type { InchatThread } from '@/lib/inchat/types';
+import InchatApplicationSwitcher from '@/components/recruiter/inchat/InchatApplicationSwitcher';
 
 type Props = {
   thread: InchatThread;
@@ -25,6 +26,8 @@ type Props = {
   onUnarchive?: () => void | Promise<void>;
   onSave?: () => void | Promise<void>;
   onUnsave?: () => void | Promise<void>;
+  relatedThreads?: InchatThread[];
+  onSelectThread?: (threadId: string) => void;
 };
 
 export default function InchatConversationHeader({
@@ -40,6 +43,8 @@ export default function InchatConversationHeader({
   onUnarchive,
   onSave,
   onUnsave,
+  relatedThreads = [],
+  onSelectThread,
 }: Props) {
   const basePath = useInchatBasePath();
   const router = useRouter();
@@ -214,6 +219,14 @@ export default function InchatConversationHeader({
           >
             {thread.participantName}
           </p>
+          {thread.jobTitle && relatedThreads.length <= 1 ? (
+            <p
+              className="truncate text-xs font-semibold"
+              style={{ color: INCHAT_MUTED, fontFamily: 'var(--font-poppins)' }}
+            >
+              {thread.jobTitle}
+            </p>
+          ) : null}
           <p
             className={`truncate text-xs font-medium ${isTyping && !isBlocked ? 'italic' : ''}`}
             style={{
@@ -223,6 +236,13 @@ export default function InchatConversationHeader({
           >
             {isTyping && !isBlocked ? 'typing…' : presenceLabel}
           </p>
+          {relatedThreads.length > 1 && onSelectThread ? (
+            <InchatApplicationSwitcher
+              threads={relatedThreads}
+              activeThreadId={thread.id}
+              onSelect={onSelectThread}
+            />
+          ) : null}
         </div>
       </div>
 

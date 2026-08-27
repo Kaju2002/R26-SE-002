@@ -7,13 +7,19 @@ import { INCHAT_BLUE_DOT, INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from './inc
 type Props = {
   thread: InchatThread;
   onPress: () => void;
+  /** Nested in a grouped inbox row — no bottom border on the row. */
+  embedded?: boolean;
 };
 
-export default function InchatThreadRow({ thread, onPress }: Props) {
+export default function InchatThreadRow({ thread, onPress, embedded = false }: Props) {
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && { opacity: 0.92 }]}
+      style={({ pressed }) => [
+        styles.row,
+        embedded && styles.rowEmbedded,
+        pressed && { opacity: 0.92 },
+      ]}
       accessibilityRole="button"
       accessibilityLabel={`${thread.participantName}. ${thread.lastMessagePreview}`}
     >
@@ -78,6 +84,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: INCHAT_BORDER,
     backgroundColor: '#fff',
+  },
+  rowEmbedded: {
+    borderBottomWidth: 0,
+    paddingHorizontal: 0,
+    paddingRight: 16,
   },
   avatarWrap: {
     marginRight: 12,
