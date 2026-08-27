@@ -16,11 +16,13 @@ import {
   listChatConversations,
   listConversationMessages,
   markConversationRead,
+  sendConversationAudioMessage,
   sendConversationDocumentMessage,
   sendConversationImageMessage,
   sendConversationMessage,
   updateConversationSaved as updateConversationSavedApi,
   updateConversationStatus as updateConversationStatusApi,
+  type ChatAudioUpload,
   type ChatConversation,
   type ChatDocumentUpload,
   type ChatMessage,
@@ -74,6 +76,11 @@ type InchatContextValue = {
   appendUserDocumentMessage: (
     threadId: string,
     document: ChatDocumentUpload,
+    caption?: string
+  ) => Promise<void>;
+  appendUserAudioMessage: (
+    threadId: string,
+    audio: ChatAudioUpload,
     caption?: string
   ) => Promise<void>;
   /** Delete for me (any message) or delete for everyone (own messages only). */
@@ -746,6 +753,30 @@ export function InchatProvider({ children }: { children: ReactNode }) {
     [conversations, refreshConversations, token, user?.id]
   );
 
+  const appendUserAudioMessage = useCallback(
+    async (threadId: string, audio: ChatAudioUpload, caption = '') => {
+      if (!token || !user?.id) return;
+      if (!conversations.some((entry) => entry.id === threadId)) return;
+
+      socketRef.current?.emit('typing:stop', { conversationId: threadId });
+      setTypingByThread((previous) => ({ ...previous, [threadId]: false }));
+
+      const sent = await sendConversationAudioMessage(
+        token,
+        threadId,
+        audio,
+        caption.trim()
+      );
+      const mapped = formatMessage(sent, user.id);
+      setMessagesByThread((previous) => ({
+        ...previous,
+        [threadId]: appendUnique(previous[threadId] ?? [], mapped),
+      }));
+      await refreshConversations();
+    },
+    [conversations, refreshConversations, token, user?.id]
+  );
+
   const isPeerTyping = useCallback(
     (threadId: string) => Boolean(typingByThread[threadId]),
     [typingByThread]
@@ -930,6 +961,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       appendUserMessage,
       appendUserImageMessage,
       appendUserDocumentMessage,
+      appendUserAudioMessage,
       deleteMessage,
       clearConversation,
       setConversationStatus,
@@ -954,6 +986,7 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       appendUserMessage,
       appendUserImageMessage,
       appendUserDocumentMessage,
+      appendUserAudioMessage,
       deleteMessage,
       clearConversation,
       setConversationStatus,

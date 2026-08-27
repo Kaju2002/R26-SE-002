@@ -10,6 +10,7 @@ export type InchatAttachment = {
   fileName: string;
   mimeType: string;
   size: number;
+  durationMs?: number;
 };
 
 export type InchatMessage = {
@@ -17,7 +18,7 @@ export type InchatMessage = {
   threadId: string;
   role: InchatMessageRole;
   body: string;
-  messageType?: 'text' | 'image' | 'file' | 'system';
+  messageType?: 'text' | 'image' | 'file' | 'audio' | 'system';
   attachments?: InchatAttachment[];
   /** Short clock label for demo */
   timeLabel: string;

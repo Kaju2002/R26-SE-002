@@ -13,9 +13,16 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { InchatMessage } from '../../../data/inchatMessages';
 import { INCHAT_BORDER, INCHAT_MUTED, INCHAT_NAVY } from './inchatStyles';
+import InchatVoicePlayer from './InchatVoicePlayer';
 
 type Props = {
   message: InchatMessage;
+  /** Contact / peer profile photo (received voice notes). */
+  peerAvatarUrl?: string | null;
+  peerInitials?: string;
+  /** Logged-in user profile photo (sent voice notes). */
+  selfAvatarUrl?: string | null;
+  selfInitials?: string;
 };
 
 const IMAGE_SIZE = 220;
@@ -138,7 +145,13 @@ function ReceiptTicks({
   );
 }
 
-export default function InchatMessageBubble({ message }: Props) {
+export default function InchatMessageBubble({
+  message,
+  peerAvatarUrl,
+  peerInitials,
+  selfAvatarUrl,
+  selfInitials,
+}: Props) {
   const mine = message.role === 'user';
   const isUnsent = message.unsent === true;
   // FraudAware: warn jobseekers on inbound recruiter messages only.
@@ -152,9 +165,16 @@ export default function InchatMessageBubble({ message }: Props) {
     message.messageType === 'file'
       ? message.attachments?.find((attachment) => attachment.url)
       : undefined;
+  const audioAttachment =
+    message.messageType === 'audio'
+      ? message.attachments?.find((attachment) => attachment.url)
+      : undefined;
+  const voiceAvatarUrl = mine ? selfAvatarUrl : peerAvatarUrl;
+  const voiceInitials = mine ? selfInitials || 'ME' : peerInitials || '?';
   const compactMeta =
     !imageAttachment &&
     !fileAttachment &&
+    !audioAttachment &&
     !isFlagged &&
     message.body.length <= 28 &&
     !message.body.includes('\n');
@@ -168,7 +188,9 @@ export default function InchatMessageBubble({ message }: Props) {
           styles.bubble,
           mine ? styles.bubbleMine : styles.bubbleTheirs,
           isFlagged && styles.bubbleFlagged,
-          Boolean(imageAttachment || fileAttachment) && styles.bubbleWithImage,
+          Boolean(imageAttachment || fileAttachment || audioAttachment) &&
+            styles.bubbleWithImage,
+          Boolean(audioAttachment) && styles.bubbleWithAudio,
         ]}
       >
         {isFlagged ? (
@@ -183,6 +205,15 @@ export default function InchatMessageBubble({ message }: Props) {
           <MessageImage
             uri={imageAttachment.url}
             label={imageAttachment.fileName || 'Chat image'}
+          />
+        ) : null}
+        {audioAttachment ? (
+          <InchatVoicePlayer
+            url={audioAttachment.url}
+            durationMs={audioAttachment.durationMs}
+            mine={mine}
+            avatarUrl={voiceAvatarUrl}
+            initials={voiceInitials}
           />
         ) : null}
         {fileAttachment ? (
@@ -242,7 +273,7 @@ export default function InchatMessageBubble({ message }: Props) {
               mine && !isFlagged ? styles.bodyMine : styles.bodyTheirs,
               isUnsent && styles.bodyUnsent,
               isFlagged && styles.bodyFlagged,
-              Boolean(imageAttachment || fileAttachment) && styles.inlineWithImage,
+              Boolean(imageAttachment || fileAttachment || audioAttachment) && styles.inlineWithImage,
             ]}
           >
             {message.body}
@@ -256,7 +287,8 @@ export default function InchatMessageBubble({ message }: Props) {
           <View
             style={[
               styles.metaRow,
-              Boolean(imageAttachment || fileAttachment) && styles.inlineWithImage,
+              Boolean(imageAttachment || fileAttachment || audioAttachment) &&
+                styles.inlineWithImage,
             ]}
           >
             <Text
@@ -302,6 +334,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     paddingTop: 4,
     paddingBottom: 4,
+  },
+  bubbleWithAudio: {
+    paddingHorizontal: 6,
+    paddingTop: 4,
+    paddingBottom: 4,
+    minWidth: 230,
   },
   inlineWithImage: {
     paddingHorizontal: 6,

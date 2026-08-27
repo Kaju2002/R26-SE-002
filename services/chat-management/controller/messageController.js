@@ -14,6 +14,7 @@ import { publishEvent } from "../utils/publishEvent.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
 import {
   deleteUploadedAttachment,
+  uploadChatAudio,
   uploadChatDocument,
   uploadChatImage,
 } from "../utils/chatImageUpload.js";
@@ -158,9 +159,11 @@ const refreshConversationLastMessage = async (conversation) => {
     : latest.body ||
       (latest.messageType === "image"
         ? "📷 Photo"
-        : latest.messageType === "file"
-          ? `📎 ${latest.attachments?.[0]?.fileName || "Document"}`
-          : "");
+        : latest.messageType === "audio"
+          ? "🎤 Voice message"
+          : latest.messageType === "file"
+            ? `📎 ${latest.attachments?.[0]?.fileName || "Document"}`
+            : "");
   const trimmed = String(previewSource).trim();
   const preview =
     trimmed.length > 160 ? `${trimmed.slice(0, 157)}...` : trimmed;
@@ -443,19 +446,20 @@ const buildPreview = (body = "") => {
 
 const buildAttachmentPreview = (messageType, attachment) => {
   if (messageType === "image") return "📷 Photo";
+  if (messageType === "audio") return "🎤 Voice message";
   if (messageType === "file") {
     return `📎 ${attachment?.fileName || "Document"}`;
   }
-  return "";
+  return "Attachment";
 };
 
 /**
  * POST /api/chat/conversations/:conversationId/messages
  * JSON body: { body: "Hello" }
  * Multipart body: image=<JPG|PNG|GIF|WebP> or
- * document=<PDF|DOC|DOCX>, body=<optional caption>
+ * document=<PDF|DOC|DOCX> or audio=<m4a|mp3|webm|wav>, body=<optional caption>
  *
- * Saves a text, image, or document message from the authenticated participant,
+ * Saves a text, image, document, or voice message from the authenticated participant,
  * runs scam-detection for recruiter messages only (FraudAware),
  * updates lastMessage + unread, then broadcasts message:new over Socket.io.
  */
@@ -501,9 +505,11 @@ export const sendMessage = async (req, res) => {
     const body = String(req.body?.body ?? "").trim();
     const imageFile = req.files?.image?.[0];
     const documentFile = req.files?.document?.[0];
+    const audioFile = req.files?.audio?.[0];
     const hasImage = Boolean(imageFile);
     const hasDocument = Boolean(documentFile);
-    const hasAttachment = hasImage || hasDocument;
+    const hasAudio = Boolean(audioFile);
+    const hasAttachment = hasImage || hasDocument || hasAudio;
     if (!body && !hasAttachment) {
       return res.status(400).json({
         success: false,
@@ -545,14 +551,27 @@ export const sendMessage = async (req, res) => {
             analyzedAt: null,
           };
 
-    const messageType = hasImage ? "image" : hasDocument ? "file" : "text";
+    const durationMs = Number(req.body?.durationMs) || 0;
+    const messageType = hasImage
+      ? "image"
+      : hasAudio
+        ? "audio"
+        : hasDocument
+          ? "file"
+          : "text";
     const attachment = hasImage
       ? await uploadChatImage(imageFile)
-      : hasDocument
-        ? await uploadChatDocument(documentFile)
-        : null;
+      : hasAudio
+        ? await uploadChatAudio(audioFile, durationMs)
+        : hasDocument
+          ? await uploadChatDocument(documentFile)
+          : null;
     uploadedAttachmentPublicId = attachment?.publicId ?? null;
-    uploadedAttachmentResourceType = hasDocument ? "raw" : "image";
+    uploadedAttachmentResourceType = hasDocument
+      ? "raw"
+      : hasAudio
+        ? "video"
+        : "image";
 
     const message = await Message.create({
       conversationId: conversation._id,
