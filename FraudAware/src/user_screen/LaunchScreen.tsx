@@ -168,7 +168,7 @@ export default function LaunchScreen({ onFinish }: Props) {
           source={require('../../assets/icons/Group1.png')}
           style={styles.logo}
           resizeMode="contain"
-          accessibilityLabel="FraudAware logo"
+          accessibilityLabel="CareerNet logo"
         />
       </Animated.View>
       <Animated.View
@@ -179,7 +179,7 @@ export default function LaunchScreen({ onFinish }: Props) {
           marginTop: 20,
         }}
       >
-        <Text style={styles.title}>FraudAware</Text>
+        <Text style={styles.title}>CareerNet</Text>
         <Text style={styles.tagline}>Safer careers. Smarter checks.</Text>
       </Animated.View>
     </View>

@@ -139,7 +139,7 @@ export default function InchatReportSheet({
             {!submitted ? (
               <>
                 <Text style={styles.lead}>
-                  We’ll save flagged messages, tactics, and a timeline for FraudAware review.
+                  We’ll save flagged messages, tactics, and a timeline for CareerNet review.
                 </Text>
                 <Text style={styles.label}>Why are you reporting?</Text>
                 <View style={styles.reasons}>

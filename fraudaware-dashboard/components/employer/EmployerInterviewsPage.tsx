@@ -301,7 +301,7 @@ export default function EmployerInterviewsPage({
 
       {mailboxConnected === false ? (
         <div className="rounded-2xl border border-[#FFE0B2] bg-[#FFF8E1] px-4 py-3 text-sm text-[#EF6C00]">
-          Connect Google or Microsoft in Profile so FraudAware can create calendar events and
+          Connect Google or Microsoft in Profile so CareerNet can create calendar events and
           auto-generate Meet/Teams links. You can still paste a manual link when scheduling.
         </div>
       ) : null}

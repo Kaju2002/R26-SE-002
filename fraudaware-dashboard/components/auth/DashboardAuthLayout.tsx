@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { BRAND_LOGO_PATH, BRAND_NAME } from '@/lib/brand';
 import type { ReactNode } from 'react';
 
 const AUTH_NAVY = '#161950';
@@ -15,7 +16,7 @@ type Props = {
  */
 export default function DashboardAuthLayout({
   children,
-  brandTitle = 'FraudAware',
+  brandTitle = BRAND_NAME,
   brandDescription = 'Secure hiring for companies and platform admins — sign in to continue.',
 }: Props) {
   return (
@@ -48,27 +49,12 @@ export default function DashboardAuthLayout({
           </div>
 
           <div className="relative z-[1] flex max-w-xs flex-col items-center px-8 text-center">
-            <div
-              className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl"
-              style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
-              aria-hidden
-            >
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-                <path
-                  d="M12 3L4 8v8l8 5 8-5V8l-8-5z"
-                  stroke="white"
-                  strokeWidth="1.8"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M9.5 12.2l1.8 1.8 3.7-3.9"
-                  stroke="white"
-                  strokeWidth="1.8"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={BRAND_LOGO_PATH}
+              alt={BRAND_NAME}
+              className="mb-5 h-14 w-auto max-w-[220px] object-contain"
+            />
             <p
               className="text-3xl font-semibold tracking-tight text-white"
               style={{ fontFamily: 'var(--font-poppins)' }}

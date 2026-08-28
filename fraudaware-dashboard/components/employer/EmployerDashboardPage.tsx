@@ -995,7 +995,7 @@ export default function EmployerDashboardPage({
                 step: '2',
                 title: 'Connect mailbox',
                 href: `${config.basePath}/profile`,
-                body: 'Email candidates from FraudAware',
+                body: 'Email candidates from CareerNet',
               },
               {
                 step: '3',
@@ -1239,7 +1239,7 @@ export default function EmployerDashboardPage({
           >
             <p className="text-sm font-semibold">Hire faster with InChat</p>
             <p className="mt-1 text-xs text-white/80">
-              Message shortlisted candidates without leaving FraudAware.
+              Message shortlisted candidates without leaving CareerNet.
             </p>
           <Link
             href={`${config.basePath}/inchat`}

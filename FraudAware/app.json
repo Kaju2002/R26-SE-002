@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "FraudAware",
+    "name": "CareerNet",
     "slug": "FraudAware",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,7 +17,7 @@
       "bundleIdentifier": "y",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSMicrophoneUsageDescription": "Allow FraudAware to record voice messages in InChat."
+        "NSMicrophoneUsageDescription": "Allow CareerNet to record voice messages in InChat."
       }
     },
     "android": {
@@ -38,13 +38,13 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow FraudAware to access your photos to upload chat screenshots."
+          "photosPermission": "Allow CareerNet to access your photos to upload chat screenshots."
         }
       ],
       [
         "expo-av",
         {
-          "microphonePermission": "Allow FraudAware to record voice messages in InChat."
+          "microphonePermission": "Allow CareerNet to record voice messages in InChat."
         }
       ],
       "expo-font",
