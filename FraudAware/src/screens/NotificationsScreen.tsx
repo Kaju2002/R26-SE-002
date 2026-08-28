@@ -201,6 +201,11 @@ export default function NotificationsScreen() {
 
     if (item.conversationId) {
       navigateToInchatThread(navigation, item.conversationId);
+      return;
+    }
+
+    if (item.ticketId) {
+      navigation.navigate('SupportTicketDetail', { ticketId: item.ticketId });
     }
   };
 

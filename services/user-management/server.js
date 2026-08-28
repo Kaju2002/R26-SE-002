@@ -6,6 +6,7 @@ import userRoute from "./route/userRoute.js";
 import profileRoute from "./route/profileRoute.js";
 import internalRoute from "./route/internalRoute.js";
 import adminRoute from "./route/adminRoute.js";
+import supportRoute from "./route/supportRoute.js";
 
 // ==== APP CONFIG ====
 const app = express();
@@ -32,6 +33,7 @@ app.use("/api/auth", userRoute);
 app.use("/api/profile", profileRoute);
 app.use("/api/internal", internalRoute);
 app.use("/api/admin", adminRoute);
+app.use("/api/support", supportRoute);
 
 // ==== HEALTH CHECK ====
 app.get("/health", (req, res) => {
@@ -71,6 +73,21 @@ app.get("/", (req, res) => {
       admin: {
         listUsers: "GET /api/admin/users (superadmin)",
         updateUserStatus: "PATCH /api/admin/users/:userId/status (superadmin)",
+        listVerificationRequests:
+          "GET /api/admin/verification-requests (superadmin)",
+        listSupportTickets: "GET /api/admin/support-tickets (superadmin)",
+        getSupportTicket: "GET /api/admin/support-tickets/:id (superadmin)",
+        updateSupportTicket: "PATCH /api/admin/support-tickets/:id (superadmin)",
+        assignSupportTicketToMe:
+          "POST /api/admin/support-tickets/:id/assign-me (superadmin)",
+        addSupportTicketMessage:
+          "POST /api/admin/support-tickets/:id/messages (superadmin)",
+      },
+      support: {
+        createTicket: "POST /api/support/tickets",
+        listMyTickets: "GET /api/support/tickets",
+        getMyTicket: "GET /api/support/tickets/:id",
+        addMyMessage: "POST /api/support/tickets/:id/messages",
       },
       health: "GET /health",
     },

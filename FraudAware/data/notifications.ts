@@ -6,7 +6,8 @@ export type NotificationType =
   | 'job'
   | 'application'
   | 'system'
-  | 'chat';
+  | 'chat'
+  | 'support';
 
 export type AppNotification = {
   id: string;
@@ -23,6 +24,8 @@ export type AppNotification = {
   conversationId?: string;
   /** Present for skill-match / job notifications — tap opens Job Details. */
   jobId?: string;
+  /** Present for support notifications — tap opens the ticket thread. */
+  ticketId?: string;
   flagged?: boolean;
 };
 

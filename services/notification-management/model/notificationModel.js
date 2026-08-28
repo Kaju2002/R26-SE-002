@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const NOTIFICATION_CATEGORIES = ["general", "applications"];
-const NOTIFICATION_TYPES = ["auth", "scam", "job", "application", "system", "chat", "moderation"];
+const NOTIFICATION_TYPES = ["auth", "scam", "job", "application", "system", "chat", "moderation", "support"];
 const APPLICATION_STATUSES = [
   "applied",
   "screened",
@@ -28,6 +28,8 @@ const metadataSchema = new mongoose.Schema(
     },
     conversationId: { type: String, trim: true },
     messageId: { type: String, trim: true },
+    ticketId: { type: String, trim: true },
+    ticketNumber: { type: String, trim: true },
     flagged: { type: Boolean, default: false },
   },
   { _id: false }

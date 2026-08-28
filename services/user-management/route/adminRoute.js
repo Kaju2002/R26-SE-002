@@ -8,6 +8,13 @@ import {
   decideVerificationRequest,
 } from "../controller/verificationController.js";
 import {
+  addSupportTicketMessage,
+  assignSupportTicketToMe,
+  getSupportTicket,
+  listSupportTickets,
+  updateSupportTicket,
+} from "../controller/supportTicketController.js";
+import {
   authMiddleware,
   requireSuperAdmin,
 } from "../middleware/authMiddleware.js";
@@ -24,5 +31,11 @@ router.patch(
   "/verification-requests/:id/decision",
   decideVerificationRequest
 );
+
+router.get("/support-tickets", listSupportTickets);
+router.post("/support-tickets/:id/assign-me", assignSupportTicketToMe);
+router.post("/support-tickets/:id/messages", addSupportTicketMessage);
+router.get("/support-tickets/:id", getSupportTicket);
+router.patch("/support-tickets/:id", updateSupportTicket);
 
 export default router;

@@ -7,6 +7,8 @@ export const EVENT_TYPES = {
   JOB_CREATED: "job.created",
   JOB_FLAGGED_FOR_REVIEW: "job.flagged_for_review",
   INTERVIEW_REMINDER: "interview.reminder",
+  SUPPORT_TICKET_CREATED: "support.ticket.created",
+  SUPPORT_TICKET_REPLIED: "support.ticket.replied",
 };
 
 export const ROUTING_KEYS = Object.values(EVENT_TYPES);
