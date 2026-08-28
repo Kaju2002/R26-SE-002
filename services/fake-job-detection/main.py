@@ -112,7 +112,17 @@ def _run_text_inference(text: str) -> dict:
     # Training had 1191 legitimate vs 533 fake (69% vs 31%)
     FAKE_THRESHOLD = 0.85
 
-    if fake_prob >= FAKE_THRESHOLD:
+    decided = decide_from_probabilities(fake_prob, legit_prob, fake_threshold=FAKE_THRESHOLD)
+    return decided
+
+
+def decide_from_probabilities(
+    fake_prob: float,
+    legit_prob: float,
+    fake_threshold: float = 0.85,
+) -> dict:
+    """Map class probabilities to fake / suspicious / legitimate (unit-testable)."""
+    if fake_prob >= fake_threshold:
         prediction = "fake"
         confidence = round(fake_prob, 4)
         message = (
