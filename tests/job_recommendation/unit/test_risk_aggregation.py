@@ -1,6 +1,9 @@
 """Unit tests for entropy-weighted risk aggregation."""
 
-from src.risk_aggregation import run_risk_aggregation
+from tests.service_imports import import_module
+
+risk_aggregation = import_module("job-recommendation", "src.risk_aggregation")
+run_risk_aggregation = risk_aggregation.run_risk_aggregation
 
 
 def test_run_risk_aggregation_returns_expected_columns(mini_risk_path):

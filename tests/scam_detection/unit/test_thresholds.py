@@ -1,6 +1,12 @@
 """Unit tests for tactic thresholds and metadata (no model weights needed)."""
 
-from app.predictor import TACTIC_META, TACTIC_THRESHOLDS, P1_CONFIDENT_LEGIT, P1_UNCERTAIN
+from tests.service_imports import import_module
+
+predictor = import_module("scam-detection", "app.predictor")
+TACTIC_META = predictor.TACTIC_META
+TACTIC_THRESHOLDS = predictor.TACTIC_THRESHOLDS
+P1_CONFIDENT_LEGIT = predictor.P1_CONFIDENT_LEGIT
+P1_UNCERTAIN = predictor.P1_UNCERTAIN
 
 
 def test_all_tactics_have_metadata():

@@ -1,13 +1,11 @@
 """
 Pytest setup for employer-verification tests.
-Adds services/employer-verification to sys.path.
 Patches joblib.load so `import main` works without the real .pkl artifact.
 """
 
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from unittest.mock import MagicMock
 
@@ -19,14 +17,8 @@ EV_TESTS = Path(__file__).resolve().parents[0]
 TESTS_DIR = EV_TESTS.parent
 REPO_ROOT = TESTS_DIR.parent
 SERVICE_ROOT = REPO_ROOT / "services" / "employer-verification"
-APP_ROOT = SERVICE_ROOT / "app"
 FIXTURES = EV_TESTS / "fixtures" / "samples.json"
 MODEL_PATH = SERVICE_ROOT / "models" / "final_realistic_model.pkl"
-
-for path in (SERVICE_ROOT, APP_ROOT):
-    path_str = str(path)
-    if path_str not in sys.path:
-        sys.path.insert(0, path_str)
 
 FAKE_FEATURE_COLS = [
     "has_https",

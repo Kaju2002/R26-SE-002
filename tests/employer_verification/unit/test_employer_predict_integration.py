@@ -23,7 +23,14 @@ def test_calculate_final_score_with_real_bundle(model_ready: bool, samples: dict
         pytest.skip("final_realistic_model.pkl not available")
 
     import joblib
-    from app.employer_verification_model.scoring_layer import calculate_final_score
+
+    from tests.service_imports import import_module
+
+    scoring_layer = import_module(
+        "employer-verification",
+        "app.employer_verification_model.scoring_layer",
+    )
+    calculate_final_score = scoring_layer.calculate_final_score
 
     bundle = joblib.load(MODEL_PATH)
     features = {col: 0 for col in bundle["features"]}

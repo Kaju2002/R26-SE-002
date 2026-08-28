@@ -1,6 +1,10 @@
 """Unit tests for explanation / warning helpers (no model weights needed)."""
 
-from app.predictor import build_explanation, build_warning
+from tests.service_imports import import_module
+
+predictor = import_module("scam-detection", "app.predictor")
+build_explanation = predictor.build_explanation
+build_warning = predictor.build_warning
 
 
 def test_build_explanation_no_tactics():

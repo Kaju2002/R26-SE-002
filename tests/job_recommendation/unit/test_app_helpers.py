@@ -1,6 +1,8 @@
 """Unit tests for helper functions in app.py."""
 
-import app as jr_app
+from tests.service_imports import import_module
+
+jr_app = import_module("job-recommendation", "app")
 
 
 def test_find_missing_skills():

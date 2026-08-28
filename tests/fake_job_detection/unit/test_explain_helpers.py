@@ -1,6 +1,11 @@
 """Unit tests for explain helpers (no model weights)."""
 
-from explain import STOPWORDS, TOKEN_RE, _to_highlights
+from tests.service_imports import import_module
+
+explain = import_module("fake-job-detection", "explain")
+STOPWORDS = explain.STOPWORDS
+TOKEN_RE = explain.TOKEN_RE
+_to_highlights = explain._to_highlights
 
 
 def test_to_highlights_sorts_by_abs_weight():
