@@ -1,0 +1,73 @@
+{
+  "companies": [
+    {
+      "id": "legit_sme",
+      "company_name": "Virtusa Pvt Ltd",
+      "website_url": "https://www.virtusa.com",
+      "email": "careers@virtusa.com",
+      "notes": "Registered-style name + corporate email"
+    },
+    {
+      "id": "suspicious_unknown",
+      "company_name": "Quick Hire Solutions",
+      "website_url": "https://quick-hire-now.xyz",
+      "email": "hr@gmail.com",
+      "notes": "Free email + suspicious TLD"
+    },
+    {
+      "id": "scam_keyword",
+      "company_name": "Easy Money Fake Scam Ltd",
+      "website_url": "https://easy-money.work",
+      "email": "pay@gmail.com",
+      "notes": "Scam keyword in name triggers reputation flag"
+    }
+  ],
+  "scoring_cases": [
+    {
+      "id": "strong_legit",
+      "ml_probability": 0.92,
+      "company_name": "PickMe Pvt Ltd",
+      "website": "https://www.pickme.lk",
+      "reg": {
+        "government_registration_status": "registered",
+        "is_cse_listed": 1
+      },
+      "rep": {
+        "has_linkedin": 1,
+        "has_indeed": 1,
+        "has_topjobs_lk": 1
+      },
+      "features": {
+        "has_https": 1,
+        "has_about": 1,
+        "has_contact": 1,
+        "has_privacy_policy": 1
+      },
+      "expect_risk_in": ["Low", "Medium"]
+    },
+    {
+      "id": "high_fraud",
+      "ml_probability": 0.25,
+      "company_name": "Fake Easy Money Scam",
+      "website": "http://scam-site.xyz",
+      "reg": {
+        "government_registration_status": "not_found"
+      },
+      "rep": {
+        "has_scam_report": 1
+      },
+      "features": {
+        "has_payment_risk": 1,
+        "has_urgency_language": 1,
+        "has_scam_report": 1,
+        "is_http_only": 1,
+        "has_suspicious_tld": 1
+      },
+      "expect_risk_in": ["High"]
+    }
+  ],
+  "content_samples": {
+    "scammy_text": "URGENT apply now! Pay registration fee via bitcoin wire transfer today only.",
+    "clean_text": "We are hiring software engineers. Hybrid work in Colombo. No fees or deposits."
+  }
+}
