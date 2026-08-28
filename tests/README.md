@@ -40,7 +40,7 @@ pytest tests/scam_detection/ -v
 1. `scam_detection` ← done (fixtures + unit + mocked API)
 2. `fake_job_detection` ← done (fixtures + unit + mocked API)
 3. `employer_verification` ← done (fixtures + unit + mocked API)
-4. `job_recommendation`
+4. `job_recommendation` ← done (fixtures + unit + mocked API + metrics)
 5. Optional `chat/` helpers
 
 ### Run scam-detection tests
@@ -76,6 +76,18 @@ py -m pytest tests/employer_verification/ -v
 - **Unit** — scoring layer, content flags, review helpers  
 - **API** — mocked `/predict` (no real `.pkl` or web scraping)  
 - **Integration** — skips unless `models/final_realistic_model.pkl` exists  
+
+### Run job-recommendation tests
+
+```bash
+cd C:\Users\kanth\OneDrive\Desktop\R26-SE-002
+py -m pytest tests/job_recommendation/ -v
+```
+
+- **Unit** — skill matching, risk aggregation, TOPSIS ranking, live ranking  
+- **API** — mocked `/recommend` + real `/recommend/live`  
+- **Metrics** — Precision@K / Recall@K helpers for viva  
+- **Integration** — skips unless `services/job-recommendation/data/raw/*.csv` exist  
 
 
 ## Notes for panel
