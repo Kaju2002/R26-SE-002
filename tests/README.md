@@ -37,8 +37,8 @@ pytest tests/scam_detection/ -v
 
 ## Order we fill tests
 
-1. `scam_detection` ← **started** (fixtures + unit + mocked API)
-2. `fake_job_detection`
+1. `scam_detection` ← done (fixtures + unit + mocked API)
+2. `fake_job_detection` ← **started** (fixtures + unit + mocked API)
 3. `employer_verification`
 4. `job_recommendation`
 5. Optional `chat/` helpers
@@ -54,6 +54,17 @@ pytest tests/scam_detection/ -v
 - **Unit** (`combine`, thresholds, explanations) — always run, no weights needed  
 - **API** — mocked model/DB  
 - **Integration** (`test_predict_integration.py`) — skips if model files missing  
+
+### Run fake-job-detection tests
+
+```bash
+cd C:\Users\kanth\OneDrive\Desktop\R26-SE-002
+py -m pytest tests/fake_job_detection/ -v
+```
+
+- **Unit** — `decide_from_probabilities` bands + explain helpers  
+- **API** — mocked `/health` + `/predict-text`  
+- **Integration** — skips unless `fake_job_model` weight files exist  
 
 
 ## Notes for panel

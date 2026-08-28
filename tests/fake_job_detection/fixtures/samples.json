@@ -1,0 +1,26 @@
+{
+  "fake_samples": [
+    {
+      "id": "upfront_fee",
+      "text": "URGENT HIRING Work from home data entry. Earn $5000 weekly. Pay $99 registration fee today to activate your account and receive laptop. WhatsApp only. No interview needed.",
+      "notes": "Fee + urgency WFH scam post"
+    },
+    {
+      "id": "crypto_task",
+      "text": "Make money online by liking posts and investing in our crypto package. Guaranteed returns 300% in 7 days. Send deposit via USDT to start immediately.",
+      "notes": "Investment / crypto fraud framed as job"
+    }
+  ],
+  "legit_samples": [
+    {
+      "id": "software_engineer",
+      "text": "We are hiring a Junior Software Engineer in Colombo. Requirements: JavaScript or TypeScript, basic React knowledge. Hybrid work. Apply with CV. Salary discussed after interview. No fees at any stage.",
+      "notes": "Normal tech job post"
+    },
+    {
+      "id": "designer",
+      "text": "UI/UX Designer needed for product team. 1-3 years experience with Figma. Full-time Hybrid. Benefits include health insurance and learning stipend. Send portfolio link.",
+      "notes": "Legitimate design role"
+    }
+  ]
+}
