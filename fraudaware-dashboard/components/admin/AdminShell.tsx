@@ -41,6 +41,7 @@ type NavIconId =
   | 'verification'
   | 'jobs'
   | 'reports'
+  | 'chat-reports'
   | 'audit'
   | 'settings'
   | 'support';
@@ -53,7 +54,7 @@ const navItems: { href: string; label: string; icon: NavIconId }[] = [
   { href: `${config.basePath}/verification`, label: 'Verification', icon: 'verification' },
   { href: `${config.basePath}/jobs`, label: 'Jobs', icon: 'jobs' },
   { href: `${config.basePath}/reports`, label: 'Reports', icon: 'reports' },
-  { href: `${config.basePath}/chat-reports`, label: 'Chat reports', icon: 'reports' },
+  { href: `${config.basePath}/chat-reports`, label: 'Chat reports', icon: 'chat-reports' },
   { href: `${config.basePath}/audit`, label: 'Audit log', icon: 'audit' },
   { href: `${config.basePath}/settings`, label: 'Settings', icon: 'settings' },
   { href: `${config.basePath}/support`, label: 'Support', icon: 'support' },
@@ -117,6 +118,16 @@ function SidebarNavIcon({ id, className }: { id: NavIconId; className?: string }
             strokeLinecap="round"
             strokeLinejoin="round"
             d="M3 3v1.5M3 21v-6m0 0l2.77-.693a9 9 0 016.208.682l.108.054a9 9 0 006.086.71l3.114-.732a48.524 48.524 0 01-.005-10.499l-3.11.732a9 9 0 01-6.085-.711l-.108-.054a9 9 0 00-6.208-.682L3 4.5M3 15V4.5"
+          />
+        </svg>
+      );
+    case 'chat-reports':
+      return (
+        <svg {...common}>
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M8.625 12a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H8.25m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0H12m4.125 0a.375.375 0 11-.75 0 .375.375 0 01.75 0zm0 0h-.375M21 12c0 4.556-4.03 8.25-9 8.25a9.764 9.764 0 01-2.555-.337A5.972 5.972 0 015.41 20.97a5.969 5.969 0 01-.474-.065 4.48 4.48 0 00.978-2.025c.09-.457-.133-.901-.467-1.199C3.93 16.178 3 14.189 3 12c0-4.556 4.03-8.25 9-8.25s9 3.694 9 8.25z"
           />
         </svg>
       );
@@ -383,15 +394,9 @@ export default function AdminShell({ children, title }: Props) {
         </div>
 
         {resolvedTitle ? (
-          <div className="border-b border-[#EEF0F8] bg-white px-4 py-4 md:px-6 lg:px-8">
-            <p
-              className="text-xs font-semibold uppercase tracking-wide"
-              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-            >
-              Super admin
-            </p>
+          <div className="border-b border-[#EEF0F8] bg-white px-4 py-3 md:px-6 lg:px-8">
             <h1
-              className="mt-1 text-xl font-semibold md:text-2xl"
+              className="text-lg font-semibold md:text-xl"
               style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
             >
               {resolvedTitle}

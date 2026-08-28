@@ -261,7 +261,7 @@ export default function EmployerEmailPage({
               className="mt-2 max-w-md text-sm"
               style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
             >
-              Connect Gmail or Outlook on your profile to read and send email in FraudAware.
+              Connect Gmail or Outlook on your profile to read and send email in CareerNet.
             </p>
             <Link
               href={`${basePath}/profile`}

@@ -244,7 +244,7 @@ export default function AdminDashboardPage() {
                 className="mt-1 text-xl font-semibold md:text-2xl"
                 style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
               >
-                Keep FraudAware safe today
+                Keep CareerNet safe today
               </h2>
               <p
                 className="mt-2 text-sm leading-relaxed"

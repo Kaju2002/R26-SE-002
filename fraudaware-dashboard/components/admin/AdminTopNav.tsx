@@ -152,9 +152,9 @@ function MenuIcon({
   };
 
   return (
-    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#EEF0F8]">
+    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#EEF0F8]">
       <svg
-        className="h-[18px] w-[18px] text-[#202871]"
+        className="h-3.5 w-3.5 text-[#202871]"
         fill="none"
         viewBox="0 0 24 24"
         strokeWidth={1.6}
@@ -284,7 +284,7 @@ export default function AdminTopNav({
         aria-haspopup="menu"
         aria-label="Open profile menu"
       >
-        <UserAvatar user={user} size={35} />
+        <UserAvatar user={user} size={32} />
         {!mobile ? (
           <svg
             className={`mr-0.5 h-4 w-4 text-[#858BBD] transition ${menuOpen ? 'rotate-180' : ''}`}
@@ -302,26 +302,26 @@ export default function AdminTopNav({
       {menuOpen ? (
         <div
           role="menu"
-          className="absolute right-0 mt-2 w-[min(100vw-2rem,20rem)] overflow-hidden rounded-2xl border border-[#EEF0F8] bg-white shadow-[0_12px_40px_rgba(32,40,113,0.12)]"
+          className="absolute right-0 mt-2 w-[min(100vw-2rem,16rem)] overflow-hidden rounded-xl border border-[#EEF0F8] bg-white shadow-[0_8px_24px_rgba(32,40,113,0.1)]"
         >
-          <div className="border-b border-[#EEF0F8] px-4 py-4">
-            <div className="flex items-start gap-3">
-              <UserAvatar user={user} size={48} />
+          <div className="border-b border-[#EEF0F8] px-3 py-2.5">
+            <div className="flex items-center gap-2.5">
+              <UserAvatar user={user} size={36} />
               <div className="min-w-0 flex-1">
                 <p
-                  className="truncate text-sm font-semibold"
+                  className="truncate text-sm font-semibold leading-tight"
                   style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
                 >
                   {user.fullName}
                 </p>
                 <p
-                  className="truncate text-xs"
+                  className="truncate text-[11px] leading-tight"
                   style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
                 >
                   Super admin
                 </p>
                 <p
-                  className="mt-1 truncate text-xs"
+                  className="truncate text-[11px] leading-tight"
                   style={{ color: colors.body, fontFamily: 'var(--font-poppins)' }}
                 >
                   {user.email}
@@ -330,35 +330,27 @@ export default function AdminTopNav({
             </div>
           </div>
 
-          <div className="space-y-0.5 p-2">
+          <div className="p-1.5">
             {menuLinks.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 role="menuitem"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition hover:bg-[#F7F8FE]"
+                className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-[#F7F8FE]"
               >
                 <MenuIcon kind={item.kind} />
-                <span className="min-w-0">
-                  <span
-                    className="block text-sm font-semibold"
-                    style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-                  >
-                    {item.title}
-                  </span>
-                  <span
-                    className="block text-xs"
-                    style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-                  >
-                    {item.subtitle}
-                  </span>
+                <span
+                  className="truncate text-sm font-medium"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  {item.title}
                 </span>
               </Link>
             ))}
           </div>
 
-          <div className="border-t border-[#EEF0F8] p-3">
+          <div className="border-t border-[#EEF0F8] p-2">
             <button
               type="button"
               role="menuitem"
@@ -367,7 +359,7 @@ export default function AdminTopNav({
                 onLogout();
               }}
               disabled={isLoggingOut}
-              className="w-full rounded-xl border border-[#E5E7EE] px-3 py-2.5 text-sm font-medium transition hover:bg-[#F7F8FE] disabled:opacity-70"
+              className="w-full rounded-lg border border-[#E5E7EE] px-3 py-2 text-xs font-medium transition hover:bg-[#F7F8FE] disabled:opacity-70"
               style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
             >
               {isLoggingOut ? 'Signing out...' : 'Logout'}
@@ -495,7 +487,7 @@ export default function AdminTopNav({
             {appsOpen ? (
               <div
                 role="menu"
-                className="absolute left-0 top-full z-40 mt-2 w-64 overflow-hidden rounded-2xl border border-[#EEF0F8] bg-white p-2 shadow-[0_12px_40px_rgba(32,40,113,0.12)]"
+                className="absolute left-0 top-full z-40 mt-2 w-52 overflow-hidden rounded-xl border border-[#EEF0F8] bg-white p-1.5 shadow-[0_8px_24px_rgba(32,40,113,0.1)]"
               >
                 {appsLinks.map((item) => (
                   <Link
@@ -503,19 +495,13 @@ export default function AdminTopNav({
                     href={item.href}
                     role="menuitem"
                     onClick={() => setAppsOpen(false)}
-                    className="block rounded-xl px-3 py-2.5 transition hover:bg-[#F7F8FE]"
+                    className="block rounded-lg px-2.5 py-1.5 transition hover:bg-[#F7F8FE]"
                   >
                     <span
-                      className="block text-sm font-semibold"
+                      className="block truncate text-sm font-medium"
                       style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
                     >
                       {item.label}
-                    </span>
-                    <span
-                      className="block text-xs"
-                      style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-                    >
-                      {item.subtitle}
                     </span>
                   </Link>
                 ))}

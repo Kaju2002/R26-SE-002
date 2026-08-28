@@ -61,7 +61,7 @@ export const MOCK_INCHAT_THREADS: InchatThread[] = [
   },
   {
     id: 'th-fraudaware',
-    participantName: 'FraudAware Tips',
+    participantName: 'CareerNet Tips',
     subtitle: 'In-app guidance',
     avatarKind: 'company',
     lastMessagePreview: 'Remember: never ask applicants for upfront fees.',

@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MaterialIcons } from '@expo/vector-icons';
 import type { DetectStackParamList, JobPostHighlight } from '../navigation/detectStackTypes';
+import { BRAND_NAME } from '../config/brand';
 
 type Props = NativeStackScreenProps<DetectStackParamList, 'JobPostResult'>;
 
@@ -193,7 +194,7 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
 
   const onShare = useCallback(async () => {
     await Share.share({
-      message: `FraudAware job post scan\n${copy.headline}\n${Math.round(confidence * 100)}% model confidence\n\n${message}`,
+      message: `${BRAND_NAME} job post scan\n${copy.headline}\n${Math.round(confidence * 100)}% model confidence\n\n${message}`,
     });
   }, [copy.headline, confidence, message]);
 

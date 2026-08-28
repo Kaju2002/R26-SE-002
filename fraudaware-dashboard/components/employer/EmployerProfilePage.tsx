@@ -699,8 +699,8 @@ export default function EmployerProfilePage({
                   title="Account details"
                   subtitle={
                     editMode === 'account'
-                      ? 'Update how you appear across FraudAware'
-                      : 'Signed-in information from your FraudAware login'
+                      ? 'Update how you appear across CareerNet'
+                      : 'Signed-in information from your CareerNet login'
                   }
                 />
                 {editMode === 'none' ? (
@@ -1089,7 +1089,7 @@ export default function EmployerProfilePage({
             <div>
               <SectionIntro
                 title="Hiring mailbox"
-                subtitle="Connect Gmail or Outlook to message applicants from FraudAware"
+                subtitle="Connect Gmail or Outlook to message applicants from CareerNet"
               />
 
               <div

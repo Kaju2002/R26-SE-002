@@ -1,3 +1,4 @@
+import { BRAND_NAME } from '@/lib/brand';
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
@@ -9,8 +10,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "FraudAware Dashboard",
-  description: "FraudAware recruiter and super admin portal",
+  title: `${BRAND_NAME} Dashboard`,
+  description: `${BRAND_NAME} recruiter and super admin portal`,
 };
 
 export default function RootLayout({

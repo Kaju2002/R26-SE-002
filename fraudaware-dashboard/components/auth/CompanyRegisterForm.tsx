@@ -90,7 +90,7 @@ export default function CompanyRegisterForm() {
           style={{ fontFamily: 'var(--font-poppins)' }}
         >
           {step === 'register'
-            ? 'Create your company account to post jobs and hire on FraudAware.'
+            ? 'Create your company account to post jobs and hire on CareerNet.'
             : `Enter the 6-digit code sent to ${email}.`}
         </p>
       </div>

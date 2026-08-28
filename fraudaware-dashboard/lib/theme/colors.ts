@@ -1,4 +1,4 @@
-/** FraudAware brand palette — aligned with mobile app */
+/** CareerNet brand palette — aligned with mobile app */
 export const colors = {
   navy: '#202871',
   brandNavy: '#1F2A90',

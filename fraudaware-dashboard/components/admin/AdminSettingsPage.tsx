@@ -145,7 +145,7 @@ export default function AdminSettingsPage() {
             className="mt-1 text-xl font-semibold"
             style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
           >
-            Control how FraudAware stays safe
+            Control how CareerNet stays safe
           </h2>
           <p
             className="mt-2 text-sm leading-relaxed"
