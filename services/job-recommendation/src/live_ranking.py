@@ -4,8 +4,13 @@ from __future__ import annotations
 
 from typing import Any
 
+import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+
+from src.indicator_mapper import job_to_indicator_row
+from src.ranking import run_ranking
+from src.risk_aggregation import run_risk_aggregation_from_rows
 
 
 def _normalize_skill_list(skills: Any) -> list[str]:
@@ -51,18 +56,21 @@ def rank_live_jobs(
     top_n: int = 20,
 ) -> list[dict[str, Any]]:
     """
-    Rank live jobs by TF-IDF skill similarity.
+    Rank live jobs by TF-IDF skill similarity + EWM risk + TOPSIS.
 
     Each job dict should include:
       - id (str)
       - title (str)
       - skills (list[str], optional)
-      - is_verified / isVerified (bool, optional) — boosts trust_score
+      - is_verified / isVerified (bool, optional)
+      - risk_prediction / riskPrediction / riskCheck.prediction (optional)
+      - comm_is_scam / commIsScam (optional)
     """
     cleaned_skills = [str(s).strip() for s in user_skills if str(s).strip()]
     if not cleaned_skills:
         return []
 
+    raw_by_id: dict[str, dict[str, Any]] = {}
     prepared: list[dict[str, Any]] = []
     for raw in jobs:
         job_id = str(raw.get("id") or raw.get("job_id") or "").strip()
@@ -70,10 +78,9 @@ def rank_live_jobs(
         if not job_id or not title:
             continue
 
+        raw_by_id[job_id] = raw
         job_skills = _normalize_skill_list(raw.get("skills") or raw.get("job_skills"))
-        # Fall back to title words so jobs without skills still rank a little
         skill_text = " ".join(job_skills).lower() if job_skills else title.lower()
-        verified = bool(raw.get("is_verified") if "is_verified" in raw else raw.get("isVerified"))
 
         prepared.append(
             {
@@ -81,7 +88,6 @@ def rank_live_jobs(
                 "job_title": title,
                 "job_skills": job_skills,
                 "skill_text": skill_text,
-                "is_verified": verified,
             }
         )
 
@@ -94,18 +100,16 @@ def rank_live_jobs(
     vectorizer = TfidfVectorizer(lowercase=True, stop_words="english")
     try:
         matrix = vectorizer.fit_transform(corpus)
+        similarities = cosine_similarity(matrix[0:1], matrix[1:]).flatten()
     except ValueError:
-        # Empty vocabulary (very short skills) — fall back to matched-count ranking
+        similarities = None
         for row in prepared:
             matched = _find_matched_skills(cleaned_skills, row["job_skills"])
-            row["skill_match_score"] = (
-                len(matched) / max(len(cleaned_skills), 1)
-            )
-        similarities = None
-    else:
-        similarities = cosine_similarity(matrix[0:1], matrix[1:]).flatten()
+            row["skill_match_score"] = len(matched) / max(len(cleaned_skills), 1)
 
-    results: list[dict[str, Any]] = []
+    skill_rows: list[dict[str, Any]] = []
+    extras_by_id: dict[str, dict[str, Any]] = {}
+
     for index, row in enumerate(prepared):
         if similarities is not None:
             skill_score = float(similarities[index])
@@ -115,22 +119,41 @@ def rank_live_jobs(
         matched = _find_matched_skills(cleaned_skills, row["job_skills"])
         missing = _find_missing_skills(cleaned_skills, row["job_skills"])
 
-        # Verified employers get a higher trust baseline
-        trust = 0.85 if row["is_verified"] else 0.55
-        # Blend skill + trust for overall fit (same spirit as TOPSIS weights)
-        overall = float(0.65 * skill_score + 0.35 * trust)
-
-        results.append(
+        skill_rows.append(
             {
                 "job_id": row["job_id"],
                 "job_title": row["job_title"],
-                "relevance": round(skill_score, 4),
-                "trust_score": round(trust, 4),
-                "overall_fit": round(overall, 4),
-                "skills_you_have": matched,
-                "skills_to_develop": missing[:12],
+                "skill_match_score": skill_score,
+                "matched_skills": matched,
+                "matched_count": len(matched),
+                "job_skill_set": str(row["job_skills"]),
+            }
+        )
+        extras_by_id[row["job_id"]] = {
+            "skills_you_have": matched,
+            "skills_to_develop": missing[:12],
+        }
+
+    skill_df = pd.DataFrame(skill_rows)
+    indicator_rows = [job_to_indicator_row(raw_by_id[row["job_id"]]) for row in prepared]
+    risk_df, _ = run_risk_aggregation_from_rows(indicator_rows)
+    final_df = run_ranking(skill_df, risk_df)
+
+    results: list[dict[str, Any]] = []
+    for _, row in final_df.iterrows():
+        job_id = str(row["job_id"])
+        extras = extras_by_id.get(job_id, {})
+
+        results.append(
+            {
+                "job_id": job_id,
+                "job_title": row["job_title"],
+                "relevance": round(float(row["skill_match_score"]), 4),
+                "trust_score": round(float(row["safety_score"]), 4),
+                "overall_fit": round(float(row["topsis_score"]), 4),
+                "skills_you_have": extras.get("skills_you_have", []),
+                "skills_to_develop": extras.get("skills_to_develop", []),
             }
         )
 
-    results.sort(key=lambda item: item["overall_fit"], reverse=True)
     return results[: max(1, top_n)]

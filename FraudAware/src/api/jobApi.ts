@@ -37,6 +37,9 @@ export type ApiJob = {
   contact?: JobContact;
   status?: string;
   postedBy?: string;
+  riskCheck?: {
+    prediction?: string;
+  };
 };
 
 export type ListJobsParams = {

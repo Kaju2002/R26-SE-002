@@ -17,6 +17,8 @@ export type LiveJobForRecommend = {
   title: string;
   skills?: string[];
   isVerified?: boolean;
+  riskPrediction?: string;
+  commIsScam?: boolean;
 };
 
 /**
@@ -148,6 +150,8 @@ export async function fetchLiveRecommendations(
         title: job.title,
         skills: job.skills ?? [],
         isVerified: Boolean(job.isVerified),
+        riskPrediction: job.riskPrediction,
+        commIsScam: job.commIsScam,
       })),
     }),
   });

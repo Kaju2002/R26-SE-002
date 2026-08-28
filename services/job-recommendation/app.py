@@ -35,6 +35,8 @@ class LiveJobInput(BaseModel):
     title: str
     skills: list[str] = Field(default_factory=list)
     isVerified: bool = False
+    riskPrediction: str | None = None
+    commIsScam: bool | None = None
 
 
 class LiveRecommendRequest(BaseModel):
@@ -148,6 +150,8 @@ def recommend_live(request: LiveRecommendRequest):
             "title": job.title,
             "skills": job.skills,
             "isVerified": job.isVerified,
+            "riskPrediction": job.riskPrediction,
+            "commIsScam": job.commIsScam,
         }
         for job in request.jobs
     ]
