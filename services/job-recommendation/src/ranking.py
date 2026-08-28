@@ -51,7 +51,10 @@ def run_ranking(skill_df, risk_df, skill_weight=0.5, safety_weight=0.5):
     dist_worst = np.sqrt(((weighted_matrix - ideal_worst) ** 2).sum(axis=1))
 
     # Closeness coefficient
-    job_scores['topsis_score'] = dist_worst / (dist_best + dist_worst)
+    denom = dist_best + dist_worst
+    with np.errstate(divide="ignore", invalid="ignore"):
+        raw_scores = dist_worst / denom
+    job_scores["topsis_score"] = np.where(denom == 0, 1.0, raw_scores)
 
     # Sort and return
     return job_scores.sort_values(by='topsis_score', ascending=False)

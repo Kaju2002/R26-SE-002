@@ -48,3 +48,26 @@ def test_response_shape(samples: dict):
         "skills_to_develop",
     ):
         assert key in item
+
+
+def test_fake_job_ranks_lower_than_legitimate_match():
+    jobs = [
+        {
+            "id": "legit-1",
+            "title": "Python Developer",
+            "skills": ["python", "django"],
+            "isVerified": True,
+            "riskPrediction": "legitimate",
+        },
+        {
+            "id": "fake-1",
+            "title": "Python Developer",
+            "skills": ["python", "django"],
+            "isVerified": False,
+            "riskPrediction": "fake",
+        },
+    ]
+    ranked = rank_live_jobs(["python", "django"], jobs, top_n=2)
+
+    assert ranked[0]["job_id"] == "legit-1"
+    assert ranked[0]["trust_score"] > ranked[1]["trust_score"]

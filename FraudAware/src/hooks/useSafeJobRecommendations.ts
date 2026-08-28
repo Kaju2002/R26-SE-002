@@ -61,6 +61,7 @@ export function useSafeJobRecommendations(limit?: number) {
         title: job.title,
         skills: job.skills ?? [],
         isVerified: Boolean(job.isVerified),
+        riskPrediction: job.riskCheck?.prediction ?? 'legitimate',
       }));
 
       const ranked = await fetchLiveRecommendations(
