@@ -1,3 +1,5 @@
+import { BRAND_NAME } from "./brand.js";
+
 const escapeHtml = (value) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -148,7 +150,7 @@ export const buildInterviewInviteHtml = ({
         <table width="100%" style="max-width:560px;background:#ffffff;border-radius:8px;" cellspacing="0" cellpadding="0" border="0">
           <tr>
             <td style="background:#202871;border-radius:8px 8px 0 0;padding:20px 28px;">
-              <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A8B4E8;">FraudAware Hiring</p>
+              <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A8B4E8;">${escapeHtml(BRAND_NAME)}</p>
               <p style="margin:8px 0 0;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;">Interview invitation</p>
             </td>
           </tr>
@@ -170,7 +172,7 @@ export const buildInterviewInviteHtml = ({
               </table>
               ${joinBlock}
               <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: #5B6473;">
-                A calendar invitation has also been sent to this email if your recruiter has a mailbox connected.
+                Please add this interview to your calendar using the details above.
               </p>
               <p style="margin: 24px 0 0; font-size: 15px; line-height: 1.6; color: #202871;">
                 Best regards,<br>
@@ -178,7 +180,7 @@ export const buildInterviewInviteHtml = ({
               </p>
               ${websiteLine}
               <p style="margin: 28px 0 0; font-size: 12px; line-height: 1.5; color: #858BBD;">
-                Sent via FraudAware
+                Sent via ${escapeHtml(BRAND_NAME)}
               </p>
             </td>
           </tr>

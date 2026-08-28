@@ -76,7 +76,7 @@ export default function ScheduleInterviewModal({
   const [location, setLocation] = useState('');
   const [manualUrl, setManualUrl] = useState('');
   const [notes, setNotes] = useState('');
-  const [sendInvite, setSendInvite] = useState(true);
+  const [sendInvite, setSendInvite] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -90,6 +90,16 @@ export default function ScheduleInterviewModal({
       setEndsLocal(defaultEnd(start));
     }
   }, [open, candidate, options, initialStartsAt]);
+
+  const calendarWillInviteCandidate =
+    type === 'video' && provider !== 'none';
+
+  useEffect(() => {
+    if (!open) return;
+    if (calendarWillInviteCandidate) {
+      setSendInvite(false);
+    }
+  }, [open, calendarWillInviteCandidate]);
 
   if (!open) return null;
 
@@ -320,14 +330,29 @@ export default function ScheduleInterviewModal({
             />
           </label>
 
-          <label className="flex items-center gap-2 text-sm" style={{ color: colors.body }}>
+          <label
+            className={`flex items-start gap-2 text-sm ${calendarWillInviteCandidate ? 'opacity-70' : ''}`}
+            style={{ color: colors.body }}
+          >
             <input
               type="checkbox"
               checked={sendInvite}
               onChange={(e) => setSendInvite(e.target.checked)}
-              className="rounded border-[#D1D5DB]"
+              disabled={calendarWillInviteCandidate}
+              className="mt-0.5 rounded border-[#D1D5DB] disabled:cursor-not-allowed"
             />
-            Send invite email to candidate
+            <span>
+              Send separate invite email
+              {calendarWillInviteCandidate ? (
+                <span className="mt-0.5 block text-xs" style={{ color: colors.muted }}>
+                  Not needed — the calendar invite with Meet link is sent automatically.
+                </span>
+              ) : (
+                <span className="mt-0.5 block text-xs" style={{ color: colors.muted }}>
+                  Use when no calendar mailbox is connected.
+                </span>
+              )}
+            </span>
           </label>
         </div>
 

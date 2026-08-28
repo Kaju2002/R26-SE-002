@@ -58,6 +58,16 @@ const formatInterview = (interview) => ({
   updatedAt: toIso(interview.updatedAt),
 });
 
+const buildCalendarEventTitle = (application, job) => {
+  const role = String(job?.title || "Interview").trim() || "Interview";
+  const company = String(job?.companyName || "").trim();
+  if (company) {
+    return `Interview: ${role} at ${company}`;
+  }
+  const candidate = String(application?.fullName || "Candidate").trim() || "Candidate";
+  return `Interview: ${candidate} — ${role}`;
+};
+
 const buildInviteBody = (interview, job = null) =>
   buildInterviewInviteHtml({
     candidateName: interview.candidateName,
@@ -154,7 +164,7 @@ export const createInterview = async (req, res) => {
     let calendarWarning = null;
 
     if (type === "video" || addConferencing) {
-      const title = `Interview: ${application.fullName} — ${job.title}`;
+      const title = buildCalendarEventTitle(application, job);
       const description = [
         `Interview for ${job.title} at ${job.companyName || ""}.`,
         notes ? `Notes: ${notes}` : "",
@@ -253,7 +263,10 @@ export const createInterview = async (req, res) => {
     }
 
     let inviteWarning = null;
-    if (sendInvite) {
+    const calendarInviteSent = Boolean(calendarEvent?.id);
+    const shouldSendCustomInvite = sendInvite && !calendarInviteSent;
+
+    if (shouldSendCustomInvite) {
       const invite = await sendInviteEmail(authHeader, {
         to: application.email,
         subject: buildInterviewInviteSubject(job.title, job.companyName),
@@ -270,6 +283,9 @@ export const createInterview = async (req, res) => {
       } else {
         inviteWarning = invite.message || "Invite email could not be sent";
       }
+    } else if (sendInvite && calendarInviteSent) {
+      interview.inviteEmailSent = true;
+      await interview.save();
     }
 
     return res.status(201).json({

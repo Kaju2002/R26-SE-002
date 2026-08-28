@@ -1,3 +1,5 @@
+import { BRAND_NAME } from "./brand.js";
+
 const escapeHtml = (value) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -31,7 +33,7 @@ const shell = ({ title, headline, bodyHtml, companyName, companyWebsite }) => {
         <table width="100%" style="max-width:560px;background:#ffffff;border-radius:8px;" cellspacing="0" cellpadding="0" border="0">
           <tr>
             <td style="background:#202871;border-radius:8px 8px 0 0;padding:20px 28px;">
-              <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A8B4E8;">FraudAware Hiring</p>
+              <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A8B4E8;">${escapeHtml(BRAND_NAME)}</p>
               <p style="margin:8px 0 0;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;">${escapeHtml(headline)}</p>
             </td>
           </tr>
@@ -44,7 +46,7 @@ const shell = ({ title, headline, bodyHtml, companyName, companyWebsite }) => {
               </p>
               ${websiteRow(companyWebsite)}
               <p style="margin: 28px 0 0; font-size: 12px; line-height: 1.5; color: #858BBD;">
-                Sent via FraudAware
+                Sent via ${escapeHtml(BRAND_NAME)}
               </p>
             </td>
           </tr>
@@ -84,7 +86,7 @@ export const buildOfferedEmailHtml = ({
       Great news — we are pleased to offer you the <strong>${safeTitle}</strong> position at <strong>${safeCompany}</strong>.
     </p>
     <p style="margin: 0 0 16px; font-size: 15px; line-height: 1.7; color: #333333;">
-      Our team will follow up with offer details and next steps shortly. If you have any questions in the meantime, reply to this email or message us in FraudAware.
+      Our team will follow up with offer details and next steps shortly. If you have any questions in the meantime, reply to this email or message us on ${BRAND_NAME}.
     </p>
     <p style="margin: 0; font-size: 15px; line-height: 1.7; color: #333333;">
       Congratulations again — we look forward to the possibility of working together.
@@ -119,7 +121,7 @@ export const buildHiredEmailHtml = ({
       Welcome aboard — we are excited to have you join the team. Your recruiter or hiring manager will share onboarding details and start-date next steps soon.
     </p>
     <p style="margin: 0; font-size: 15px; line-height: 1.7; color: #333333;">
-      If you need anything before then, reply to this email or reach out in FraudAware.
+      If you need anything before then, reply to this email or reach out on ${BRAND_NAME}.
     </p>
   `;
 

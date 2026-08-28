@@ -1,3 +1,5 @@
+import { BRAND_NAME } from "./brand.js";
+
 const escapeHtml = (value) =>
   String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -94,7 +96,7 @@ export const buildInterviewReminderHtml = ({
         <table width="100%" style="max-width:560px;background:#ffffff;border-radius:8px;" cellspacing="0" cellpadding="0" border="0">
           <tr>
             <td style="background:#202871;border-radius:8px 8px 0 0;padding:20px 28px;">
-              <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A8B4E8;">FraudAware Hiring</p>
+              <p style="margin:0;font-size:13px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:#A8B4E8;">${escapeHtml(BRAND_NAME)}</p>
               <p style="margin:8px 0 0;font-size:20px;font-weight:700;color:#ffffff;line-height:1.3;">${escapeHtml(headline)}</p>
             </td>
           </tr>
@@ -118,7 +120,7 @@ export const buildInterviewReminderHtml = ({
                 <strong>${safeCompany} Hiring Team</strong>
               </p>
               <p style="margin: 28px 0 0; font-size: 12px; line-height: 1.5; color: #858BBD;">
-                Sent via FraudAware
+                Sent via ${escapeHtml(BRAND_NAME)}
               </p>
             </td>
           </tr>
