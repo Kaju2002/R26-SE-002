@@ -9,7 +9,6 @@ from pathlib import Path
 
 import pytest
 
-
 SERVICE_ROOT = Path(__file__).resolve().parents[3] / "services" / "fake-job-detection"
 MODEL_DIR = SERVICE_ROOT / "fake_job_model"
 
@@ -32,7 +31,6 @@ def model_ready() -> bool:
     if not _model_files_present():
         return False
     try:
-        import torch
         from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
         tokenizer = AutoTokenizer.from_pretrained(str(MODEL_DIR))
@@ -43,13 +41,14 @@ def model_ready() -> bool:
         return False
 
 
-def test_run_inference_on_fake_fixture(model_ready: bool, samples: dict, monkeypatch):
+def test_run_inference_on_fake_fixture(model_ready: bool, samples: dict):
     if not model_ready:
         pytest.skip("fake_job_model weights not available")
 
-    import main as fake_main
+    from tests.service_imports import import_module
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+    fake_main = import_module("fake-job-detection", "main")
     tokenizer = AutoTokenizer.from_pretrained(str(MODEL_DIR))
     model = AutoModelForSequenceClassification.from_pretrained(str(MODEL_DIR))
     model.eval()
@@ -67,9 +66,10 @@ def test_run_inference_on_legit_fixture(model_ready: bool, samples: dict):
     if not model_ready:
         pytest.skip("fake_job_model weights not available")
 
-    import main as fake_main
+    from tests.service_imports import import_module
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+    fake_main = import_module("fake-job-detection", "main")
     tokenizer = AutoTokenizer.from_pretrained(str(MODEL_DIR))
     model = AutoModelForSequenceClassification.from_pretrained(str(MODEL_DIR))
     model.eval()

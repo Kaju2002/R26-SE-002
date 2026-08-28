@@ -21,16 +21,22 @@ export type SupportTicket = {
   description: string;
   requesterName: string;
   requesterEmail: string;
-  requesterUserId?: string | null;
   status: SupportTicketStatus;
   priority: SupportTicketPriority;
   assigneeName?: string | null;
-  assigneeEmail?: string | null;
   linkedType: SupportLinkedType;
   linkedId?: string | null;
   linkedLabel?: string | null;
-  internalNote?: string | null;
   messages: SupportMessage[];
+  closedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type CreateSupportTicketRequest = {
+  subject: string;
+  description: string;
+  linkedType?: SupportLinkedType;
+  linkedId?: string | null;
+  linkedLabel?: string | null;
 };

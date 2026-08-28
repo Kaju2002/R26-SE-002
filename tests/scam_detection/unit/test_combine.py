@@ -6,7 +6,10 @@ from __future__ import annotations
 
 import numpy as np
 
-from app.predictor import combine
+from tests.service_imports import import_module
+
+predictor = import_module("scam-detection", "app.predictor")
+combine = predictor.combine
 
 
 def _p2(*, tactics=None, tactic_probs=None, words=None) -> dict:

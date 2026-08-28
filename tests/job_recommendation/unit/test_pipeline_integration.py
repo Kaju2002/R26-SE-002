@@ -7,9 +7,14 @@ from __future__ import annotations
 
 import pytest
 
-from src.ranking import run_ranking
-from src.risk_aggregation import run_risk_aggregation
-from src.skill_matching import run_skill_matching
+from tests.service_imports import import_module
+
+ranking = import_module("job-recommendation", "src.ranking")
+risk_aggregation = import_module("job-recommendation", "src.risk_aggregation")
+skill_matching = import_module("job-recommendation", "src.skill_matching")
+run_ranking = ranking.run_ranking
+run_risk_aggregation = risk_aggregation.run_risk_aggregation
+run_skill_matching = skill_matching.run_skill_matching
 
 
 def test_full_pipeline_on_service_data(full_dataset_ready: bool, samples: dict):

@@ -1,12 +1,10 @@
 """
 Pytest setup for job-recommendation tests.
-Adds services/job-recommendation to sys.path so `import app` and `from src...` work.
 """
 
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 
 import pytest
@@ -21,9 +19,6 @@ MINI_JOBS_CSV = FIXTURES / "mini_jobs.csv"
 MINI_RISK_CSV = FIXTURES / "mini_risk.csv"
 FULL_JOBS_CSV = SERVICE_ROOT / "data" / "raw" / "jobs.csv"
 FULL_RISK_CSV = SERVICE_ROOT / "data" / "raw" / "risk_indicators.csv"
-
-if str(SERVICE_ROOT) not in sys.path:
-    sys.path.insert(0, str(SERVICE_ROOT))
 
 
 @pytest.fixture(scope="session")

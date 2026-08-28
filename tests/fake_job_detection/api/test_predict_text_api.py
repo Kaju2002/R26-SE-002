@@ -11,7 +11,9 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture()
 def client(monkeypatch: pytest.MonkeyPatch):
-    import main as fake_main
+    from tests.service_imports import import_module
+
+    fake_main = import_module("fake-job-detection", "main")
 
     async def _noop_lifespan(app):
         fake_main.state["tokenizer"] = object()

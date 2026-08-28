@@ -11,7 +11,9 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture()
 def client(monkeypatch: pytest.MonkeyPatch, feature_cols: list[str]):
-    import main as ev_main
+    from tests.service_imports import import_module
+
+    ev_main = import_module("employer-verification", "main")
 
     def fake_extract(input):
         company = (input.company_name or "Test Company").strip()

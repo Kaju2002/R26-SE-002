@@ -1,9 +1,13 @@
 """Unit tests for scoring helper functions (no model weights)."""
 
-from app.employer_verification_model.scoring_layer import (
-    _normalize_url,
-    get_recommendation,
+from tests.service_imports import import_module
+
+scoring_layer = import_module(
+    "employer-verification",
+    "app.employer_verification_model.scoring_layer",
 )
+_normalize_url = scoring_layer._normalize_url
+get_recommendation = scoring_layer.get_recommendation
 
 
 def test_normalize_url_adds_https():

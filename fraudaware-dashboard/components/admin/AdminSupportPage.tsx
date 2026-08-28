@@ -1,17 +1,31 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { MOCK_SUPPORT_TICKETS } from '@/lib/admin/mockSupportTickets';
 import type {
   SupportLinkedType,
   SupportTicket,
   SupportTicketPriority,
   SupportTicketStatus,
 } from '@/lib/admin/supportTypes';
+import {
+  addSupportTicketMessage,
+  assignSupportTicketToMe,
+  listSupportTickets,
+  updateSupportTicket,
+  type SupportTicketCounts,
+} from '@/lib/api/adminSupportApi';
+import { getStoredToken } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
 
 type StatusFilter = 'all' | SupportTicketStatus;
+
+const EMPTY_COUNTS: SupportTicketCounts = {
+  total: 0,
+  open: 0,
+  in_progress: 0,
+  closed: 0,
+};
 
 const STATUS_LABELS: Record<SupportTicketStatus, string> = {
   open: 'Open',
@@ -25,10 +39,9 @@ const PRIORITY_LABELS: Record<SupportTicketPriority, string> = {
   high: 'High',
 };
 
-const CURRENT_ADMIN = {
-  name: 'Alex Thompson',
-  email: 'alex.thompson@fraudaware.lk',
-};
+function ticketLabel(ticket: SupportTicket): string {
+  return ticket.ticketNumber || ticket.id;
+}
 
 function formatDate(value?: string | null): string {
   if (!value) return '—';
@@ -81,7 +94,8 @@ function linkedHref(type: SupportLinkedType): string | null {
 }
 
 export default function AdminSupportPage() {
-  const [tickets, setTickets] = useState<SupportTicket[]>(MOCK_SUPPORT_TICKETS);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [counts, setCounts] = useState<SupportTicketCounts>(EMPTY_COUNTS);
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<StatusFilter>('open');
@@ -90,38 +104,69 @@ export default function AdminSupportPage() {
   const [internalNote, setInternalNote] = useState('');
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const counts = useMemo(
-    () => ({
-      total: tickets.length,
-      open: tickets.filter((t) => t.status === 'open').length,
-      in_progress: tickets.filter((t) => t.status === 'in_progress').length,
-      closed: tickets.filter((t) => t.status === 'closed').length,
-    }),
-    [tickets]
-  );
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return tickets.filter((ticket) => {
-      if (filter !== 'all' && ticket.status !== filter) return false;
-      if (!q) return true;
-      const haystack = [
-        ticket.id,
-        ticket.subject,
-        ticket.description,
-        ticket.requesterName,
-        ticket.requesterEmail,
-        ticket.assigneeName ?? '',
-        ticket.linkedLabel ?? '',
-      ]
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [tickets, query, filter]);
+  const [loading, setLoading] = useState(true);
+  const [actionBusy, setActionBusy] = useState(false);
 
   const selected = tickets.find((ticket) => ticket.id === selectedId) ?? null;
+
+  const loadTickets = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) {
+      setError('Sign in as a super admin to manage support tickets.');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await listSupportTickets(token, {
+        status: filter,
+        q: query,
+        limit: 100,
+      });
+      setTickets(result.items);
+      setCounts(result.counts);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not load support tickets');
+    } finally {
+      setLoading(false);
+    }
+  }, [filter, query]);
+
+  useEffect(() => {
+    void loadTickets();
+  }, [loadTickets]);
+
+  const applyTicketUpdate = useCallback((updated: SupportTicket) => {
+    setTickets((prev) =>
+      prev.map((ticket) => (ticket.id === updated.id ? updated : ticket))
+    );
+  }, []);
+
+  const runAction = useCallback(
+    async (action: () => Promise<SupportTicket>, successMessage: string) => {
+      const token = getStoredToken();
+      if (!token) {
+        setError('Sign in as a super admin to manage support tickets.');
+        return;
+      }
+
+      setActionBusy(true);
+      setError(null);
+      try {
+        const updated = await action();
+        applyTicketUpdate(updated);
+        setMessage(successMessage);
+        void loadTickets();
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Action failed');
+      } finally {
+        setActionBusy(false);
+      }
+    },
+    [applyTicketUpdate, loadTickets]
+  );
 
   useEffect(() => {
     if (!selectedId) return;
@@ -153,41 +198,32 @@ export default function AdminSupportPage() {
     setError(null);
   };
 
-  const patchTicket = (
-    id: string,
-    patch: Partial<SupportTicket>,
-    successMessage: string
-  ) => {
-    const now = new Date().toISOString();
-    setTickets((prev) =>
-      prev.map((ticket) =>
-        ticket.id === id ? { ...ticket, ...patch, updatedAt: now } : ticket
-      )
-    );
-    setError(null);
-    setMessage(successMessage);
-  };
-
   const assignToMe = (id: string) => {
-    patchTicket(
-      id,
-      {
-        status: 'in_progress',
-        assigneeName: CURRENT_ADMIN.name,
-        assigneeEmail: CURRENT_ADMIN.email,
-      },
+    const token = getStoredToken();
+    if (!token) return;
+    void runAction(
+      () => assignSupportTicketToMe(token, id),
       'Ticket assigned to you.'
     );
   };
 
   const setPriority = (id: string, priority: SupportTicketPriority) => {
-    patchTicket(id, { priority }, `Priority set to ${PRIORITY_LABELS[priority]}.`);
+    const token = getStoredToken();
+    if (!token) return;
+    void runAction(
+      () => updateSupportTicket(token, id, { priority }),
+      `Priority set to ${PRIORITY_LABELS[priority]}.`
+    );
   };
 
   const saveInternalNote = (id: string) => {
-    patchTicket(
-      id,
-      { internalNote: internalNote.trim() || null },
+    const token = getStoredToken();
+    if (!token) return;
+    void runAction(
+      () =>
+        updateSupportTicket(token, id, {
+          internalNote: internalNote.trim() || null,
+        }),
       'Internal note saved.'
     );
   };
@@ -198,41 +234,32 @@ export default function AdminSupportPage() {
       setError('Write a reply before sending.');
       return;
     }
-    const now = new Date().toISOString();
-    setTickets((prev) =>
-      prev.map((ticket) => {
-        if (ticket.id !== id) return ticket;
-        return {
-          ...ticket,
-          status: ticket.status === 'open' ? 'in_progress' : ticket.status,
-          assigneeName: ticket.assigneeName ?? CURRENT_ADMIN.name,
-          assigneeEmail: ticket.assigneeEmail ?? CURRENT_ADMIN.email,
-          updatedAt: now,
-          messages: [
-            ...ticket.messages,
-            {
-              id: `msg_${Date.now()}`,
-              author: 'admin',
-              authorName: CURRENT_ADMIN.name,
-              body,
-              createdAt: now,
-            },
-          ],
-        };
-      })
-    );
-    setReplyDraft('');
-    setError(null);
-    setMessage('Reply sent.');
+    const token = getStoredToken();
+    if (!token) return;
+    void runAction(async () => {
+      const updated = await addSupportTicketMessage(token, id, body);
+      setReplyDraft('');
+      return updated;
+    }, 'Reply sent.');
   };
 
   const closeTicket = (id: string) => {
-    patchTicket(id, { status: 'closed' }, 'Ticket closed.');
-    setSelectedId(null);
+    const token = getStoredToken();
+    if (!token) return;
+    void runAction(async () => {
+      const updated = await updateSupportTicket(token, id, { status: 'closed' });
+      setSelectedId(null);
+      return updated;
+    }, 'Ticket closed.');
   };
 
   const reopenTicket = (id: string) => {
-    patchTicket(id, { status: 'open' }, 'Ticket reopened.');
+    const token = getStoredToken();
+    if (!token) return;
+    void runAction(
+      () => updateSupportTicket(token, id, { status: 'open' }),
+      'Ticket reopened.'
+    );
   };
 
   return (
@@ -303,9 +330,18 @@ export default function AdminSupportPage() {
               className="shrink-0 text-xs"
               style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
             >
-              {filtered.length} shown · mock data
+              {loading ? 'Loading…' : `${tickets.length} shown`}
             </p>
           </div>
+
+          {error && !selected ? (
+            <div
+              className="border-b border-[#FFCDD2] bg-[#FFEBEE] px-4 py-2.5 text-sm text-[#C62828] sm:px-5"
+              style={{ fontFamily: 'var(--font-poppins)' }}
+            >
+              {error}
+            </div>
+          ) : null}
 
           {message ? (
             <div
@@ -316,7 +352,14 @@ export default function AdminSupportPage() {
             </div>
           ) : null}
 
-          {filtered.length === 0 ? (
+          {loading ? (
+            <p
+              className="px-5 py-16 text-center text-sm"
+              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+            >
+              Loading support tickets…
+            </p>
+          ) : tickets.length === 0 ? (
             <p
               className="px-5 py-16 text-center text-sm"
               style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
@@ -339,7 +382,7 @@ export default function AdminSupportPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EEF0F8]">
-                    {filtered.map((ticket) => (
+                    {tickets.map((ticket) => (
                       <tr
                         key={ticket.id}
                         className="cursor-pointer transition hover:bg-[#FAFBFF]"
@@ -362,7 +405,7 @@ export default function AdminSupportPage() {
                               fontFamily: 'var(--font-poppins)',
                             }}
                           >
-                            {ticket.id}
+                            {ticketLabel(ticket)}
                             {ticket.linkedLabel
                               ? ` · ${ticket.linkedLabel}`
                               : ''}
@@ -432,7 +475,7 @@ export default function AdminSupportPage() {
               </div>
 
               <ul className="divide-y divide-[#EEF0F8] md:hidden">
-                {filtered.map((ticket) => (
+                {tickets.map((ticket) => (
                   <li key={ticket.id}>
                     <button
                       type="button"
@@ -476,6 +519,7 @@ export default function AdminSupportPage() {
           replyDraft={replyDraft}
           internalNote={internalNote}
           error={error}
+          busy={actionBusy}
           onReplyDraftChange={(value) => {
             setReplyDraft(value);
             setError(null);
@@ -499,6 +543,7 @@ function SupportDrawer({
   replyDraft,
   internalNote,
   error,
+  busy,
   onReplyDraftChange,
   onInternalNoteChange,
   onClose,
@@ -513,6 +558,7 @@ function SupportDrawer({
   replyDraft: string;
   internalNote: string;
   error: string | null;
+  busy: boolean;
   onReplyDraftChange: (value: string) => void;
   onInternalNoteChange: (value: string) => void;
   onClose: () => void;
@@ -546,7 +592,7 @@ function SupportDrawer({
               className="text-xs font-semibold uppercase tracking-wide"
               style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
             >
-              Ticket · {ticket.id}
+              Ticket · {ticketLabel(ticket)}
             </p>
             <h2
               id="support-drawer-title"
@@ -751,7 +797,8 @@ function SupportDrawer({
                 <button
                   type="button"
                   onClick={onAssign}
-                  className="rounded-xl border border-[#BBDEFB] bg-[#E3F2FD] px-3 py-2 text-xs font-semibold text-[#1565C0]"
+                  disabled={busy}
+                  className="rounded-xl border border-[#BBDEFB] bg-[#E3F2FD] px-3 py-2 text-xs font-semibold text-[#1565C0] disabled:opacity-60"
                   style={{ fontFamily: 'var(--font-poppins)' }}
                 >
                   Assign to me
@@ -762,7 +809,8 @@ function SupportDrawer({
                       key={priority}
                       type="button"
                       onClick={() => onPriority(priority)}
-                      className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold"
+                      disabled={busy}
+                      className="rounded-xl border border-[#E5E7EE] px-3 py-2 text-xs font-semibold disabled:opacity-60"
                       style={{
                         color: colors.navy,
                         fontFamily: 'var(--font-poppins)',
@@ -777,7 +825,8 @@ function SupportDrawer({
                 <button
                   type="button"
                   onClick={onSendReply}
-                  className="rounded-xl bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white"
+                  disabled={busy}
+                  className="rounded-xl bg-[#202871] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60"
                   style={{ fontFamily: 'var(--font-poppins)' }}
                 >
                   Send reply
@@ -785,7 +834,8 @@ function SupportDrawer({
                 <button
                   type="button"
                   onClick={onSaveNote}
-                  className="rounded-xl border border-[#E5E7EE] px-4 py-2.5 text-sm font-semibold"
+                  disabled={busy}
+                  className="rounded-xl border border-[#E5E7EE] px-4 py-2.5 text-sm font-semibold disabled:opacity-60"
                   style={{
                     color: colors.navy,
                     fontFamily: 'var(--font-poppins)',
@@ -796,7 +846,8 @@ function SupportDrawer({
                 <button
                   type="button"
                   onClick={onCloseTicket}
-                  className="rounded-xl border border-[#C8E6C9] bg-[#E8F5E9] px-4 py-2.5 text-sm font-semibold text-[#2E7D32]"
+                  disabled={busy}
+                  className="rounded-xl border border-[#C8E6C9] bg-[#E8F5E9] px-4 py-2.5 text-sm font-semibold text-[#2E7D32] disabled:opacity-60"
                   style={{ fontFamily: 'var(--font-poppins)' }}
                 >
                   Close ticket
@@ -807,7 +858,8 @@ function SupportDrawer({
             <button
               type="button"
               onClick={onReopen}
-              className="rounded-xl border border-[#E5E7EE] px-4 py-2.5 text-sm font-semibold"
+              disabled={busy}
+              className="rounded-xl border border-[#E5E7EE] px-4 py-2.5 text-sm font-semibold disabled:opacity-60"
               style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
             >
               Reopen ticket

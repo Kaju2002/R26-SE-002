@@ -589,6 +589,121 @@ const handleInterviewReminder = async (event) => {
   };
 };
 
+const handleSupportTicketCreated = async (event) => {
+  const payload = event.payload || {};
+  const {
+    ticketId,
+    ticketNumber = "",
+    subject = "",
+    requesterName = "",
+  } = payload;
+
+  if (!ticketId) {
+    throw new Error("support.ticket.created payload missing ticketId");
+  }
+
+  const admins = await listSuperadmins();
+  if (!admins.length) {
+    console.warn(
+      "Notification service: no superadmins found for support.ticket.created"
+    );
+    return { skipped: true, reason: "no-superadmins" };
+  }
+
+  const title = "New support ticket";
+  const body = `${requesterName || "A user"} opened ${ticketNumber || "a ticket"}: ${subject || "Support request"}`.trim();
+
+  let createdCount = 0;
+
+  for (const admin of admins) {
+    const userId = String(admin.id || "").trim();
+    if (!userId) continue;
+
+    const sourceEventId = `${event.eventId}:${userId}`;
+    const notification = await createNotification({
+      userId,
+      category: "general",
+      type: "support",
+      title,
+      body,
+      metadata: {
+        ticketId: String(ticketId),
+        ticketNumber: ticketNumber ? String(ticketNumber) : undefined,
+      },
+      sourceEventId,
+    });
+
+    if (notification) {
+      createdCount += 1;
+      void sendExpoPushToUser(userId, {
+        title,
+        body,
+        data: {
+          type: "support_ticket_created",
+          ticketId: String(ticketId),
+          ticketNumber: ticketNumber ? String(ticketNumber) : undefined,
+        },
+      });
+    }
+  }
+
+  return { created: createdCount > 0, createdCount };
+};
+
+const handleSupportTicketReplied = async (event) => {
+  const payload = event.payload || {};
+  const {
+    ticketId,
+    ticketNumber = "",
+    subject = "",
+    requesterUserId,
+    adminName = "Support",
+    replyPreview = "",
+  } = payload;
+
+  if (!ticketId || !requesterUserId) {
+    throw new Error(
+      "support.ticket.replied payload missing ticketId or requesterUserId"
+    );
+  }
+
+  if (await hasProcessedEvent(event.eventId)) {
+    return { skipped: true, reason: "duplicate-event" };
+  }
+
+  const title = "Support replied to your ticket";
+  const preview = replyPreview ? `: ${replyPreview}` : "";
+  const body = `${adminName} replied to ${ticketNumber || "your ticket"}${preview}`.trim();
+
+  const notification = await createNotification({
+    userId: String(requesterUserId),
+    category: "general",
+    type: "support",
+    title,
+    body,
+    metadata: {
+      ticketId: String(ticketId),
+      ticketNumber: ticketNumber ? String(ticketNumber) : undefined,
+    },
+    sourceEventId: event.eventId,
+  });
+
+  if (notification) {
+    void sendExpoPushToUser(String(requesterUserId), {
+      title,
+      body,
+      data: {
+        type: "support_reply",
+        ticketId: String(ticketId),
+        ticketNumber: ticketNumber ? String(ticketNumber) : undefined,
+        subject: subject ? String(subject) : undefined,
+      },
+    });
+  }
+
+  return { created: Boolean(notification) };
+};
+
 export const handleEvent = async (event) => {
   if (!event?.eventType) {
     throw new Error("Event envelope missing eventType");
@@ -611,6 +726,10 @@ export const handleEvent = async (event) => {
       return handleJobFlaggedForReview(event);
     case EVENT_TYPES.INTERVIEW_REMINDER:
       return handleInterviewReminder(event);
+    case EVENT_TYPES.SUPPORT_TICKET_CREATED:
+      return handleSupportTicketCreated(event);
+    case EVENT_TYPES.SUPPORT_TICKET_REPLIED:
+      return handleSupportTicketReplied(event);
     default:
       return { skipped: true, reason: "unsupported-event" };
   }

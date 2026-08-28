@@ -26,8 +26,10 @@ Use this folder to explain **Unit → API → Metrics** to the panel.
 From repo root:
 
 ```bash
-pytest tests/ -v
+py -m pytest tests/ -v
 ```
+
+Service imports (`app`, `main`, `src`) are isolated via `tests/service_imports.py` so the full suite can run in one command.
 
 One component only:
 

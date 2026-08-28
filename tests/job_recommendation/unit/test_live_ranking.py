@@ -1,6 +1,9 @@
 """Unit tests for live job ranking (Mongo / job-management payloads)."""
 
-from src.live_ranking import rank_live_jobs
+from tests.service_imports import import_module
+
+live_ranking = import_module("job-recommendation", "src.live_ranking")
+rank_live_jobs = live_ranking.rank_live_jobs
 
 
 def test_rank_live_jobs_returns_empty_without_skills(samples: dict):

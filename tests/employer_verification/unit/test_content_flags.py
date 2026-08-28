@@ -1,6 +1,8 @@
 """Unit tests for website content risk flags in main.py."""
 
-import main as ev_main
+from tests.service_imports import import_module
+
+ev_main = import_module("employer-verification", "main")
 
 
 def test_derive_content_flags_scammy(samples: dict):

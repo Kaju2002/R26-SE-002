@@ -46,6 +46,9 @@ import PushNotificationBootstrap from './src/notifications/PushNotificationBoots
 import type { RootStackParamList } from './src/navigation/rootStackParams';
 
 import SafeJobRecommendationsScreen from './src/screens/screens/SafeJobRecommendationsScreen';
+import SupportTicketsScreen from './src/screens/SupportTicketsScreen';
+import SupportCreateTicketScreen from './src/screens/SupportCreateTicketScreen';
+import SupportTicketDetailScreen from './src/screens/SupportTicketDetailScreen';
 
 export type { RootStackParamList };
 
@@ -295,6 +298,24 @@ export default function App() {
             <Stack.Screen
               name="SafeJobRecommendations"
               component={SafeJobRecommendationsScreen}
+            />
+
+            <Stack.Screen
+              name="SupportTickets"
+              component={SupportTicketsScreen}
+              options={{ animation: 'slide_from_right' }}
+            />
+
+            <Stack.Screen
+              name="SupportCreateTicket"
+              component={SupportCreateTicketScreen}
+              options={{ animation: 'slide_from_right' }}
+            />
+
+            <Stack.Screen
+              name="SupportTicketDetail"
+              component={SupportTicketDetailScreen}
+              options={{ animation: 'slide_from_right' }}
             />
           </Stack.Navigator>
 

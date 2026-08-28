@@ -11,8 +11,11 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture()
 def client(monkeypatch: pytest.MonkeyPatch):
-    import app.database as database
-    import app.model_loader as model_loader
+    from tests.service_imports import import_module
+
+    database = import_module("scam-detection", "app.database")
+    model_loader = import_module("scam-detection", "app.model_loader")
+    main = import_module("scam-detection", "app.main")
 
     monkeypatch.setattr(model_loader, "load_model", lambda: True)
     monkeypatch.setattr(model_loader, "load_phase1_model", lambda: True)
@@ -42,8 +45,6 @@ def client(monkeypatch: pytest.MonkeyPatch):
         "warning": "Legitimate employers never impose same-day deadlines.",
         "what_gave_it_away": "The words today triggered Urgency Pressure.",
     }
-
-    import app.main as main
 
     monkeypatch.setattr(main, "predict", lambda text: fake_pred)
     monkeypatch.setattr(main, "is_model_loaded", lambda: True)

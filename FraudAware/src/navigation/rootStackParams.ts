@@ -27,4 +27,7 @@ export type RootStackParamList = {
   RecruiterProfile: { recruiterId: string; jobId?: string };
 
   SafeJobRecommendations: undefined;
+  SupportTickets: undefined;
+  SupportCreateTicket: undefined;
+  SupportTicketDetail: { ticketId: string };
 };

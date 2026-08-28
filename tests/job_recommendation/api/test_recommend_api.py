@@ -12,7 +12,9 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture()
 def client(monkeypatch: pytest.MonkeyPatch, samples: dict):
-    import app as jr_app
+    from tests.service_imports import import_module
+
+    jr_app = import_module("job-recommendation", "app")
 
     skill_df = pd.DataFrame(
         {
@@ -50,7 +52,9 @@ def client(monkeypatch: pytest.MonkeyPatch, samples: dict):
 
 
 def test_health_ok():
-    import app as jr_app
+    from tests.service_imports import import_module
+
+    jr_app = import_module("job-recommendation", "app")
 
     with TestClient(jr_app.app) as client:
         res = client.get("/health")

@@ -2,7 +2,10 @@
 
 import pandas as pd
 
-from src.ranking import run_ranking
+from tests.service_imports import import_module
+
+ranking = import_module("job-recommendation", "src.ranking")
+run_ranking = ranking.run_ranking
 
 
 def _sample_frames():

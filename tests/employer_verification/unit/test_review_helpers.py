@@ -1,9 +1,13 @@
 """Unit tests for review_aggregator helpers (no network)."""
 
-from app.employer_verification_model.review_aggregator import (
-    is_job_board_url,
-    normalize_company_name,
+from tests.service_imports import import_module
+
+review_aggregator = import_module(
+    "employer-verification",
+    "app.employer_verification_model.review_aggregator",
 )
+normalize_company_name = review_aggregator.normalize_company_name
+is_job_board_url = review_aggregator.is_job_board_url
 
 
 def test_normalize_company_name_trims():

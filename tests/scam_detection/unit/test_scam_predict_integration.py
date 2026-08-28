@@ -7,8 +7,14 @@ from __future__ import annotations
 
 import pytest
 
-from app.model_loader import is_model_loaded, load_model, load_phase1_model
-from app.predictor import predict
+from tests.service_imports import import_module
+
+model_loader = import_module("scam-detection", "app.model_loader")
+predictor = import_module("scam-detection", "app.predictor")
+is_model_loaded = model_loader.is_model_loaded
+load_model = model_loader.load_model
+load_phase1_model = model_loader.load_phase1_model
+predict = predictor.predict
 
 
 @pytest.fixture(scope="module")

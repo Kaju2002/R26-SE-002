@@ -60,6 +60,10 @@ export const formatGeneralNotification = (notification) => {
       ? String(metadata.conversationId)
       : undefined,
     jobId: metadata.jobId ? String(metadata.jobId) : undefined,
+    ticketId: metadata.ticketId ? String(metadata.ticketId) : undefined,
+    ticketNumber: metadata.ticketNumber
+      ? String(metadata.ticketNumber)
+      : undefined,
     flagged: Boolean(metadata.flagged),
   };
 };

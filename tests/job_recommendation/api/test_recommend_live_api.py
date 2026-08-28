@@ -8,7 +8,9 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture()
 def client():
-    import app as jr_app
+    from tests.service_imports import import_module
+
+    jr_app = import_module("job-recommendation", "app")
 
     with TestClient(jr_app.app) as test_client:
         yield test_client

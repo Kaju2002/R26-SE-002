@@ -58,6 +58,11 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
     navigation.navigate('Profile');
   };
 
+  const goToSupport = () => {
+    onClose();
+    navigation.navigate('SupportTickets');
+  };
+
   const handleLogout = () => {
     Alert.alert('Log out', 'Are you sure you want to log out?', [
       { text: 'Cancel', style: 'cancel' },
@@ -263,6 +268,17 @@ export default function ProfileDrawer({ visible, onClose }: Props) {
             ]}
           >
             <View style={styles.dividerThin} />
+
+            <TouchableOpacity
+              style={styles.settingsRow}
+              activeOpacity={0.7}
+              onPress={goToSupport}
+              accessibilityRole="button"
+              accessibilityLabel="Help and support"
+            >
+              <Ionicons name="help-circle-outline" size={22} color={NAVY_DARK} />
+              <Text style={styles.settingsText}>Help & Support</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity style={styles.settingsRow} activeOpacity={0.7}>
               <Ionicons name="settings-outline" size={22} color={NAVY_DARK} />

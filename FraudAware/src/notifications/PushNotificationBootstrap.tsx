@@ -29,6 +29,35 @@ function openConversation(
   );
 }
 
+function openSupportTicket(
+  navigationRef: NavigationContainerRefWithCurrent<RootStackParamList>,
+  ticketId: string
+) {
+  if (!navigationRef.isReady()) return;
+  navigationRef.navigate('SupportTicketDetail', { ticketId });
+}
+
+function routeFromNotificationData(
+  data: Record<string, unknown> | undefined
+) {
+  if (!data) return null;
+
+  const type = typeof data.type === 'string' ? data.type : '';
+  if (type === 'support_reply' || type === 'support_ticket_created') {
+    const ticketId = typeof data.ticketId === 'string' ? data.ticketId : '';
+    if (ticketId) {
+      return { kind: 'support' as const, ticketId };
+    }
+  }
+
+  const conversationId = conversationIdFromNotificationData(data);
+  if (conversationId) {
+    return { kind: 'chat' as const, conversationId };
+  }
+
+  return null;
+}
+
 /**
  * Registers the Expo push token after login and opens InChat when a push is tapped.
  */
@@ -47,25 +76,27 @@ export default function PushNotificationBootstrap({ navigationRef }: Props) {
   }, [isAuthenticated, token]);
 
   useEffect(() => {
-    responseSub.current = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        const conversationId = conversationIdFromNotificationData(
-          response.notification.request.content.data as Record<string, unknown>
-        );
-        if (conversationId) {
-          openConversation(navigationRef, conversationId);
-        }
+    const handleResponse = (response: Notifications.NotificationResponse) => {
+      const route = routeFromNotificationData(
+        response.notification.request.content.data as Record<string, unknown>
+      );
+      if (!route) return;
+
+      if (route.kind === 'support') {
+        openSupportTicket(navigationRef, route.ticketId);
+        return;
       }
+
+      openConversation(navigationRef, route.conversationId);
+    };
+
+    responseSub.current = Notifications.addNotificationResponseReceivedListener(
+      handleResponse
     );
 
     void Notifications.getLastNotificationResponseAsync().then((response) => {
       if (!response) return;
-      const conversationId = conversationIdFromNotificationData(
-        response.notification.request.content.data as Record<string, unknown>
-      );
-      if (conversationId) {
-        openConversation(navigationRef, conversationId);
-      }
+      handleResponse(response);
     });
 
     return () => {

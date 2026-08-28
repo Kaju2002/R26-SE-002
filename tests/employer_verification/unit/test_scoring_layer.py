@@ -1,6 +1,12 @@
 """Unit tests for calculate_final_score (no network — reg/rep passed in)."""
 
-from app.employer_verification_model.scoring_layer import calculate_final_score
+from tests.service_imports import import_module
+
+scoring_layer = import_module(
+    "employer-verification",
+    "app.employer_verification_model.scoring_layer",
+)
+calculate_final_score = scoring_layer.calculate_final_score
 
 
 def test_strong_legit_case_scores_well(samples: dict):

@@ -1,6 +1,9 @@
 """Unit tests for fake / suspicious / legitimate decision bands (no model weights)."""
 
-from main import decide_from_probabilities
+from tests.service_imports import import_module
+
+fake_main = import_module("fake-job-detection", "main")
+decide_from_probabilities = fake_main.decide_from_probabilities
 
 
 def test_fake_when_above_threshold():

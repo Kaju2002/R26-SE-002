@@ -1,6 +1,10 @@
 """Unit tests for TF-IDF skill matching (mini fixture CSV, no full dataset)."""
 
-from src.skill_matching import find_matched_skills, run_skill_matching
+from tests.service_imports import import_module
+
+skill_matching = import_module("job-recommendation", "src.skill_matching")
+find_matched_skills = skill_matching.find_matched_skills
+run_skill_matching = skill_matching.run_skill_matching
 
 
 def test_find_matched_skills_partial_overlap():
