@@ -38,8 +38,8 @@ pytest tests/scam_detection/ -v
 ## Order we fill tests
 
 1. `scam_detection` ← done (fixtures + unit + mocked API)
-2. `fake_job_detection` ← **started** (fixtures + unit + mocked API)
-3. `employer_verification`
+2. `fake_job_detection` ← done (fixtures + unit + mocked API)
+3. `employer_verification` ← done (fixtures + unit + mocked API)
 4. `job_recommendation`
 5. Optional `chat/` helpers
 
@@ -65,6 +65,17 @@ py -m pytest tests/fake_job_detection/ -v
 - **Unit** — `decide_from_probabilities` bands + explain helpers  
 - **API** — mocked `/health` + `/predict-text`  
 - **Integration** — skips unless `fake_job_model` weight files exist  
+
+### Run employer-verification tests
+
+```bash
+cd C:\Users\kanth\OneDrive\Desktop\R26-SE-002
+py -m pytest tests/employer_verification/ -v
+```
+
+- **Unit** — scoring layer, content flags, review helpers  
+- **API** — mocked `/predict` (no real `.pkl` or web scraping)  
+- **Integration** — skips unless `models/final_realistic_model.pkl` exists  
 
 
 ## Notes for panel
