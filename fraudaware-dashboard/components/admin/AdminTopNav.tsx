@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { AuthUser } from '@/lib/api/authTypes';
+import CareerNetLogo from '@/components/admin/CareerNetLogo';
 import { colors } from '@/lib/theme/colors';
 
 type Props = {
@@ -381,12 +382,15 @@ export default function AdminTopNav({
     return (
       <header className="sticky top-0 z-40 bg-white px-4 py-3">
         <div className="flex w-full items-center justify-between gap-3">
-          <p
-            className="truncate text-base font-semibold"
-            style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-          >
-            FraudAware Admin
-          </p>
+          <div className="flex min-w-0 items-center gap-2">
+            <CareerNetLogo className="h-11 max-w-[200px]" />
+            <span
+              className="truncate text-xs font-medium"
+              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+            >
+              Admin
+            </span>
+          </div>
           <div className="flex shrink-0 items-center gap-1">{profileDropdown}</div>
         </div>
       </header>

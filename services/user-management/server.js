@@ -82,6 +82,7 @@ app.get("/", (req, res) => {
           "POST /api/admin/support-tickets/:id/assign-me (superadmin)",
         addSupportTicketMessage:
           "POST /api/admin/support-tickets/:id/messages (superadmin)",
+        listAuditLog: "GET /api/admin/audit-log (superadmin)",
       },
       support: {
         createTicket: "POST /api/support/tickets",

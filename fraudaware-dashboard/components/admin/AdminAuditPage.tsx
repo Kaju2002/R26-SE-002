@@ -1,13 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { MOCK_AUDIT_LOG } from '@/lib/admin/mockAuditLog';
 import type {
   AuditAction,
   AuditLogEntry,
   AuditTargetType,
 } from '@/lib/admin/auditTypes';
+import {
+  listAuditLogs,
+  type AuditLogCounts,
+} from '@/lib/api/adminAuditApi';
+import { getStoredToken } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
 
 type ActionFilter = 'all' | AuditAction;
@@ -23,6 +27,10 @@ const ACTION_LABELS: Record<AuditAction, string> = {
   'job.force_close': 'Force-close job',
   'report.resolve': 'Resolve report',
   'report.dismiss': 'Dismiss report',
+  'support.ticket.assign': 'Assign support ticket',
+  'support.ticket.reply': 'Reply on support ticket',
+  'support.ticket.close': 'Close support ticket',
+  'support.ticket.reopen': 'Reopen support ticket',
 };
 
 const TARGET_LABELS: Record<AuditTargetType, string> = {
@@ -30,6 +38,7 @@ const TARGET_LABELS: Record<AuditTargetType, string> = {
   company: 'Company',
   job: 'Job',
   report: 'Report',
+  support: 'Support',
 };
 
 const ACTION_OPTIONS: { value: ActionFilter; label: string }[] = [
@@ -90,6 +99,7 @@ function targetHref(entry: AuditLogEntry): string | null {
   if (entry.targetType === 'company') return '/admin/verification';
   if (entry.targetType === 'job') return '/admin/jobs';
   if (entry.targetType === 'report') return '/admin/reports';
+  if (entry.targetType === 'support') return '/admin/support';
   return null;
 }
 
@@ -131,46 +141,55 @@ function toCsv(rows: AuditLogEntry[]): string {
 }
 
 export default function AdminAuditPage() {
+  const [items, setItems] = useState<AuditLogEntry[]>([]);
+  const [counts, setCounts] = useState<AuditLogCounts>({
+    total: 0,
+    user: 0,
+    company: 0,
+    job: 0,
+    report: 0,
+    support: 0,
+  });
   const [queryInput, setQueryInput] = useState('');
   const [query, setQuery] = useState('');
   const [actionFilter, setActionFilter] = useState<ActionFilter>('all');
   const [targetFilter, setTargetFilter] = useState<TargetFilter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return MOCK_AUDIT_LOG.filter((item) => {
-      if (actionFilter !== 'all' && item.action !== actionFilter) return false;
-      if (targetFilter !== 'all' && item.targetType !== targetFilter) return false;
-      if (!q) return true;
-      const haystack = [
-        item.id,
-        item.actorName,
-        item.actorEmail,
-        item.action,
-        item.targetLabel,
-        item.targetId,
-        item.summary,
-        item.note ?? '',
-      ]
-        .join(' ')
-        .toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [query, actionFilter, targetFilter]);
-
-  const selected = MOCK_AUDIT_LOG.find((item) => item.id === selectedId) ?? null;
-
-  const counts = useMemo(() => {
-    const byTarget = { user: 0, company: 0, job: 0, report: 0 };
-    for (const item of MOCK_AUDIT_LOG) {
-      byTarget[item.targetType] += 1;
+  const loadAuditLogs = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) {
+      setError('Sign in as a super admin to view the audit log.');
+      setLoading(false);
+      return;
     }
-    return {
-      total: MOCK_AUDIT_LOG.length,
-      ...byTarget,
-    };
-  }, []);
+
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await listAuditLogs(token, {
+        action: actionFilter === 'all' ? undefined : actionFilter,
+        targetType: targetFilter,
+        q: query,
+        limit: 100,
+      });
+      setItems(result.items);
+      setCounts(result.counts);
+    } catch (err) {
+      setItems([]);
+      setError(err instanceof Error ? err.message : 'Could not load audit log');
+    } finally {
+      setLoading(false);
+    }
+  }, [actionFilter, query, targetFilter]);
+
+  useEffect(() => {
+    void loadAuditLogs();
+  }, [loadAuditLogs]);
+
+  const selected = items.find((item) => item.id === selectedId) ?? null;
 
   useEffect(() => {
     if (!selectedId) return;
@@ -187,7 +206,7 @@ export default function AdminAuditPage() {
   }, [selectedId]);
 
   const exportCsv = () => {
-    const blob = new Blob([toCsv(filtered)], {
+    const blob = new Blob([toCsv(items)], {
       type: 'text/csv;charset=utf-8;',
     });
     const url = URL.createObjectURL(blob);
@@ -231,6 +250,12 @@ export default function AdminAuditPage() {
             count={counts.report}
             active={targetFilter === 'report'}
             onClick={() => setTargetFilter('report')}
+          />
+          <FilterChip
+            label="Support"
+            count={counts.support}
+            active={targetFilter === 'support'}
+            onClick={() => setTargetFilter('support')}
           />
         </div>
 
@@ -291,11 +316,27 @@ export default function AdminAuditPage() {
               className="text-xs"
               style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
             >
-              {filtered.length} events · read-only · mock data
+              {loading
+                ? 'Loading audit log…'
+                : `${items.length} events · read-only`}
             </p>
           </div>
 
-          {filtered.length === 0 ? (
+          {error ? (
+            <p
+              className="px-5 py-16 text-center text-sm"
+              style={{ color: '#C62828', fontFamily: 'var(--font-poppins)' }}
+            >
+              {error}
+            </p>
+          ) : loading ? (
+            <p
+              className="px-5 py-16 text-center text-sm"
+              style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
+            >
+              Loading audit log…
+            </p>
+          ) : items.length === 0 ? (
             <p
               className="px-5 py-16 text-center text-sm"
               style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
@@ -317,7 +358,7 @@ export default function AdminAuditPage() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#EEF0F8]">
-                    {filtered.map((item) => (
+                    {items.map((item) => (
                       <tr
                         key={item.id}
                         className="cursor-pointer transition hover:bg-[#FAFBFF]"
@@ -410,7 +451,7 @@ export default function AdminAuditPage() {
               </div>
 
               <ul className="divide-y divide-[#EEF0F8] md:hidden">
-                {filtered.map((item) => (
+                {items.map((item) => (
                   <li key={item.id}>
                     <button
                       type="button"

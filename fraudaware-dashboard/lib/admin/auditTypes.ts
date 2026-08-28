@@ -1,4 +1,4 @@
-export type AuditTargetType = 'user' | 'company' | 'job' | 'report';
+export type AuditTargetType = 'user' | 'company' | 'job' | 'report' | 'support';
 
 export type AuditAction =
   | 'user.suspend'
@@ -9,7 +9,11 @@ export type AuditAction =
   | 'job.clear'
   | 'job.force_close'
   | 'report.resolve'
-  | 'report.dismiss';
+  | 'report.dismiss'
+  | 'support.ticket.assign'
+  | 'support.ticket.reply'
+  | 'support.ticket.close'
+  | 'support.ticket.reopen';
 
 export type AuditLogEntry = {
   id: string;

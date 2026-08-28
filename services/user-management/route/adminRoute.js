@@ -14,6 +14,7 @@ import {
   listSupportTickets,
   updateSupportTicket,
 } from "../controller/supportTicketController.js";
+import { listAuditLogs } from "../controller/auditLogController.js";
 import {
   authMiddleware,
   requireSuperAdmin,
@@ -37,5 +38,7 @@ router.post("/support-tickets/:id/assign-me", assignSupportTicketToMe);
 router.post("/support-tickets/:id/messages", addSupportTicketMessage);
 router.get("/support-tickets/:id", getSupportTicket);
 router.patch("/support-tickets/:id", updateSupportTicket);
+
+router.get("/audit-log", listAuditLogs);
 
 export default router;

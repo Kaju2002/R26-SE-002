@@ -274,7 +274,7 @@ export default function AdminChatReportsPage() {
                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
                   Flagged messages
                 </h3>
-                <ul className="max-h-56 space-y-2 overflow-y-auto">
+                <ul className="scrollbar-hide max-h-56 space-y-2 overflow-y-auto">
                   {(detail.evidenceMessages || [])
                     .filter((m) => m.scamAnalysis?.status === 'flagged' || m.scamAnalysis?.isScam)
                     .map((message) => (
@@ -309,7 +309,7 @@ export default function AdminChatReportsPage() {
                   type="button"
                   disabled={actionBusy}
                   onClick={() => void onUpdateStatus('reviewing')}
-                  className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700"
+                  className="cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Mark reviewing
                 </button>
@@ -317,7 +317,7 @@ export default function AdminChatReportsPage() {
                   type="button"
                   disabled={actionBusy}
                   onClick={() => void onUpdateStatus('resolved')}
-                  className="rounded-lg px-3 py-2 text-xs font-bold text-white"
+                  className="cursor-pointer rounded-lg px-3 py-2 text-xs font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                   style={{ backgroundColor: colors.navy }}
                 >
                   Resolve
@@ -326,7 +326,7 @@ export default function AdminChatReportsPage() {
                   type="button"
                   disabled={actionBusy}
                   onClick={() => void onUpdateStatus('dismissed')}
-                  className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600"
+                  className="cursor-pointer rounded-lg bg-slate-100 px-3 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-200 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Dismiss
                 </button>
