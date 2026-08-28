@@ -1,4 +1,5 @@
 import transporter from "../config/nodemailer.js";
+import { BRAND_NAME } from "../config/brand.js";
 import {
   buildHiredEmailHtml,
   buildHiredEmailSubject,
@@ -76,7 +77,7 @@ export const sendApplicationStatusEmail = async ({
   const replyTo = String(hrEmail || "").trim();
 
   await transporter.sendMail({
-    from: `"${displayCompany} via FraudAware" <${fromEmail}>`,
+    from: `"${displayCompany} via ${BRAND_NAME}" <${fromEmail}>`,
     replyTo: replyTo || undefined,
     to: String(applicantEmail).trim(),
     subject,
