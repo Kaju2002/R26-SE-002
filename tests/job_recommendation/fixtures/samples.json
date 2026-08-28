@@ -1,0 +1,42 @@
+{
+  "user_skills": {
+    "hr_profile": [
+      "employee relations",
+      "talent acquisition",
+      "payroll processing",
+      "communication",
+      "compliance"
+    ],
+    "tech_profile": [
+      "python",
+      "react",
+      "sql",
+      "communication"
+    ]
+  },
+  "live_jobs": [
+    {
+      "id": "job-hr-1",
+      "title": "HR Generalist",
+      "skills": ["employee relations", "payroll", "communication"],
+      "isVerified": true
+    },
+    {
+      "id": "job-tech-1",
+      "title": "Python Developer",
+      "skills": ["python", "django", "sql"],
+      "isVerified": false
+    },
+    {
+      "id": "job-mismatch",
+      "title": "Graphic Designer",
+      "skills": ["photoshop", "illustrator"],
+      "isVerified": false
+    }
+  ],
+  "ground_truth": {
+    "user_id": "demo-user-1",
+    "relevant_job_ids": ["job-hr-1", "job-tech-1"],
+    "recommended_order": ["job-hr-1", "job-tech-1", "job-mismatch"]
+  }
+}
