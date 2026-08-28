@@ -1,4 +1,6 @@
 import User from "../model/userModel.js";
+import { loadAdminActor } from "../utils/adminActor.js";
+import { writeAuditLogForActor } from "../utils/writeAuditLog.js";
 
 const MANAGED_TYPES = new Set(["jobseeker", "recruiter", "company"]);
 const MANAGED_STATUSES = new Set(["active", "suspended", "banned"]);
@@ -216,12 +218,41 @@ export const updateManagedUserStatus = async (req, res) => {
       });
     }
 
+    const previousStatus = toManagedStatus(user.accountStatus);
+    const targetLabel = `${user.accountType} · ${`${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email}`;
+
     user.accountStatus = accountStatus;
     // Invalidate existing sessions when locking the account.
     if (accountStatus === "suspended" || accountStatus === "banned") {
       user.tokenVersion = (user.tokenVersion || 0) + 1;
     }
     await user.save();
+
+    const actor = await loadAdminActor(req.userId);
+    if (actor && previousStatus !== accountStatus) {
+      const action =
+        accountStatus === "active"
+          ? "user.restore"
+          : accountStatus === "suspended"
+            ? "user.suspend"
+            : "user.ban";
+
+      void writeAuditLogForActor(actor, {
+        action,
+        targetType: "user",
+        targetId: String(user._id),
+        targetLabel,
+        summary:
+          accountStatus === "active"
+            ? `Restored ${targetLabel}`
+            : accountStatus === "suspended"
+              ? `Suspended ${targetLabel}`
+              : `Banned ${targetLabel}`,
+        before: { accountStatus: previousStatus },
+        after: { accountStatus },
+        note: reason || null,
+      });
+    }
 
     return res.status(200).json({
       success: true,

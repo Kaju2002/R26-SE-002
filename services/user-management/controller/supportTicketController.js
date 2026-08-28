@@ -7,6 +7,8 @@ import User from "../model/userModel.js";
 import mongoose from "mongoose";
 import { publishEvent } from "../utils/publishEvent.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
+import { loadAdminActor } from "../utils/adminActor.js";
+import { writeAuditLogForActor } from "../utils/writeAuditLog.js";
 
 const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -457,24 +459,6 @@ export const listSupportTickets = async (req, res) => {
   }
 };
 
-const loadAdminActor = async (userId) => {
-  const user = await User.findById(userId).select(
-    "firstName lastName email accountType"
-  );
-  if (!user) return null;
-
-  const name =
-    `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
-    user.email ||
-    "Admin";
-
-  return {
-    userId: user._id,
-    name,
-    email: user.email || "",
-  };
-};
-
 const findTicketOr404 = async (id, res) => {
   if (!isValidObjectId(id)) {
     res.status(400).json({
@@ -531,6 +515,7 @@ export const updateSupportTicket = async (req, res) => {
     if (!ticket) return;
 
     const body = req.body || {};
+    const previousStatus = ticket.status;
     let changed = false;
 
     if (body.status !== undefined) {
@@ -591,6 +576,32 @@ export const updateSupportTicket = async (req, res) => {
 
     await ticket.save();
 
+    const actor = await loadAdminActor(req.userId);
+    if (actor && body.status !== undefined && previousStatus !== ticket.status) {
+      const label = ticket.ticketNumber || String(ticket._id);
+      if (ticket.status === "closed") {
+        void writeAuditLogForActor(actor, {
+          action: "support.ticket.close",
+          targetType: "support",
+          targetId: String(ticket._id),
+          targetLabel: `${label} · ${ticket.subject}`,
+          summary: `Closed support ticket ${label}`,
+          before: { status: previousStatus },
+          after: { status: ticket.status },
+        });
+      } else if (previousStatus === "closed") {
+        void writeAuditLogForActor(actor, {
+          action: "support.ticket.reopen",
+          targetType: "support",
+          targetId: String(ticket._id),
+          targetLabel: `${label} · ${ticket.subject}`,
+          summary: `Reopened support ticket ${label}`,
+          before: { status: previousStatus },
+          after: { status: ticket.status },
+        });
+      }
+    }
+
     return res.status(200).json({
       success: true,
       message: "Support ticket updated",
@@ -623,6 +634,8 @@ export const assignSupportTicketToMe = async (req, res) => {
       });
     }
 
+    const previousAssignee = ticket.assigneeName || null;
+
     ticket.assigneeUserId = admin.userId;
     ticket.assigneeName = admin.name;
     ticket.assigneeEmail = admin.email;
@@ -637,6 +650,17 @@ export const assignSupportTicketToMe = async (req, res) => {
     }
 
     await ticket.save();
+
+    const label = ticket.ticketNumber || String(ticket._id);
+    void writeAuditLogForActor(admin, {
+      action: "support.ticket.assign",
+      targetType: "support",
+      targetId: String(ticket._id),
+      targetLabel: `${label} · ${ticket.subject}`,
+      summary: `Assigned support ticket ${label} to ${admin.name}`,
+      before: { assigneeName: previousAssignee },
+      after: { assigneeName: admin.name },
+    });
 
     return res.status(200).json({
       success: true,
@@ -715,6 +739,18 @@ export const addSupportTicketMessage = async (req, res) => {
         : null,
       adminName: admin.name,
       replyPreview: body.slice(0, 120),
+    });
+
+    const label = ticket.ticketNumber || String(ticket._id);
+    void writeAuditLogForActor(admin, {
+      action: "support.ticket.reply",
+      targetType: "support",
+      targetId: String(ticket._id),
+      targetLabel: `${label} · ${ticket.subject}`,
+      summary: `Replied to support ticket ${label}`,
+      before: { status: ticket.status },
+      after: { status: ticket.status },
+      note: body.slice(0, 200),
     });
 
     return res.status(200).json({

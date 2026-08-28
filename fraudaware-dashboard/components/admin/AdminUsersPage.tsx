@@ -83,7 +83,10 @@ export default function AdminUsersPage() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{
+    userId: string;
+    action: ManagedAccountStatus;
+  } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [modalUserId, setModalUserId] = useState<string | null>(null);
@@ -167,7 +170,7 @@ export default function AdminUsersPage() {
     const target = users.find((user) => user.id === userId);
     if (!token || !target) return;
 
-    setBusyId(userId);
+    setPendingAction({ userId, action: next });
     setError(null);
     setMessage(null);
     try {
@@ -206,7 +209,7 @@ export default function AdminUsersPage() {
           : 'Could not update user status.'
       );
     } finally {
-      setBusyId(null);
+      setPendingAction(null);
     }
   };
 
@@ -464,7 +467,11 @@ export default function AdminUsersPage() {
       {modalUser ? (
         <UserDetailModal
           user={modalUser}
-          busy={busyId === modalUser.id}
+          pendingAction={
+            pendingAction?.userId === modalUser.id
+              ? pendingAction.action
+              : null
+          }
           onClose={() => setModalUserId(null)}
           onSuspend={() => void changeStatus(modalUser.id, 'suspended')}
           onBan={() => void changeStatus(modalUser.id, 'banned')}
@@ -605,14 +612,14 @@ function PaginationBar({
 
 function UserDetailModal({
   user,
-  busy,
+  pendingAction,
   onClose,
   onSuspend,
   onBan,
   onRestore,
 }: {
   user: ManagedUser;
-  busy: boolean;
+  pendingAction: ManagedAccountStatus | null;
   onClose: () => void;
   onSuspend: () => void;
   onBan: () => void;
@@ -688,7 +695,7 @@ function UserDetailModal({
           </p>
           <StatusActionButtons
             user={user}
-            busy={busy}
+            pendingAction={pendingAction}
             onSuspend={onSuspend}
             onBan={onBan}
             onRestore={onRestore}
@@ -853,13 +860,13 @@ function StatusBadge({ status }: { status: ManagedAccountStatus }) {
 
 function StatusActionButtons({
   user,
-  busy,
+  pendingAction,
   onSuspend,
   onBan,
   onRestore,
 }: {
   user: ManagedUser;
-  busy?: boolean;
+  pendingAction?: ManagedAccountStatus | null;
   onSuspend: () => void;
   onBan: () => void;
   onRestore: () => void;
@@ -867,6 +874,7 @@ function StatusActionButtons({
   const isActive = user.accountStatus === 'active';
   const isSuspended = user.accountStatus === 'suspended';
   const isBanned = user.accountStatus === 'banned';
+  const isBusy = pendingAction != null;
 
   return (
     <div className="flex flex-wrap gap-2">
@@ -876,13 +884,15 @@ function StatusActionButtons({
             label="Suspend"
             onClick={onSuspend}
             tone="warn"
-            disabled={busy}
+            loading={pendingAction === 'suspended'}
+            disabled={isBusy}
           />
           <ActionButton
             label="Ban"
             onClick={onBan}
             tone="danger"
-            disabled={busy}
+            loading={pendingAction === 'banned'}
+            disabled={isBusy}
           />
         </>
       ) : null}
@@ -892,13 +902,15 @@ function StatusActionButtons({
             label="Restore"
             onClick={onRestore}
             tone="success"
-            disabled={busy}
+            loading={pendingAction === 'active'}
+            disabled={isBusy}
           />
           <ActionButton
             label="Ban"
             onClick={onBan}
             tone="danger"
-            disabled={busy}
+            loading={pendingAction === 'banned'}
+            disabled={isBusy}
           />
         </>
       ) : null}
@@ -907,7 +919,8 @@ function StatusActionButtons({
           label="Restore"
           onClick={onRestore}
           tone="success"
-          disabled={busy}
+          loading={pendingAction === 'active'}
+          disabled={isBusy}
         />
       ) : null}
     </div>
@@ -918,11 +931,13 @@ function ActionButton({
   label,
   onClick,
   tone,
+  loading,
   disabled,
 }: {
   label: string;
   onClick: () => void;
   tone: 'warn' | 'danger' | 'success' | 'neutral';
+  loading?: boolean;
   disabled?: boolean;
 }) {
   const styles =
@@ -947,7 +962,7 @@ function ActionButton({
         fontFamily: 'var(--font-poppins)',
       }}
     >
-      {disabled ? 'Saving…' : label}
+      {loading ? 'Saving…' : label}
     </button>
   );
 }

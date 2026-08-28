@@ -480,7 +480,7 @@ export default function AdminJobsModerationPage() {
           ) : null}
 
           <div className="grid lg:grid-cols-[minmax(280px,38%)_minmax(0,1fr)]">
-            <div className="max-h-[min(70vh,720px)] overflow-y-auto border-b border-[#EEF0F8] lg:border-b-0 lg:border-r">
+            <div className="scrollbar-hide max-h-[min(70vh,720px)] overflow-y-auto border-b border-[#EEF0F8] lg:border-b-0 lg:border-r">
               {loading && jobs.length === 0 ? (
                 <p
                   className="px-5 py-16 text-center text-sm"
@@ -530,8 +530,8 @@ export default function AdminJobsModerationPage() {
                           }}
                           className={`flex w-full items-start gap-3 px-4 py-3.5 text-left transition sm:px-5 ${
                             active
-                              ? 'border-l-[3px] border-l-[#202871] bg-[#F7F8FE]'
-                              : 'border-l-[3px] border-l-transparent hover:bg-[#FAFBFF]'
+                              ? 'bg-[#F7F8FE]'
+                              : 'hover:bg-[#FAFBFF]'
                           }`}
                         >
                           <div className="min-w-0 flex-1">
@@ -661,7 +661,7 @@ function JobDetail({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
+      <div className="scrollbar-hide min-h-0 flex-1 space-y-5 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
         {/* 1. Identity */}
         <section>
           <div className="flex flex-wrap items-start justify-between gap-2">

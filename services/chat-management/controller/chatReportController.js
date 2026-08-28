@@ -5,6 +5,7 @@ import ChatReport, {
 } from "../model/chatReportModel.js";
 import Message from "../model/messageModel.js";
 import { getAuthorizedConversation } from "../utils/workspaceAuthorization.js";
+import { recordAuditLog } from "../utils/auditLogClient.js";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
@@ -449,12 +450,37 @@ export const updateChatReportStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: "Report not found" });
     }
 
+    const previousStatus = report.status;
+    const targetLabel =
+      report.peerLabel && report.jobLabel
+        ? `${report.peerLabel} · ${report.jobLabel}`
+        : report.peerLabel || report.jobLabel || "Chat report";
+
     report.status = status;
     if (adminNote) report.adminNote = adminNote;
     report.moderatedBy = String(req.userId);
     report.resolvedAt =
       status === "resolved" || status === "dismissed" ? new Date() : null;
     await report.save();
+
+    if (
+      (status === "resolved" || status === "dismissed") &&
+      previousStatus !== status
+    ) {
+      void recordAuditLog(req, {
+        action: status === "resolved" ? "report.resolve" : "report.dismiss",
+        targetType: "report",
+        targetId: String(report._id),
+        targetLabel,
+        summary:
+          status === "resolved"
+            ? `Resolved chat report on ${targetLabel}`
+            : `Dismissed chat report on ${targetLabel}`,
+        before: { status: previousStatus },
+        after: { status },
+        note: adminNote || null,
+      });
+    }
 
     return res.status(200).json({
       success: true,

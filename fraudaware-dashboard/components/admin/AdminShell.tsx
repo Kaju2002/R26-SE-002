@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useState, type ReactNode } from 'react';
 import AdminTopNav from '@/components/admin/AdminTopNav';
+import CareerNetLogo from '@/components/admin/CareerNetLogo';
 import { getCurrentUser, logout as logoutRequest } from '@/lib/api/authApi';
 import type { AuthUser } from '@/lib/api/authTypes';
 import { portalConfigs } from '@/lib/auth/portalConfig';
@@ -160,45 +161,16 @@ function SidebarNavIcon({ id, className }: { id: NavIconId; className?: string }
 function SidebarBrand({ collapsed = false }: { collapsed?: boolean }) {
   if (collapsed) {
     return (
-      <div className="flex h-[70px] items-center justify-center px-2">
-        <div
-          className="flex h-9 w-9 items-center justify-center rounded-xl text-sm font-bold text-white"
-          style={{
-            background: 'linear-gradient(145deg, #202871 0%, #4A5CC0 100%)',
-            fontFamily: 'var(--font-poppins)',
-          }}
-          title="FraudAware"
-        >
-          FA
-        </div>
+      <div className="flex h-[88px] items-center justify-center border-b border-[#EEF0F8] px-2">
+        <CareerNetLogo variant="icon" />
       </div>
     );
   }
 
   return (
-    <div className="flex h-[70px] items-center gap-3 px-5">
-      <div
-        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white"
-        style={{
-          background: 'linear-gradient(145deg, #202871 0%, #4A5CC0 100%)',
-          fontFamily: 'var(--font-poppins)',
-        }}
-      >
-        FA
-      </div>
-      <div className="min-w-0">
-        <p
-          className="truncate text-lg font-semibold leading-tight"
-          style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-        >
-          FraudAware
-        </p>
-        <p
-          className="truncate text-xs"
-          style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}
-        >
-          Super admin
-        </p>
+    <div className="flex h-[70px] w-full shrink-0 items-center border-b border-[#EEF0F8] px-3">
+      <div className="px-3">
+        <CareerNetLogo />
       </div>
     </div>
   );

@@ -6,6 +6,7 @@ import { formatJob, formatJobList, formatModeratedJob } from "../utils/jobFormat
 import { normalizeJobCreateInput, normalizeJobUpdateInput } from "../utils/jobPayloadNormalizer.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
 import { publishEvent } from "../utils/publishEvent.js";
+import { recordAuditLog } from "../utils/auditLogClient.js";
 import { createJobStatusMessage, runJobRiskGate, updateJobStatusMessage } from "../utils/jobRiskGate.js";
 import {
   assertHomeWorkspaceAccess,
@@ -775,6 +776,10 @@ export const moderateJob = async (req, res) => {
       });
     }
 
+    const previousModeration = job.moderationStatus;
+    const previousStatus = job.status;
+    const jobLabel = job.title || String(job._id);
+
     if (action === "approve") {
       if (job.moderationStatus !== "flagged") {
         return res.status(400).json({
@@ -808,10 +813,44 @@ export const moderateJob = async (req, res) => {
 
     job.moderatedAt = new Date();
     job.moderatedBy = req.userId;
+    const closeReason =
+      action === "reject" ? String(req.body?.closeReason || "").trim() : null;
     await job.save();
 
     if (action === "approve") {
       void publishJobCreatedEvent(job);
+      void recordAuditLog(req, {
+        action: "job.clear",
+        targetType: "job",
+        targetId: String(job._id),
+        targetLabel: jobLabel,
+        summary: `Cleared flagged job "${jobLabel}"`,
+        before: {
+          moderationStatus: previousModeration,
+          status: previousStatus,
+        },
+        after: {
+          moderationStatus: job.moderationStatus,
+          status: job.status,
+        },
+      });
+    } else {
+      void recordAuditLog(req, {
+        action: "job.force_close",
+        targetType: "job",
+        targetId: String(job._id),
+        targetLabel: jobLabel,
+        summary: `Force-closed job "${jobLabel}"`,
+        before: {
+          moderationStatus: previousModeration,
+          status: previousStatus,
+        },
+        after: {
+          moderationStatus: job.moderationStatus,
+          status: job.status,
+        },
+        note: closeReason,
+      });
     }
 
     res.status(200).json({

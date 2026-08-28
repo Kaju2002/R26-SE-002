@@ -4,6 +4,8 @@ import {
   runHybridCompanyVerification,
   scheduleHybridCompanyVerification,
 } from "../utils/companyVerification.js";
+import { loadAdminActor } from "../utils/adminActor.js";
+import { writeAuditLogForActor } from "../utils/writeAuditLog.js";
 
 const mapRequest = (doc) => {
   const item = doc?.toObject ? doc.toObject() : doc;
@@ -157,6 +159,9 @@ export const decideVerificationRequest = async (req, res) => {
       });
     }
 
+    const companyUser = await User.findById(request.userId);
+    const wasVerified = Boolean(companyUser?.company?.isVerified);
+
     request.decision = decision;
     request.decisionSource = "admin";
     request.reviewedAt = new Date();
@@ -164,13 +169,35 @@ export const decideVerificationRequest = async (req, res) => {
     request.rejectionReason = decision === "rejected" ? rejectionReason : null;
     await request.save();
 
-    const companyUser = await User.findById(request.userId);
     if (companyUser) {
       if (!companyUser.company) {
         companyUser.company = { name: request.companyName };
       }
       companyUser.company.isVerified = decision === "approved";
       await companyUser.save();
+    }
+
+    const actor = await loadAdminActor(req.userId);
+    if (actor) {
+      void writeAuditLogForActor(actor, {
+        action:
+          decision === "approved"
+            ? "company.verify.approve"
+            : "company.verify.reject",
+        targetType: "company",
+        targetId: String(request.userId),
+        targetLabel: request.companyName || "Company",
+        summary:
+          decision === "approved"
+            ? `Approved company verification for ${request.companyName}`
+            : `Rejected company verification for ${request.companyName}`,
+        before: { decision: "pending", isVerified: wasVerified },
+        after: {
+          decision,
+          isVerified: decision === "approved",
+        },
+        note: decision === "rejected" ? rejectionReason : null,
+      });
     }
 
     return res.status(200).json({

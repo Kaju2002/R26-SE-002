@@ -5,6 +5,7 @@ import Report, {
 } from "../model/reportModel.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
 import { publishEvent } from "../utils/publishEvent.js";
+import { recordAuditLog } from "../utils/auditLogClient.js";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
 
@@ -292,6 +293,11 @@ export const updateReportStatus = async (req, res) => {
       });
     }
 
+    const previousStatus = report.status;
+    const targetLabel =
+      report.targetLabel ||
+      `${report.targetType} · ${report.reasonCode || "report"}`;
+
     report.status = status;
     if (adminNote) report.adminNote = adminNote;
     report.moderatedBy = req.userId;
@@ -303,6 +309,25 @@ export const updateReportStatus = async (req, res) => {
     }
 
     await report.save();
+
+    if (
+      (status === "resolved" || status === "dismissed") &&
+      previousStatus !== status
+    ) {
+      void recordAuditLog(req, {
+        action: status === "resolved" ? "report.resolve" : "report.dismiss",
+        targetType: "report",
+        targetId: String(report._id),
+        targetLabel,
+        summary:
+          status === "resolved"
+            ? `Resolved report on ${targetLabel}`
+            : `Dismissed report on ${targetLabel}`,
+        before: { status: previousStatus },
+        after: { status },
+        note: adminNote || null,
+      });
+    }
 
     return res.status(200).json({
       success: true,
@@ -435,6 +460,11 @@ export const forceCloseJobFromReport = async (req, res) => {
       });
     }
 
+    const previousModeration = job.moderationStatus;
+    const previousJobStatus = job.status;
+    const previousReportStatus = report.status;
+    const jobLabel = job.title || String(job._id);
+
     const reasons = new Set(
       Array.isArray(job.flagReasons) ? job.flagReasons.map(String) : []
     );
@@ -453,6 +483,31 @@ export const forceCloseJobFromReport = async (req, res) => {
     report.resolvedAt = new Date();
     report.moderatedBy = req.userId;
     await report.save();
+
+    void recordAuditLog(req, {
+      action: "job.force_close",
+      targetType: "job",
+      targetId: String(job._id),
+      targetLabel: jobLabel,
+      summary: `Force-closed job "${jobLabel}" from report`,
+      before: { moderationStatus: previousModeration, status: previousJobStatus },
+      after: {
+        moderationStatus: job.moderationStatus,
+        status: job.status,
+      },
+      note: adminNote,
+    });
+
+    void recordAuditLog(req, {
+      action: "report.resolve",
+      targetType: "report",
+      targetId: String(report._id),
+      targetLabel: report.targetLabel || jobLabel,
+      summary: `Resolved report after force-closing job "${jobLabel}"`,
+      before: { status: previousReportStatus },
+      after: { status: "resolved" },
+      note: adminNote,
+    });
 
     return res.status(200).json({
       success: true,
