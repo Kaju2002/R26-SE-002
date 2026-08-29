@@ -9,24 +9,21 @@ import {
 import { publishEvent } from "../utils/publishEvent.js";
 import { scheduleHybridCompanyVerification } from "../utils/companyVerification.js";
 import { validatePassword } from "../utils/passwordPolicy.js";
+import {
+  FORGOT_PASSWORD_SUCCESS_MESSAGE,
+  canRequestPasswordReset,
+  isValidEmail,
+  isValidOtp,
+  normalizeEmail,
+  normalizeOtp,
+  validatePasswordResetOtp,
+  validateRegistrationCredentials,
+} from "../utils/authValidation.js";
 
 const OTP_VALIDITY_MS = 24 * 60 * 60 * 1000;
 const RESET_OTP_VALIDITY_MS = 15 * 60 * 1000;
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const FORGOT_PASSWORD_SUCCESS_MESSAGE =
-  "If an account with this email exists, a password reset code has been sent.";
-
 const generateOtp = () => `${Math.floor(100000 + Math.random() * 900000)}`;
-
-const normalizeEmail = (email) => email.toLowerCase().trim();
-
-const normalizeOtp = (otp) => String(otp).trim();
-
-const isValidEmail = (email) => EMAIL_REGEX.test(email);
-
-const isValidOtp = (otp) => /^\d{6}$/.test(otp);
 
 const buildVerificationHtml = (email, otp) =>
   EMAIL_VERIFY_TEMPLATE.replace("{{email}}", email).replace("{{otp}}", otp);
@@ -50,35 +47,6 @@ const sendPasswordResetEmail = async (email, otp) => {
     subject: "Reset your FraudAware password",
     html: buildPasswordResetHtml(email, otp),
   });
-};
-
-const canRequestPasswordReset = (user) =>
-  user &&
-  user.emailVerified === true &&
-  user.accountStatus === "active";
-
-const validatePasswordResetOtp = (user, normalizedOtp) => {
-  if (
-    !user.passwordResetToken ||
-    !user.passwordResetExpires ||
-    user.passwordResetExpires.getTime() < Date.now()
-  ) {
-    return {
-      ok: false,
-      status: 400,
-      message: "Reset code is expired. Please request a new code.",
-    };
-  }
-
-  if (user.passwordResetToken !== normalizedOtp) {
-    return {
-      ok: false,
-      status: 400,
-      message: "Invalid reset code",
-    };
-  }
-
-  return { ok: true };
 };
 
 const issuePasswordResetOtp = async (user) => {
@@ -123,65 +91,6 @@ const formatAuthUser = (user) => ({
   nylasConnected: Boolean(user.nylasEmail && user.nylasConnectedAt),
   nylasConnectedAt: user.nylasConnectedAt || null,
 });
-
-const parseFullNameParts = (fullName) => {
-  const nameTrimed = String(fullName || "").trim();
-  if (nameTrimed.length < 2) {
-    return { ok: false, message: "Full name must be at least 2 characters" };
-  }
-
-  const nameParts = nameTrimed.split(/\s+/).filter(Boolean);
-  if (nameParts.length < 2) {
-    return {
-      ok: false,
-      message: "Please enter full name (first and last name)",
-    };
-  }
-
-  return {
-    ok: true,
-    firstName: nameParts[0],
-    lastName: nameParts.slice(1).join(" "),
-    fullName: nameTrimed,
-  };
-};
-
-const validateRegistrationCredentials = ({
-  fullName,
-  email,
-  password,
-  confirmPassword,
-}) => {
-  if (!fullName || !email || !password || !confirmPassword) {
-    return {
-      ok: false,
-      message: "Full name, email, password, and confirm password are required",
-    };
-  }
-
-  const parsedName = parseFullNameParts(fullName);
-  if (!parsedName.ok) return parsedName;
-
-  if (!isValidEmail(email)) {
-    return { ok: false, message: "Please enter a valid email address" };
-  }
-
-  const passwordCheck = validatePassword(password);
-  if (!passwordCheck.ok) {
-    return passwordCheck;
-  }
-
-  if (password !== confirmPassword) {
-    return { ok: false, message: "Passwords do not match" };
-  }
-
-  return {
-    ok: true,
-    firstName: parsedName.firstName,
-    lastName: parsedName.lastName,
-    email: normalizeEmail(email),
-  };
-};
 
 const createPortalUser = async ({
   firstName,
