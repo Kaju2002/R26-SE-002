@@ -22,6 +22,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { resetPassword } from '../api/userApi';
+import { validatePassword, PASSWORD_POLICY_MESSAGE } from '../utils/passwordPolicy';
 
 const TEXT_ACCENT = '#202871';
 const SUBTITLE_COLOR = '#798AA3';
@@ -44,7 +45,7 @@ type RootParamList = {
 
 type Props = NativeStackScreenProps<RootParamList, 'NewPassword'>;
 
-const MIN_LEN = 8;
+const MIN_LEN = 8; // kept for display consistency; full rules in validatePassword
 
 export default function NewPasswordScreen({ navigation, route }: Props) {
   const [fontsLoaded] = useFonts({
@@ -78,6 +79,11 @@ export default function NewPasswordScreen({ navigation, route }: Props) {
 
     if (password.length < MIN_LEN) {
       Alert.alert('Password', `Use at least ${MIN_LEN} characters.`);
+      return;
+    }
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.ok) {
+      Alert.alert('Weak password', passwordCheck.message);
       return;
     }
     if (password !== confirm) {
@@ -130,7 +136,7 @@ export default function NewPasswordScreen({ navigation, route }: Props) {
         >
           <Text style={styles.title}>New Password</Text>
           <Text style={styles.subtitle}>
-            Enter a new password for your account.
+            {PASSWORD_POLICY_MESSAGE}
           </Text>
 
           <View style={styles.formBlock}>
@@ -138,7 +144,7 @@ export default function NewPasswordScreen({ navigation, route }: Props) {
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.inputInner}
-                placeholder="at least 8 characters"
+                placeholder="Aa1! minimum 8 characters"
                 placeholderTextColor={PLACEHOLDER_GREY}
                 secureTextEntry={!showPassword}
                 value={password}
@@ -161,7 +167,7 @@ export default function NewPasswordScreen({ navigation, route }: Props) {
             <View style={styles.inputRow}>
               <TextInput
                 style={styles.inputInner}
-                placeholder="at least 8 characters"
+                placeholder="Aa1! minimum 8 characters"
                 placeholderTextColor={PLACEHOLDER_GREY}
                 secureTextEntry={!showConfirm}
                 value={confirm}

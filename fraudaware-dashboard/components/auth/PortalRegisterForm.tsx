@@ -8,6 +8,10 @@ import {
   registerRecruiter,
   verifyEmail,
 } from '@/lib/api/authApi';
+import {
+  PASSWORD_POLICY_MESSAGE,
+  validatePassword,
+} from '@/lib/auth/passwordPolicy';
 import type { PortalConfig, PortalType } from '@/lib/auth/portalConfig';
 import { colors } from '@/lib/theme/colors';
 
@@ -36,6 +40,17 @@ export default function PortalRegisterForm({ config, portalType }: Props) {
     event.preventDefault();
     setError(null);
     setInfo(null);
+
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.ok) {
+      setError(passwordCheck.message);
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -190,9 +205,12 @@ export default function PortalRegisterForm({ config, portalType }: Props) {
             type="password"
             value={password}
             onChange={setPassword}
-            placeholder="At least 8 characters"
+            placeholder="Aa1! minimum 8 characters"
             required
           />
+          <p className="text-xs" style={{ color: colors.muted, fontFamily: 'var(--font-poppins)' }}>
+            {PASSWORD_POLICY_MESSAGE}
+          </p>
           <Field
             label="Confirm password"
             type="password"

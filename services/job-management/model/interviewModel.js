@@ -9,6 +9,16 @@ export const INTERVIEW_STATUSES = [
   "rescheduled",
 ];
 
+/** Statuses that block scheduling another interview for the same application. */
+export const ACTIVE_INTERVIEW_STATUSES = ["scheduled", "rescheduled"];
+
+/** True when an interview should prevent scheduling another for the same application. */
+export const isBlockingInterview = (interview, now = Date.now()) => {
+  if (!ACTIVE_INTERVIEW_STATUSES.includes(interview?.status)) return false;
+  const endsAt = new Date(interview.endsAt);
+  return !Number.isNaN(endsAt.getTime()) && endsAt.getTime() > now;
+};
+
 const interviewSchema = new mongoose.Schema(
   {
     workspaceId: {

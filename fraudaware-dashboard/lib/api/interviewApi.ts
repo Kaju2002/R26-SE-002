@@ -8,6 +8,26 @@ export type InterviewStatus =
   | 'no_show'
   | 'rescheduled';
 
+/** Statuses that block scheduling another interview for the same application. */
+export const ACTIVE_INTERVIEW_STATUSES: InterviewStatus[] = [
+  'scheduled',
+  'rescheduled',
+];
+
+export function isActiveInterviewStatus(status: InterviewStatus): boolean {
+  return ACTIVE_INTERVIEW_STATUSES.includes(status);
+}
+
+/** True when an interview should prevent scheduling another for the same application. */
+export function isBlockingInterview(
+  interview: Pick<Interview, 'status' | 'endsAt'>,
+  now = Date.now()
+): boolean {
+  if (!isActiveInterviewStatus(interview.status)) return false;
+  const endsAt = new Date(interview.endsAt).getTime();
+  return Number.isFinite(endsAt) && endsAt > now;
+}
+
 export type Interview = {
   id: string;
   workspaceId: string | null;

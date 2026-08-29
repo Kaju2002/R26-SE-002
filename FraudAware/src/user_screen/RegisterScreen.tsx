@@ -19,6 +19,7 @@ import { Poppins_400Regular, Poppins_500Medium } from '@expo-google-fonts/poppin
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { registerUser } from '../api/userApi';
+import { validatePassword, PASSWORD_POLICY_MESSAGE } from '../utils/passwordPolicy';
 
 const TEXT_ACCENT = '#202871';
 const REGISTER_BTN = '#202871';
@@ -66,6 +67,17 @@ export default function RegisterScreen({ navigation }: Props) {
 
     if (!fullName.trim() || !normalizedEmail || !password || !confirmPassword) {
       Alert.alert('Missing details', 'Please fill all registration fields.');
+      return;
+    }
+
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.ok) {
+      Alert.alert('Weak password', passwordCheck.message);
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Password mismatch', 'Password and confirm password must match.');
       return;
     }
 
@@ -137,7 +149,7 @@ export default function RegisterScreen({ navigation }: Props) {
           <View style={styles.inputRow}>
             <TextInput
               style={styles.inputInner}
-              placeholder="at least 8 characters"
+              placeholder="Aa1! minimum 8 characters"
               placeholderTextColor={PLACEHOLDER_GREY}
               secureTextEntry={!showPassword}
               value={password}
@@ -156,12 +168,13 @@ export default function RegisterScreen({ navigation }: Props) {
               />
             </Pressable>
           </View>
+          <Text style={styles.passwordHint}>{PASSWORD_POLICY_MESSAGE}</Text>
 
           <Text style={styles.fieldLabel}>Confirm Password</Text>
           <View style={styles.inputRow}>
             <TextInput
               style={styles.inputInner}
-              placeholder="at least 8 characters"
+              placeholder="Aa1! minimum 8 characters"
               placeholderTextColor={PLACEHOLDER_GREY}
               secureTextEntry={!showConfirm}
               value={confirmPassword}
@@ -293,6 +306,14 @@ const styles = StyleSheet.create({
     color: TEXT_ACCENT,
     marginBottom: 8,
     marginTop: 2,
+  },
+  passwordHint: {
+    alignSelf: 'stretch',
+    fontFamily: FONT.poppinsReg,
+    fontSize: 12,
+    color: PLACEHOLDER_GREY,
+    marginBottom: 6,
+    lineHeight: 18,
   },
   /** Figma: H 48, radius 8, stroke 2 inside, Neutral/20 fill */
   inputFull: {
