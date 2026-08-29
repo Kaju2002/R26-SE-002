@@ -101,3 +101,17 @@ py -m pytest tests/job_recommendation/ -v
 
 CI/CD should run `pytest tests/` after these suites exist.
 Deploy comes after CI is green.
+
+### GitHub Actions CI
+
+Workflow: `.github/workflows/ci.yml`
+
+Runs on **pull requests** and **pushes** to `main` / `master`:
+
+| Job | Command |
+|-----|---------|
+| ML tests | `python -m pytest tests/ -v` |
+| user-management | `npm test` (Vitest) |
+| chat-management | `npm test` (node:test) |
+
+No MongoDB, SMTP, or model weight files required — integration tests skip automatically.
