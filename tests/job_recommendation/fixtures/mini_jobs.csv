@@ -1,0 +1,5 @@
+job_id,category,job_title,job_description,job_skill_set
+1,HR,HR Generalist,HR role,"['employee relations', 'payroll processing', 'communication', 'compliance']"
+2,IT,Python Developer,Software role,"['python', 'django', 'sql', 'react']"
+3,HR,Talent Acquisition Specialist,Recruitment role,"['talent acquisition', 'communication', 'interpersonal skills']"
+4,Design,Graphic Designer,Design role,"['photoshop', 'illustrator', 'creativity']"

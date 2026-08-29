@@ -1,0 +1,5 @@
+job_id,fake_job_indicator,employer_indicator,comm_scam_indicator
+1,Not Fake,Legitimate Company,Not Scam
+2,Fake,Fake Company,Scam
+3,Suspicious,Legitimate Company,Not Scam
+4,Not Fake,Legitimate Company,Not Scam
