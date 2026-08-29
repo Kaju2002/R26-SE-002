@@ -8,6 +8,7 @@ import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceCon
 import { getEmailStatus } from '@/lib/api/emailApi';
 import {
   cancelInterview,
+  isBlockingInterview,
   listInterviews,
   rescheduleInterview,
   updateInterviewStatus,
@@ -102,6 +103,12 @@ export default function EmployerInterviewsPage({
       setInterviews(list);
       setMailboxConnected(emailStatus?.connected ?? null);
 
+      const activeApplicationIds = new Set(
+        list
+          .filter((interview) => isBlockingInterview(interview))
+          .map((interview) => interview.applicationId)
+      );
+
       const appsBatches = await Promise.all(
         jobsResult.jobs.map(async (job) => {
           const apps = await listJobApplications(token, job.id);
@@ -123,6 +130,7 @@ export default function EmployerInterviewsPage({
             s === 'screened'
           );
         })
+        .filter((app) => !activeApplicationIds.has(app.id))
         .map((app) => ({
           applicationId: app.id,
           fullName: app.fullName,

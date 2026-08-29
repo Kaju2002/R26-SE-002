@@ -8,6 +8,7 @@ import {
 } from "../config/emailTemplate.js";
 import { publishEvent } from "../utils/publishEvent.js";
 import { scheduleHybridCompanyVerification } from "../utils/companyVerification.js";
+import { validatePassword } from "../utils/passwordPolicy.js";
 
 const OTP_VALIDITY_MS = 24 * 60 * 60 * 1000;
 const RESET_OTP_VALIDITY_MS = 15 * 60 * 1000;
@@ -165,11 +166,9 @@ const validateRegistrationCredentials = ({
     return { ok: false, message: "Please enter a valid email address" };
   }
 
-  if (password.length < 8) {
-    return {
-      ok: false,
-      message: "Password must be at least 8 characters long",
-    };
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.ok) {
+    return passwordCheck;
   }
 
   if (password !== confirmPassword) {
@@ -311,11 +310,11 @@ export const register = async (req, res) => {
       });
     }
 
-    // 4. Validate password length
-    if (password.length < 8) {
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.ok) {
       return res.status(400).json({
         success: false,
-        message: "Password must be at least 8 characters long",
+        message: passwordCheck.message,
       });
     }
 
@@ -982,10 +981,11 @@ export const resetPassword = async (req, res) => {
       });
     }
 
-    if (password.length < 8) {
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.ok) {
       return res.status(400).json({
         success: false,
-        message: "Password must be at least 8 characters long",
+        message: passwordCheck.message,
       });
     }
 

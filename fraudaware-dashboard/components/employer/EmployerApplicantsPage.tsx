@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Suspense,
@@ -16,6 +17,10 @@ import { useEmployerWorkspace } from '@/components/employer/EmployerWorkspaceCon
 import { useInchat } from '@/components/recruiter/inchat/InchatProvider';
 import { createChatConversation } from '@/lib/api/chatApi';
 import { getEmailConnectUrl, getEmailStatus } from '@/lib/api/emailApi';
+import {
+  isBlockingInterview,
+  listInterviews,
+} from '@/lib/api/interviewApi';
 import {
   listJobApplications,
   listMyJobs,
@@ -201,6 +206,9 @@ function EmployerApplicantsContent({
   const [messagingId, setMessagingId] = useState<string | null>(null);
   const [emailTarget, setEmailTarget] = useState<JobApplication | null>(null);
   const [scheduleTarget, setScheduleTarget] = useState<JobApplication | null>(null);
+  const [activeInterviewAppIds, setActiveInterviewAppIds] = useState<Set<string>>(
+    () => new Set()
+  );
   const [emailConnected, setEmailConnected] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [queryInput, setQueryInput] = useState('');
@@ -285,6 +293,51 @@ function EmployerApplicantsContent({
       cancelled = true;
     };
   }, [activeWorkspaceId, workspaceError, workspaceLoading]);
+
+  const loadActiveInterviews = useCallback(async () => {
+    const token = getStoredToken();
+    if (!token) return;
+
+    try {
+      const interviews = await listInterviews(token, { status: 'all', limit: 100 });
+      setActiveInterviewAppIds(
+        new Set(
+          interviews
+            .filter((interview) => isBlockingInterview(interview))
+            .map((interview) => interview.applicationId)
+        )
+      );
+    } catch {
+      setActiveInterviewAppIds(new Set());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!jobsReady) return;
+    void loadActiveInterviews();
+  }, [jobsReady, loadActiveInterviews]);
+
+  useEffect(() => {
+    if (!jobsReady) return;
+
+    const refresh = () => {
+      if (document.visibilityState === 'visible') {
+        void loadActiveInterviews();
+      }
+    };
+
+    window.addEventListener('focus', refresh);
+    document.addEventListener('visibilitychange', refresh);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      document.removeEventListener('visibilitychange', refresh);
+    };
+  }, [jobsReady, loadActiveInterviews]);
+
+  const hasActiveInterview = useCallback(
+    (applicationId: string) => activeInterviewAppIds.has(applicationId),
+    [activeInterviewAppIds]
+  );
 
   const loadApplications = useCallback(
     async (options?: { silent?: boolean }) => {
@@ -983,7 +1036,12 @@ function EmployerApplicantsContent({
                             </ActionIconButton>
 
                             <ActionIconButton
-                              label="Schedule interview"
+                              label={
+                                hasActiveInterview(application.id)
+                                  ? 'Interview already scheduled — use Interviews to reschedule'
+                                  : 'Schedule interview'
+                              }
+                              disabled={hasActiveInterview(application.id)}
                               onClick={() => setScheduleTarget(application)}
                             >
                               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">
@@ -1195,14 +1253,24 @@ function EmployerApplicantsContent({
                   Email
                 </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setScheduleTarget(detailApplication)}
-                className="flex w-full items-center justify-center rounded-xl border border-[#202871] px-4 py-2.5 text-sm font-semibold transition hover:bg-[#F7F8FE]"
-                style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
-              >
-                Schedule interview
-              </button>
+              {hasActiveInterview(detailApplication.id) ? (
+                <Link
+                  href={`${basePath}/interviews`}
+                  className="flex w-full items-center justify-center rounded-xl border border-[#E5E7EE] px-4 py-2.5 text-sm font-semibold transition hover:bg-[#F7F8FE]"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Reschedule on Interviews page
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setScheduleTarget(detailApplication)}
+                  className="flex w-full items-center justify-center rounded-xl border border-[#202871] px-4 py-2.5 text-sm font-semibold transition hover:bg-[#F7F8FE]"
+                  style={{ color: colors.navy, fontFamily: 'var(--font-poppins)' }}
+                >
+                  Schedule interview
+                </button>
+              )}
             </div>
           </aside>
         </div>
@@ -1241,6 +1309,7 @@ function EmployerApplicantsContent({
             setScheduleTarget(null);
             setInfo(message);
             void loadApplications({ silent: true });
+            void loadActiveInterviews();
           }}
         />
       ) : null}

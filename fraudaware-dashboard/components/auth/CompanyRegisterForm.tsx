@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { registerCompany, verifyEmail } from '@/lib/api/authApi';
+import {
+  PASSWORD_POLICY_MESSAGE,
+  validatePassword,
+} from '@/lib/auth/passwordPolicy';
 import { portalConfigs } from '@/lib/auth/portalConfig';
 import { colors } from '@/lib/theme/colors';
 
@@ -37,8 +41,9 @@ export default function CompanyRegisterForm() {
       setError('Passwords do not match');
       return;
     }
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters');
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.ok) {
+      setError(passwordCheck.message);
       return;
     }
 
@@ -186,7 +191,7 @@ export default function CompanyRegisterForm() {
                   id="reg-password"
                   type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
-                  placeholder="At least 8 characters"
+                  placeholder="Aa1! minimum 8 characters"
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   required
@@ -203,6 +208,9 @@ export default function CompanyRegisterForm() {
                   {showPassword ? 'Hide' : 'Show'}
                 </button>
               </div>
+              <p className="mt-1.5 text-xs text-gray-500" style={{ fontFamily: 'var(--font-poppins)' }}>
+                {PASSWORD_POLICY_MESSAGE}
+              </p>
             </div>
             <Field
               id="reg-confirm"

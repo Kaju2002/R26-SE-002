@@ -93,6 +93,7 @@ export default function ScheduleInterviewModal({
 
   const calendarWillInviteCandidate =
     type === 'video' && provider !== 'none';
+  const minScheduleLocal = toLocalInputValue(new Date());
 
   useEffect(() => {
     if (!open) return;
@@ -128,6 +129,10 @@ export default function ScheduleInterviewModal({
       setError('End time must be after start time.');
       return;
     }
+    if (startsAt.getTime() < Date.now()) {
+      setError('Interview start time cannot be in the past.');
+      return;
+    }
 
     const payload: CreateInterviewPayload = {
       applicationId,
@@ -153,11 +158,17 @@ export default function ScheduleInterviewModal({
       );
       onClose();
     } catch (requestError: unknown) {
-      setError(
-        requestError instanceof Error
-          ? requestError.message
-          : 'Could not schedule interview.'
-      );
+      const err = requestError as Error & { code?: string };
+      if (err.code === 'INTERVIEW_ALREADY_EXISTS') {
+        setError(
+          err.message ||
+            'An interview is already scheduled for this applicant. Open Interviews to reschedule.'
+        );
+      } else {
+        setError(
+          err instanceof Error ? err.message : 'Could not schedule interview.'
+        );
+      }
     } finally {
       setBusy(false);
     }
@@ -235,6 +246,7 @@ export default function ScheduleInterviewModal({
               <input
                 type="datetime-local"
                 value={startsLocal}
+                min={minScheduleLocal}
                 onChange={(e) => {
                   setStartsLocal(e.target.value);
                   setEndsLocal(defaultEnd(e.target.value));
@@ -249,6 +261,7 @@ export default function ScheduleInterviewModal({
               <input
                 type="datetime-local"
                 value={endsLocal}
+                min={startsLocal || minScheduleLocal}
                 onChange={(e) => setEndsLocal(e.target.value)}
                 className="mt-1 w-full rounded-xl border border-[#E5E7EE] px-3 py-2.5 text-sm outline-none focus:border-[#202871]"
               />

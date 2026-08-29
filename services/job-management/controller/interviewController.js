@@ -1,4 +1,5 @@
 import Interview, {
+  ACTIVE_INTERVIEW_STATUSES,
   INTERVIEW_STATUSES,
   INTERVIEW_TYPES,
 } from "../model/interviewModel.js";
@@ -22,6 +23,17 @@ import {
 } from "../service/employerWorkspaceService.js";
 
 const isValidObjectId = (id) => /^[a-fA-F0-9]{24}$/.test(String(id));
+
+const rejectPastStart = (startsAt, res) => {
+  if (startsAt.getTime() < Date.now()) {
+    res.status(400).json({
+      success: false,
+      message: "Interview cannot be scheduled in the past",
+    });
+    return true;
+  }
+  return false;
+};
 
 const toIso = (value) => {
   if (!value) return null;
@@ -142,6 +154,9 @@ export const createInterview = async (req, res) => {
         message: "endsAt must be after startsAt",
       });
     }
+    if (rejectPastStart(startsAt, res)) {
+      return;
+    }
     if (!INTERVIEW_TYPES.includes(type)) {
       return res.status(400).json({
         success: false,
@@ -158,6 +173,24 @@ export const createInterview = async (req, res) => {
     }
 
     const { job, home } = await assertJobOwner(req, application);
+
+    const existingActive = await Interview.findOne({
+      applicationId: application._id,
+      status: { $in: ACTIVE_INTERVIEW_STATUSES },
+      endsAt: { $gt: new Date() },
+    })
+      .select("_id")
+      .lean();
+
+    if (existingActive) {
+      return res.status(409).json({
+        success: false,
+        message:
+          "An interview is already scheduled for this applicant. Reschedule or cancel the existing one.",
+        code: "INTERVIEW_ALREADY_EXISTS",
+        existingInterviewId: String(existingActive._id),
+      });
+    }
 
     const authHeader = req.authorizationHeader || req.headers.authorization;
     let calendarEvent = null;
@@ -475,6 +508,9 @@ export const updateInterview = async (req, res) => {
           success: false,
           message: "endsAt must be after startsAt",
         });
+      }
+      if (rejectPastStart(startsAt, res)) {
+        return;
       }
 
       const authHeader = req.authorizationHeader || req.headers.authorization;

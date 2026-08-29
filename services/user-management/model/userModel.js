@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { validatePassword, PASSWORD_POLICY_MESSAGE } from "../utils/passwordPolicy.js";
 
 // Work Experience Sub-schema
 const workExperienceSchema = new mongoose.Schema({
@@ -284,6 +285,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, "Password is required"],
     minlength: [8, "Password must be at least 8 characters"],
+    validate: {
+      validator(value) {
+        return validatePassword(value).ok;
+      },
+      message: PASSWORD_POLICY_MESSAGE,
+    },
     select: false, // Don't return password by default in queries
   },
 
