@@ -29,7 +29,7 @@ const EMPLOYER_TYPES = new Set(["recruiter", "company"]);
 
 const FOLDER_KEYS = ["inbox", "sent", "drafts", "spam", "trash"];
 
-const normalizeFolderKey = (folder) => {
+export const normalizeFolderKey = (folder) => {
   const name = String(folder?.name || folder?.display_name || "")
     .trim()
     .toLowerCase();
@@ -70,7 +70,7 @@ const formatAttachment = (attachment) => ({
   size: attachment.size ?? null,
 });
 
-const formatMessageSummary = (message) => {
+export const formatMessageSummary = (message) => {
   const from = formatParticipants(message.from);
   return {
     id: message.id,
@@ -87,7 +87,7 @@ const formatMessageSummary = (message) => {
   };
 };
 
-const formatMessageDetail = (message) => ({
+export const formatMessageDetail = (message) => ({
   ...formatMessageSummary(message),
   body: message.body || message.snippet || "",
   cc: formatParticipants(message.cc),
@@ -529,7 +529,7 @@ export const getMessage = async (req, res) => {
   }
 };
 
-const resolveConferencingProvider = (requested, mailboxEmail) => {
+export const resolveConferencingProvider = (requested, mailboxEmail) => {
   const raw = String(requested || "").trim().toLowerCase();
   if (raw === "google_meet" || raw === "google meet" || raw === "meet") {
     return "Google Meet";
@@ -547,7 +547,7 @@ const resolveConferencingProvider = (requested, mailboxEmail) => {
   return "Google Meet";
 };
 
-const extractConferenceUrl = (event) => {
+export const extractConferenceUrl = (event) => {
   const details = event?.conferencing?.details;
   if (!details) return null;
   return details.url || details.meeting_url || details.link || null;
