@@ -1,9 +1,8 @@
-import jwt from "jsonwebtoken";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 
 const NOTIFICATION_ID = "507f1f77bcf86cd799439011";
-const TEST_SECRET = "notification-test-secret";
+const TEST_BEARER = "test-session-token";
 
 const {
   mockValidateUserSession,
@@ -38,19 +37,10 @@ vi.mock("../../model/notificationModel.js", async (importOriginal) => {
 
 import { createApp } from "../../app.js";
 
-const signToken = (userId = "user-1") => {
-  process.env.JWT_SECRET = TEST_SECRET;
-  return jwt.sign(
-    { userId, email: "user@example.com", accountType: "jobseeker" },
-    TEST_SECRET
-  );
-};
-
-const authHeader = (token) => ({ Authorization: `Bearer ${token}` });
+const authHeader = () => ({ Authorization: `Bearer ${TEST_BEARER}` });
 
 describe("notification API", () => {
   const app = createApp();
-  const token = signToken();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -93,7 +83,7 @@ describe("notification API", () => {
   it("returns 400 for invalid category filter", async () => {
     const response = await request(app)
       .get("/api/notifications?category=invalid")
-      .set(authHeader(token));
+      .set(authHeader());
 
     expect(response.status).toBe(400);
     expect(response.body.message).toMatch(/invalid category/i);
@@ -102,7 +92,7 @@ describe("notification API", () => {
   it("lists notifications for authenticated users", async () => {
     const response = await request(app)
       .get("/api/notifications")
-      .set(authHeader(token));
+      .set(authHeader());
 
     expect(response.status).toBe(200);
     expect(response.body.success).toBe(true);
@@ -115,7 +105,7 @@ describe("notification API", () => {
 
     const response = await request(app)
       .get("/api/notifications/unread-count")
-      .set(authHeader(token));
+      .set(authHeader());
 
     expect(response.status).toBe(200);
     expect(response.body.unreadCount).toBe(3);
@@ -136,7 +126,7 @@ describe("notification API", () => {
 
     const response = await request(app)
       .patch(`/api/notifications/${NOTIFICATION_ID}/read`)
-      .set(authHeader(token));
+      .set(authHeader());
 
     expect(response.status).toBe(200);
     expect(response.body.message).toMatch(/marked as read/i);
@@ -147,7 +137,7 @@ describe("notification API", () => {
 
     const response = await request(app)
       .patch(`/api/notifications/${NOTIFICATION_ID}/read`)
-      .set(authHeader(token));
+      .set(authHeader());
 
     expect(response.status).toBe(404);
   });
