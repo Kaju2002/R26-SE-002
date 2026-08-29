@@ -11,8 +11,37 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      workflow: ${{ steps.filter.outputs.workflow }}
+      ml: ${{ steps.filter.outputs.ml }}
+      user_management: ${{ steps.filter.outputs.user_management }}
+      chat_management: ${{ steps.filter.outputs.chat_management }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            workflow:
+              - '.github/workflows/**'
+            ml:
+              - 'tests/**'
+              - 'services/scam-detection/**'
+              - 'services/fake-job-detection/**'
+              - 'services/employer-verification/**'
+              - 'services/job-recommendation/**'
+            user_management:
+              - 'services/user-management/**'
+            chat_management:
+              - 'services/chat-management/**'
+
   ml-tests:
     name: ML tests (pytest)
+    needs: changes
+    if: needs.changes.outputs.ml == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -47,6 +76,8 @@ jobs:
 
   user-management-tests:
     name: user-management (Vitest)
+    needs: changes
+    if: needs.changes.outputs.user_management == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -73,6 +104,8 @@ jobs:
 
   chat-management-tests:
     name: chat-management (node:test)
+    needs: changes
+    if: needs.changes.outputs.chat_management == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
