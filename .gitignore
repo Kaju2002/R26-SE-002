@@ -17,6 +17,7 @@ env/
 
 # Ignore all CSV, pickle, and joblib files anywhere
 *.csv
+!tests/**/fixtures/*.csv
 *.pkl
 *.joblib
 *.h5
