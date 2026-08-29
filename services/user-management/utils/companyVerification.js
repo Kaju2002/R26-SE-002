@@ -141,7 +141,7 @@ export const mapPredictToVerificationFields = (predict = {}, user) => {
   };
 };
 
-const mapUnavailableFields = (user, errorMessage) => {
+export const mapUnavailableVerificationFields = (user, errorMessage) => {
   const company = user?.company || {};
   const fullName = `${user?.firstName || ""} ${user?.lastName || ""}`.trim();
   return {
@@ -210,7 +210,7 @@ export const runHybridCompanyVerification = async (userId, options = {}) => {
 
   const fields = predictResult.ok
     ? mapPredictToVerificationFields(predictResult.data, user)
-    : mapUnavailableFields(user, predictResult.error || "Check unavailable");
+    : mapUnavailableVerificationFields(user, predictResult.error || "Check unavailable");
 
   const payload = {
     userId: user._id,

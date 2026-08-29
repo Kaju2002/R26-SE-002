@@ -1,130 +1,16 @@
-import express from "express";
-import cors from "cors";
 import "dotenv/config";
 import connectDB from "./config/mongodb.js";
-import userRoute from "./route/userRoute.js";
-import profileRoute from "./route/profileRoute.js";
-import internalRoute from "./route/internalRoute.js";
-import adminRoute from "./route/adminRoute.js";
-import supportRoute from "./route/supportRoute.js";
+import { createApp } from "./app.js";
 
-// ==== APP CONFIG ====
-const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ==== DATABASE CONNECTION ====
 connectDB();
 
-// ==== MIDDLEWARE ====
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept", "Origin", "x-internal-service-key"],
-    exposedHeaders: ["Content-Range", "X-Content-Range"],
-  })
-);
+const app = createApp();
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ==== ROUTES ====
-app.use("/api/auth", userRoute);
-app.use("/api/profile", profileRoute);
-app.use("/api/internal", internalRoute);
-app.use("/api/admin", adminRoute);
-app.use("/api/support", supportRoute);
-
-// ==== HEALTH CHECK ====
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "OK",
-    service: "user-management-service",
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  });
-});
-
-// ==== HOME ROUTE ====
-app.get("/", (req, res) => {
-  res.json({
-    message: "Welcome to FraudAware User Management Service",
-    version: "1.0.0",
-    endpoints: {
-      auth: {
-        register: "POST /api/auth/register",
-        registerRecruiter: "POST /api/auth/register-recruiter",
-        registerCompany: "POST /api/auth/register-company",
-        login: "POST /api/auth/login",
-        verifyEmail: "POST /api/auth/verify-email",
-        nylas: "GET|PATCH /api/auth/nylas",
-      },
-      profile: {
-        getMe: "GET /api/profile/me",
-        updateBasic: "PATCH /api/profile/basic",
-        updateSummary: "PATCH /api/profile/summary",
-        updateSkills: "PUT /api/profile/skills",
-        workExperience: "POST/PUT/DELETE /api/profile/work-experience/:itemId",
-        education: "POST/PUT/DELETE /api/profile/education/:itemId",
-        languages: "POST/PUT/DELETE /api/profile/languages/:itemId",
-        avatar: "PATCH /api/profile/avatar",
-        cv: "POST/DELETE /api/profile/cv/:cvId",
-      },
-      admin: {
-        listUsers: "GET /api/admin/users (superadmin)",
-        updateUserStatus: "PATCH /api/admin/users/:userId/status (superadmin)",
-        listVerificationRequests:
-          "GET /api/admin/verification-requests (superadmin)",
-        listSupportTickets: "GET /api/admin/support-tickets (superadmin)",
-        getSupportTicket: "GET /api/admin/support-tickets/:id (superadmin)",
-        updateSupportTicket: "PATCH /api/admin/support-tickets/:id (superadmin)",
-        assignSupportTicketToMe:
-          "POST /api/admin/support-tickets/:id/assign-me (superadmin)",
-        addSupportTicketMessage:
-          "POST /api/admin/support-tickets/:id/messages (superadmin)",
-        listAuditLog: "GET /api/admin/audit-log (superadmin)",
-      },
-      support: {
-        createTicket: "POST /api/support/tickets",
-        listMyTickets: "GET /api/support/tickets",
-        getMyTicket: "GET /api/support/tickets/:id",
-        addMyMessage: "POST /api/support/tickets/:id/messages",
-      },
-      health: "GET /health",
-    },
-  });
-});
-
-// ==== 404 HANDLER ====
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-  });
-});
-
-// ==== ERROR HANDLER ====
-app.use((err, req, res, next) => {
-  console.error("Error:", err);
-
-  if (err.name === "MulterError") {
-    return res.status(400).json({
-      success: false,
-      message: err.message,
-    });
-  }
-
-  res.status(err.status || 500).json({
-    success: false,
-    message: err.message || "Internal server error",
-  });
-});
-
-// ==== START SERVER ====
 app.listen(PORT, () => {
   console.log(`✅ User Management Service running on http://localhost:${PORT}`);
   console.log(`📍 Auth: POST http://localhost:${PORT}/api/auth/register`);
   console.log(`👤 Profile: GET http://localhost:${PORT}/api/profile/me`);
   console.log(`🏥 Health check: GET http://localhost:${PORT}/health`);
 });
-
