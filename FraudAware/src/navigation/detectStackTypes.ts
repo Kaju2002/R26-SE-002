@@ -26,9 +26,15 @@ export type JobPostHighlight = {
 
 export type JobPostResultParams = {
   prediction: string;
+  tier?: string;
+  color?: string;
   confidence: number;
   legitimate_probability: number;
   fake_probability: number;
+  signal_score?: number;
+  fake_signals_found?: string[];
+  legit_signals_found?: string[];
+  advice?: string[];
   extracted_text: string;
   message: string;
   imageUri: string;

@@ -32,25 +32,41 @@ function resolveVerdict(prediction: string): Verdict {
   return 'legitimate';
 }
 
+const TIER_META: Record<
+  Verdict,
+  { bg: string; icon: string; title: string; adviceIcon: keyof typeof MaterialIcons.glyphMap }
+> = {
+  fake: {
+    bg: '#DC2626',
+    icon: '⚠️',
+    title: 'FAKE JOB POST DETECTED',
+    adviceIcon: 'cancel',
+  },
+  suspicious: {
+    bg: '#D97706',
+    icon: '🔍',
+    title: 'SUSPICIOUS — VERIFY BEFORE APPLYING',
+    adviceIcon: 'search',
+  },
+  legitimate: {
+    bg: '#16A34A',
+    icon: '✅',
+    title: 'LEGITIMATE JOB POST',
+    adviceIcon: 'check-circle',
+  },
+};
+
 const COPY: Record<
   Verdict,
   {
-    badge: string;
     headline: string;
     body: string;
-    accent: string;
-    accentBg: string;
-    cardBg: string;
     next: string[];
   }
 > = {
   fake: {
-    badge: 'High risk',
     headline: 'This job post looks fake.',
     body: 'The wording matches patterns we often see in scam listings. Do not apply or send documents until you can verify the employer independently.',
-    accent: '#C62828',
-    accentBg: '#FDECEA',
-    cardBg: '#FFF8F7',
     next: [
       'Do not apply through this listing.',
       'Do not share ID copies, bank details, or pay any fee.',
@@ -58,12 +74,8 @@ const COPY: Record<
     ],
   },
   suspicious: {
-    badge: 'Needs review',
     headline: 'This post needs a closer look.',
     body: 'Some details look off, but it is not a clear fake. Check the company through official channels before you apply.',
-    accent: '#EF6C00',
-    accentBg: '#FFF3E0',
-    cardBg: '#FFFBF5',
     next: [
       'Look up the company on a registry or their real website.',
       'Never pay an upfront fee to get the job.',
@@ -71,12 +83,8 @@ const COPY: Record<
     ],
   },
   legitimate: {
-    badge: 'Low risk',
     headline: 'This job post looks legitimate.',
     body: 'We did not find the usual scam signals in this poster. Still confirm the employer before you share personal details.',
-    accent: '#1B5E20',
-    accentBg: '#E8F5E9',
-    cardBg: '#F7FBF8',
     next: [
       'Apply through the company’s official careers page when you can.',
       'Keep communication on the platform or a company email.',
@@ -149,12 +157,31 @@ function WordChips({ items }: { items: JobPostHighlight[] }) {
   );
 }
 
+function SignalTags({ items, tone }: { items: string[]; tone: 'fake' | 'legit' }) {
+  if (!items.length) return null;
+  const bg = tone === 'fake' ? '#FDECEA' : '#E8F5E9';
+  const color = tone === 'fake' ? '#C62828' : '#1B5E20';
+  return (
+    <View style={styles.chipWrap}>
+      {items.map((item) => (
+        <View key={item} style={[styles.chip, { backgroundColor: bg }]}>
+          <Text style={[styles.chipText, { color }]}>{item}</Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 export default function JobPostResultScreen({ navigation, route }: Props) {
   const {
     prediction,
+    tier,
     confidence,
     legitimate_probability,
     fake_probability,
+    fake_signals_found = [],
+    legit_signals_found = [],
+    advice = [],
     extracted_text,
     message,
     imageUri,
@@ -162,8 +189,10 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
     shap = [],
   } = route.params;
 
-  const verdict = resolveVerdict(prediction);
+  const verdict = resolveVerdict(tier || prediction);
   const copy = COPY[verdict];
+  const tierMeta = TIER_META[verdict];
+  const adviceItems = advice.length ? advice : copy.next;
   const [showFullText, setShowFullText] = useState(false);
   const [saved, setSaved] = useState(false);
   const tabBarHeight = useBottomTabBarHeight();
@@ -226,23 +255,13 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
         contentContainerStyle={[styles.scroll, { paddingBottom: tabBarHeight + 28 }]}
         showsVerticalScrollIndicator={false}
       >
-        <View
-          style={[
-            styles.summaryCard,
-            { borderColor: copy.accent, backgroundColor: copy.cardBg },
-          ]}
-        >
-          <View style={[styles.badge, { backgroundColor: copy.accentBg }]}>
-            <Text style={[styles.badgeText, { color: copy.accent }]}>{copy.badge}</Text>
-          </View>
-          <Text style={styles.summaryTitle}>Quick summary</Text>
-          <Text style={[styles.headline, { color: copy.accent }]}>{copy.headline}</Text>
-          <Text style={styles.body}>{copy.body}</Text>
-          <Text style={styles.metaLine}>
+        <View style={[styles.summaryCard, { backgroundColor: tierMeta.bg }]}>
+          <Text style={styles.bannerIcon}>{tierMeta.icon}</Text>
+          <Text style={styles.bannerTitle}>{tierMeta.title}</Text>
+          <Text style={styles.bannerBody}>{copy.body}</Text>
+          <Text style={styles.bannerMetaLine}>
             Model confidence{' '}
-            <Text style={[styles.metaStrong, { color: copy.accent }]}>
-              {Math.round(confidence * 100)}%
-            </Text>
+            <Text style={styles.bannerMetaStrong}>{Math.round(confidence * 100)}%</Text>
           </Text>
         </View>
 
@@ -278,6 +297,20 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
           </>
         ) : null}
 
+        {fake_signals_found.length || legit_signals_found.length ? (
+          <>
+            <Text style={styles.sectionTitle}>Detected Signals</Text>
+            <View style={styles.sectionCard}>
+              <SignalTags items={fake_signals_found} tone="fake" />
+              <SignalTags items={legit_signals_found} tone="legit" />
+              <Text style={styles.hint}>
+                Red tags are wording that raised fraud risk. Green tags are wording that
+                supports legitimacy.
+              </Text>
+            </View>
+          </>
+        ) : null}
+
         {extracted_text ? (
           <>
             <Text style={styles.sectionTitle}>Text we read from the image</Text>
@@ -299,12 +332,13 @@ export default function JobPostResultScreen({ navigation, route }: Props) {
           </>
         ) : null}
 
-        <Text style={styles.sectionTitle}>What to do next</Text>
+        <Text style={styles.sectionTitle}>What to do</Text>
         <View style={styles.sectionCard}>
-          {copy.next.map((step) => (
-            <Text key={step} style={styles.nextText}>
-              • {step}
-            </Text>
+          {adviceItems.map((step) => (
+            <View key={step} style={styles.adviceRow}>
+              <MaterialIcons name={tierMeta.adviceIcon} size={18} color={tierMeta.bg} />
+              <Text style={styles.nextText}>{step}</Text>
+            </View>
           ))}
         </View>
 
@@ -376,20 +410,33 @@ const styles = StyleSheet.create({
   },
   summaryCard: {
     borderRadius: 12,
-    padding: 16,
+    padding: 18,
     marginBottom: 20,
-    borderWidth: 2,
   },
-  badge: {
-    alignSelf: 'flex-start',
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 8,
-    marginBottom: 12,
+  bannerIcon: {
+    fontSize: 30,
+    marginBottom: 8,
   },
-  badgeText: {
-    fontSize: 12,
+  bannerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#fff',
+    lineHeight: 24,
+    marginBottom: 8,
+  },
+  bannerBody: {
+    fontSize: 14,
+    lineHeight: 21,
+    color: 'rgba(255,255,255,0.92)',
+  },
+  bannerMetaLine: {
+    marginTop: 12,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.85)',
+  },
+  bannerMetaStrong: {
     fontWeight: '700',
+    color: '#fff',
   },
   posterWrap: {
     height: 144,
@@ -404,31 +451,6 @@ const styles = StyleSheet.create({
   poster: {
     width: '100%',
     height: '100%',
-  },
-  summaryTitle: {
-    color: NAVY,
-    fontWeight: '700',
-    fontSize: 13,
-    marginBottom: 6,
-  },
-  headline: {
-    fontSize: 18,
-    fontWeight: '700',
-    lineHeight: 24,
-    marginBottom: 8,
-  },
-  body: {
-    fontSize: 14,
-    lineHeight: 21,
-    color: '#374151',
-  },
-  metaLine: {
-    marginTop: 12,
-    fontSize: 13,
-    color: GREY_TEXT,
-  },
-  metaStrong: {
-    fontWeight: '700',
   },
   sectionTitle: {
     fontSize: 15,
@@ -507,7 +529,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: NAVY,
   },
+  adviceRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
   nextText: {
+    flex: 1,
     fontSize: 14,
     lineHeight: 21,
     color: '#374151',

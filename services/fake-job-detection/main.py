@@ -183,7 +183,7 @@ async def predict_text(payload: dict):
 
 @app.post("/explain-text")
 async def explain_job_text(payload: dict):
-    """LIME + SHAP token highlights for a job-post text blob."""
+    """LIME + Partition SHAP (shap library) token highlights for a job-post text blob."""
     text = str(payload.get("text") or "").strip()
     if len(text) < 15:
         raise HTTPException(
@@ -201,6 +201,131 @@ async def explain_job_text(payload: dict):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Explanation failed: {e}")
+
+
+def calculate_signal_score(text: str) -> dict:
+    """Keyword-based fraud signal score to combine with model probability."""
+    text_lower = text.lower()
+
+    fake_signals_found = []
+    legit_signals_found = []
+    score = 0
+
+    # Strong fake signals — score +2 each
+    strong_fake = [
+        ("registration fee", "Registration fee required"),
+        ("training fee", "Training fee required"),
+        ("deposit required", "Deposit required"),
+        ("pay to apply", "Payment to apply"),
+        ("earn daily", "Daily earning promise"),
+        ("15 minutes", "15 minute contact promise"),
+        ("unlimited income", "Unlimited income promise"),
+    ]
+
+    # Moderate fake signals — score +1 each
+    moderate_fake = [
+        ("work from home", "Work from home"),
+        ("data entry", "Data entry job"),
+        ("no experience", "No experience needed"),
+        ("whatsapp only", "WhatsApp only contact"),
+        ("gmail.com", "Personal Gmail contact"),
+        ("yahoo.com", "Personal Yahoo contact"),
+        ("part time easy", "Easy part time"),
+        ("urgent hiring", "Urgent hiring language"),
+    ]
+
+    # Legitimate signals — score -1 each
+    legit_signals = [
+        ("pvt ltd", "Registered company"),
+        ("private limited", "Registered company"),
+        (" plc", "Public listed company"),
+        ("epf", "EPF benefits"),
+        ("etf", "ETF benefits"),
+        ("bachelor", "Degree requirement"),
+        ("years of experience", "Experience requirement"),
+        ("recruitment@", "Corporate recruitment email"),
+        ("careers@", "Corporate careers email"),
+        ("colombo 0", "Colombo office address"),
+    ]
+
+    for keyword, label in strong_fake:
+        if keyword in text_lower:
+            score += 2
+            fake_signals_found.append(label)
+
+    for keyword, label in moderate_fake:
+        if keyword in text_lower:
+            score += 1
+            fake_signals_found.append(label)
+
+    for keyword, label in legit_signals:
+        if keyword in text_lower:
+            score -= 1
+            legit_signals_found.append(label)
+
+    return {
+        "score": score,
+        "fake_signals": fake_signals_found,
+        "legit_signals": legit_signals_found,
+    }
+
+
+def determine_tier(fake_prob: float, signal_score: int) -> dict:
+    """Combine model probability with signal score into a fake/suspicious/legitimate tier."""
+
+    # FAKE — high model confidence + multiple signals
+    if fake_prob >= 0.85 and signal_score >= 2:
+        return {
+            "tier": "fake",
+            "color": "red",
+            "message": "HIGH RISK — This job post shows strong indicators of fraud. Do not apply.",
+            "advice": [
+                "Do not pay any registration or training fees",
+                "Do not share personal documents",
+                "Report this post to the platform",
+                "Verify the company independently before any contact",
+            ],
+        }
+
+    # FAKE — very high model confidence even without signals
+    elif fake_prob >= 0.92:
+        return {
+            "tier": "fake",
+            "color": "red",
+            "message": "HIGH RISK — AI model detected strong fraud patterns in this post.",
+            "advice": [
+                "Do not apply for this position",
+                "Do not share personal or financial information",
+                "Report this post to the platform",
+            ],
+        }
+
+    # SUSPICIOUS — moderate probability or signals present
+    elif fake_prob >= 0.50 or signal_score >= 1:
+        return {
+            "tier": "suspicious",
+            "color": "amber",
+            "message": "CAUTION — This post has some suspicious characteristics. Verify before applying.",
+            "advice": [
+                "Research the company name independently",
+                "Never pay any upfront fees",
+                "Verify contact details through official channels",
+                "Check company registration with BOI or ROC",
+            ],
+        }
+
+    # LEGITIMATE — low probability + no signals
+    else:
+        return {
+            "tier": "legitimate",
+            "color": "green",
+            "message": "LOW RISK — This post appears to be a genuine job advertisement.",
+            "advice": [
+                "Always research the company before applying",
+                "Apply through official channels only",
+                "Never pay fees even for legitimate jobs",
+            ],
+        }
 
 
 @app.post("/predict")
@@ -229,7 +354,25 @@ async def predict(image: UploadFile = File(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Model inference failed: {e}")
 
-    return {
-        **_with_explanations(result, extracted_text),
-        "extracted_text": extracted_text[:2000],
+    # --- Step 3: three-tier classification — model probability + signal scoring ---
+    fake_prob = result["fake_probability"]
+    legit_prob = result["legitimate_probability"]
+    signals = calculate_signal_score(extracted_text)
+    tier_result = determine_tier(fake_prob, signals["score"])
+
+    response = {
+        "prediction": tier_result["tier"],
+        "tier": tier_result["tier"],
+        "color": tier_result["color"],
+        "confidence": round(float(fake_prob), 4),
+        "legitimate_probability": round(float(legit_prob), 4),
+        "fake_probability": round(float(fake_prob), 4),
+        "signal_score": signals["score"],
+        "fake_signals_found": signals["fake_signals"],
+        "legit_signals_found": signals["legit_signals"],
+        "message": tier_result["message"],
+        "advice": tier_result["advice"],
+        "extracted_text": extracted_text[:500],
     }
+
+    return _with_explanations(response, extracted_text)
