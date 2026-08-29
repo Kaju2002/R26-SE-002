@@ -1,8 +1,7 @@
-import jwt from "jsonwebtoken";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 
-const TEST_SECRET = "notification-test-secret";
+const TEST_BEARER = "test-session-token";
 
 const {
   mockValidateUserSession,
@@ -27,17 +26,10 @@ vi.mock("../../model/pushTokenModel.js", () => ({
 
 import { createApp } from "../../app.js";
 
-const signToken = () => {
-  process.env.JWT_SECRET = TEST_SECRET;
-  return jwt.sign(
-    { userId: "user-1", email: "user@example.com", accountType: "jobseeker" },
-    TEST_SECRET
-  );
-};
+const authHeader = () => ({ Authorization: `Bearer ${TEST_BEARER}` });
 
 describe("push token API", () => {
   const app = createApp();
-  const token = signToken();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -56,7 +48,7 @@ describe("push token API", () => {
   it("returns 400 when token is missing", async () => {
     const response = await request(app)
       .post("/api/notifications/push-token")
-      .set("Authorization", `Bearer ${token}`)
+      .set(authHeader())
       .send({});
 
     expect(response.status).toBe(400);
@@ -66,7 +58,7 @@ describe("push token API", () => {
   it("returns 400 for invalid Expo push token format", async () => {
     const response = await request(app)
       .post("/api/notifications/push-token")
-      .set("Authorization", `Bearer ${token}`)
+      .set(authHeader())
       .send({ token: "not-a-valid-token" });
 
     expect(response.status).toBe(400);
@@ -76,7 +68,7 @@ describe("push token API", () => {
   it("registers a valid Expo push token", async () => {
     const response = await request(app)
       .post("/api/notifications/push-token")
-      .set("Authorization", `Bearer ${token}`)
+      .set(authHeader())
       .send({
         token: "ExponentPushToken[abc123]",
         platform: "android",
@@ -92,7 +84,7 @@ describe("push token API", () => {
   it("removes a registered push token", async () => {
     const response = await request(app)
       .delete("/api/notifications/push-token")
-      .set("Authorization", `Bearer ${token}`)
+      .set(authHeader())
       .send({ token: "ExponentPushToken[abc123]" });
 
     expect(response.status).toBe(200);
