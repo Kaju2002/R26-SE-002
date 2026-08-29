@@ -16,7 +16,7 @@ const parsePagination = (query) => {
   return { page, limit, skip };
 };
 
-const riskFromScore = (score) => {
+export const riskFromScore = (score) => {
   if (score === null || score === undefined || Number.isNaN(Number(score))) {
     return "caution";
   }
@@ -84,7 +84,7 @@ const formatReport = (doc, { includeEvidence = true } = {}) => {
   };
 };
 
-const buildEvidencePack = (conversation, messages) => {
+export const buildEvidencePack = (conversation, messages) => {
   const recruiterId = String(conversation.recruiterId);
   const evidenceMessages = messages.map((message) => {
     const senderId = String(message.senderId || "");
