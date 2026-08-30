@@ -1,4 +1,6 @@
 # R26-SE-002
+
+Env reference: [DEPLOYMENT.md](./DEPLOYMENT.md) · full values: `DEPLOYMENT.local.md` (gitignored)
 #job recommedation - py -m uvicorn app:app --host 0.0.0.0 --port 8002 --reload  
 #scam detection  py -m uvicm uvm uvicorn app.main:app --host 0.0.0.0 --reload --port 8000
 #py tfidf_pipeline.py

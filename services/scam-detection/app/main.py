@@ -101,6 +101,7 @@ def classify(req: ClassifyTextRequest):
     return ClassifyResponse(
         scan_id=scan_id,
         is_scam=pred["is_scam"],
+        inconclusive=pred.get("inconclusive", False),
         confidence=pred["confidence"],
         label=pred["label"],
         tactics=pred["tactics"],
@@ -161,6 +162,7 @@ async def classify_image(
     return ClassifyResponse(
         scan_id=scan_id,
         is_scam=pred["is_scam"],
+        inconclusive=pred.get("inconclusive", False),
         confidence=pred["confidence"],
         label=pred["label"],
         tactics=pred["tactics"],

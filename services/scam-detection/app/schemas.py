@@ -54,8 +54,9 @@ class ClassifyResponse(BaseModel):
     """What backend returns to phone after analysis"""
     scan_id: Optional[str] = None
     is_scam: bool
+    inconclusive: bool = False
     confidence: int                      # 94 (not 0.94)
-    label: str                           # "SCAM DETECTED" or "LEGITIMATE"
+    label: str                           # "SCAM DETECTED", "LEGITIMATE", or "SUSPICIOUS"
     tactics: List[TacticResult]          # list of detected tactics
     word_importance: List[WordImportance] # top 5 trigger words
     warning: str                         # plain warning message
