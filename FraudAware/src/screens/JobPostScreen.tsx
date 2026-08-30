@@ -97,9 +97,15 @@ export default function JobPostScreen({ navigation }: Props) {
 
       navigation.navigate('JobPostResult', {
         prediction: String(result.prediction ?? 'Unknown'),
+        tier: typeof result.tier === 'string' ? result.tier : undefined,
+        color: typeof result.color === 'string' ? result.color : undefined,
         confidence: Number(result.confidence ?? 0),
         legitimate_probability: Number(result.legitimate_probability ?? 0),
         fake_probability: Number(result.fake_probability ?? 0),
+        signal_score: typeof result.signal_score === 'number' ? result.signal_score : undefined,
+        fake_signals_found: Array.isArray(result.fake_signals_found) ? result.fake_signals_found : [],
+        legit_signals_found: Array.isArray(result.legit_signals_found) ? result.legit_signals_found : [],
+        advice: Array.isArray(result.advice) ? result.advice : [],
         extracted_text: String(result.extracted_text ?? ''),
         message: String(result.message ?? ''),
         imageUri,
