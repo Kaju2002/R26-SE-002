@@ -1,5 +1,5 @@
-# Phase 1 (binary scam prob) + Phase 2 (multi-label tactics). Scam if any tactic
-# clears its threshold; else legit confidence blends Phase 1 and tactic scores.
+# Phase 1 (binary scam prob) + Phase 2 (multi-label tactics).
+# Final verdict: SCAM (tactics or high Phase 1), SUSPICIOUS (uncertain Phase 1), or LEGIT.
 
 import torch
 import numpy as np
@@ -43,10 +43,24 @@ TACTIC_THRESHOLDS = {
 }
 
 # ─── PHASE 1 CONFIDENCE THRESHOLDS ───────────────────────────────
-# Used ONLY when Phase 2 finds no tactics
-# to determine LEGIT confidence level
-P1_CONFIDENT_LEGIT = 0.40   # below this = Phase 1 very confident LEGIT
-P1_UNCERTAIN       = 0.65   # above this = Phase 1 leans SCAM but no tactics found
+# Used when Phase 2 finds no tactics (three-tier verdict).
+P1_CONFIDENT_LEGIT  = 0.40   # below → LEGIT
+P1_SCAM_NO_TACTICS  = 0.75   # at/above → SCAM (Phase 1 only; avoids legit "selected" FPs)
+
+PHASE1_SCAM_WARNING = (
+    "This message matches recruitment fraud patterns (payment requests, "
+    "personal data, or credential harvest) even without obvious pressure tactics."
+)
+PHASE1_SCAM_EXPLANATION = (
+    "Our primary scam classifier flagged high-risk content in this message."
+)
+SUSPICIOUS_WARNING = (
+    "We could not confirm manipulation tactics, but this message has some "
+    "scam-like signals. Verify the employer before sending money or personal details."
+)
+SUSPICIOUS_EXPLANATION = (
+    "The message sits in an uncertain zone — not clearly safe or clearly a scam."
+)
 
 
 # ─── STEP 1: RUN PHASE 1 ─────────────────────────────────────────
@@ -205,29 +219,40 @@ def build_warning(tactics_detected):
 
 # ─── STEP 3: COMBINE — FINAL DECISION ────────────────────────────
 
+def _suppress_lone_fomo_false_positive(
+    p1_prob: float | None, tactics_detected: list
+) -> list:
+    """HR status updates can trigger lone FOMO while Phase 1 is confident legit."""
+    if (
+        len(tactics_detected) == 1
+        and tactics_detected[0]["key"] == "fomo"
+        and p1_prob is not None
+        and p1_prob < P1_CONFIDENT_LEGIT
+    ):
+        return []
+    return tactics_detected
+
+
 def combine(p1_prob: float | None, p2: dict) -> dict:
     """
-    Combine Phase 1 and Phase 2 results into final prediction.
+    Combine Phase 1 and Phase 2 into a three-tier verdict.
 
-    Decision rules:
-      Rule 1: Phase 2 found tactics → SCAM
-              (Phase 2 wins — catches subtle earning scams)
-
-      Rule 2: Phase 2 no tactics + Phase 1 < 0.40 → LEGIT (confident)
-              (Both agree — catches false positives like "You are selected")
-
-      Rule 3: Phase 2 no tactics + Phase 1 unavailable → LEGIT (Phase 2 only)
-
-      Rule 4: Phase 2 no tactics + Phase 1 ≥ 0.40 → LEGIT (lower confidence)
-              (Phase 2 found nothing, Phase 1 uncertain — trust Phase 2)
+    Decision rules (no tactics after optional FOMO suppression):
+      Rule 1: Phase 2 tactics → SCAM
+      Rule 2: Phase 1 ≥ 0.75 → SCAM (generic warning — credential/fee patterns)
+      Rule 3: Phase 1 0.40–0.75 → SUSPICIOUS (inconclusive)
+      Rule 4: Phase 1 < 0.40 or unavailable → LEGIT
     """
-    tactics_detected = p2["tactics_detected"]
-    tactic_probs     = p2["tactic_probs"]
-    word_importance  = p2["word_importance"]
-    detected_keys    = [t["key"] for t in tactics_detected]
+    tactics_detected = _suppress_lone_fomo_false_positive(
+        p1_prob, p2["tactics_detected"]
+    )
+    tactic_probs    = p2["tactic_probs"]
+    word_importance = p2["word_importance"]
+    detected_keys   = [t["key"] for t in tactics_detected]
 
     what_gave_it_away = build_explanation(detected_keys, word_importance)
     warning           = build_warning(detected_keys)
+    p1_rounded        = round(p1_prob, 3) if p1_prob is not None else None
 
     # ── Rule 1: Phase 2 found tactics → SCAM ─────────────────────
     if tactics_detected:
@@ -235,56 +260,69 @@ def combine(p1_prob: float | None, p2: dict) -> dict:
         confidence = int(round(max_tactic_score * 100))
 
         return {
-            "is_scam":          True,
-            "confidence":       confidence,
-            "label":            "SCAM DETECTED",
-            "tactics":          tactics_detected,
-            "word_importance":  word_importance,
-            "warning":          warning,
+            "is_scam":           True,
+            "inconclusive":      False,
+            "confidence":        confidence,
+            "label":             "SCAM DETECTED",
+            "tactics":           tactics_detected,
+            "word_importance":   word_importance,
+            "warning":           warning,
             "what_gave_it_away": what_gave_it_away,
-            "decision_stage":   "phase2_tactic",
-            "phase1_prob":      round(p1_prob, 3) if p1_prob is not None else None,
+            "decision_stage":    "phase2_tactic",
+            "phase1_prob":       p1_rounded,
         }
 
-    # ── Phase 2 found NO tactics ──────────────────────────────────
     max_score = float(np.max(tactic_probs))
 
-    # Rule 2: Phase 1 confident LEGIT
-    if p1_prob is not None and p1_prob < P1_CONFIDENT_LEGIT:
-        # Both Phase 1 (confident legit) and Phase 2 (no tactics) agree
-        # High confidence LEGIT
-        confidence = int(round(((1 - p1_prob) + (1 - max_score)) / 2 * 100))
+    # ── Rule 2: Phase 1 high confidence, no tactics → SCAM ───────
+    if p1_prob is not None and p1_prob >= P1_SCAM_NO_TACTICS:
+        confidence = int(round(p1_prob * 100))
         return {
-            "is_scam":          False,
-            "confidence":       min(confidence, 97),
-            "label":            "LEGITIMATE",
-            "tactics":          [],
-            "word_importance":  word_importance,
-            "warning":          warning,
-            "what_gave_it_away": what_gave_it_away,
-            "decision_stage":   "ensemble_legit",
-            "phase1_prob":      round(p1_prob, 3),
+            "is_scam":           True,
+            "inconclusive":      False,
+            "confidence":        confidence,
+            "label":             "SCAM DETECTED",
+            "tactics":           [],
+            "word_importance":   word_importance,
+            "warning":           PHASE1_SCAM_WARNING,
+            "what_gave_it_away": PHASE1_SCAM_EXPLANATION,
+            "decision_stage":    "phase1_high",
+            "phase1_prob":       p1_rounded,
         }
 
-    # Rule 3 & 4: Phase 2 no tactics, Phase 1 unavailable or uncertain
-    # Trust Phase 2 — return LEGIT with lower confidence
-    if p1_prob is not None and p1_prob >= P1_UNCERTAIN:
-        # Phase 1 leans scam but Phase 2 found nothing
-        # Return LEGIT but with reduced confidence
-        confidence = int(round((1 - max_score) * 70))   # reduced confidence
+    # ── Rule 3: Phase 1 uncertain band → SUSPICIOUS ──────────────
+    if p1_prob is not None and p1_prob >= P1_CONFIDENT_LEGIT:
+        confidence = int(round(p1_prob * 100))
+        return {
+            "is_scam":           False,
+            "inconclusive":      True,
+            "confidence":        confidence,
+            "label":             "SUSPICIOUS",
+            "tactics":           [],
+            "word_importance":   word_importance,
+            "warning":           SUSPICIOUS_WARNING,
+            "what_gave_it_away": SUSPICIOUS_EXPLANATION,
+            "decision_stage":    "phase1_uncertain",
+            "phase1_prob":       p1_rounded,
+        }
+
+    # ── Rule 4: Phase 1 confident legit (or unavailable) → LEGIT ─
+    if p1_prob is not None:
+        confidence = int(round(((1 - p1_prob) + (1 - max_score)) / 2 * 100))
     else:
         confidence = int(round((1 - max_score) * 100))
 
     return {
-        "is_scam":          False,
-        "confidence":       confidence,
-        "label":            "LEGITIMATE",
-        "tactics":          [],
-        "word_importance":  word_importance,
-        "warning":          warning,
+        "is_scam":           False,
+        "inconclusive":      False,
+        "confidence":        min(confidence, 97),
+        "label":             "LEGITIMATE",
+        "tactics":           [],
+        "word_importance":   word_importance,
+        "warning":           warning,
         "what_gave_it_away": what_gave_it_away,
-        "decision_stage":   "phase2_no_tactics",
-        "phase1_prob":      round(p1_prob, 3) if p1_prob is not None else None,
+        "decision_stage":    "ensemble_legit" if p1_prob is not None else "phase2_no_tactics",
+        "phase1_prob":       p1_rounded,
     }
 
 

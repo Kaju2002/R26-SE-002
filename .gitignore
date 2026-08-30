@@ -30,6 +30,10 @@ Thumbs.db
 
 # Ignore environment files
 *.env
+*.local.env
+
+# Local deployment secrets (public URLs live in DEPLOYMENT.md)
+DEPLOYMENT.local.md
 
 # Ignore Jupyter notebook checkpoints
 .ipynb_checkpoints/

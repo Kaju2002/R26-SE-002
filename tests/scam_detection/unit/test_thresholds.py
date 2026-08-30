@@ -6,7 +6,7 @@ predictor = import_module("scam-detection", "app.predictor")
 TACTIC_META = predictor.TACTIC_META
 TACTIC_THRESHOLDS = predictor.TACTIC_THRESHOLDS
 P1_CONFIDENT_LEGIT = predictor.P1_CONFIDENT_LEGIT
-P1_UNCERTAIN = predictor.P1_UNCERTAIN
+P1_SCAM_NO_TACTICS = predictor.P1_SCAM_NO_TACTICS
 
 
 def test_all_tactics_have_metadata():
@@ -24,4 +24,4 @@ def test_thresholds_are_probabilities():
 
 
 def test_phase1_band_ordering():
-    assert 0.0 < P1_CONFIDENT_LEGIT < P1_UNCERTAIN <= 1.0
+    assert 0.0 < P1_CONFIDENT_LEGIT < P1_SCAM_NO_TACTICS <= 1.0
