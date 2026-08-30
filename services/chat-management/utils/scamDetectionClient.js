@@ -55,7 +55,8 @@ export const analyzeMessageForScam = async (text, userId) => {
       console.error(
         "Scam detection classify failed:",
         response.status,
-        data.detail || data.message || ""
+        data.detail || data.message || "",
+        `(url: ${getBaseUrl()}/classify)`
       );
       return {
         status: "error",
