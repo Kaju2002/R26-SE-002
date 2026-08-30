@@ -1,7 +1,6 @@
 import os
 import base64
 import torch
-import torch.nn.functional as F
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,9 +9,22 @@ import anthropic
 from explain import explain_text
 
 MODEL_DIR = "./fake_job_model"
+# Softens overconfident softmax scores. 1.0 = raw model, 2.0 = more honest probabilities.
+TEMPERATURE = 2.0
 
 # Shared state for model/tokenizer loaded at startup
 state: dict = {}
+
+
+def apply_temperature_scaling(logits, temperature=TEMPERATURE):
+    """
+    Divide logits by temperature before softmax.
+    Higher temperature = softer probabilities.
+    Temperature=1.0 = no change
+    Temperature=2.0 = softer, more honest probabilities
+    """
+    scaled_logits = logits / temperature
+    return torch.softmax(scaled_logits, dim=-1)
 
 
 @asynccontextmanager
@@ -104,7 +116,7 @@ def _run_text_inference(text: str) -> dict:
     with torch.no_grad():
         logits = model(**inputs).logits
 
-    probs = F.softmax(logits, dim=-1).squeeze()
+    probs = apply_temperature_scaling(logits, temperature=TEMPERATURE).squeeze()
     fake_prob = float(probs[1])
     legit_prob = float(probs[0])
 

@@ -13,6 +13,8 @@ try:
 except ImportError:  # pragma: no cover
     shap = None
 
+# Keep in sync with main.TEMPERATURE so LIME/SHAP explain the calibrated scores.
+TEMPERATURE = 2.0
 MAX_EXPLAIN_CHARS = 1800
 LIME_SAMPLES = 40
 LIME_FEATURES = 8
@@ -69,7 +71,7 @@ def _predict_proba_factory(tokenizer, model):
         )
         with torch.no_grad():
             logits = model(**inputs).logits
-            probs = F.softmax(logits, dim=-1).cpu().numpy()
+            probs = F.softmax(logits / TEMPERATURE, dim=-1).cpu().numpy()
         return probs.astype(np.float32)
 
     return predict_proba
