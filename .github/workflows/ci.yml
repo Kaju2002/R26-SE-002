@@ -19,6 +19,9 @@ jobs:
       ml: ${{ steps.filter.outputs.ml }}
       user_management: ${{ steps.filter.outputs.user_management }}
       chat_management: ${{ steps.filter.outputs.chat_management }}
+      job_management: ${{ steps.filter.outputs.job_management }}
+      notification_management: ${{ steps.filter.outputs.notification_management }}
+      email_management: ${{ steps.filter.outputs.email_management }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -37,6 +40,12 @@ jobs:
               - 'services/user-management/**'
             chat_management:
               - 'services/chat-management/**'
+            job_management:
+              - 'services/job-management/**'
+            notification_management:
+              - 'services/notification-management/**'
+            email_management:
+              - 'services/email-management/**'
 
   ml-tests:
     name: ML tests (pytest)
@@ -103,7 +112,7 @@ jobs:
         run: npm test
 
   chat-management-tests:
-    name: chat-management (node:test)
+    name: chat-management (Vitest)
     needs: changes
     if: needs.changes.outputs.chat_management == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
@@ -132,6 +141,8 @@ jobs:
 
   job-management-tests:
     name: job-management (Vitest)
+    needs: changes
+    if: needs.changes.outputs.job_management == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -158,6 +169,8 @@ jobs:
 
   notification-management-tests:
     name: notification-management (Vitest)
+    needs: changes
+    if: needs.changes.outputs.notification_management == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -184,6 +197,8 @@ jobs:
 
   email-management-tests:
     name: email-management (Vitest)
+    needs: changes
+    if: needs.changes.outputs.email_management == 'true' || needs.changes.outputs.workflow == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
