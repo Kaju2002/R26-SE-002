@@ -3,6 +3,7 @@ import { loadAdminActor } from "../utils/adminActor.js";
 import { writeAuditLogForActor } from "../utils/writeAuditLog.js";
 
 const MANAGED_TYPES = new Set(["jobseeker", "recruiter", "company"]);
+const EMPLOYER_TYPES = ["company", "recruiter"];
 const MANAGED_STATUSES = new Set(["active", "suspended", "banned"]);
 
 /** UI uses banned; older records may still be deleted. */
@@ -16,10 +17,9 @@ const toManagedStatus = (status) => {
 const mapManagedUser = (user) => {
   const fullName = `${user.firstName || ""} ${user.lastName || ""}`.trim();
   let organization = null;
-  if (user.accountType === "company") {
-    organization = user.company?.name || null;
-  } else if (user.accountType === "recruiter") {
-    organization = user.headline || null;
+  if (user.accountType === "company" || user.accountType === "recruiter") {
+    organization =
+      user.company?.name || user.headline || null;
   }
 
   return {
@@ -33,7 +33,9 @@ const mapManagedUser = (user) => {
     location: user.location || null,
     avatarUrl:
       user.avatar ||
-      (user.accountType === "company" ? user.company?.logo || null : null) ||
+      (user.accountType === "company" || user.accountType === "recruiter"
+        ? user.company?.logo || null
+        : null) ||
       null,
     createdAt: user.createdAt
       ? new Date(user.createdAt).toISOString()
@@ -65,7 +67,10 @@ export const listManagedUsers = async (req, res) => {
       accountType: { $in: Array.from(MANAGED_TYPES) },
     };
 
-    if (MANAGED_TYPES.has(accountType)) {
+    if (accountType === "company") {
+      // Admin UI "Employers" — company registration + legacy recruiter accounts.
+      filter.accountType = { $in: EMPLOYER_TYPES };
+    } else if (MANAGED_TYPES.has(accountType)) {
       filter.accountType = accountType;
     }
 
@@ -143,6 +148,7 @@ export const listManagedUsers = async (req, res) => {
 
     const items = users.map(mapManagedUser);
     const totalManaged = byType.jobseeker + byType.recruiter + byType.company;
+    const employerCount = byType.company + byType.recruiter;
 
     return res.status(200).json({
       success: true,
@@ -150,7 +156,9 @@ export const listManagedUsers = async (req, res) => {
       items,
       counts: {
         total: totalManaged,
-        ...byType,
+        jobseeker: byType.jobseeker,
+        company: employerCount,
+        recruiter: byType.recruiter,
         ...byStatus,
       },
       pagination: {

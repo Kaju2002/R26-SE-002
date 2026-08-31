@@ -17,7 +17,8 @@ export type ManagedUserCounts = {
 
 export type ListManagedUsersParams = {
   q?: string;
-  accountType?: ManagedAccountType | 'all';
+  /** `company` includes legacy `recruiter` accounts (employer filter). */
+  accountType?: 'jobseeker' | 'company' | 'all';
   accountStatus?: ManagedAccountStatus | 'all';
   page?: number;
   limit?: number;

@@ -1,15 +1,19 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   createConversationReport,
   submitChatReportFeedback,
@@ -38,6 +42,10 @@ export default function InchatReportSheet({
   onClose,
   onSubmitted,
 }: Props) {
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  const scrollMaxH = Math.round(windowHeight * 0.42);
+  const sheetBottomPad = Platform.OS === 'ios' ? Math.max(insets.bottom, 10) : 6;
   const { token } = useUser();
   const { profile } = useProfile();
   const [reasonCode, setReasonCode] = useState<ReportReasonCode>('payment_request');
@@ -57,9 +65,10 @@ export default function InchatReportSheet({
   }, []);
 
   const handleClose = useCallback(() => {
+    if (busy || feedbackBusy) return;
     reset();
     onClose();
-  }, [onClose, reset]);
+  }, [busy, feedbackBusy, onClose, reset]);
 
   const tacticsLine = useMemo(() => {
     if (!submitted?.tacticsSummary?.length) return null;
@@ -114,6 +123,119 @@ export default function InchatReportSheet({
     [feedbackBusy, submitted, token]
   );
 
+  const renderFormBody = () => (
+    <>
+      <Text style={styles.lead}>
+        We’ll save flagged messages, tactics, and a timeline for CareerNet review.
+      </Text>
+      <Text style={styles.label}>Why are you reporting?</Text>
+      <View style={styles.reasons}>
+        {REPORT_REASON_OPTIONS.map((option) => {
+          const active = option.code === reasonCode;
+          return (
+            <Pressable
+              key={option.code}
+              style={[styles.reasonChip, active && styles.reasonChipActive]}
+              onPress={() => setReasonCode(option.code)}
+            >
+              <Text style={[styles.reasonText, active && styles.reasonTextActive]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+      <Text style={styles.label}>Details (optional)</Text>
+      <TextInput
+        style={styles.input}
+        value={details}
+        onChangeText={setDetails}
+        placeholder="What felt suspicious?"
+        placeholderTextColor="#9CA3AF"
+        multiline
+        maxLength={2000}
+        textAlignVertical="top"
+      />
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+    </>
+  );
+
+  const renderSubmittedBody = () => (
+    <>
+      <View style={styles.summaryCard}>
+        <Text style={styles.summaryTitle}>
+          {submitted!.flaggedCount} flagged ·{' '}
+          {submitted!.riskLevel === 'high' ? 'High risk' : 'Caution'}
+        </Text>
+        {tacticsLine ? <Text style={styles.summaryMeta}>{tacticsLine}</Text> : null}
+        <Text style={styles.summaryMeta}>
+          Reason:{' '}
+          {REPORT_REASON_OPTIONS.find((o) => o.code === submitted!.reasonCode)?.label ||
+            submitted!.reasonCode}
+        </Text>
+      </View>
+
+      <Text style={styles.label}>Timeline</Text>
+      {(submitted!.timeline || []).length ? (
+        (submitted!.timeline || []).map((point, index) => (
+          <View key={`${point.messageId || index}-${point.at}`} style={styles.timelineRow}>
+            <View
+              style={[
+                styles.timelineDot,
+                point.riskLevel === 'high' && styles.timelineDotHigh,
+              ]}
+            />
+            <View style={styles.timelineCopy}>
+              <Text style={styles.timelineLabel} numberOfLines={2}>
+                {point.label}
+              </Text>
+              <Text style={styles.timelineTime}>
+                {point.at
+                  ? new Date(point.at).toLocaleString(undefined, {
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : '—'}
+                {point.tactics?.length
+                  ? ` · ${point.tactics.map(tacticKeyToChipLabel).join(', ')}`
+                  : ''}
+              </Text>
+            </View>
+          </View>
+        ))
+      ) : (
+        <Text style={styles.empty}>No flagged timeline points yet.</Text>
+      )}
+
+      <Text style={[styles.label, { marginTop: 14 }]}>Was this warning helpful?</Text>
+      {submitted!.feedback === 'none' ? (
+        <View style={styles.feedbackRow}>
+          <Pressable
+            style={[styles.feedbackBtn, feedbackBusy && styles.btnDisabled]}
+            disabled={feedbackBusy}
+            onPress={() => void onFeedback('helpful')}
+          >
+            <Text style={styles.feedbackBtnText}>Helpful</Text>
+          </Pressable>
+          <Pressable
+            style={[styles.feedbackBtnGhost, feedbackBusy && styles.btnDisabled]}
+            disabled={feedbackBusy}
+            onPress={() => void onFeedback('false_alarm')}
+          >
+            <Text style={styles.feedbackBtnGhostText}>False alarm</Text>
+          </Pressable>
+        </View>
+      ) : (
+        <Text style={styles.thanks}>
+          Thanks — marked as {submitted!.feedback === 'helpful' ? 'helpful' : 'false alarm'}.
+        </Text>
+      )}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+    </>
+  );
+
   return (
     <Modal
       visible={visible}
@@ -122,164 +244,135 @@ export default function InchatReportSheet({
       statusBarTranslucent
       onRequestClose={handleClose}
     >
-      <View style={styles.overlay}>
-        <Pressable style={styles.backdrop} onPress={handleClose} />
-        <View style={styles.sheet}>
-          <View style={styles.handle} />
-          <View style={styles.header}>
-            <Text style={styles.title}>
-              {submitted ? 'Evidence pack saved' : 'Report this chat'}
-            </Text>
-            <Pressable onPress={handleClose} hitSlop={10} accessibilityRole="button">
-              <MaterialCommunityIcons name="close" size={22} color={INCHAT_MUTED} />
-            </Pressable>
-          </View>
+      <View style={styles.root}>
+        <Pressable
+          style={styles.backdrop}
+          onPress={handleClose}
+          disabled={busy || feedbackBusy}
+        />
+        <KeyboardAvoidingView
+          style={styles.kav}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 8 : 0}
+        >
+          <View style={[styles.sheet, { paddingBottom: sheetBottomPad }]}>
+            {busy ? (
+              <View style={styles.submittingOverlay} pointerEvents="auto">
+                <ActivityIndicator size="large" color={INCHAT_NAVY} />
+                <Text style={styles.submittingTitle}>Submitting evidence pack</Text>
+                <Text style={styles.submittingHint}>Saving flagged messages and timeline…</Text>
+              </View>
+            ) : null}
 
-          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+            <View style={styles.handle} />
+            <View style={styles.header}>
+              <Text style={styles.title}>
+                {submitted ? 'Evidence pack saved' : 'Report this chat'}
+              </Text>
+              <Pressable
+                onPress={handleClose}
+                hitSlop={10}
+                accessibilityRole="button"
+                disabled={busy || feedbackBusy}
+              >
+                <MaterialCommunityIcons name="close" size={22} color={INCHAT_MUTED} />
+              </Pressable>
+            </View>
+
             {!submitted ? (
-              <>
-                <Text style={styles.lead}>
-                  We’ll save flagged messages, tactics, and a timeline for CareerNet review.
-                </Text>
-                <Text style={styles.label}>Why are you reporting?</Text>
-                <View style={styles.reasons}>
-                  {REPORT_REASON_OPTIONS.map((option) => {
-                    const active = option.code === reasonCode;
-                    return (
-                      <Pressable
-                        key={option.code}
-                        style={[styles.reasonChip, active && styles.reasonChipActive]}
-                        onPress={() => setReasonCode(option.code)}
-                      >
-                        <Text style={[styles.reasonText, active && styles.reasonTextActive]}>
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-                <Text style={styles.label}>Details (optional)</Text>
-                <TextInput
-                  style={styles.input}
-                  value={details}
-                  onChangeText={setDetails}
-                  placeholder="What felt suspicious?"
-                  placeholderTextColor="#9CA3AF"
-                  multiline
-                  maxLength={2000}
-                />
-                {error ? <Text style={styles.error}>{error}</Text> : null}
-                <Pressable
-                  style={[styles.primaryBtn, busy && styles.btnDisabled]}
-                  onPress={() => void onSubmit()}
-                  disabled={busy}
-                >
-                  {busy ? (
-                    <ActivityIndicator color="#fff" />
-                  ) : (
-                    <Text style={styles.primaryBtnText}>Submit evidence pack</Text>
-                  )}
-                </Pressable>
-              </>
+              <View style={[styles.formBody, busy && styles.formDisabled]} pointerEvents={busy ? 'none' : 'auto'}>
+                {renderFormBody()}
+              </View>
             ) : (
-              <>
-                <View style={styles.summaryCard}>
-                  <Text style={styles.summaryTitle}>
-                    {submitted.flaggedCount} flagged · {submitted.riskLevel === 'high' ? 'High risk' : 'Caution'}
-                  </Text>
-                  {tacticsLine ? <Text style={styles.summaryMeta}>{tacticsLine}</Text> : null}
-                  <Text style={styles.summaryMeta}>
-                    Reason:{' '}
-                    {REPORT_REASON_OPTIONS.find((o) => o.code === submitted.reasonCode)?.label ||
-                      submitted.reasonCode}
-                  </Text>
-                </View>
+              <ScrollView
+                style={{ maxHeight: scrollMaxH }}
+                contentContainerStyle={styles.body}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+              >
+                {renderSubmittedBody()}
+              </ScrollView>
+            )}
 
-                <Text style={styles.label}>Timeline</Text>
-                {(submitted.timeline || []).length ? (
-                  (submitted.timeline || []).map((point, index) => (
-                    <View key={`${point.messageId || index}-${point.at}`} style={styles.timelineRow}>
-                      <View
-                        style={[
-                          styles.timelineDot,
-                          point.riskLevel === 'high' && styles.timelineDotHigh,
-                        ]}
-                      />
-                      <View style={styles.timelineCopy}>
-                        <Text style={styles.timelineLabel} numberOfLines={2}>
-                          {point.label}
-                        </Text>
-                        <Text style={styles.timelineTime}>
-                          {point.at
-                            ? new Date(point.at).toLocaleString(undefined, {
-                                month: 'short',
-                                day: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })
-                            : '—'}
-                          {point.tactics?.length
-                            ? ` · ${point.tactics.map(tacticKeyToChipLabel).join(', ')}`
-                            : ''}
-                        </Text>
-                      </View>
-                    </View>
-                  ))
-                ) : (
-                  <Text style={styles.empty}>No flagged timeline points yet.</Text>
-                )}
-
-                <Text style={[styles.label, { marginTop: 14 }]}>Was this warning helpful?</Text>
-                {submitted.feedback === 'none' ? (
-                  <View style={styles.feedbackRow}>
-                    <Pressable
-                      style={[styles.feedbackBtn, feedbackBusy && styles.btnDisabled]}
-                      disabled={feedbackBusy}
-                      onPress={() => void onFeedback('helpful')}
-                    >
-                      <Text style={styles.feedbackBtnText}>Helpful</Text>
-                    </Pressable>
-                    <Pressable
-                      style={[styles.feedbackBtnGhost, feedbackBusy && styles.btnDisabled]}
-                      disabled={feedbackBusy}
-                      onPress={() => void onFeedback('false_alarm')}
-                    >
-                      <Text style={styles.feedbackBtnGhostText}>False alarm</Text>
-                    </Pressable>
+            {!submitted ? (
+              <Pressable
+                style={[styles.primaryBtn, busy && styles.btnDisabled]}
+                onPress={() => void onSubmit()}
+                disabled={busy}
+                accessibilityState={{ busy }}
+                accessibilityLabel={busy ? 'Submitting evidence pack' : 'Submit evidence pack'}
+              >
+                {busy ? (
+                  <View style={styles.btnLoadingRow}>
+                    <ActivityIndicator color="#fff" size="small" />
+                    <Text style={styles.primaryBtnText}>Submitting…</Text>
                   </View>
                 ) : (
-                  <Text style={styles.thanks}>
-                    Thanks — marked as {submitted.feedback === 'helpful' ? 'helpful' : 'false alarm'}.
-                  </Text>
+                  <Text style={styles.primaryBtnText}>Submit evidence pack</Text>
                 )}
-                {error ? <Text style={styles.error}>{error}</Text> : null}
-                <Pressable style={styles.primaryBtn} onPress={handleClose}>
-                  <Text style={styles.primaryBtnText}>Done</Text>
-                </Pressable>
-              </>
+              </Pressable>
+            ) : (
+              <Pressable style={styles.primaryBtn} onPress={handleClose}>
+                <Text style={styles.primaryBtnText}>Done</Text>
+              </Pressable>
             )}
-          </ScrollView>
-        </View>
+          </View>
+        </KeyboardAvoidingView>
       </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  root: {
     flex: 1,
     justifyContent: 'flex-end',
+    backgroundColor: 'transparent',
   },
   backdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(15,23,42,0.35)',
   },
+  kav: {
+    width: '100%',
+  },
   sheet: {
-    maxHeight: '88%',
     backgroundColor: '#fff',
     borderTopLeftRadius: 18,
     borderTopRightRadius: 18,
-    paddingBottom: 18,
+    paddingHorizontal: 16,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  submittingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 10,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  submittingTitle: {
+    marginTop: 14,
+    fontSize: 16,
+    fontWeight: '800',
+    color: INCHAT_NAVY,
+    textAlign: 'center',
+  },
+  submittingHint: {
+    marginTop: 6,
+    fontSize: 13,
+    lineHeight: 18,
+    color: INCHAT_MUTED,
+    textAlign: 'center',
+  },
+  formDisabled: {
+    opacity: 0.45,
+  },
+  btnLoadingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
   handle: {
     alignSelf: 'center',
@@ -294,7 +387,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
     paddingVertical: 10,
   },
   title: {
@@ -302,9 +394,11 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: INCHAT_NAVY,
   },
+  formBody: {
+    paddingBottom: 4,
+  },
   body: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 8,
   },
   lead: {
     fontSize: 13,
@@ -354,16 +448,15 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     fontSize: 14,
     color: '#111827',
-    marginBottom: 12,
   },
   error: {
     color: '#B42318',
     fontSize: 12,
     fontWeight: '600',
-    marginBottom: 8,
+    marginTop: 8,
   },
   primaryBtn: {
-    marginTop: 8,
+    marginTop: 10,
     backgroundColor: INCHAT_NAVY,
     borderRadius: 12,
     alignItems: 'center',

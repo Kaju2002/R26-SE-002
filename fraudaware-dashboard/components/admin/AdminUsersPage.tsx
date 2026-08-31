@@ -14,7 +14,7 @@ import {
 import { getStoredToken } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
 
-type TypeFilter = 'all' | ManagedAccountType;
+type TypeFilter = 'all' | 'jobseeker' | 'company';
 type StatusFilter = 'all' | ManagedAccountStatus;
 
 const PAGE_SIZE = 10;
@@ -58,8 +58,7 @@ function statusStyles(status: ManagedAccountStatus): {
 
 function typeLabel(type: ManagedAccountType): string {
   if (type === 'jobseeker') return 'Jobseeker';
-  if (type === 'recruiter') return 'Recruiter';
-  return 'Company';
+  return 'Employer';
 }
 
 function initialsFromName(fullName: string): string {
@@ -231,13 +230,7 @@ export default function AdminUsersPage() {
             onClick={() => applyTypeFilter('jobseeker')}
           />
           <FilterChip
-            label="Recruiters"
-            count={counts.recruiter}
-            active={typeFilter === 'recruiter'}
-            onClick={() => applyTypeFilter('recruiter')}
-          />
-          <FilterChip
-            label="Companies"
+            label="Employers"
             count={counts.company}
             active={typeFilter === 'company'}
             onClick={() => applyTypeFilter('company')}

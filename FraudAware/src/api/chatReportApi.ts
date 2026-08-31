@@ -84,7 +84,10 @@ export async function createConversationReport(
     `${getChatManagementBaseUrl()}/api/chat/conversations/${encodeURIComponent(conversationId)}/reports`,
     {
       method: 'POST',
-      headers: authHeaders(token),
+      headers: {
+        ...authHeaders(token),
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify(payload),
     }
   );
@@ -119,7 +122,10 @@ export async function submitChatReportFeedback(
     `${getChatManagementBaseUrl()}/api/chat/reports/${encodeURIComponent(reportId)}/feedback`,
     {
       method: 'PATCH',
-      headers: authHeaders(token),
+      headers: {
+        ...authHeaders(token),
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ feedback }),
     }
   );
