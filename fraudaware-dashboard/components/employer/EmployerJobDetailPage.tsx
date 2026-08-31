@@ -12,9 +12,10 @@ import {
   type JobDetail,
   type JobStatus,
 } from '@/lib/api/jobApi';
+import type { AuthUser } from '@/lib/api/authTypes';
 import type { PortalType } from '@/lib/auth/portalConfig';
 import { portalConfigs } from '@/lib/auth/portalConfig';
-import { getStoredToken } from '@/lib/auth/session';
+import { getStoredToken, getStoredUser } from '@/lib/auth/session';
 import { colors } from '@/lib/theme/colors';
 
 function formatDate(value?: string | null): string {
@@ -46,6 +47,7 @@ export default function EmployerJobDetailPage({
   const jobId = params.jobId;
 
   const [job, setJob] = useState<JobDetail | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [applications, setApplications] = useState<JobApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -86,6 +88,13 @@ export default function EmployerJobDetailPage({
   useEffect(() => {
     void reload();
   }, [reload]);
+
+  useEffect(() => {
+    const stored = getStoredUser();
+    queueMicrotask(() => setUser(stored));
+  }, []);
+
+  const canPublishLive = Boolean(user?.company?.isVerified);
 
   const performance = useMemo(() => {
     const total = applications.length || job?.applicants || 0;
@@ -150,7 +159,12 @@ export default function EmployerJobDetailPage({
               {job.status === 'closed' || job.status === 'draft' ? (
                 <button
                   type="button"
-                  disabled={busy}
+                  disabled={busy || !canPublishLive}
+                  title={
+                    !canPublishLive
+                      ? 'Verify your company before publishing live'
+                      : undefined
+                  }
                   onClick={() => void setStatus('active')}
                   className="rounded-xl bg-[#2E7D32] px-4 py-2 text-sm font-semibold text-white disabled:opacity-70"
                   style={{ fontFamily: 'var(--font-poppins)' }}
@@ -179,6 +193,20 @@ export default function EmployerJobDetailPage({
             style={{ fontFamily: 'var(--font-poppins)' }}
           >
             {message}
+          </div>
+        ) : null}
+
+        {!canPublishLive &&
+        job &&
+        (job.status === 'draft' || job.status === 'closed') ? (
+          <div
+            className="rounded-xl border border-[#FFF3E0] bg-[#FFF8E1] px-4 py-3 text-sm text-[#EF6C00]"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            Live publishing is locked until your company is verified.{' '}
+            <Link href={`${basePath}/profile`} className="font-semibold underline">
+              Complete verification
+            </Link>
           </div>
         ) : null}
 

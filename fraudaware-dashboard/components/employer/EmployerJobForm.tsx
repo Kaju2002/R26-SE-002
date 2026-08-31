@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useRef, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import type { AuthUser } from '@/lib/api/authTypes';
 import type { CreateJobPayload, JobStatus } from '@/lib/api/jobApi';
 import { colors } from '@/lib/theme/colors';
@@ -126,6 +126,12 @@ export default function EmployerJobForm({
     ? companyNameOverride || user?.company?.name || form.companyName || ''
     : form.companyName || '';
 
+  const canPublishLive = Boolean(user?.company?.isVerified);
+  const statusOptions = useMemo(() => {
+    if (canPublishLive || initial.status === 'active') return STATUSES;
+    return STATUSES.filter((status) => status !== 'active');
+  }, [canPublishLive, initial.status]);
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
 
@@ -212,11 +218,20 @@ export default function EmployerJobForm({
         <SelectField
           label="Status"
           value={form.status || 'draft'}
-          options={STATUSES}
+          options={statusOptions}
           onChange={(status) =>
             setForm((prev) => ({ ...prev, status: status as JobStatus }))
           }
         />
+        {!canPublishLive && initial.status !== 'active' ? (
+          <p
+            className="md:col-span-2 rounded-xl border border-[#FFF3E0] bg-[#FFF8E1] px-3.5 py-2.5 text-xs leading-relaxed text-[#EF6C00]"
+            style={{ fontFamily: 'var(--font-poppins)' }}
+          >
+            Live publishing is locked until your company is verified. Save as draft now and
+            publish after verification from your profile.
+          </p>
+        ) : null}
         <TextField
           label="Job level"
           value={form.jobLevel || ''}

@@ -328,6 +328,11 @@ function EmployerJobsContent({
     return emptyJobForm(activeWorkspace?.name || user?.company?.name || '');
   }, [activeWorkspace?.name, mode, editingJob, user?.company?.name]);
 
+  const inheritedCompanyLogoUrl =
+    activeWorkspace?.logo || user?.company?.logo || null;
+
+  const canPublishLive = Boolean(user?.company?.isVerified);
+
   const ensureJobInActiveWorkspace = useCallback(
     (job: JobSummary): boolean => {
       if (!activeWorkspaceId || job.workspaceId !== activeWorkspaceId) {
@@ -526,6 +531,19 @@ function EmployerJobsContent({
         </div>
       ) : null}
 
+      {!canPublishLive && mode === 'list' ? (
+        <div
+          className="rounded-xl border border-[#FFF3E0] bg-[#FFF8E1] px-4 py-3 text-sm text-[#EF6C00]"
+          style={{ fontFamily: 'var(--font-poppins)' }}
+        >
+          Your company is not verified yet. You can save job drafts, but live publishing stays
+          locked until verification is approved.{' '}
+          <Link href={`${basePath}/profile`} className="font-semibold underline">
+            Complete verification
+          </Link>
+        </div>
+      ) : null}
+
       {mode !== 'list' ? (
         <div className="rounded-2xl border border-[#EEF0F8] bg-white p-6 shadow-sm md:p-8">
           <EmployerJobForm
@@ -533,7 +551,7 @@ function EmployerJobsContent({
             user={user}
             companyNameOverride={activeWorkspace?.name}
             initial={formInitial}
-            existingLogoUrl={editingJob?.companyLogoUri}
+            existingLogoUrl={editingJob?.companyLogoUri ?? inheritedCompanyLogoUrl}
             existingPosterUrl={editingJob?.posterImage}
             submitLabel={mode === 'edit' ? 'Save changes' : 'Save job'}
             saving={saving}
@@ -852,9 +870,23 @@ function EmployerJobsContent({
 
                             {job.status === 'draft' || job.status === 'closed' ? (
                               <ActionIconButton
-                                label={job.status === 'closed' ? 'Republish' : 'Publish'}
+                                label={
+                                  !canPublishLive
+                                    ? 'Verify company to publish'
+                                    : job.status === 'closed'
+                                      ? 'Republish'
+                                      : 'Publish'
+                                }
                                 tone="success"
-                                onClick={() => void setJobStatus(job, 'active')}
+                                onClick={() => {
+                                  if (!canPublishLive) {
+                                    setError(
+                                      'Your company must be verified before a job can go live. Save as draft and complete verification first.'
+                                    );
+                                    return;
+                                  }
+                                  void setJobStatus(job, 'active');
+                                }}
                               >
                                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.7} stroke="currentColor">
                                   <path

@@ -7,6 +7,10 @@ import { normalizeJobCreateInput, normalizeJobUpdateInput } from "../utils/jobPa
 import { EVENT_TYPES } from "../constants/eventTypes.js";
 import { publishEvent } from "../utils/publishEvent.js";
 import { recordAuditLog } from "../utils/auditLogClient.js";
+import {
+  assertCanPublishJob,
+  CompanyVerificationGateError,
+} from "../utils/companyVerificationGate.js";
 import { createJobStatusMessage, runJobRiskGate, updateJobStatusMessage } from "../utils/jobRiskGate.js";
 import {
   assertHomeWorkspaceAccess,
@@ -273,6 +277,19 @@ export const createJob = async (req, res) => {
         posterName: req.user?.fullName || "",
         posterEmail: req.user?.email || req.userEmail || "",
       };
+
+      try {
+        assertCanPublishJob(req.user, normalized.document.status);
+      } catch (gateError) {
+        if (gateError instanceof CompanyVerificationGateError) {
+          return res.status(gateError.status).json({
+            success: false,
+            message: gateError.message,
+            code: gateError.code,
+          });
+        }
+        throw gateError;
+      }
 
       const { risk, decision } = await runJobRiskGate(
         document,
@@ -597,6 +614,20 @@ export const updateJob = async (req, res) => {
     if (req.user?.email) job.posterEmail = req.user.email;
 
     const requestedStatus = job.status;
+
+    try {
+      assertCanPublishJob(req.user, requestedStatus, { previousStatus });
+    } catch (gateError) {
+      if (gateError instanceof CompanyVerificationGateError) {
+        return res.status(gateError.status).json({
+          success: false,
+          message: gateError.message,
+          code: gateError.code,
+        });
+      }
+      throw gateError;
+    }
+
     const shouldScan =
       requestedStatus === "active" ||
       requestedStatus === "pending_review" ||

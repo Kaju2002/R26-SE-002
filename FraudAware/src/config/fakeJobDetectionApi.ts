@@ -1,3 +1,5 @@
+import { appendDocumentField } from '../utils/formDataHelpers';
+
 /**
  * Set `EXPO_PUBLIC_FAKE_JOB_API_BASE_URL` in `FraudAware/.env`
  * (e.g. `http://192.168.1.250:8003`, no trailing slash). Restart Expo after changing.
@@ -38,30 +40,13 @@ function guessImageMeta(uri: string, meta?: JobImageMeta) {
   return { name, type };
 }
 
-async function blobFromUri(uri: string, type: string): Promise<Blob> {
-  const response = await fetch(uri);
-  const blob = await response.blob();
-  if (blob.size === 0) {
-    throw new Error('Could not read the selected image.');
-  }
-  if (blob.type && blob.type !== 'application/octet-stream') {
-    return blob;
-  }
-  return new Blob([blob], { type });
-}
-
 export async function predictJobPosterFromUri(
   uri: string,
   meta?: JobImageMeta
 ): Promise<Record<string, unknown>> {
   const { name, type } = guessImageMeta(uri, meta);
-  const blob = await blobFromUri(uri, type);
   const form = new FormData();
-  const file =
-    typeof File !== 'undefined'
-      ? new File([blob], name, { type: blob.type || type })
-      : blob;
-  form.append('image', file, name);
+  appendDocumentField(form, 'image', uri, name, type);
 
   const response = await fetch(getFakeJobPredictUrl(), {
     method: 'POST',
