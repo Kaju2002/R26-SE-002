@@ -7,7 +7,7 @@ from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import (
-    close_mongo,
+    close_mongo, 
     connect_to_mongo,
     delete_all_scans,
     delete_scan,

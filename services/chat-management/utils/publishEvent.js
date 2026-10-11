@@ -18,8 +18,8 @@ const getPublisherChannel = async () => {
         throw new Error("RABBITMQ_URL is not configured");
       }
 
-      publisherConnection = await amqp.connect(url);
-      publisherChannel = await publisherConnection.createChannel();
+      publisherConnection = await amqp.connect(url);//open a TCP connection to the rabbitmq server
+      publisherChannel = await publisherConnection.createChannel();//create a channel to the rabbitmq server
       await publisherChannel.assertExchange(EXCHANGE_NAME, EXCHANGE_TYPE, {
         durable: true,
       });
@@ -50,7 +50,7 @@ export const publishEvent = async (
   try {
     const channel = await getPublisherChannel();
     const envelope = {
-      eventId: crypto.randomUUID(),
+      eventId: crypto.randomUUID(),//generate a unique id for the event
       eventType,
       occurredAt: new Date().toISOString(),
       sourceService,

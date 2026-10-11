@@ -1,3 +1,4 @@
+//routing key for the event
 export const EVENT_TYPES = {
   CHAT_MESSAGE_CREATED: "chat.message.created",
 };

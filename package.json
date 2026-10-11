@@ -1,0 +1,11 @@
+{
+  "name": "r26-se-002",
+  "private": true,
+  "description": "CareerNet / FraudAware monorepo — use npm scripts from repo root for tests",
+  "scripts": {
+    "test": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/test-all.ps1",
+    "test:ml": "py -m pytest tests/ -v",
+    "test:node": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/test-node.ps1",
+    "test:watch": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/test-watch.ps1"
+  }
+}
