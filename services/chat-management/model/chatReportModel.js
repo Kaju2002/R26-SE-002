@@ -23,6 +23,20 @@ const evidenceMessageSchema = new mongoose.Schema(
       default: "text",
     },
     body: { type: String, default: "" },
+    attachments: {
+      type: [
+        {
+          _id: false,
+          url: { type: String, default: "" },
+          fileName: { type: String, default: "" },
+          mimeType: { type: String, default: "" },
+        },
+      ],
+      default: [],
+    },
+    /** Sender used "Delete for everyone" before the report; only admins see the original. */
+    deletedForEveryone: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
     createdAt: { type: Date, default: null },
     scamAnalysis: {
       status: { type: String, default: "not_checked" },

@@ -34,6 +34,10 @@ export type ChatReportDetail = ChatReportListItem & {
     role: string;
     messageType: string;
     body: string;
+    attachments?: Array<{ url: string; fileName: string; mimeType: string }>;
+    /** Sender used "Delete for everyone"; admins still receive the original content. */
+    deletedForEveryone?: boolean;
+    deletedAt?: string | null;
     createdAt: string | null;
     scamAnalysis: {
       status: string;

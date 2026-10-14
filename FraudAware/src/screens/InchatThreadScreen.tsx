@@ -21,7 +21,8 @@ import * as ImagePicker from 'expo-image-picker';
 import type { ChatStackParamList } from '../navigation/chatStackTypes';
 import { navigateToMessageAnalyzer } from '../navigation/navigateToMessageAnalyzer';
 import { getClassifyUrl } from '../config/messageAnalyzerApi';
-import { getOrCreateDeviceUserId } from '../lib/deviceUserId';
+import { useUser } from '../context/UserContext';
+import { authHeaders } from '../api/apiConfig';
 import { readClassifyError } from '../utils/readClassifyError';
 import { promptAnalysisServerReady } from '../utils/analysisServerGate';
 import { useInchat } from '../context/InchatContext';
@@ -105,6 +106,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     setTyping,
   } = useInchat();
   const { profile } = useProfile();
+  const { token } = useUser();
   const thread = getThreadById(threadId);
   const peerAvatarUrl = thread?.avatarUrl;
   const peerInitials =
@@ -444,14 +446,18 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
       if (!(await promptAnalysisServerReady())) {
         return;
       }
-      const userId = await getOrCreateDeviceUserId();
+      if (!token) {
+        Alert.alert('Please sign in again', 'Your session has ended. Log in to analyze messages.');
+        return;
+      }
       const response = await fetch(getClassifyUrl(), {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          ...authHeaders(token),
         },
-        body: JSON.stringify({ text, user_id: userId }),
+        body: JSON.stringify({ text }),
       });
       if (!response.ok) {
         const errMsg = await readClassifyError(response);
@@ -472,7 +478,7 @@ export default function InchatThreadScreen({ navigation, route }: Props) {
     } finally {
       setAnalyzeBusy(false);
     }
-  }, [transcript]);
+  }, [token, transcript]);
 
   const closeAnalysisSheet = useCallback(() => {
     setAnalysisSheet((s) => ({ ...s, visible: false }));

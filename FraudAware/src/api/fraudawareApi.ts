@@ -6,6 +6,7 @@ import {
   getScanDetailUrl,
 } from '../config/messageAnalyzerApi';
 import type { HistoryApiScan } from '../utils/mapHistoryScan';
+import { authHeaders } from './apiConfig';
 
 export type HealthApiResponse = {
   status?: string;
@@ -93,35 +94,36 @@ export async function fetchHealth(): Promise<HealthResult> {
   };
 }
 
-export async function fetchScanDetail(scanId: string): Promise<ScanDetailApiResponse> {
+export async function fetchScanDetail(
+  token: string,
+  scanId: string
+): Promise<ScanDetailApiResponse> {
   const url = getScanDetailUrl(scanId);
-  const res = await fetch(url, { method: 'GET' });
+  const res = await fetch(url, { method: 'GET', headers: authHeaders(token) });
   if (!res.ok) {
     throw new Error(await readApiError(res));
   }
   return (await res.json()) as ScanDetailApiResponse;
 }
 
-export async function fetchHistory(userId: string): Promise<HistoryApiResponse> {
-  const url = getHistoryUrl(userId);
-  const res = await fetch(url, { method: 'GET' });
+export async function fetchHistory(token: string): Promise<HistoryApiResponse> {
+  const res = await fetch(getHistoryUrl(), { method: 'GET', headers: authHeaders(token) });
   if (!res.ok) {
     throw new Error(await readApiError(res));
   }
   return (await res.json()) as HistoryApiResponse;
 }
 
-export async function deleteHistoryScan(scanId: string): Promise<void> {
+export async function deleteHistoryScan(token: string, scanId: string): Promise<void> {
   const url = getDeleteScanUrl(scanId);
-  const res = await fetch(url, { method: 'DELETE' });
+  const res = await fetch(url, { method: 'DELETE', headers: authHeaders(token) });
   if (!res.ok) {
     throw new Error(await readApiError(res));
   }
 }
 
-export async function clearAllHistory(userId: string): Promise<void> {
-  const url = getClearHistoryUrl(userId);
-  const res = await fetch(url, { method: 'DELETE' });
+export async function clearAllHistory(token: string): Promise<void> {
+  const res = await fetch(getClearHistoryUrl(), { method: 'DELETE', headers: authHeaders(token) });
   if (!res.ok) {
     throw new Error(await readApiError(res));
   }

@@ -8,11 +8,13 @@ const {
   mockConversationFindById,
   mockChatReportFindOne,
   mockChatReportCreate,
+  mockChatReportFindById,
   mockMessageFind,
 } = vi.hoisted(() => ({
   mockConversationFindById: vi.fn(),
   mockChatReportFindOne: vi.fn(),
   mockChatReportCreate: vi.fn(),
+  mockChatReportFindById: vi.fn(),
   mockMessageFind: vi.fn(),
 }));
 
@@ -34,7 +36,7 @@ vi.mock("../../model/chatReportModel.js", async (importOriginal) => {
     default: {
       findOne: (...args) => mockChatReportFindOne(...args),
       create: (...args) => mockChatReportCreate(...args),
-      findById: vi.fn(),
+      findById: (...args) => mockChatReportFindById(...args),
     },
   };
 });
@@ -178,6 +180,94 @@ describe("POST /api/chat/conversations/:conversationId/reports", () => {
     expect(response.body.success).toBe(true);
     expect(response.body.report.reasonCode).toBe("payment_request");
     expect(mockChatReportCreate).toHaveBeenCalled();
+  });
+});
+
+describe("deleted messages in report evidence", () => {
+  const app = createApp();
+  const jobseekerToken = signTestToken({
+    userId: "jobseeker-1",
+    accountType: "jobseeker",
+  });
+  const adminToken = signTestToken({
+    userId: "admin-1",
+    accountType: "superadmin",
+  });
+
+  const reportWithDeletedMessage = () => ({
+    _id: REPORT_ID,
+    conversationId: String(CONVERSATION_ID),
+    reporterId: "jobseeker-1",
+    reasonCode: "payment_request",
+    status: "new",
+    createdAt: new Date("2026-08-29T10:10:00.000Z"),
+    evidenceMessages: [
+      {
+        messageId: "msg-1",
+        senderId: "recruiter-1",
+        role: "recruiter",
+        messageType: "image",
+        body: "Pay LKR 5000 to confirm",
+        attachments: [
+          { url: "https://res.cloudinary.com/demo/fee.png", fileName: "fee.png", mimeType: "image/png" },
+        ],
+        deletedForEveryone: true,
+        deletedAt: new Date("2026-08-29T10:06:00.000Z"),
+        createdAt: new Date("2026-08-29T10:05:00.000Z"),
+        scamAnalysis: { status: "flagged", isScam: true, score: 0.95, tactics: ["payment_request"] },
+      },
+    ],
+    timeline: [
+      {
+        at: new Date("2026-08-29T10:05:00.000Z"),
+        label: "Flagged message (deleted by sender): Pay LKR 5000 to confirm",
+        riskLevel: "high",
+        messageId: "msg-1",
+        tactics: ["payment_request"],
+        score: 0.95,
+      },
+    ],
+  });
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockConversationFindById.mockResolvedValue(conversationDoc);
+  });
+
+  it("hides deleted content from the reporting jobseeker", async () => {
+    mockChatReportFindOne.mockReturnValue({
+      sort: vi.fn().mockResolvedValue(reportWithDeletedMessage()),
+    });
+
+    const response = await request(app)
+      .get(`/api/chat/conversations/${CONVERSATION_ID}/reports/me`)
+      .set(authHeader(jobseekerToken));
+
+    expect(response.status).toBe(200);
+    const [evidence] = response.body.report.evidenceMessages;
+    expect(evidence.deletedForEveryone).toBe(true);
+    expect(evidence.body).toBe("This message was deleted");
+    expect(evidence.attachments).toEqual([]);
+    expect(evidence.scamAnalysis.status).toBe("flagged");
+    expect(response.body.report.timeline[0].label).toBe(
+      "Flagged message (deleted by sender)"
+    );
+    expect(JSON.stringify(response.body)).not.toContain("LKR 5000");
+  });
+
+  it("shows the original deleted content to superadmins", async () => {
+    mockChatReportFindById.mockResolvedValue(reportWithDeletedMessage());
+
+    const response = await request(app)
+      .get(`/api/chat/reports/${REPORT_ID}`)
+      .set(authHeader(adminToken));
+
+    expect(response.status).toBe(200);
+    const [evidence] = response.body.report.evidenceMessages;
+    expect(evidence.body).toBe("Pay LKR 5000 to confirm");
+    expect(evidence.messageType).toBe("image");
+    expect(evidence.attachments[0].url).toMatch(/fee\.png$/);
+    expect(response.body.report.timeline[0].label).toMatch(/Pay LKR 5000/);
   });
 });
 

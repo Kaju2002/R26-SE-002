@@ -15,6 +15,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { RecentScanItem } from './recentScanTypes';
 import type { ScanDetailApiResponse } from '../../api/fraudawareApi';
 import { fetchScanDetail } from '../../api/fraudawareApi';
+import { useUser } from '../../context/UserContext';
 import { mergeWordImportance } from '../../utils/coerceWordImportance';
 import HighlightedAnalyzedText, {
   WordImportanceChips,
@@ -39,6 +40,7 @@ const SHEET_MIN_RATIO = 0.56;
 
 export default function RecentScanDetailBottomSheet({ visible, item, onClose }: Props) {
   const { height: windowHeight } = useWindowDimensions();
+  const { token } = useUser();
   const scrollViewportH = Math.round(windowHeight * SCROLL_VIEWPORT_RATIO);
   const sheetMinHeight = Math.round(windowHeight * SHEET_MIN_RATIO);
 
@@ -51,14 +53,17 @@ export default function RecentScanDetailBottomSheet({ visible, item, onClose }: 
     setError(null);
     setDetail(null);
     try {
-      const data = await fetchScanDetail(scanId);
+      if (!token) {
+        throw new Error('Please sign in again to view this scan.');
+      }
+      const data = await fetchScanDetail(token, scanId);
       setDetail(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not load scan details.');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [token]);
 
   useEffect(() => {
     if (!visible || !item?.id) {

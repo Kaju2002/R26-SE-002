@@ -1,23 +1,28 @@
 # Core API
-fastapi
-uvicorn
-pydantic
+fastapi>=0.110
+uvicorn>=0.29
+pydantic>=2.6
 
 # HTTP & scraping
-requests
-beautifulsoup4
-duckduckgo-search
-python-whois
+requests>=2.31
+beautifulsoup4>=4.12
+ddgs>=9.0
+python-whois>=0.9
 
-# ML / data (model bundle + features)
-pandas
-numpy
-joblib
-scikit-learn
+# ML / data. The model was trained with scikit-learn 1.9.x: keep the same minor
+# version when loading it, otherwise sklearn warns about an unpickling mismatch.
+pandas>=2.2
+numpy>=1.26
+joblib>=1.3
+scikit-learn>=1.9,<1.10
 
 # Headless browser (eROC / CSE fallbacks, feature_engine)
-selenium
-webdriver-manager
+selenium>=4.18
+webdriver-manager>=4.0
 
 # Config
-python-dotenv
+python-dotenv>=1.0
+
+# Tests
+pytest>=8.0
+httpx>=0.27

@@ -272,17 +272,40 @@ export default function AdminChatReportsPage() {
 
               <div>
                 <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-500">
-                  Flagged messages
+                  Flagged &amp; deleted messages
                 </h3>
                 <ul className="scrollbar-hide max-h-56 space-y-2 overflow-y-auto">
                   {(detail.evidenceMessages || [])
-                    .filter((m) => m.scamAnalysis?.status === 'flagged' || m.scamAnalysis?.isScam)
+                    .filter(
+                      (m) =>
+                        m.scamAnalysis?.status === 'flagged' ||
+                        m.scamAnalysis?.status === 'suspicious' ||
+                        m.scamAnalysis?.isScam ||
+                        (m.deletedForEveryone && m.role === 'recruiter')
+                    )
                     .map((message) => (
                       <li
                         key={message.messageId}
                         className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2 text-sm"
                       >
+                        {message.deletedForEveryone ? (
+                          <span className="mb-1 inline-block rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-amber-800">
+                            Deleted by sender
+                            {message.deletedAt ? ` · ${formatDate(message.deletedAt)}` : ''}
+                          </span>
+                        ) : null}
                         <p className="text-slate-800">{message.body || `(${message.messageType})`}</p>
+                        {(message.attachments || []).map((attachment) => (
+                          <a
+                            key={attachment.url}
+                            href={attachment.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 block truncate text-xs font-semibold text-blue-700 underline"
+                          >
+                            {attachment.fileName || 'Attachment'}
+                          </a>
+                        ))}
                         <p className="mt-1 text-[11px] text-slate-500">
                           {message.scamAnalysis.tactics.join(', ') || 'no tactics'}
                           {message.scamAnalysis.score != null

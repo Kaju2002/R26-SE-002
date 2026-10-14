@@ -30,6 +30,7 @@ vi.mock("../../model/messageModel.js", () => ({
 vi.mock("../../utils/publishEvent.js", () => ({ publishEvent: vi.fn() }));
 vi.mock("../../config/socket.js", () => ({
   emitNewMessage: vi.fn(),
+  emitMessageUpdated: vi.fn(),
   emitConversationStatus: vi.fn(),
   isUserOnline: vi.fn(() => false),
 }));

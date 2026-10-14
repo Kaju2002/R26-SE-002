@@ -32,6 +32,18 @@ Data & Models:
 Testing:
 - Unit tests live in `tests/` — run with `pytest`.
 
+## Setup
+
+```powershell
+copy .env.example .env          # then open .env and set CSE_API_KEY
+pip install -r requirements.txt
+pytest                          # expect: 14 passed
+uvicorn app.main:app --port 8001
+```
+
+- Model used: `models/final_model_v2.pkl` (override with `EMPLOYER_MODEL_PATH` in `.env`).
+- API docs and manual testing: http://localhost:8001/docs
+- `.env` holds secrets and is not committed to git.
 
 Folder Structure:
 

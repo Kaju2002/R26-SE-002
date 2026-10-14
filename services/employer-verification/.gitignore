@@ -1,0 +1,28 @@
+# Secrets
+.env
+*.env
+
+# Python / test caches
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Local model, data and generated outputs
+data/
+models/
+*.csv
+*.pkl
+*.joblib
+
+# Old experiments, probe dumps and debug scripts (local only)
+_archive/
+analysis_output/_archive/
+scripts/debug_*.py
+scripts/eroc_debug.py
+scripts/probe.py
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

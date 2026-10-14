@@ -9,7 +9,8 @@ from typing import List, Optional
 class ClassifyTextRequest(BaseModel):
     """What phone sends to POST /classify"""
     text: str
-    user_id: str
+    # Ignored: the owner comes from the Authorization token. Kept so older clients don't 422.
+    user_id: Optional[str] = None
 
     @validator('text')
     def text_must_not_be_empty(cls, v):
@@ -19,19 +20,9 @@ class ClassifyTextRequest(BaseModel):
             raise ValueError('Text too long — max 2000 characters')
         return v.strip()
 
-    @validator('user_id')
-    def user_id_must_not_be_empty(cls, v):
-        if not v or not v.strip():
-            raise ValueError('user_id cannot be empty')
-        return v.strip()
 
-
-# NOTE: Image upload uses FastAPI File() and Form() directly
-# in main.py — not a Pydantic schema. This is because
-# multipart/form-data (file uploads) cannot use JSON schemas.
-# The image endpoint will use:
-#   file: UploadFile = File(...)
-#   user_id: str = Form(...)
+# NOTE: Image upload uses FastAPI File() directly in main.py — not a
+# Pydantic schema, because multipart/form-data cannot use JSON schemas.
 
 
 # ─── RESPONSE SCHEMAS ────────────────────────────────────────────

@@ -3,6 +3,10 @@ import "dotenv/config";
 import connectDB from "./config/mongodb.js";
 import { createApp } from "./app.js";
 import { initSocket } from "./config/socket.js";
+import {
+  startDeletedContentPurge,
+  stopDeletedContentPurge,
+} from "./jobs/deletedContentPurge.js";
 
 const PORT = process.env.PORT || 5003;
 
@@ -15,10 +19,12 @@ initSocket(server);
 server.listen(PORT, () => {
   console.log(`Chat Management Service running on http://localhost:${PORT}`);
   console.log(`Health check: GET http://localhost:${PORT}/health`);
+  startDeletedContentPurge();
 });
 
 const shutdown = async () => {
   console.log("Chat Management: shutting down...");
+  stopDeletedContentPurge();
   const mongoose = await import("mongoose");
   await mongoose.default.connection.close();
   server.close(() => process.exit(0));

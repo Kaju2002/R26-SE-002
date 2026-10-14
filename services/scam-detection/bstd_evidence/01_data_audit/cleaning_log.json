@@ -1,0 +1,20 @@
+{
+  "loaded": 22730,
+  "placeholders_replaced": 3556,
+  "dropped_too_short": 114,
+  "dropped_label_conflicts": 0,
+  "dropped_exact_duplicates": 3121,
+  "exact_duplicates_by_source": {
+    "uci_sms": 2308,
+    "emscad": 393,
+    "tactic_main": 173,
+    "tactic_synthetic": 91,
+    "mishra_soni": 87,
+    "smishtank": 67,
+    "real_collected": 2
+  },
+  "near_duplicate_pairs": 3935,
+  "near_dup_pairs_real_vs_nonreal": 0,
+  "final_rows": 19495,
+  "final_groups": 15724
+}

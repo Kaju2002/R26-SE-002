@@ -54,6 +54,8 @@ BRAND_LEGAL_ALIASES: dict[str, list[str]] = {
     "access engineering": ["Access Engineering PLC"],
     "pickme": ["Digital Mobility Solutions Lanka (Pvt) Ltd"],
     "uber": ["Uber"],
+    # Legal name confirmed on the SLAASMB register (2026-10-12 live test).
+    "hutch": ["Hutchison Telecommunications Lanka (Pvt) Ltd"],
 }
 
 # website host (lowercase, no www) -> legal names
@@ -76,6 +78,7 @@ DOMAIN_LEGAL_ALIASES: dict[str, list[str]] = {
     "singer.lk": ["Singer (Sri Lanka) PLC"],
     "lolc.com": ["L O L C Holdings PLC"],
     "accessengsl.com": ["Access Engineering PLC"],
+    "hutch.lk": ["Hutchison Telecommunications Lanka (Pvt) Ltd"],
 }
 
 

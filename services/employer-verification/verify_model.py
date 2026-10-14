@@ -37,10 +37,10 @@ try:
         print(f"   {rank}. {feat:<28} {imp:.4f} ({imp*100:.1f}%)")
     
     print(f"\n" + "="*70)
-    print("✅ Model is ready for predictions!")
+    print("Model is ready for predictions!")
     print("="*70)
     
 except FileNotFoundError:
-    print("❌ ERROR: Model file not found at 'models/final_realistic_model.pkl'")
+    print("ERROR: Model file not found at 'models/final_realistic_model.pkl'")
 except Exception as e:
-    print(f"❌ ERROR: {str(e)}")
+    print(f"ERROR: {str(e)}")

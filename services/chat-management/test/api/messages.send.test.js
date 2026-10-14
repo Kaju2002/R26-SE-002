@@ -9,11 +9,15 @@ const {
   mockConversationFindByIdAndUpdate,
   mockMessageCreate,
   mockAnalyzeMessageForScam,
+  mockScanImageInBackground,
+  mockUploadChatImage,
 } = vi.hoisted(() => ({
   mockConversationFindById: vi.fn(),
   mockConversationFindByIdAndUpdate: vi.fn(),
   mockMessageCreate: vi.fn(),
   mockAnalyzeMessageForScam: vi.fn(),
+  mockScanImageInBackground: vi.fn(),
+  mockUploadChatImage: vi.fn(),
 }));
 
 vi.mock("../../config/mongodb.js", () => ({ default: vi.fn() }));
@@ -34,19 +38,23 @@ vi.mock("../../model/messageModel.js", () => ({
 vi.mock("../../utils/scamDetectionClient.js", () => ({
   analyzeMessageForScam: (...args) => mockAnalyzeMessageForScam(...args),
 }));
+vi.mock("../../utils/imageScamScan.js", () => ({
+  scanImageAttachmentInBackground: (...args) => mockScanImageInBackground(...args),
+}));
 vi.mock("../../utils/jobManagementClient.js", () => ({
   fetchApplication: vi.fn().mockResolvedValue({ ok: false }),
   fetchWorkspace: vi.fn(),
 }));
 vi.mock("../../utils/publishEvent.js", () => ({ publishEvent: vi.fn() }));
 vi.mock("../../utils/chatImageUpload.js", () => ({
-  uploadChatImage: vi.fn(),
+  uploadChatImage: (...args) => mockUploadChatImage(...args),
   uploadChatAudio: vi.fn(),
   uploadChatDocument: vi.fn(),
   deleteUploadedAttachment: vi.fn(),
 }));
 vi.mock("../../config/socket.js", () => ({
   emitNewMessage: vi.fn(),
+  emitMessageUpdated: vi.fn(),
   emitMessageDeleted: vi.fn(),
   emitMessageStatus: vi.fn(),
   emitConversationCleared: vi.fn(),
@@ -207,8 +215,75 @@ describe("POST /api/chat/conversations/:conversationId/messages", () => {
 
     expect(response.status).toBe(201);
     expect(mockAnalyzeMessageForScam).toHaveBeenCalledWith(
-      "Pay GHS 200 registration fee",
-      "recruiter-1"
+      "Pay GHS 200 registration fee"
     );
+    expect(mockScanImageInBackground).not.toHaveBeenCalled();
+  });
+
+  it("marks recruiter images pending and scans them in the background", async () => {
+    const recruiterToken = signTestToken({
+      userId: "recruiter-1",
+      accountType: "recruiter",
+    });
+    const attachment = {
+      url: "https://res.cloudinary.com/demo/image.png",
+      publicId: "chat/image",
+      fileName: "offer.png",
+      mimeType: "image/png",
+      size: 4,
+    };
+    mockUploadChatImage.mockResolvedValue(attachment);
+    mockMessageCreate.mockImplementation(async (doc) => ({
+      _id: MESSAGE_ID,
+      ...doc,
+      createdAt: new Date("2026-08-29T10:00:00.000Z"),
+      updatedAt: new Date("2026-08-29T10:00:00.000Z"),
+    }));
+
+    const response = await request(app)
+      .post(`/api/chat/conversations/${CONVERSATION_ID}/messages`)
+      .set(authHeader(recruiterToken))
+      .attach("image", Buffer.from([0x89, 0x50, 0x4e, 0x47]), {
+        filename: "offer.png",
+        contentType: "image/png",
+      });
+
+    expect(response.status).toBe(201);
+    expect(mockAnalyzeMessageForScam).not.toHaveBeenCalled();
+    expect(mockMessageCreate.mock.calls[0][0].scamAnalysis.status).toBe("pending");
+    expect(response.body.chatMessage.scamAnalysis.status).toBe("pending");
+    expect(mockScanImageInBackground).toHaveBeenCalledTimes(1);
+    const job = mockScanImageInBackground.mock.calls[0][0];
+    expect(job.messageId).toBe(MESSAGE_ID);
+    expect(job.file.mimetype).toBe("image/png");
+    expect(job.textAnalysis.status).toBe("not_checked");
+  });
+
+  it("does not scan images sent by jobseekers", async () => {
+    mockUploadChatImage.mockResolvedValue({
+      url: "https://res.cloudinary.com/demo/cv.png",
+      publicId: "chat/cv",
+      fileName: "cv.png",
+      mimeType: "image/png",
+      size: 4,
+    });
+    mockMessageCreate.mockImplementation(async (doc) => ({
+      _id: MESSAGE_ID,
+      ...doc,
+      createdAt: new Date("2026-08-29T10:00:00.000Z"),
+      updatedAt: new Date("2026-08-29T10:00:00.000Z"),
+    }));
+
+    const response = await request(app)
+      .post(`/api/chat/conversations/${CONVERSATION_ID}/messages`)
+      .set(authHeader(jobseekerToken))
+      .attach("image", Buffer.from([0x89, 0x50, 0x4e, 0x47]), {
+        filename: "cv.png",
+        contentType: "image/png",
+      });
+
+    expect(response.status).toBe(201);
+    expect(mockMessageCreate.mock.calls[0][0].scamAnalysis.status).toBe("not_checked");
+    expect(mockScanImageInBackground).not.toHaveBeenCalled();
   });
 });

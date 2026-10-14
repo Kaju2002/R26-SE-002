@@ -1,0 +1,33 @@
+{
+  "n": 973,
+  "threshold": 0.26,
+  "accuracy": 0.9075,
+  "precision_legit": 0.0,
+  "recall_legit": 0.0,
+  "f1_legit": 0.0,
+  "precision_scam": 1.0,
+  "recall_scam": 0.9075,
+  "f1_scam": 0.9515,
+  "macro_f1": 0.4758,
+  "weighted_f1": 0.9515,
+  "support_legit": 0,
+  "support_scam": 973,
+  "accuracy_95ci": [
+    0.888,
+    0.925
+  ],
+  "f1_scam_95ci": [
+    0.9407,
+    0.961
+  ],
+  "confusion_matrix": [
+    [
+      0,
+      0
+    ],
+    [
+      90,
+      883
+    ]
+  ]
+}

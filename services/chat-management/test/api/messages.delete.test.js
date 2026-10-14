@@ -33,6 +33,7 @@ vi.mock("../../utils/jobManagementClient.js", () => ({
 }));
 vi.mock("../../config/socket.js", () => ({
   emitNewMessage: vi.fn(),
+  emitMessageUpdated: vi.fn(),
   emitMessageDeleted: vi.fn(),
   emitMessageStatus: vi.fn(),
   emitConversationCleared: vi.fn(),
@@ -113,17 +114,34 @@ describe("DELETE /api/chat/conversations/:conversationId/messages/:messageId", (
     expect(response.body.message).toMatch(/only the sender/i);
   });
 
-  it("tombstones a message when the sender deletes for everyone", async () => {
+  it("hides the message from users but keeps the original for moderators", async () => {
+    const scamAnalysis = {
+      status: "flagged",
+      isScam: true,
+      score: 0.94,
+      tactics: ["payment_request"],
+      analyzedAt: new Date("2026-08-29T10:00:00.000Z"),
+    };
+    const attachments = [
+      {
+        url: "https://res.cloudinary.com/demo/fee.png",
+        publicId: "chat/fee",
+        fileName: "fee.png",
+        mimeType: "image/png",
+        size: 10,
+      },
+    ];
     const message = {
       _id: MESSAGE_ID,
       conversationId: CONVERSATION_ID,
       senderId: "recruiter-1",
       deletedFor: [],
       deletedForEveryone: false,
-      body: "Original message",
-      attachments: [],
-      messageType: "text",
+      body: "Pay LKR 5000 registration fee",
+      attachments,
+      messageType: "image",
       status: "sent",
+      scamAnalysis,
       save: vi.fn().mockResolvedValue(undefined),
     };
     mockMessageFindOne.mockResolvedValue(message);
@@ -134,10 +152,19 @@ describe("DELETE /api/chat/conversations/:conversationId/messages/:messageId", (
       .send({ mode: "everyone" });
 
     expect(response.status).toBe(200);
-    expect(message.deletedForEveryone).toBe(true);
-    expect(message.body).toBe("This message was deleted");
-    expect(message.messageType).toBe("system");
     expect(message.save).toHaveBeenCalled();
-    expect(response.body.chatMessage.body).toBe("This message was deleted");
+    expect(message.deletedForEveryone).toBe(true);
+    expect(message.deletedBy).toBe("recruiter-1");
+    // Stored document keeps the evidence.
+    expect(message.body).toBe("Pay LKR 5000 registration fee");
+    expect(message.attachments).toBe(attachments);
+    expect(message.messageType).toBe("image");
+    expect(message.scamAnalysis).toBe(scamAnalysis);
+    // Participants only ever see the tombstone.
+    const chatMessage = response.body.chatMessage;
+    expect(chatMessage.body).toBe("This message was deleted");
+    expect(chatMessage.messageType).toBe("system");
+    expect(chatMessage.attachments).toEqual([]);
+    expect(chatMessage.scamAnalysis.status).toBe("not_checked");
   });
 });

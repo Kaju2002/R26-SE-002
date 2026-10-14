@@ -50,6 +50,12 @@ _LEGAL_NOISE = {
     "lanka",
 }
 
+# Words that many unrelated companies share; they can never identify a company on their own.
+_GENERIC_WORDS = {
+    "sri", "lanka", "srilanka", "ceylon", "lk", "group", "holdings", "holding", "international", "global",
+    "services", "solutions", "technologies", "technology", "the", "and", "of", "for",
+}
+
 _memory: dict | None = None
 
 
@@ -208,26 +214,33 @@ def lookup_slaasmb_sbe(company_name: str | None) -> dict:
         score = 0
         if q_norm == n_norm:
             score = 100
-        elif q_norm in n_norm or n_norm in q_norm:
-            # Prefer longer overlap; reject tiny substring traps
-            shorter = min(len(q_norm), len(n_norm))
-            longer = max(len(q_norm), len(n_norm))
-            if shorter >= 6 and shorter / longer >= 0.45:
-                score = 80 + min(15, shorter // 4)
         else:
             n_tokens = _tokens(name)
-            if not q_tokens or not n_tokens:
+            q_brand = q_tokens - _GENERIC_WORDS
+            n_brand = n_tokens - _GENERIC_WORDS
+            # The brand part of the name decides, never generic words like "international".
+            # Every brand word typed must be in the registered name. The register may add a prefix
+            # ("CHEC Port City Colombo" for "Port City Colombo"), but a single brand word may only
+            # match an identical brand. So "Best Life International" never matches
+            # "Tropikal Life International".
+            if not q_brand or not n_brand or not q_brand <= n_brand:
                 continue
-            overlap = len(q_tokens & n_tokens)
-            need = 2 if len(q_tokens) >= 2 else 1
-            if overlap < need:
+            if len(q_brand) == 1 and q_brand != n_brand:
                 continue
-            # Avoid matching on a single generic token
-            if overlap == 1 and len(q_tokens) > 1:
-                continue
-            score = 40 + overlap * 12
-            if overlap == len(q_tokens) and overlap >= 2:
-                score += 15
+            if q_norm in n_norm or n_norm in q_norm:
+                # Prefer longer overlap; reject tiny substring traps
+                shorter = min(len(q_norm), len(n_norm))
+                longer = max(len(q_norm), len(n_norm))
+                if shorter >= 6 and shorter / longer >= 0.45:
+                    score = 80 + min(15, shorter // 4)
+            if not score:
+                overlap = len(q_tokens & n_tokens)
+                need = 2 if len(q_tokens) >= 2 else 1
+                if overlap < need or (overlap == 1 and len(q_tokens) > 1):
+                    continue
+                score = 40 + overlap * 12
+                if overlap == len(q_tokens) and overlap >= 2:
+                    score += 15
 
         if score > best_score:
             best_score = score

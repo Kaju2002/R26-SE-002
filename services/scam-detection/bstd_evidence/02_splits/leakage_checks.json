@@ -1,0 +1,19 @@
+{
+  "groups_in_more_than_one_split": 0,
+  "exact_text_overlap_train_vs_val": 0,
+  "exact_text_overlap_train_vs_test": 0,
+  "exact_text_overlap_train_vs_external": 0,
+  "near_dup_ge_0.9_train_vs_test": 0,
+  "max_similarity_train_vs_test": 0.667,
+  "median_similarity_train_vs_test": 0.149,
+  "near_dup_ge_0.9_train_vs_val": 15,
+  "max_similarity_train_vs_val": 1.0,
+  "median_similarity_train_vs_val": 0.345,
+  "near_dup_ge_0.9_train_vs_external": 0,
+  "max_similarity_train_vs_external": 0.516,
+  "median_similarity_train_vs_external": 0.161,
+  "rows_excluded_as_leak": 131,
+  "excluded_by_source": {
+    "tactic_real": 131
+  }
+}

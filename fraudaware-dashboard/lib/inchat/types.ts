@@ -54,7 +54,7 @@ export type InchatMessage = {
   unsent?: boolean;
   deletedForEveryone?: boolean;
   scamAnalysis?: {
-    status: 'not_checked' | 'pending' | 'safe' | 'flagged' | 'error';
+    status: 'not_checked' | 'pending' | 'safe' | 'suspicious' | 'flagged' | 'error';
     isScam: boolean;
     score: number | null;
     tactics: string[];

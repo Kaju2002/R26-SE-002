@@ -1,0 +1,39 @@
+{
+  "n": 1717,
+  "threshold": 0.26,
+  "accuracy": 0.9662,
+  "precision_legit": 0.9831,
+  "recall_legit": 0.9631,
+  "f1_legit": 0.973,
+  "precision_scam": 0.9389,
+  "recall_scam": 0.9716,
+  "f1_scam": 0.955,
+  "macro_f1": 0.964,
+  "weighted_f1": 0.9663,
+  "support_legit": 1084,
+  "support_scam": 633,
+  "accuracy_95ci": [
+    0.9575,
+    0.975
+  ],
+  "f1_scam_95ci": [
+    0.9429,
+    0.9663
+  ],
+  "macro_f1_95ci": [
+    0.9547,
+    0.973
+  ],
+  "roc_auc": 0.9943,
+  "pr_auc": 0.9905,
+  "confusion_matrix": [
+    [
+      1044,
+      40
+    ],
+    [
+      18,
+      615
+    ]
+  ]
+}
