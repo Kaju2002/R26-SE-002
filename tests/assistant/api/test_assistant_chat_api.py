@@ -349,6 +349,7 @@ def test_session_view_has_history_and_checks(chat):
     body = res.json()
     assert res.status_code == 200
     assert [m["role"] for m in body["messages"]] == ["assistant", "user", "assistant", "user", "assistant"]
+    assert body["messages"][1]["text"] == "Job post"
     assert body["messages"][3]["text"] == "Earn Rs 5,000 daily, pay registration fee"
     assert body["awaiting"] == "company"
 

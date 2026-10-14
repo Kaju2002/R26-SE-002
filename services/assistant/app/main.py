@@ -53,7 +53,7 @@ async def _probe(client: httpx.AsyncClient, url: str) -> str:
 def _user_message_text(text: Optional[str], image: Optional[bytes], chip: Optional[str]) -> str:
     parts = []
     if chip:
-        parts.append(f"[button: {chip}]")
+        parts.append(guided.CHIP_LABELS.get(chip, "[button]"))
     if image:
         parts.append("[image]")
     if text:

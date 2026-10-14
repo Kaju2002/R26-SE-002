@@ -30,4 +30,5 @@ export type RootStackParamList = {
   SupportTickets: undefined;
   SupportCreateTicket: undefined;
   SupportTicketDetail: { ticketId: string };
+  Assistant: undefined;
 };

@@ -75,6 +75,10 @@ cd FraudAware
 npm start
 ```
 
+The assistant screen (robot button on Home) needs `EXPO_PUBLIC_ASSISTANT_API_BASE_URL` in
+`FraudAware/.env`, e.g. `http://192.168.1.250:8004` (your PC's Wi-Fi IP, no trailing slash).
+Restart Expo after changing it.
+
 ---
 
 ## Tests — all at once (repo root)
