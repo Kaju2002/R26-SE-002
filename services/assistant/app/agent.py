@@ -14,8 +14,7 @@ from typing import List, Sequence
 from app import agent_tools, guided, reply_check
 from app.auth import User
 from app.llm import LlmClient, LlmUnavailable, Message, ToolResult
-from app.prompts import system_prompt
-from app.redact import redact
+from app.prompts import system_prompt, untrusted
 from app.schemas import ChatMessage, CheckResult
 from app.sessions import Session
 from app.verdict import CHECK_LABELS, combine
@@ -30,12 +29,13 @@ MAX_ROUNDS = 5
 
 def _render(index: int, message: ChatMessage) -> str:
     if message.role == "assistant":
-        return redact(message.text).text
+        # Can quote check results, which quote websites and messages.
+        return untrusted(message.text)
     if message.kind == "button":
         return f"(The user tapped the button: {message.text})"
     if message.kind == "image":
         return "(The user sent an image. The app checks images itself; you cannot see them.)"
-    return f"[m{index}]\n<content_to_check>\n{redact(message.text).text}\n</content_to_check>"
+    return f"[m{index}]\n<content_to_check>\n{untrusted(message.text)}\n</content_to_check>"
 
 
 def history(session: Session) -> List[Message]:

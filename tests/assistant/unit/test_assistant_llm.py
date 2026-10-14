@@ -83,6 +83,16 @@ def test_force_text_keeps_tools_but_forbids_calls(llm, types, monkeypatch):
     assert sent[0]["config"].tool_config.function_calling_config.mode == "NONE"
 
 
+def test_temperature_can_be_overridden(llm, types, monkeypatch):
+    client, sent = _client(llm, monkeypatch, [_response(types, types.Part(text="IN_SCOPE"))] * 2)
+
+    asyncio.run(client.generate("s", [llm.Message(role="user", text="hi")], None))
+    asyncio.run(client.generate("s", [llm.Message(role="user", text="hi")], None, temperature=0.0))
+
+    assert sent[0]["config"].temperature == llm.TEMPERATURE
+    assert sent[1]["config"].temperature == 0.0
+
+
 def test_no_tools_means_no_tool_config(llm, types, monkeypatch):
     client, sent = _client(llm, monkeypatch, [_response(types, types.Part(text="Hi"))])
 

@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 import httpx
 
+from app import url_safety
 from app.config import get_settings
 from app.schemas import CheckResult
 from app.tools.common import ServiceError, call_service, done, failed
@@ -67,6 +68,10 @@ async def check_company(
     if any(v and len(v) > MAX_FIELD_CHARS for v in given.values()):
         return failed(SOURCE, f"Company details must be shorter than {MAX_FIELD_CHARS} characters each.")
 
+    not_checked = await _drop_unsafe_addresses(given)
+    if not any(given.values()):
+        return failed(SOURCE, f"{not_checked[0]} Please send the company name instead.")
+
     s = get_settings()
     try:
         data = await call_service(
@@ -79,4 +84,22 @@ async def check_company(
         )
     except ServiceError as e:
         return failed(SOURCE, e.message, given=given)
-    return _to_result(data, given)
+    result = _to_result(data, given)
+    result.reasons += not_checked
+    return result
+
+
+async def _drop_unsafe_addresses(given: Dict[str, Optional[str]]) -> List[str]:
+    """Remove a website or email domain that points to a private network; say what was left out."""
+    not_checked = []
+    if given["website_url"]:
+        problem = await url_safety.website_problem(given["website_url"])
+        if problem:
+            given["website_url"] = None
+            not_checked.append(f"The website was not checked because {problem}.")
+    if given["email"]:
+        problem = await url_safety.email_problem(given["email"])
+        if problem:
+            given["email"] = None
+            not_checked.append(f"The email address was not checked because {problem}.")
+    return not_checked

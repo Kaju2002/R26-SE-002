@@ -11,7 +11,7 @@ from app import background, guided
 from app.auth import User
 from app.company_input import parse_company_details
 from app.llm import ToolCall, ToolSpec
-from app.redact import redact
+from app.prompts import untrusted
 from app.schemas import CheckResult, CheckSource
 from app.sessions import Session
 from app.verdict import CHECK_LABELS
@@ -129,9 +129,9 @@ def summary(session: Session, result: CheckResult) -> Dict[str, Any]:
     summary: Dict[str, Any] = {"check": _label(result.source), "status": result.status}
     if result.status == "done":
         summary["risk"] = result.risk or "unknown"
-        summary["warning_signs"] = [redact(r).text for r in result.reasons]
+        summary["warning_signs"] = [untrusted(r) for r in result.reasons]
     elif result.status == "failed":
-        summary["problem"] = redact(result.reasons[0]).text if result.reasons else "The check is not available."
+        summary["problem"] = untrusted(result.reasons[0]) if result.reasons else "The check is not available."
     elif result.status == "running":
         summary["note"] = "Takes up to 90 seconds. The result is posted to the chat automatically."
     summary["checks_still_needed"] = [_label(s) for s in case.to_ask()]
