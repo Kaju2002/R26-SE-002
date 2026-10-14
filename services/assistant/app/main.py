@@ -7,7 +7,7 @@ import httpx
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import guided
+from app import agent, guided, llm
 from app.auth import User, get_current_user
 from app.config import get_settings
 from app.schemas import HealthResponse, MessageResponse, SessionView
@@ -59,6 +59,22 @@ def _user_message_text(text: Optional[str], image: Optional[bytes], chip: Option
     if text:
         parts.append(text)
     return " ".join(parts) or "[opened the assistant]"
+
+
+def _message_kind(image: Optional[bytes], chip: Optional[str]) -> str:
+    return "button" if chip else "image" if image else "text"
+
+
+async def _reply(session: Session, user: User, text: Optional[str], image: Optional[bytes], chip: Optional[str]):
+    """Typed text goes to the LLM when it is configured; buttons, images and the
+    "what did you send?" question stay in guided mode, which also answers when the LLM fails."""
+    client = llm.get_client()
+    if client is not None and not chip and not image and session.awaiting != "input_type":
+        try:
+            return await agent.handle(session, user, client)
+        except llm.LlmUnavailable:
+            pass
+    return await guided.handle(session, user, text=text, image=image, chip=chip)
 
 
 def _own_session(session_id: str, user: User) -> Session:
@@ -117,8 +133,8 @@ async def assistant_message(
     async with store.lock(session.session_id):
         has_input = bool((text or "").strip() or image_bytes or (chip and chip != guided.CHIP_NEW_CHECK.id))
         if has_input:
-            session.add_message("user", _user_message_text(text, image_bytes, chip))
-            turn = await guided.handle(session, user, text=text, image=image_bytes, chip=chip)
+            session.add_message("user", _user_message_text(text, image_bytes, chip), _message_kind(image_bytes, chip))
+            turn = await _reply(session, user, text, image_bytes, chip)
         else:
             turn = guided.start(session)
         session.chips = turn.chips

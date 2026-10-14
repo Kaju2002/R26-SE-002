@@ -7,7 +7,7 @@
 # The company check is slow, so it runs in the background while the conversation goes on.
 
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from app import background
 from app.auth import User
@@ -97,7 +97,7 @@ def _label(source: CheckSource) -> str:
     return CHECK_LABELS[source].lower()
 
 
-def _menu_chips(session: Session) -> List[Chip]:
+def menu_chips(session: Session) -> List[Chip]:
     return [_MENU_CHIP_FOR[s] for s in session.case.to_ask()]
 
 
@@ -115,7 +115,7 @@ def describe(result: CheckResult) -> str:
 
 def start(session: Session) -> Turn:
     session.awaiting = "menu"
-    return Turn(GREETING, _menu_chips(session))
+    return Turn(GREETING, menu_chips(session))
 
 
 def _ask(session: Session, source: CheckSource, intro: str = "") -> Turn:
@@ -126,7 +126,7 @@ def _ask(session: Session, source: CheckSource, intro: str = "") -> Turn:
     return Turn(f"{intro}{PROMPTS[source]}", [CHIP_SKIP])
 
 
-def _advance(session: Session, prefix: str, last: Optional[CheckResult] = None) -> Turn:
+def advance(session: Session, prefix: str, last: Optional[CheckResult] = None) -> Turn:
     """Ask for the next missing check, wait for a running one, or show the result when nothing is left."""
     intro = f"{prefix}\n\n" if prefix else ""
     to_ask = session.case.to_ask()
@@ -147,7 +147,7 @@ def _advance(session: Session, prefix: str, last: Optional[CheckResult] = None) 
     return Turn(f"{intro}That's everything. Here is your result.", [CHIP_NEW_CHECK], session.verdict)
 
 
-def _background_finished(session: Session, result: CheckResult) -> None:
+def background_finished(session: Session, result: CheckResult) -> None:
     """A background check finished (called with the session locked): save it and tell the user."""
     session.case.set(result)
     waiting = session.awaiting == "waiting"
@@ -165,7 +165,7 @@ def _background_finished(session: Session, result: CheckResult) -> None:
         return
 
     if waiting:
-        turn = _advance(session, describe(result), last=result)
+        turn = advance(session, describe(result), last=result)
         session.chips = turn.chips
         session.add_message("assistant", turn.reply)
     else:
@@ -180,17 +180,21 @@ def _start_company_check(session: Session, text: Optional[str], image: Optional[
     if not any(details.values()):
         return Turn("I couldn't find a company name, website or email in that. " + PROMPTS["company"], [CHIP_SKIP])
 
+    start_company_background(session, details)
+    return advance(session, CHECKING_COMPANY)
+
+
+def start_company_background(session: Session, details: Dict[str, Optional[str]]) -> None:
     background.start(
         session,
         "company",
         lambda: check_company(**details),
-        _background_finished,
+        background_finished,
         timeout=get_settings().employer_check_timeout_seconds,
     )
-    return _advance(session, CHECKING_COMPANY)
 
 
-async def _run_check(source: CheckSource, text: Optional[str], image: Optional[bytes], user: User) -> CheckResult:
+async def run_check(source: CheckSource, text: Optional[str], image: Optional[bytes], user: User) -> CheckResult:
     if source == "job_post":
         return await (check_job_post_image(image) if image else check_job_post_text(text or ""))
     if image:
@@ -204,13 +208,13 @@ async def _check_and_advance(
     if source == "company":
         return _start_company_check(session, text, image)
 
-    result = await _run_check(source, text, image, user)
+    result = await run_check(source, text, image, user)
     session.case.set(result)
     if result.status == "failed":
         session.awaiting = source
         reason = result.reasons[0] if result.reasons else "Something went wrong."
         return Turn(f"I couldn't complete the {_label(source)} check: {reason} You can try again or tap Skip.", [CHIP_SKIP])
-    return _advance(session, describe(result), last=result)
+    return advance(session, describe(result), last=result)
 
 
 async def handle(
@@ -231,7 +235,7 @@ async def handle(
     if chip == CHIP_SKIP.id and stage in ("job_post", "company", "recruiter_question", "recruiter_chat"):
         source = "recruiter_chat" if stage == "recruiter_question" else stage
         session.case.mark(source, "skipped")
-        return _advance(session, f"Okay, I skipped the {_label(source)} check.")
+        return advance(session, f"Okay, I skipped the {_label(source)} check.")
 
     if stage == "waiting":
         if chip == CHIP_SKIP.id:
@@ -239,7 +243,7 @@ async def handle(
             for source in skipped:
                 background.cancel(session, source)
                 session.case.mark(source, "skipped")
-            return _advance(session, f"Okay, I skipped the {' and the '.join(map(_label, skipped))} check.")
+            return advance(session, f"Okay, I skipped the {' and the '.join(map(_label, skipped))} check.")
         return Turn(_still_checking(session), [CHIP_SKIP])
 
     if stage == "menu":
@@ -251,7 +255,7 @@ async def handle(
             session.awaiting = "input_type"
             chips = [CHIP_IS_JOB_POST, CHIP_IS_RECRUITER] + ([] if image else [CHIP_IS_COMPANY])
             return Turn("Thanks! What did you send me?", chips)
-        return Turn("Please choose what you would like to check, or paste it here.", _menu_chips(session))
+        return Turn("Please choose what you would like to check, or paste it here.", menu_chips(session))
 
     if stage == "input_type":
         if chip in (CHIP_IS_JOB_POST.id, CHIP_IS_RECRUITER.id, CHIP_IS_COMPANY.id):
@@ -266,7 +270,7 @@ async def handle(
     if stage == "recruiter_question":
         if chip == CHIP_RECRUITER_NO.id:
             session.case.mark("recruiter_chat", "not_applicable")
-            return _advance(session, "Okay, good. If a recruiter contacts you later, you can check their messages here.")
+            return advance(session, "Okay, good. If a recruiter contacts you later, you can check their messages here.")
         if has_content:
             return await _check_and_advance(session, "recruiter_chat", text, image, user)
         if chip == CHIP_RECRUITER_YES.id:

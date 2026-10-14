@@ -35,6 +35,7 @@ class Settings:
     job_post_timeout_seconds: float = 90.0
     employer_check_timeout_seconds: float = 90.0
     recruiter_check_timeout_seconds: float = 60.0
+    llm_timeout_seconds: float = 20.0
 
     @property
     def llm_configured(self) -> bool:
@@ -59,4 +60,5 @@ def get_settings() -> Settings:
         # Employer verification scrapes websites and registers.
         employer_check_timeout_seconds=_float("EMPLOYER_CHECK_TIMEOUT_SECONDS", 90.0),
         recruiter_check_timeout_seconds=_float("RECRUITER_CHECK_TIMEOUT_SECONDS", 60.0),
+        llm_timeout_seconds=_float("LLM_TIMEOUT_SECONDS", 20.0),
     )

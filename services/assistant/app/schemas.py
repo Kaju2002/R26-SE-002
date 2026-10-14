@@ -84,6 +84,8 @@ class ChatMessage(BaseModel):
     role: Literal["user", "assistant"]
     text: str
     at: datetime
+    # What the user sent: typed text, an image (with optional text) or a button tap.
+    kind: Literal["text", "image", "button"] = "text"
 
 
 class MessageResponse(BaseModel):
