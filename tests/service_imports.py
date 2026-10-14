@@ -19,6 +19,7 @@ SERVICE_ROOTS: dict[str, list[Path]] = {
         REPO_ROOT / "services" / "employer-verification" / "app",
     ],
     "job-recommendation": [REPO_ROOT / "services" / "job-recommendation"],
+    "assistant": [REPO_ROOT / "services" / "assistant"],
 }
 
 _ALL_SERVICE_PATHS = {str(path) for paths in SERVICE_ROOTS.values() for path in paths}
