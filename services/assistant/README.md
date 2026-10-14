@@ -232,7 +232,9 @@ Before any text reaches Gemini (guard and main agent):
 | OTP / PIN codes | `[CODE]` |
 
 The models still receive the full text, so their accuracy is not affected.
-Website domains are not masked.
+Website domains, money amounts ("Rs 2,500"), dates and small numbers are not masked.
+
+Implemented in `app/redact.py`; try it with `py scripts/try_redact.py "<message>"`.
 
 ### 7.3 Notice in the app
 
