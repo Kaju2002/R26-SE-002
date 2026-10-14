@@ -124,7 +124,7 @@ def _company_details(original: str, args: Dict[str, Any]) -> Dict[str, Optional[
     return details
 
 
-def _summary(session: Session, result: CheckResult) -> Dict[str, Any]:
+def summary(session: Session, result: CheckResult) -> Dict[str, Any]:
     case = session.case
     summary: Dict[str, Any] = {"check": _label(result.source), "status": result.status}
     if result.status == "done":
@@ -184,4 +184,4 @@ async def run(call: ToolCall, ctx: ToolContext) -> Tuple[Dict[str, Any], Optiona
     except ToolError as e:
         return {"error": str(e)}, None
     ctx.results.append(result)
-    return _summary(ctx.session, result), result
+    return summary(ctx.session, result), result

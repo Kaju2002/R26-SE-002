@@ -306,6 +306,18 @@ A warning is always shown; "no warning signs" needs all checks.
   guided wording.
 - When nothing is left, the code sets the verdict, exactly as in guided mode.
 
+### Images, buttons and background results (step 8b)
+
+- Screenshots and buttons still go through guided mode, which runs the check in code. If
+  that produced a new result, Gemini gets the masked result as a note on the user's message
+  ("The app already ran these checks …") and words the reply. The image never reaches it.
+  If Gemini fails, guided mode's reply is used. If Gemini already failed on that message,
+  it is not asked again.
+- Once every check is finished, Gemini gets no tools and only explains.
+- The background company result stays in code wording (no Gemini call without a user
+  message). Gemini sees it, masked, in the history of the next turn, and the checklist in
+  the system prompt is always current.
+
 ### System prompt rules
 
 - Friendly, short replies in simple English.
@@ -322,6 +334,16 @@ A warning is always shown; "no warning signs" needs all checks.
 If the Gemini reply contradicts the code verdict (e.g. "safe" when the verdict is
 HIGH RISK, or "scam" when all checks are low), it is replaced with a code-generated
 summary.
+
+`reply_check.py` looks only for claims about the job or offer as a whole ("this job looks
+legit", "it's safe to pay", "this is a scam"); negations ("it is not safe to pay") and
+per-check sentences ("the company check found no warning signs") are allowed:
+
+- **safe claim** while a check found warning signs, or before any check is done → replaced;
+- **scam claim** while no check found warning signs → replaced.
+
+The replacement describes this turn's results and asks for the next check, or points to the
+result card. Only the fact is logged, never the text.
 
 ---
 
@@ -436,6 +458,7 @@ services/assistant/
 │   ├── agent.py            # LLM tool loop
 │   ├── agent_tools.py      # tool declarations + validation
 │   ├── llm.py              # Gemini wrapper
+│   ├── reply_check.py      # replies that contradict the results
 │   ├── case_state.py
 │   ├── guided.py
 │   ├── guard.py

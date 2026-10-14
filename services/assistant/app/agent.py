@@ -1,13 +1,17 @@
 # app/agent.py
 # LLM mode: Gemini talks to the user and decides which check to run; the code runs the checks
-# and computes the final verdict. Everything sent to Gemini is masked first.
+# and computes the final verdict. Everything sent to Gemini is masked first, and images never
+# reach it: the code checks screenshots and Gemini only explains the results.
 #
 # If Gemini fails before any check ran, LlmUnavailable is raised and guided mode answers instead.
 # If it fails after a check ran, the results are reported in guided mode's wording.
+# A reply that contradicts the check results is replaced with code wording (reply_check.py).
 
-from typing import List
+import json
+import logging
+from typing import List, Sequence
 
-from app import agent_tools, guided
+from app import agent_tools, guided, reply_check
 from app.auth import User
 from app.llm import LlmClient, LlmUnavailable, Message, ToolResult
 from app.prompts import system_prompt
@@ -15,6 +19,8 @@ from app.redact import redact
 from app.schemas import ChatMessage, CheckResult
 from app.sessions import Session
 from app.verdict import CHECK_LABELS, combine
+
+logger = logging.getLogger(__name__)
 
 # Recent chat messages sent to Gemini (the older ones only cost tokens).
 HISTORY_MESSAGES = 14
@@ -48,6 +54,14 @@ def history(session: Session) -> List[Message]:
     return messages
 
 
+def _checked_note(session: Session, checked: Sequence[CheckResult]) -> str:
+    results = [agent_tools.summary(session, r) for r in checked]
+    return (
+        "(The app already ran these checks on what the user sent. Explain the results to the user:)\n"
+        + json.dumps(results, ensure_ascii=False)
+    )
+
+
 def _fallback_reply(session: Session, results: List[CheckResult]) -> guided.Turn:
     """Gemini failed after running checks: report them in guided mode's wording."""
     parts = []
@@ -66,6 +80,22 @@ def _fallback_reply(session: Session, results: List[CheckResult]) -> guided.Turn
     return guided.advance(session, "\n\n".join(parts), last=last_done)
 
 
+def _code_reply(session: Session, results: Sequence[CheckResult]) -> str:
+    """Replaces a Gemini reply that contradicted the results; the state is already final."""
+    case = session.case
+    parts = [guided.describe(r) for r in results if r.status == "done"]
+    to_ask = case.to_ask()
+    if session.verdict is not None and case.is_complete():
+        parts.append(f"Your result: {session.verdict.title}. Please read the result card before you decide.")
+    elif to_ask:
+        nxt = to_ask[0]
+        prompt = guided.PROMPTS["recruiter_question" if nxt == "recruiter_chat" else nxt]
+        parts.append(f"Next, let's check the {CHECK_LABELS[nxt].lower()}. {prompt}")
+    elif case.running():
+        parts.append(guided.still_checking(session))
+    return "\n\n".join(parts)
+
+
 def _finish_turn(session: Session, reply: str) -> guided.Turn:
     case = session.case
     if case.is_complete():
@@ -79,26 +109,31 @@ def _finish_turn(session: Session, reply: str) -> guided.Turn:
     return guided.Turn(reply, guided.menu_chips(session))
 
 
-async def handle(session: Session, user: User, client: LlmClient) -> guided.Turn:
-    """Answer the user's latest message (already added to the session)."""
-    finished = session.awaiting == "finished"
-    tools = None if finished else agent_tools.TOOL_SPECS
+async def handle(
+    session: Session, user: User, client: LlmClient, checked: Sequence[CheckResult] = ()
+) -> guided.Turn:
+    """Answer the user's latest message (already added to the session). `checked` are checks
+    the code already ran on that message (a screenshot or a button) for Gemini to explain."""
+    # The result card was shown earlier; this is a question about it.
+    after_result = session.awaiting == "finished" and not checked
+    tools = None if session.case.is_complete() else agent_tools.TOOL_SPECS
     messages = history(session)
+    if checked:
+        messages[-1].text += f"\n\n{_checked_note(session, checked)}"
     ctx = agent_tools.ToolContext(session=session, user=user)
     reply = ""
 
     for round_no in range(MAX_ROUNDS):
-        last_round = round_no == MAX_ROUNDS - 1
+        # Once nothing is left to check, Gemini only explains.
+        force_text = round_no == MAX_ROUNDS - 1 or session.case.is_complete()
         try:
-            answer = await client.generate(
-                system_prompt(session.case, finished), messages, tools, force_text=last_round
-            )
+            answer = await client.generate(system_prompt(session.case), messages, tools, force_text=force_text)
         except LlmUnavailable:
             if not ctx.results:
                 raise
             return _fallback_reply(session, ctx.results)
 
-        if not answer.tool_calls or tools is None or last_round:
+        if not answer.tool_calls or tools is None or force_text:
             reply = answer.text
             break
 
@@ -113,6 +148,9 @@ async def handle(session: Session, user: User, client: LlmClient) -> guided.Turn
         if not ctx.results:
             raise LlmUnavailable("no reply")
         return _fallback_reply(session, ctx.results)
-    if finished:
-        return guided.Turn(reply, [guided.CHIP_NEW_CHECK])
-    return _finish_turn(session, reply)
+
+    turn = guided.Turn(reply, [guided.CHIP_NEW_CHECK]) if after_result else _finish_turn(session, reply)
+    if reply_check.contradicts(turn.reply, session.case, session.verdict):
+        logger.warning("Gemini reply replaced: it contradicted the check results")
+        turn.reply = _code_reply(session, [*checked, *ctx.results])
+    return turn

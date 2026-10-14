@@ -101,7 +101,7 @@ def menu_chips(session: Session) -> List[Chip]:
     return [_MENU_CHIP_FOR[s] for s in session.case.to_ask()]
 
 
-def _still_checking(session: Session) -> str:
+def still_checking(session: Session) -> str:
     labels = " and the ".join(_label(s) for s in session.case.running())
     return f"I'm still checking the {labels}. This can take up to 90 seconds. I'll show your result as soon as it's ready."
 
@@ -140,7 +140,7 @@ def advance(session: Session, prefix: str, last: Optional[CheckResult] = None) -
 
     if session.case.running():
         session.awaiting = "waiting"
-        return Turn(f"{intro}{_still_checking(session)}", [CHIP_SKIP])
+        return Turn(f"{intro}{still_checking(session)}", [CHIP_SKIP])
 
     session.awaiting = "finished"
     session.verdict = combine(session.case.as_list())
@@ -244,7 +244,7 @@ async def handle(
                 background.cancel(session, source)
                 session.case.mark(source, "skipped")
             return advance(session, f"Okay, I skipped the {' and the '.join(map(_label, skipped))} check.")
-        return Turn(_still_checking(session), [CHIP_SKIP])
+        return Turn(still_checking(session), [CHIP_SKIP])
 
     if stage == "menu":
         if chip in (CHIP_JOB_POST.id, CHIP_COMPANY.id, CHIP_RECRUITER.id):
