@@ -1,6 +1,7 @@
 # app/schemas.py
 # Request / response models for the assistant API.
 
+from datetime import datetime
 from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -55,3 +56,49 @@ class Verdict(BaseModel):
     not_checked: List[CheckSource] = Field(default_factory=list)
     checks: List[CheckResult]
     disclaimer: str
+
+
+# ─── CHAT ────────────────────────────────────────────────────────
+
+# What the assistant is waiting for next.
+Awaiting = Literal[
+    "menu",
+    "input_type",  # the user sent content first; asking whether it is a post, company or messages
+    "job_post",
+    "company",
+    "recruiter_question",
+    "recruiter_chat",
+    "finished",
+]
+
+
+class Chip(BaseModel):
+    """A quick-reply button. The app sends `id` back as `chip`."""
+
+    id: str
+    label: str
+
+
+class ChatMessage(BaseModel):
+    role: Literal["user", "assistant"]
+    text: str
+    at: datetime
+
+
+class MessageResponse(BaseModel):
+    session_id: str
+    reply: str
+    chips: List[Chip]
+    awaiting: Awaiting
+    checks: List[CheckResult]
+    result: Optional[Verdict] = None
+
+
+class SessionView(BaseModel):
+    session_id: str
+    created_at: datetime
+    updated_at: datetime
+    awaiting: Awaiting
+    messages: List[ChatMessage]
+    checks: List[CheckResult]
+    result: Optional[Verdict] = None

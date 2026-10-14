@@ -29,6 +29,7 @@ class Settings:
     llm_provider: str
     gemini_model: str
     gemini_api_key: str = field(repr=False)
+    jwt_secret: str = field(default="", repr=False)
     cors_origins: tuple = ()
     health_timeout_seconds: float = 3.0
     job_post_timeout_seconds: float = 90.0
@@ -50,6 +51,7 @@ def get_settings() -> Settings:
         llm_provider=(os.getenv("LLM_PROVIDER") or "gemini").strip().lower(),
         gemini_model=(os.getenv("GEMINI_MODEL") or "").strip(),
         gemini_api_key=(os.getenv("GEMINI_API_KEY") or "").strip(),
+        jwt_secret=(os.getenv("JWT_SECRET") or "").strip(),
         cors_origins=tuple(o.strip().rstrip("/") for o in cors.split(",") if o.strip()),
         health_timeout_seconds=_float("HEALTH_TIMEOUT_SECONDS", 3.0),
         # Image job posts include OCR and LIME/SHAP explanations, so they can be slow.

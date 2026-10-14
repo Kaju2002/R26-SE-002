@@ -1,13 +1,20 @@
 # app/main.py
 
 import asyncio
+from typing import Optional
 
 import httpx
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import guided
+from app.auth import User, get_current_user
 from app.config import get_settings
-from app.schemas import HealthResponse
+from app.schemas import HealthResponse, MessageResponse, SessionView
+from app.sessions import Session, store
+from app.tools.common import MAX_IMAGE_BYTES
+
+MAX_TEXT_CHARS = 10_000
 
 app = FastAPI(
     title="FraudAware Assistant API",
@@ -43,6 +50,24 @@ async def _probe(client: httpx.AsyncClient, url: str) -> str:
         return "down"
 
 
+def _user_message_text(text: Optional[str], image: Optional[bytes], chip: Optional[str]) -> str:
+    parts = []
+    if chip:
+        parts.append(f"[button: {chip}]")
+    if image:
+        parts.append("[image]")
+    if text:
+        parts.append(text)
+    return " ".join(parts) or "[opened the assistant]"
+
+
+def _own_session(session_id: str, user: User) -> Session:
+    session = store.get(session_id, user.user_id)
+    if session is None:
+        raise HTTPException(status_code=404, detail="Conversation not found.")
+    return session
+
+
 # ─── ROUTES ──────────────────────────────────────────────────────
 
 
@@ -63,3 +88,56 @@ async def health():
         },
         "services": services,
     }
+
+
+@app.post("/assistant/message", response_model=MessageResponse)
+async def assistant_message(
+    session_id: Optional[str] = Form(default=None),
+    text: Optional[str] = Form(default=None),
+    chip: Optional[str] = Form(default=None),
+    image: Optional[UploadFile] = File(default=None),
+    user: User = Depends(get_current_user),
+):
+    """Send one user message: text, an image, a button (`chip`), or nothing to start a conversation.
+    Leave `session_id` empty to start a new conversation."""
+    if text and len(text) > MAX_TEXT_CHARS:
+        raise HTTPException(status_code=413, detail=f"Message is longer than {MAX_TEXT_CHARS:,} characters.")
+    # One extra byte so the check adapters can tell the image is over the limit.
+    image_bytes = (await image.read(MAX_IMAGE_BYTES + 1)) if image is not None else None
+
+    if session_id and chip != guided.CHIP_NEW_CHECK.id:
+        session = _own_session(session_id, user)
+    else:
+        session = store.create(user.user_id)
+
+    async with store.lock(session.session_id):
+        has_input = bool((text or "").strip() or image_bytes or (chip and chip != guided.CHIP_NEW_CHECK.id))
+        if has_input:
+            session.add_message("user", _user_message_text(text, image_bytes, chip))
+            turn = await guided.handle(session, user, text=text, image=image_bytes, chip=chip)
+        else:
+            turn = guided.start(session)
+        session.add_message("assistant", turn.reply)
+
+    return MessageResponse(
+        session_id=session.session_id,
+        reply=turn.reply,
+        chips=turn.chips,
+        awaiting=session.awaiting,
+        checks=session.case.as_list(),
+        result=turn.result,
+    )
+
+
+@app.get("/assistant/session/{session_id}", response_model=SessionView)
+async def get_session(session_id: str, user: User = Depends(get_current_user)):
+    session = _own_session(session_id, user)
+    return SessionView(
+        session_id=session.session_id,
+        created_at=session.created_at,
+        updated_at=session.updated_at,
+        awaiting=session.awaiting,
+        messages=session.messages,
+        checks=session.case.as_list(),
+        result=session.verdict,
+    )
