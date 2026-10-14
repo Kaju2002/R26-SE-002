@@ -9,7 +9,7 @@ from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, PrivateAttr
 
 from app.case_state import CaseState
-from app.schemas import Awaiting, ChatMessage, Verdict
+from app.schemas import Awaiting, ChatMessage, Chip, Verdict
 
 SESSION_MAX_AGE = timedelta(hours=24)
 
@@ -26,15 +26,26 @@ class Session(BaseModel):
     awaiting: Awaiting = "menu"
     case: CaseState = Field(default_factory=CaseState)
     messages: List[ChatMessage] = Field(default_factory=list)
+    # Buttons for the latest assistant message, so a polling app can show them too.
+    chips: List[Chip] = Field(default_factory=list)
     verdict: Optional[Verdict] = None
 
     # Content the user sent before saying what it is; kept only until the next message, never stored.
     _pending_text: Optional[str] = PrivateAttr(default=None)
     _pending_image: Optional[bytes] = PrivateAttr(default=None)
+    # Background checks still running, by check source.
+    _tasks: Dict[str, asyncio.Task] = PrivateAttr(default_factory=dict)
 
     def add_message(self, role: str, text: str) -> None:
         self.messages.append(ChatMessage(role=role, text=text, at=_now()))
         self.updated_at = _now()
+
+    def cancel_tasks(self) -> None:
+        """Stop background checks (the conversation was closed); they count as skipped."""
+        for source, task in self._tasks.items():
+            task.cancel()
+            self.case.mark(source, "skipped")
+        self._tasks.clear()
 
 
 class SessionStore:
@@ -56,17 +67,20 @@ class SessionStore:
         return session
 
     def lock(self, session_id: str) -> asyncio.Lock:
-        """One message at a time per session (a double tap must not run a check twice)."""
+        """One change at a time per session: a double tap must not run a check twice, and a
+        finishing background check must not overwrite a message being handled."""
         return self._locks.setdefault(session_id, asyncio.Lock())
 
     def clear(self) -> None:
+        for session in self._sessions.values():
+            session.cancel_tasks()
         self._sessions.clear()
         self._locks.clear()
 
     def _prune(self) -> None:
         cutoff = _now() - SESSION_MAX_AGE
         for session_id in [k for k, s in self._sessions.items() if s.updated_at < cutoff]:
-            self._sessions.pop(session_id, None)
+            self._sessions.pop(session_id).cancel_tasks()
             self._locks.pop(session_id, None)
 
 

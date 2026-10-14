@@ -108,6 +108,10 @@ async def assistant_message(
     if session_id and chip != guided.CHIP_NEW_CHECK.id:
         session = _own_session(session_id, user)
     else:
+        old = store.get(session_id, user.user_id) if session_id else None
+        if old is not None:
+            async with store.lock(old.session_id):
+                old.cancel_tasks()
         session = store.create(user.user_id)
 
     async with store.lock(session.session_id):
@@ -117,20 +121,24 @@ async def assistant_message(
             turn = await guided.handle(session, user, text=text, image=image_bytes, chip=chip)
         else:
             turn = guided.start(session)
+        session.chips = turn.chips
         session.add_message("assistant", turn.reply)
 
-    return MessageResponse(
-        session_id=session.session_id,
-        reply=turn.reply,
-        chips=turn.chips,
-        awaiting=session.awaiting,
-        checks=session.case.as_list(),
-        result=turn.result,
-    )
+        return MessageResponse(
+            session_id=session.session_id,
+            reply=turn.reply,
+            chips=turn.chips,
+            awaiting=session.awaiting,
+            checks=session.case.as_list(),
+            running=bool(session.case.running()),
+            result=turn.result,
+        )
 
 
 @app.get("/assistant/session/{session_id}", response_model=SessionView)
 async def get_session(session_id: str, user: User = Depends(get_current_user)):
+    """The whole conversation. While `running` is true the app polls this every few seconds
+    to pick up the background check's message and, if it was the last one, the result."""
     session = _own_session(session_id, user)
     return SessionView(
         session_id=session.session_id,
@@ -138,6 +146,8 @@ async def get_session(session_id: str, user: User = Depends(get_current_user)):
         updated_at=session.updated_at,
         awaiting=session.awaiting,
         messages=session.messages,
+        chips=session.chips,
         checks=session.case.as_list(),
+        running=bool(session.case.running()),
         result=session.verdict,
     )

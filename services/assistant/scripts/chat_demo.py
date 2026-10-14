@@ -11,6 +11,9 @@ Type a message and press Enter. Buttons are shown as [1], [2], ...: type the num
     /session        print the saved conversation
     /quit           stop
 
+The company check runs in the background: its result is printed when it arrives (checked before
+each prompt), and when only the company check is left the script polls until it finishes.
+
 The login token is created from JWT_SECRET in services/assistant/.env unless --token is given.
 """
 
@@ -26,6 +29,7 @@ from pathlib import Path
 import httpx
 
 ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+POLL_SECONDS = 3
 
 
 def _token(cli_token: str | None) -> str:
@@ -44,18 +48,59 @@ def _token(cli_token: str | None) -> str:
     return jwt.encode(payload, secret, algorithm="HS256")
 
 
-def _show(body: dict) -> list[dict]:
-    print(f"\nAssistant: {body['reply']}")
-    result = body.get("result")
+def _show(text: str, chips: list[dict], result: dict | None) -> None:
+    print(f"\nAssistant: {text}")
     if result:
         print(f"\n  === {result['title']} ({result['colour']}) ===")
         if result.get("note"):
             print(f"  {result['note']}")
         print(f"  {result['disclaimer']}")
-    chips = body.get("chips") or []
     if chips:
         print("  " + "   ".join(f"[{i}] {c['label']}" for i, c in enumerate(chips, 1)))
-    return chips
+
+
+class Demo:
+    def __init__(self, client: httpx.Client):
+        self.client = client
+        self.session_id: str | None = None
+        self.chips: list[dict] = []
+        self.seen = 0  # messages in the conversation already printed
+
+    def send(self, **form) -> dict:
+        image = form.pop("image", None)
+        files = {"image": (image.name, image.read_bytes())} if image else None
+        data = {k: v for k, v in {"session_id": self.session_id, **form}.items() if v}
+        res = self.client.post("/assistant/message", data=data, files=files)
+        if res.status_code != 200:
+            print(f"\n[error {res.status_code}] {res.text}")
+            return {}
+        body = res.json()
+        if body["session_id"] != self.session_id:
+            self.session_id, self.seen = body["session_id"], 0
+        self.chips = body["chips"]
+        _show(body["reply"], body["chips"], body.get("result"))
+        self.sync(skip_text=body["reply"])
+        if body["awaiting"] == "waiting":
+            self.wait()
+        return body
+
+    def sync(self, skip_text: str | None = None) -> dict:
+        """Print assistant messages added by background checks since the last look."""
+        view = self.client.get(f"/assistant/session/{self.session_id}").json()
+        new = [m for m in view["messages"][self.seen:] if m["role"] == "assistant" and m["text"] != skip_text]
+        self.seen = len(view["messages"])
+        for m in new:
+            self.chips = view["chips"]
+            _show(m["text"], view["chips"], view.get("result"))
+        return view
+
+    def wait(self) -> None:
+        print("  (waiting for the background check...)")
+        while True:
+            time.sleep(POLL_SECONDS)
+            view = self.sync()
+            if view["awaiting"] != "waiting":
+                return
 
 
 def main() -> None:
@@ -65,26 +110,13 @@ def main() -> None:
     args = p.parse_args()
 
     headers = {"Authorization": f"Bearer {_token(args.token)}"}
-    # Long timeout: the company check can take up to 90 seconds.
-    with httpx.Client(base_url=args.url, headers=headers, timeout=200) as client:
-
-        def send(**form) -> dict:
-            image = form.pop("image", None)
-            files = {"image": (image.name, image.read_bytes())} if image else None
-            data = {k: v for k, v in form.items() if v}
-            res = client.post("/assistant/message", data=data, files=files)
-            if res.status_code != 200:
-                print(f"\n[error {res.status_code}] {res.text}")
-                return {}
-            return res.json()
-
-        body = send()
-        if not body:
+    with httpx.Client(base_url=args.url, headers=headers, timeout=120) as client:
+        demo = Demo(client)
+        if not demo.send():
             return
-        session_id = body["session_id"]
-        chips = _show(body)
 
         while True:
+            demo.sync()
             try:
                 line = input("\nYou: ").strip()
             except (EOFError, KeyboardInterrupt):
@@ -95,26 +127,19 @@ def main() -> None:
             if line == "/quit":
                 return
             if line == "/session":
-                print(json.dumps(client.get(f"/assistant/session/{session_id}").json(), indent=2))
+                print(json.dumps(client.get(f"/assistant/session/{demo.session_id}").json(), indent=2))
                 continue
 
-            form = {"session_id": session_id}
-            if line.isdigit() and 1 <= int(line) <= len(chips):
-                form["chip"] = chips[int(line) - 1]["id"]
+            if line.isdigit() and 1 <= int(line) <= len(demo.chips):
+                demo.send(chip=demo.chips[int(line) - 1]["id"])
             elif line.startswith("/image "):
                 path = Path(line[len("/image "):].strip().strip('"'))
                 if not path.is_file():
                     print(f"No such file: {path}")
                     continue
-                form["image"] = path
+                demo.send(image=path)
             else:
-                form["text"] = line
-
-            print("  ...")
-            body = send(**form)
-            if body:
-                session_id = body["session_id"]
-                chips = _show(body)
+                demo.send(text=line)
 
 
 if __name__ == "__main__":

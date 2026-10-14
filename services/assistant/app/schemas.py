@@ -68,6 +68,7 @@ Awaiting = Literal[
     "company",
     "recruiter_question",
     "recruiter_chat",
+    "waiting",  # everything else is answered; a background check (company) is still running
     "finished",
 ]
 
@@ -91,6 +92,8 @@ class MessageResponse(BaseModel):
     chips: List[Chip]
     awaiting: Awaiting
     checks: List[CheckResult]
+    # True while a background check runs: the app polls GET /assistant/session/{id} for its result.
+    running: bool = False
     result: Optional[Verdict] = None
 
 
@@ -100,5 +103,7 @@ class SessionView(BaseModel):
     updated_at: datetime
     awaiting: Awaiting
     messages: List[ChatMessage]
+    chips: List[Chip]
     checks: List[CheckResult]
+    running: bool = False
     result: Optional[Verdict] = None

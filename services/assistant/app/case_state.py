@@ -29,8 +29,15 @@ class CaseState(BaseModel):
         self.checks[source] = CheckResult(source=source, status=status)
 
     def remaining(self) -> List[CheckSource]:
-        """Checks still to do, in the order the assistant asks for them."""
+        """Checks not finished yet (including running ones), in the order the assistant asks for them."""
         return [s for s in CHECK_ORDER if self.checks[s].status not in FINISHED_STATUSES]
+
+    def to_ask(self) -> List[CheckSource]:
+        """Checks the user still has to give input for (never asked, or failed and worth retrying)."""
+        return [s for s in CHECK_ORDER if self.checks[s].status in ("missing", "failed")]
+
+    def running(self) -> List[CheckSource]:
+        return [s for s in CHECK_ORDER if self.checks[s].status == "running"]
 
     def is_complete(self) -> bool:
         return not self.remaining()
