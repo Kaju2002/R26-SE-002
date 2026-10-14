@@ -29,18 +29,25 @@ def chat(monkeypatch):
     import_module("assistant", "app.config").get_settings.cache_clear()
     main = import_module("assistant", "app.main")
     main.store.clear()
-    yield Chat(main, monkeypatch)
+    # One event loop for the whole test, so background checks keep running between requests.
+    loop = asyncio.new_event_loop()
+    yield Chat(main, monkeypatch, loop)
     main.store.clear()
+    loop.run_until_complete(asyncio.sleep(0))
+    loop.close()
 
 
 class Chat:
     """Talks to the app in-process and fakes the three checks."""
 
-    def __init__(self, main, monkeypatch):
+    def __init__(self, main, monkeypatch, loop):
         self.main = main
+        self.loop = loop
         self.guided = main.guided
         self.CheckResult = self.guided.CheckResult
         self.calls: list[tuple] = []
+        # Set to an asyncio.Event to hold the company check until the test releases it.
+        self.company_gate = None
         self.results = {
             "job_post": self.done("job_post", "high", "Likely fake."),
             "company": self.done("company", "high", "Could not verify."),
@@ -58,6 +65,8 @@ class Chat:
 
         async def company(company_name=None, website_url=None, email=None):
             self.calls.append(("company", company_name, website_url, email))
+            if self.company_gate is not None:
+                await self.company_gate.wait()
             return self.results["company"]
 
         async def recruiter_text(text, *, auth_token):
@@ -85,7 +94,24 @@ class Chat:
             async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
                 return await client.request(method, path, headers=headers, **kwargs)
 
-        return asyncio.run(run())
+        return self.loop.run_until_complete(run())
+
+    def hold_company(self):
+        self.company_gate = asyncio.Event()
+
+    def release_company(self):
+        self.company_gate.set()
+        self.settle()
+
+    def settle(self):
+        """Let background checks run until they are finished or blocked."""
+        for _ in range(5):
+            self.loop.run_until_complete(asyncio.sleep(0.01))
+
+    def session(self, session_id) -> dict:
+        res = self.request("GET", f"/assistant/session/{session_id}")
+        assert res.status_code == 200, res.text
+        return res.json()
 
     def send(self, session_id=None, *, text=None, chip=None, image=None, token=None) -> dict:
         data = {k: v for k, v in {"session_id": session_id, "text": text, "chip": chip}.items() if v is not None}
@@ -149,6 +175,7 @@ def test_full_scam_flow_job_post_company_recruiter(chat):
     assert body["awaiting"] == "company"
 
     body = chat.send(sid, text="ABC Holdings, abc.jobs@gmail.com")
+    chat.settle()
     assert ("company", "ABC Holdings", None, "abc.jobs@gmail.com") in chat.calls
     assert body["awaiting"] == "recruiter_question"
     assert _chip_ids(body) == ["recruiter_yes", "recruiter_no", "skip"]
@@ -185,6 +212,7 @@ def test_all_low_gives_green(chat):
     chat.send(sid, chip="check_job_post")
     chat.send(sid, text="A normal job post text here")
     chat.send(sid, text="Dialog Axiata PLC, www.dialog.lk")
+    chat.settle()
     chat.send(sid, chip="recruiter_yes")
 
     body = chat.send(sid, text="Please attend the interview at our office on Monday.")
@@ -225,6 +253,7 @@ def test_start_with_company_then_job_post(chat):
     chat.send(sid, chip="check_company")
 
     body = chat.send(sid, text="Company: ABC Holdings")
+    chat.settle()
 
     assert chat.calls == [("company", "ABC Holdings", None, None)]
     assert body["awaiting"] == "job_post"
@@ -287,6 +316,7 @@ def test_recruiter_question_accepts_messages_directly(chat):
     chat.send(sid, chip="check_job_post")
     chat.send(sid, text="A normal job post text here")
     chat.send(sid, text="Dialog Axiata PLC")
+    chat.settle()
 
     body = chat.send(sid, image=PNG)
 
@@ -347,3 +377,131 @@ def test_unknown_session_is_404(chat):
 def test_overlong_message_is_rejected(chat):
     res = chat.request("POST", "/assistant/message", data={"text": "x" * 10_001})
     assert res.status_code == 413
+
+
+# ─── BACKGROUND COMPANY CHECK ────────────────────────────────────
+
+
+def _start_at(chat, chip: str) -> str:
+    sid = chat.send()["session_id"]
+    chat.send(sid, chip=chip)
+    return sid
+
+
+def test_company_check_runs_in_background_while_chat_goes_on(chat):
+    chat.hold_company()
+    sid = _start_at(chat, "check_company")
+
+    body = chat.send(sid, text="ABC Holdings, abc.jobs@gmail.com")
+
+    assert "I'm checking the company now" in body["reply"]
+    assert "Next, let's check the job post." in body["reply"]
+    assert body["awaiting"] == "job_post"
+    assert body["running"] is True
+    assert _status(body)["company"] == "running"
+
+    chat.release_company()
+    view = chat.session(sid)
+    assert view["running"] is False
+    assert _status(view)["company"] == "done"
+    assert view["messages"][-1]["text"].startswith("Company check: shows strong warning signs.")
+    assert view["awaiting"] == "job_post"
+
+
+def test_result_waits_for_the_company_check(chat):
+    chat.hold_company()
+    sid = _start_at(chat, "check_company")
+    chat.send(sid, text="ABC Holdings")
+    chat.send(sid, text="Earn Rs 5,000 daily, pay registration fee")
+
+    body = chat.send(sid, chip="recruiter_no")
+
+    assert body["awaiting"] == "waiting"
+    assert body["result"] is None
+    assert "I'm still checking the company" in body["reply"]
+    assert _chip_ids(body) == ["skip"]
+    assert chat.send(sid, text="hello?")["awaiting"] == "waiting"
+
+    chat.release_company()
+    view = chat.session(sid)
+    assert view["awaiting"] == "finished"
+    assert view["result"]["colour"] == "red"
+    assert _chip_ids(view) == ["new_check"]
+    assert view["messages"][-1]["text"].startswith("Company check: shows strong warning signs.")
+    assert view["messages"][-1]["text"].endswith("That's everything. Here is your result.")
+
+
+def test_skip_while_waiting_gives_a_partial_result(chat):
+    chat.hold_company()
+    chat.results["job_post"] = chat.done("job_post", "low", "Fine.")
+    sid = _start_at(chat, "check_company")
+    chat.send(sid, text="ABC Holdings")
+    chat.send(sid, text="A normal job post text here")
+    chat.send(sid, chip="recruiter_no")
+
+    body = chat.send(sid, chip="skip")
+
+    assert "skipped the company check" in body["reply"]
+    assert body["result"]["partial"] is True
+    assert body["result"]["not_checked"] == ["company"]
+    messages = len(chat.session(sid)["messages"])
+    chat.release_company()
+    view = chat.session(sid)
+    assert _status(view)["company"] == "skipped"
+    assert len(view["messages"]) == messages
+
+
+def test_company_check_timeout_asks_again(chat, monkeypatch):
+    monkeypatch.setenv("EMPLOYER_CHECK_TIMEOUT_SECONDS", "0.05")
+    chat.guided.get_settings.cache_clear()
+    monkeypatch.setattr(chat.guided.background, "GRACE_SECONDS", 0)
+    chat.hold_company()
+    sid = _start_at(chat, "check_recruiter")
+    chat.send(sid, text="Pay Rs 3000 today")
+    chat.send(sid, text="Earn Rs 5,000 daily, pay registration fee")
+    assert chat.send(sid, text="ABC Holdings")["awaiting"] == "waiting"
+
+    chat.loop.run_until_complete(asyncio.sleep(0.3))
+    view = chat.session(sid)
+    assert _status(view)["company"] == "failed"
+    assert "The company check took too long." in view["messages"][-1]["text"]
+    assert view["awaiting"] == "company"
+    assert _chip_ids(view) == ["skip"]
+
+    chat.company_gate = None
+    chat.send(sid, text="ABC Holdings")
+    chat.settle()
+    assert chat.session(sid)["result"]["colour"] == "red"
+
+
+def test_failed_company_check_is_asked_again_later(chat):
+    chat.results["company"] = chat.CheckResult(
+        source="company", status="failed", risk="unknown",
+        reasons=["The company check is not available right now."],
+    )
+    sid = _start_at(chat, "check_company")
+    chat.send(sid, text="ABC Holdings")
+    chat.settle()
+
+    view = chat.session(sid)
+    assert "We can try it again after the other checks." in view["messages"][-1]["text"]
+    assert view["awaiting"] == "job_post"
+
+    body = chat.send(sid, text="Earn Rs 5,000 daily, pay registration fee")
+    assert "Next, let's check the company." in body["reply"]
+    assert body["awaiting"] == "company"
+
+
+def test_new_check_stops_the_old_company_check(chat):
+    chat.hold_company()
+    sid = _start_at(chat, "check_company")
+    chat.send(sid, text="ABC Holdings")
+
+    new = chat.send(sid, chip="new_check")
+    chat.release_company()
+
+    assert new["session_id"] != sid
+    old = chat.session(sid)
+    assert old["running"] is False
+    assert _status(old)["company"] == "skipped"
+    assert not old["messages"][-1]["text"].startswith("Company check")

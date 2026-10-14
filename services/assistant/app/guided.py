@@ -4,12 +4,15 @@
 #
 # Checks can be done in any order. After each check the assistant asks for the next missing
 # one, even when the result looks fine, and shows the combined result when none is left.
+# The company check is slow, so it runs in the background while the conversation goes on.
 
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from app import background
 from app.auth import User
 from app.company_input import parse_company_details
+from app.config import get_settings
 from app.schemas import CheckResult, CheckSource, Chip, Verdict
 from app.sessions import Session
 from app.tools.company import check_company
@@ -70,6 +73,10 @@ LOOKS_FINE_SO_FAR = (
     "so let's check a bit more before you decide."
 )
 FINISHED_REPLY = "This check is finished. Tap \"Start a new check\" to check something else."
+CHECKING_COMPANY = (
+    "I'm checking the company now. This can take up to 90 seconds, so let's carry on meanwhile. "
+    "I'll tell you as soon as it's done."
+)
 
 
 @dataclass
@@ -84,7 +91,12 @@ def _label(source: CheckSource) -> str:
 
 
 def _menu_chips(session: Session) -> List[Chip]:
-    return [_MENU_CHIP_FOR[s] for s in session.case.remaining()]
+    return [_MENU_CHIP_FOR[s] for s in session.case.to_ask()]
+
+
+def _still_checking(session: Session) -> str:
+    labels = " and the ".join(_label(s) for s in session.case.running())
+    return f"I'm still checking the {labels}. This can take up to 90 seconds. I'll show your result as soon as it's ready."
 
 
 def describe(result: CheckResult) -> str:
@@ -108,45 +120,84 @@ def _ask(session: Session, source: CheckSource, intro: str = "") -> Turn:
 
 
 def _advance(session: Session, prefix: str, last: Optional[CheckResult] = None) -> Turn:
-    """Ask for the next missing check, or show the result when nothing is left."""
-    remaining = session.case.remaining()
-    if not remaining:
-        session.awaiting = "finished"
-        session.verdict = combine(session.case.as_list())
-        return Turn(f"{prefix}\n\nThat's everything. Here is your result.".strip(), [CHIP_NEW_CHECK], session.verdict)
-
+    """Ask for the next missing check, wait for a running one, or show the result when nothing is left."""
     intro = f"{prefix}\n\n" if prefix else ""
-    if last is not None and last.risk == "low":
-        intro += f"{LOOKS_FINE_SO_FAR}\n\n"
-    nxt = remaining[0]
-    if nxt != "recruiter_chat":
-        intro += f"Next, let's check the {_label(nxt)}. "
-    return _ask(session, nxt, intro)
+    to_ask = session.case.to_ask()
+    if to_ask:
+        if last is not None and last.risk == "low":
+            intro += f"{LOOKS_FINE_SO_FAR}\n\n"
+        nxt = to_ask[0]
+        if nxt != "recruiter_chat":
+            intro += f"Next, let's check the {_label(nxt)}. "
+        return _ask(session, nxt, intro)
+
+    if session.case.running():
+        session.awaiting = "waiting"
+        return Turn(f"{intro}{_still_checking(session)}", [CHIP_SKIP])
+
+    session.awaiting = "finished"
+    session.verdict = combine(session.case.as_list())
+    return Turn(f"{intro}That's everything. Here is your result.", [CHIP_NEW_CHECK], session.verdict)
 
 
-async def _run_check(
-    source: CheckSource, text: Optional[str], image: Optional[bytes], user: User
-) -> Optional[CheckResult]:
-    """Run the check for this content. None if the content type does not fit (e.g. a company image)."""
+def _background_finished(session: Session, result: CheckResult) -> None:
+    """A background check finished (called with the session locked): save it and tell the user."""
+    session.case.set(result)
+    waiting = session.awaiting == "waiting"
+    label = _label(result.source)
+
+    if result.status == "failed":
+        reason = result.reasons[0] if result.reasons else "Something went wrong."
+        if waiting:
+            session.awaiting = result.source
+            session.chips = [CHIP_SKIP]
+            text = f"I couldn't complete the {label} check: {reason} {PROMPTS[result.source]} Or tap Skip."
+        else:
+            text = f"I couldn't complete the {label} check: {reason} We can try it again after the other checks."
+        session.add_message("assistant", text)
+        return
+
+    if waiting:
+        turn = _advance(session, describe(result), last=result)
+        session.chips = turn.chips
+        session.add_message("assistant", turn.reply)
+    else:
+        session.add_message("assistant", describe(result))
+
+
+def _start_company_check(session: Session, text: Optional[str], image: Optional[bytes]) -> Turn:
+    session.awaiting = "company"
+    if image:
+        return Turn("I can't read company details from an image. " + PROMPTS["company"], [CHIP_SKIP])
+    details = parse_company_details(text or "")
+    if not any(details.values()):
+        return Turn("I couldn't find a company name, website or email in that. " + PROMPTS["company"], [CHIP_SKIP])
+
+    background.start(
+        session,
+        "company",
+        lambda: check_company(**details),
+        _background_finished,
+        timeout=get_settings().employer_check_timeout_seconds,
+    )
+    return _advance(session, CHECKING_COMPANY)
+
+
+async def _run_check(source: CheckSource, text: Optional[str], image: Optional[bytes], user: User) -> CheckResult:
     if source == "job_post":
         return await (check_job_post_image(image) if image else check_job_post_text(text or ""))
-    if source == "recruiter_chat":
-        if image:
-            return await check_recruiter_image(image, auth_token=user.token)
-        return await check_recruiter_text(text or "", auth_token=user.token)
     if image:
-        return None
-    return await check_company(**parse_company_details(text or ""))
+        return await check_recruiter_image(image, auth_token=user.token)
+    return await check_recruiter_text(text or "", auth_token=user.token)
 
 
 async def _check_and_advance(
     session: Session, source: CheckSource, text: Optional[str], image: Optional[bytes], user: User
 ) -> Turn:
-    result = await _run_check(source, text, image, user)
-    if result is None:
-        session.awaiting = source
-        return Turn("I can't read company details from an image. " + PROMPTS["company"], [CHIP_SKIP])
+    if source == "company":
+        return _start_company_check(session, text, image)
 
+    result = await _run_check(source, text, image, user)
     session.case.set(result)
     if result.status == "failed":
         session.awaiting = source
@@ -174,6 +225,15 @@ async def handle(
         source = "recruiter_chat" if stage == "recruiter_question" else stage
         session.case.mark(source, "skipped")
         return _advance(session, f"Okay, I skipped the {_label(source)} check.")
+
+    if stage == "waiting":
+        if chip == CHIP_SKIP.id:
+            skipped = session.case.running()
+            for source in skipped:
+                background.cancel(session, source)
+                session.case.mark(source, "skipped")
+            return _advance(session, f"Okay, I skipped the {' and the '.join(map(_label, skipped))} check.")
+        return Turn(_still_checking(session), [CHIP_SKIP])
 
     if stage == "menu":
         if chip in (CHIP_JOB_POST.id, CHIP_COMPANY.id, CHIP_RECRUITER.id):
