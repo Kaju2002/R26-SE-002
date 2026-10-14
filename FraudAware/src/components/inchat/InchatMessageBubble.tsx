@@ -159,7 +159,8 @@ export default function InchatMessageBubble({
   const mine = message.role === 'user';
   const isUnsent = message.unsent === true;
   // FraudAware: warn jobseekers on inbound recruiter messages only.
-  const isFlagged = !mine && message.scamAnalysis?.status === 'flagged';
+  const scamStatus = mine ? undefined : message.scamAnalysis?.status;
+  const showScamWarning = scamStatus === 'flagged' || scamStatus === 'suspicious';
   const status = receiptStatus(message, mine);
   const imageAttachment =
     message.messageType === 'image'
@@ -179,7 +180,7 @@ export default function InchatMessageBubble({
     !imageAttachment &&
     !fileAttachment &&
     !audioAttachment &&
-    !isFlagged &&
+    !showScamWarning &&
     message.body.length <= 28 &&
     !message.body.includes('\n');
   const receiptColor =
@@ -191,21 +192,21 @@ export default function InchatMessageBubble({
         style={[
           styles.bubble,
           mine ? styles.bubbleMine : styles.bubbleTheirs,
-          isFlagged && styles.bubbleFlagged,
+          showScamWarning && styles.bubbleFlagged,
           Boolean(imageAttachment || fileAttachment || audioAttachment) &&
-            !isFlagged &&
+            !showScamWarning &&
             styles.bubbleWithImage,
-          Boolean(audioAttachment) && !isFlagged && styles.bubbleWithAudio,
-          isFlagged && styles.bubbleCombined,
+          Boolean(audioAttachment) && !showScamWarning && styles.bubbleWithAudio,
+          showScamWarning && styles.bubbleCombined,
         ]}
       >
         <View
           style={[
-            isFlagged && styles.bubbleContent,
-            isFlagged &&
+            showScamWarning && styles.bubbleContent,
+            showScamWarning &&
               Boolean(imageAttachment || fileAttachment || audioAttachment) &&
               styles.bubbleWithImage,
-            isFlagged && Boolean(audioAttachment) && styles.bubbleWithAudio,
+            showScamWarning && Boolean(audioAttachment) && styles.bubbleWithAudio,
           ]}
         >
           {imageAttachment ? (
@@ -303,11 +304,12 @@ export default function InchatMessageBubble({
           ) : null}
         </View>
 
-        {isFlagged ? (
+        {showScamWarning ? (
           <InchatScamSafetyBanner
             score={message.scamAnalysis?.score}
             tactics={message.scamAnalysis?.tactics}
             onReport={onReportScam}
+            variant={scamStatus === 'suspicious' ? 'caution' : 'unsafe'}
           />
         ) : null}
       </View>

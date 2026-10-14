@@ -25,8 +25,9 @@ export function getHealthUrl(): string {
   return `${getApiBase()}/health`;
 }
 
-export function getHistoryUrl(userId: string): string {
-  return `${getApiBase()}/history/${encodeURIComponent(userId)}`;
+/** History routes use the logged-in user from the Authorization header. */
+export function getHistoryUrl(): string {
+  return `${getApiBase()}/history`;
 }
 
 export function getScanDetailUrl(scanId: string): string {
@@ -37,6 +38,6 @@ export function getDeleteScanUrl(scanId: string): string {
   return `${getApiBase()}/history/${encodeURIComponent(scanId)}`;
 }
 
-export function getClearHistoryUrl(userId: string): string {
-  return `${getApiBase()}/history/clear/${encodeURIComponent(userId)}`;
+export function getClearHistoryUrl(): string {
+  return `${getApiBase()}/history`;
 }

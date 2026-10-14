@@ -1,0 +1,16 @@
+{
+  "bstd_phase1_corpus.csv": "7e869527faf6b0286ca4c7a2f9e8052e068b9dab6f05495c9e8806aeb6506d6c",
+  "bstd_tactic_real.csv": "ef4a94a3371487af943f50d4559c7b5ced13c9082fda164a4978499faef090dd",
+  "bstd_real_collected.csv": "5cbadc574302f23ad445569aed56a0fa0784c837a75a8bdd5589d6168856eb0b",
+  "bstd_tactic_synthetic.csv": "ee113a50d356cd9011c068fb8ae495c1dc44ccae8ca0c889d8f0a2aa7409fe16",
+  "bstd_tactic_main_dataset.csv": "dc4567cc8f5b990c693f4e2f6569eca9d74240e7f53695e878357490e7f0e67f",
+  "bstd_tactic_patterns.csv": "66fc453c48cd6c8a730508ea3d021243da8ac1f4130b977db9dc75c9f617f275",
+  "bstd_tactic_sunk_cost_extended.csv": "30fd06df0df738bab0213d878f11126dc04aa399a01a2ac5e58f888b13174b46",
+  "bstd_tactic_email_scams.csv": "fdff0c48fe094af8d07d92880f4b00714826e8ee5652b2eaa6ee20a14c58b496",
+  "bstd_augmentation_combined.csv": "ecab0411ac9a98107d476981fb1dfb5acf996687cde06bdfc0bd47dd60a4c794",
+  "bstd_augmentation_v3_formal_negation_fix.csv": "20ac577f5c7bf3edb2f56508749ab034eb6729a2f4114ba8f17cbeac8d91d70d",
+  "samjukktha_cleaned.csv": "4d908393c7ee4caf9af71c4fe92dd9dacf08766a28457695a610a315c4f1358f",
+  "sakshi_cleaned.csv": "34af89e0c66ef407194b201dd106b76b7d0d9d3217d761c2c195ea06578dc43e",
+  "Dataset_5971.csv": "649844f1c62a6b27e145eaf17a65f7010c56c390e11a794ea8329993a05ba71e",
+  "analysisdataset.csv": "55dd9a19d48b51a86acd35b97cfa50f77453488434498521ce1f6ba5d52bef15"
+}

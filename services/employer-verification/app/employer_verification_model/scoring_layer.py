@@ -82,7 +82,7 @@ def check_lk_registration(company_name: str, website: str = None) -> Dict[str, i
     return result
 
 
-def check_reputation(company_name: str, website: str = None) -> Dict[str, int]:
+def check_reputation(company_name: str, website: str = None, progress: dict | None = None) -> Dict[str, int]:
     """
     Check company's online reputation and presence.
     Uses review_aggregator (website links + social URL + name-based review search),
@@ -93,7 +93,7 @@ def check_reputation(company_name: str, website: str = None) -> Dict[str, int]:
     logger.debug("[REP] Checking %s", company_name)
 
     normalized = _normalize_url(website) if website else None
-    result = aggregate_review_signals(company_name or "", normalized)
+    result = aggregate_review_signals(company_name or "", normalized, progress)
 
     if any(
         keyword in (company_name or "").lower()
@@ -233,7 +233,8 @@ def calculate_final_score(
         )
 
         if reg.get("government_registration_status") == "unverified":
-            reg_score = 10
+            # A legal name taken from the website and found in a register is a claim, not proof: 15 of 30 at most.
+            reg_score = 15 if reg.get("registration_via_website_name") else 10
             reg_notes.append(
                 "Sri Lanka registration hint found, but official registration was not confirmed"
             )

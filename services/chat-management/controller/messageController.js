@@ -9,6 +9,7 @@ import {
   isUserOnline,
 } from "../config/socket.js";
 import { analyzeMessageForScam } from "../utils/scamDetectionClient.js";
+import { scanImageAttachmentInBackground } from "../utils/imageScamScan.js";
 import { fetchApplication } from "../utils/jobManagementClient.js";
 import { publishEvent } from "../utils/publishEvent.js";
 import { EVENT_TYPES } from "../constants/eventTypes.js";
@@ -298,19 +299,10 @@ export const deleteMessage = async (req, res) => {
       });
     }
 
+    // Original content is kept for scam-report evidence; formatMessage hides it from both users.
     message.deletedForEveryone = true;
     message.deletedAt = now;
     message.deletedBy = String(req.userId);
-    message.body = DELETED_EVERYONE_PREVIEW;
-    message.attachments = [];
-    message.messageType = "system";
-    message.scamAnalysis = {
-      status: "not_checked",
-      isScam: false,
-      score: null,
-      tactics: [],
-      analyzedAt: null,
-    };
     await message.save();
 
     const wasLastMessage =
@@ -540,9 +532,10 @@ export const sendMessage = async (req, res) => {
         ? null
         : new Date();
 
-    const scamAnalysis =
-      isRecruiterSender && !silentUndelivered && body
-        ? await analyzeMessageForScam(body, req.userId)
+    const shouldScan = isRecruiterSender && !silentUndelivered;
+    const textAnalysis =
+      shouldScan && body
+        ? await analyzeMessageForScam(body)
         : {
             status: "not_checked",
             isScam: false,
@@ -550,6 +543,13 @@ export const sendMessage = async (req, res) => {
             tactics: [],
             analyzedAt: null,
           };
+    // Recruiter images are OCR-checked after sending; "pending" until that finishes,
+    // unless the caption alone is already flagged.
+    const scanImageLater = shouldScan && hasImage;
+    const scamAnalysis =
+      scanImageLater && textAnalysis.status !== "flagged"
+        ? { ...textAnalysis, status: "pending" }
+        : textAnalysis;
 
     const durationMs = Number(req.body?.durationMs) || 0;
     const messageType = hasImage
@@ -606,6 +606,17 @@ export const sendMessage = async (req, res) => {
 
       const chatMessage = formatMessage(message);
       emitNewMessage(conversationId, chatMessage, eventConversation);
+
+      if (scanImageLater) {
+        void scanImageAttachmentInBackground({
+          messageId: message._id,
+          conversationId,
+          conversation: eventConversation,
+          file: imageFile,
+          textAnalysis,
+          formatMessage,
+        });
+      }
 
       // Notify the jobseeker in Notifications → General (banner already covers live toast).
       if (isRecruiterSender) {

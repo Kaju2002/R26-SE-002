@@ -1,0 +1,144 @@
+{
+  "data": {
+    "real_original_messages": 157,
+    "real_including_back_translations": 374,
+    "phase1_split_counts": {
+      "external": {
+        "legit": 0,
+        "scam": 973,
+        "total": 973
+      },
+      "test": {
+        "legit": 19,
+        "scam": 44,
+        "total": 63
+      },
+      "test_synth": {
+        "legit": 1084,
+        "scam": 633,
+        "total": 1717
+      },
+      "train": {
+        "legit": 9153,
+        "scam": 5581,
+        "total": 14734
+      },
+      "val": {
+        "legit": 1078,
+        "scam": 796,
+        "total": 1874
+      }
+    }
+  },
+  "phase1_real_test_mean_std": {
+    "accuracy": [
+      0.7936,
+      0.0275
+    ],
+    "macro_f1": [
+      0.7697,
+      0.0185
+    ],
+    "f1_scam": [
+      0.842,
+      0.032
+    ],
+    "f1_legit": [
+      0.6975,
+      0.0154
+    ],
+    "roc_auc": [
+      0.8971,
+      0.0072
+    ]
+  },
+  "phase1_external_recall_mean": 0.9236,
+  "phase1_heldout_accuracy_mean": 0.9654,
+  "phase2_heldout_mean_std": {
+    "macro_f1": [
+      0.8336,
+      0.0179
+    ],
+    "micro_f1": [
+      0.8283,
+      0.0136
+    ],
+    "exact_match": [
+      0.8563,
+      0.0082
+    ],
+    "hamming_loss": [
+      0.0574,
+      0.006
+    ]
+  },
+  "phase2_real_test_macro_f1_mean": 0.3127,
+  "baseline_phase1_real_test": {
+    "n": 63,
+    "threshold": 0.56,
+    "accuracy": 0.6984,
+    "precision_legit": 0.5,
+    "recall_legit": 0.8421,
+    "f1_legit": 0.6275,
+    "precision_scam": 0.9032,
+    "recall_scam": 0.6364,
+    "f1_scam": 0.7467,
+    "macro_f1": 0.6871,
+    "weighted_f1": 0.7107,
+    "support_legit": 19,
+    "support_scam": 44,
+    "accuracy_95ci": [
+      0.5873,
+      0.8095
+    ],
+    "f1_scam_95ci": [
+      0.623,
+      0.85
+    ],
+    "macro_f1_95ci": [
+      0.5675,
+      0.8035
+    ],
+    "roc_auc": 0.8098,
+    "pr_auc": 0.9142,
+    "confusion_matrix": [
+      [
+        16,
+        3
+      ],
+      [
+        16,
+        28
+      ]
+    ]
+  },
+  "mcnemar_phase1": [
+    {
+      "test_set": "REAL test",
+      "both_correct": 39,
+      "only_baseline_correct": 5,
+      "only_distilbert_correct": 12,
+      "both_wrong": 7,
+      "test": "exact binomial",
+      "p_value": 0.1435
+    },
+    {
+      "test_set": "Held-out synthetic test",
+      "both_correct": 1608,
+      "only_baseline_correct": 32,
+      "only_distilbert_correct": 51,
+      "both_wrong": 26,
+      "test": "chi-square",
+      "p_value": 0.0482
+    },
+    {
+      "test_set": "External Smishtank",
+      "both_correct": 576,
+      "only_baseline_correct": 9,
+      "only_distilbert_correct": 307,
+      "both_wrong": 81,
+      "test": "chi-square",
+      "p_value": 0.0
+    }
+  ]
+}

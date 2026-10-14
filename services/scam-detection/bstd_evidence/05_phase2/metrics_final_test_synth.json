@@ -1,0 +1,47 @@
+{
+  "n": 856,
+  "thresholds": {
+    "urgency": 0.05,
+    "fomo": 0.12,
+    "sunk_cost": 0.95,
+    "social_proof": 0.78
+  },
+  "per_tactic": [
+    {
+      "tactic": "urgency",
+      "precision": 0.7024,
+      "recall": 0.9833,
+      "f1": 0.8194,
+      "support": 180
+    },
+    {
+      "tactic": "fomo",
+      "precision": 0.7211,
+      "recall": 0.8618,
+      "f1": 0.7852,
+      "support": 123
+    },
+    {
+      "tactic": "sunk_cost",
+      "precision": 0.8866,
+      "recall": 0.8687,
+      "f1": 0.8776,
+      "support": 99
+    },
+    {
+      "tactic": "social_proof",
+      "precision": 0.8298,
+      "recall": 0.8357,
+      "f1": 0.8327,
+      "support": 140
+    }
+  ],
+  "macro_f1": 0.8287,
+  "micro_f1": 0.8244,
+  "exact_match": 0.8528,
+  "hamming_loss": 0.0605,
+  "macro_f1_95ci": [
+    0.7991,
+    0.8563
+  ]
+}

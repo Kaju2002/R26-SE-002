@@ -525,6 +525,22 @@ export function InchatProvider({ children }: { children: ReactNode }) {
       }
     );
 
+    // Background image scam check finished — swap in the message with its new scamAnalysis.
+    socket.on('message:updated', ({ chatMessage }: { chatMessage?: ChatMessage }) => {
+      if (!chatMessage || !user?.id) return;
+      const mapped = formatMessage(chatMessage, user.id);
+      setMessagesByThread((previous) => {
+        const thread = previous[mapped.threadId];
+        if (!thread?.some((message) => message.id === mapped.id)) return previous;
+        return {
+          ...previous,
+          [mapped.threadId]: thread.map((message) =>
+            message.id === mapped.id ? mapped : message
+          ),
+        };
+      });
+    });
+
     socket.on(
       'conversation:cleared',
       ({ conversationId }: { conversationId?: string }) => {

@@ -21,7 +21,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type { DetectStackParamList } from '../navigation/detectStackTypes';
 import { getClassifyImageUrl, getClassifyUrl, getOcrOnlyUrl } from '../config/messageAnalyzerApi';
-import { getOrCreateDeviceUserId } from '../lib/deviceUserId';
+import { useUser } from '../context/UserContext';
+import { authHeaders } from '../api/apiConfig';
 import {
   clearAllHistory,
   deleteHistoryScan,
@@ -48,6 +49,7 @@ const OCR_MIN_MEANINGFUL_CHARS = 20;
 type AnalysisLoadingSource = null | 'paste' | 'screenshot' | 'conversation';
 
 export default function MessageAnalyzerScreen({ navigation }: Props) {
+  const { token } = useUser();
   const [messageText, setMessageText] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingSource, setLoadingSource] = useState<AnalysisLoadingSource>(null);
@@ -58,17 +60,29 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
   const [analysisBlocked, setAnalysisBlocked] = useState(false);
 
   const loadHistory = useCallback(async () => {
+    if (!token) {
+      setRecentScans([]);
+      return;
+    }
     setHistoryLoading(true);
     try {
-      const userId = await getOrCreateDeviceUserId();
-      const data = await fetchHistory(userId);
+      const data = await fetchHistory(token);
       setRecentScans(data.scans.map(historyScanToRecentItem));
     } catch {
       setRecentScans([]);
     } finally {
       setHistoryLoading(false);
     }
-  }, []);
+  }, [token]);
+
+  /** Scam API calls need the login token; returns null after telling the user to sign in. */
+  const requireToken = useCallback((): string | null => {
+    if (!token) {
+      Alert.alert('Please sign in again', 'Your session has ended. Log in to analyze messages.');
+      return null;
+    }
+    return token;
+  }, [token]);
 
   const refreshHealthOnly = useCallback(async () => {
     const h = await fetchHealth();
@@ -118,8 +132,10 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
             text: 'Delete',
             style: 'destructive',
             onPress: async () => {
+              const authToken = requireToken();
+              if (!authToken) return;
               try {
-                await deleteHistoryScan(scanId);
+                await deleteHistoryScan(authToken, scanId);
                 await loadHistory();
               } catch (e) {
                 Alert.alert('Could not delete', e instanceof Error ? e.message : 'Unknown error');
@@ -129,7 +145,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         ]
       );
     },
-    [loadHistory]
+    [loadHistory, requireToken]
   );
 
   const confirmClearAll = useCallback(() => {
@@ -142,9 +158,10 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
           text: 'Clear all',
           style: 'destructive',
           onPress: async () => {
+            const authToken = requireToken();
+            if (!authToken) return;
             try {
-              const userId = await getOrCreateDeviceUserId();
-              await clearAllHistory(userId);
+              await clearAllHistory(authToken);
               await loadHistory();
             } catch (e) {
               Alert.alert('Could not clear history', e instanceof Error ? e.message : 'Unknown error');
@@ -153,7 +170,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         },
       ]
     );
-  }, [loadHistory]);
+  }, [loadHistory, requireToken]);
 
   const onAnalyze = useCallback(async () => {
     const text = messageText.trim();
@@ -168,14 +185,16 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       if (!(await ensureServerReadyForAnalysis())) {
         return;
       }
-      const userId = await getOrCreateDeviceUserId();
+      const authToken = requireToken();
+      if (!authToken) return;
       const response = await fetch(getClassifyUrl(), {
         method: 'POST',
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          ...authHeaders(authToken),
         },
-        body: JSON.stringify({ text, user_id: userId }),
+        body: JSON.stringify({ text }),
       });
       if (!response.ok) {
         const errMsg = await readClassifyError(response);
@@ -196,7 +215,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       setLoadingSource(null);
       setLoadingText('');
     }
-  }, [ensureServerReadyForAnalysis, loadHistory, messageText, navigation]);
+  }, [ensureServerReadyForAnalysis, loadHistory, messageText, navigation, requireToken]);
 
   const onUploadScreenshot = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -220,9 +239,9 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       if (!(await ensureServerReadyForAnalysis())) {
         return;
       }
-      const userId = await getOrCreateDeviceUserId();
+      const authToken = requireToken();
+      if (!authToken) return;
       const form = new FormData();
-      form.append('user_id', userId);
       form.append('file', {
         uri: asset.uri,
         name: asset.fileName ?? 'screenshot.jpg',
@@ -233,6 +252,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         method: 'POST',
         headers: {
           Accept: 'application/json',
+          ...authHeaders(authToken),
         },
         body: form,
       });
@@ -265,7 +285,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       setLoadingSource(null);
       setLoadingText('');
     }
-  }, [ensureServerReadyForAnalysis, loadHistory, navigation]);
+  }, [ensureServerReadyForAnalysis, loadHistory, navigation, requireToken]);
 
   const onAnalyzeConversationScreenshots = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -295,7 +315,8 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         return;
       }
 
-      const userId = await getOrCreateDeviceUserId();
+      const authToken = requireToken();
+      if (!authToken) return;
       const extractedTexts: string[] = [];
       const failedIndexes: number[] = [];
 
@@ -304,7 +325,6 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         setLoadingText(`Reading screenshot ${i + 1} of ${assets.length}...`);
         try {
           const form = new FormData();
-          form.append('user_id', userId);
           form.append('file', {
             uri: asset.uri,
             name: asset.fileName ?? `screenshot-${i + 1}.jpg`,
@@ -315,6 +335,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
             method: 'POST',
             headers: {
               Accept: 'application/json',
+              ...authHeaders(authToken),
             },
             body: form,
           });
@@ -354,11 +375,9 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
+          ...authHeaders(authToken),
         },
-        body: JSON.stringify({
-          text: combinedText,
-          user_id: userId,
-        }),
+        body: JSON.stringify({ text: combinedText }),
       });
 
       if (!classifyResponse.ok) {
@@ -388,7 +407,7 @@ export default function MessageAnalyzerScreen({ navigation }: Props) {
       setLoadingSource(null);
       setLoadingText('');
     }
-  }, [ensureServerReadyForAnalysis, loadHistory, navigation]);
+  }, [ensureServerReadyForAnalysis, loadHistory, navigation, requireToken]);
 
   const len = messageText.length;
   const hasAnalyzeText = messageText.trim().length > 0;

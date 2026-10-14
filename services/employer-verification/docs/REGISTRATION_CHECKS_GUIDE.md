@@ -123,13 +123,13 @@ Final status uses merged flags; `registration_sources` lists every method that c
                        │
                        ↓
         ┌─────────────────────────────┐
-        │ CSE DIRECT API ⭐ (PRIMARY) │
+        │ CSE DIRECT API  (PRIMARY) │
         │ GET /api/allSecurityCode    │
         └──────────┬────────────────────┘
                    │
            ┌───────┴────────┐
            ↓                ↓
-        ✅ Found      ❌ Not Found
+         Found       Not Found
            │                │
            ↓                ↓
         Return       ┌─────────────────┐
@@ -139,7 +139,7 @@ Final status uses merged flags; `registration_sources` lists every method that c
                               │
                         ┌─────┴────────┐
                         ↓              ↓
-                     ✅ Found    ❌ Not Found
+                      Found     Not Found
                         │             │
                         └─────┬───────┘
                               ↓
@@ -149,7 +149,7 @@ Final status uses merged flags; `registration_sources` lists every method that c
                              │
                     ┌────────┴────────┐
                     ↓                 ↓
-                 ✅ Found      ❌ Not Found
+                  Found       Not Found
                     │                 │
                     └────────┬────────┘
                              ↓

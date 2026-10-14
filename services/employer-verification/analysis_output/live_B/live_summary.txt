@@ -1,0 +1,30 @@
+Calls: 52   usable: 52   errors: 0
+
+Band by true label (rows = truth):
+band   Low  Medium  High
+label                   
+fraud    0      12     1
+legit   15      24     0
+
+Fraud in Low band (missed fraud):        0/13
+Fraud in High band:                      1/13
+Fraud in Medium band (needs review):     12/13
+Legit in High band (false alarms):       0/39
+Legit in Medium band (needs review):     24/39
+Legit in Low band (correct):             15/39
+
+Medium+High treated as 'not trusted': fraud caught 13/13, legit wrongly flagged 24/39
+High only treated as 'fraud':          fraud caught 1/13, legit wrongly flagged 0/39
+
+Band by group (label, type):
+band                    Low  Medium  High
+label type                               
+fraud cbsl_prohibited     0      12     1
+legit cse_listed          6       2     0
+      directory_listed    2       5     0
+      medium_business     1       0     0
+      small_business      0      10     0
+      wikipedia_listed    6       7     0
+
+Companies whose band changed between repeats: 0
+Median response time: 37.0s   max: 52.8s

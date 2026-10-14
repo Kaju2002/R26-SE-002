@@ -144,12 +144,12 @@ def get_scan_history(user_id: str, limit: int = 50):
 
 # ─── GET ONE SCAN ─────────────────────────────────────────────────
 
-def get_scan_by_id(scan_id: str):
-    """Get one scan by its ID."""
+def get_scan_by_id(scan_id: str, user_id: str):
+    """Get one scan by its ID, only if it belongs to user_id."""
     if db is None:
         return None
     try:
-        scan = db["scans"].find_one({"_id": ObjectId(scan_id)})
+        scan = db["scans"].find_one({"_id": ObjectId(scan_id), "user_id": user_id})
         if scan:
             scan["scan_id"] = str(scan["_id"])
             del scan["_id"]
@@ -161,12 +161,12 @@ def get_scan_by_id(scan_id: str):
 
 # ─── DELETE SCAN ─────────────────────────────────────────────────
 
-def delete_scan(scan_id: str):
-    """Delete one scan by ID."""
+def delete_scan(scan_id: str, user_id: str):
+    """Delete one scan by ID, only if it belongs to user_id."""
     if db is None:
         return False
     try:
-        result = db["scans"].delete_one({"_id": ObjectId(scan_id)})
+        result = db["scans"].delete_one({"_id": ObjectId(scan_id), "user_id": user_id})
         return result.deleted_count > 0
     except:
         return False

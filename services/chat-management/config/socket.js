@@ -366,6 +366,17 @@ export const emitNewMessage = (conversationId, chatMessage, conversation) => {
   });
 };
 
+export const emitMessageUpdated = (conversationId, chatMessage, conversation) => {
+  if (!io) return;
+  addConversationTargets(
+    io.to(conversationRoom(conversationId)),
+    conversation
+  ).emit("message:updated", {
+    workspaceId: conversation?.workspaceId || null,
+    chatMessage,
+  });
+};
+
 export const emitMessageDeleted = (
   conversationId,
   payload,

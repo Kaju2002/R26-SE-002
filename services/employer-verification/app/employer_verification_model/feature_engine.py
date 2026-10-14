@@ -126,11 +126,13 @@ def _probe_path(base_url: str, path: str) -> bool:
         if r.status_code >= 400:
             return False
         # Avoid counting soft-404 homepages that always return 200
-        body = (r.text or "").lower()
-        if len(body) < 200:
+        # Judge by visible text, not raw HTML: a JavaScript shell contains words
+        # like "contact" in its bundle names without having such a page.
+        visible = _extract_text(BeautifulSoup(r.text or "", "html.parser"))
+        if len(visible) < 200:
             return False
         leaf = path.strip("/").split("/")[-1].replace("-", " ")
-        return leaf.split()[0] in body or path.strip("/").split("/")[-1] in (r.url or "").lower()
+        return leaf.split()[0] in visible or path.strip("/").split("/")[-1] in (r.url or "").lower()
     except Exception:
         return False
 

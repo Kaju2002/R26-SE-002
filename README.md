@@ -1,9 +1,26 @@
-# R26-SE-002
+# R26-SE-002 — CareerNet / FraudAware
 
-Env reference: [DEPLOYMENT.md](./DEPLOYMENT.md) · full values: `DEPLOYMENT.local.md` (gitignored)
-#job recommedation - py -m uvicorn app:app --host 0.0.0.0 --port 8002 --reload  
-#scam detection  py -m uvicm uvm uvicorn app.main:app --host 0.0.0.0 --reload --port 8000
-#py tfidf_pipeline.py
-#http://localhost:8000/docs
-#|employee legitimate  python -m uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
-#fake job post py -m uvicorn main:app --host 0.0.0.0 --port 8004 --reload
+Monorepo: Node microservices, Python ML, Next.js dashboard, React Native app.
+
+## Quick links
+
+- **[Local development guide](./LOCAL_DEVELOPMENT.md)** — run services, Docker, tests
+- **[Deployment](./DEPLOYMENT.md)** — production URLs
+- **[ML tests](./tests/README.md)** — pytest structure
+
+## Quick start
+
+```powershell
+docker compose up -d
+cd services\user-management
+npm install
+npm run dev
+```
+
+Full port list and all commands → [LOCAL_DEVELOPMENT.md](./LOCAL_DEVELOPMENT.md)
+
+## Run all tests (repo root)
+
+```powershell
+npm test
+```

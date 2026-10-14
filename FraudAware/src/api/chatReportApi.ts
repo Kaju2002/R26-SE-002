@@ -18,7 +18,11 @@ export type ChatReportEvidenceMessage = {
   senderId: string;
   role: 'recruiter' | 'jobseeker' | 'unknown';
   messageType: 'text' | 'image' | 'file' | 'audio' | 'system';
+  /** "This message was deleted" when the sender deleted it for everyone. */
   body: string;
+  attachments?: Array<{ url: string; fileName: string; mimeType: string }>;
+  deletedForEveryone?: boolean;
+  deletedAt?: string | null;
   createdAt: string | null;
   scamAnalysis: {
     status: string;

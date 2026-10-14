@@ -2,7 +2,7 @@ import { authHeaders, getChatManagementBaseUrl } from './apiConfig';
 import { appendDocumentField } from '../utils/formDataHelpers';
 
 export type ChatScamAnalysis = {
-  status: 'not_checked' | 'pending' | 'safe' | 'flagged' | 'error';
+  status: 'not_checked' | 'pending' | 'safe' | 'suspicious' | 'flagged' | 'error';
   isScam: boolean;
   score: number | null;
   tactics: string[];

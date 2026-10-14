@@ -2,7 +2,14 @@ import mongoose from "mongoose";
 
 const MESSAGE_TYPES = ["text", "image", "file", "audio", "system"];
 const MESSAGE_STATUSES = ["sent", "delivered", "read"];
-const SCAM_CHECK_STATUSES = ["not_checked", "pending", "safe", "flagged", "error"];
+const SCAM_CHECK_STATUSES = [
+  "not_checked",
+  "pending",
+  "safe",
+  "suspicious",
+  "flagged",
+  "error",
+];
 
 const attachmentSchema = new mongoose.Schema(
   {
@@ -120,8 +127,22 @@ const messageSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
-    /** Sender removed the message for both participants (Delete for everyone). */
+    /**
+     * Sender removed the message for both participants (Delete for everyone).
+     * Body, attachments and scamAnalysis stay in the database as moderation evidence;
+     * formatMessage hides them from participants. Cleared later by the retention job.
+     */
     deletedForEveryone: {
+      type: Boolean,
+      default: false,
+    },
+    /** When the retention job wiped a deleted message's content (null = not yet). */
+    contentPurgedAt: {
+      type: Date,
+      default: null,
+    },
+    /** Deleted content kept past retention because a chat report cites it. */
+    retainedForReport: {
       type: Boolean,
       default: false,
     },
@@ -162,6 +183,10 @@ messageSchema.index({ conversationId: 1, createdAt: 1 });
 messageSchema.index({ senderId: 1, createdAt: -1 });
 messageSchema.index({ "scamAnalysis.status": 1, createdAt: -1 });
 messageSchema.index({ conversationId: 1, deletedFor: 1 });
+messageSchema.index(
+  { deletedAt: 1 },
+  { partialFilterExpression: { deletedForEveryone: true } }
+);
 
 const Message = mongoose.model("Message", messageSchema);
 

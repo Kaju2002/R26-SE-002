@@ -7,13 +7,37 @@ type Props = {
   score?: number | null;
   tactics?: string[];
   onReport?: () => void;
+  /** `unsafe` = scam detected (red); `caution` = suspicious, not confirmed (orange). */
+  variant?: 'unsafe' | 'caution';
+};
+
+const VARIANTS = {
+  unsafe: {
+    icon: 'shield-alert-outline' as const,
+    color: '#DC2626',
+    hintColor: '#EF4444',
+    title: 'This message looks unsafe',
+    body: 'Don’t send money or personal details.',
+  },
+  caution: {
+    icon: 'alert-outline' as const,
+    color: '#C2410C',
+    hintColor: '#EA580C',
+    title: 'Be careful with this message',
+    body: 'Some scam-like signs. Verify the employer before sharing money or personal details.',
+  },
 };
 
 /**
- * Safety strip inside the flagged message bubble (one card).
- * Only warning text/icons use red — bubble stays normal.
+ * Safety strip inside a flagged or suspicious message bubble (one card).
+ * Only warning text/icons are coloured — bubble stays normal.
  */
-export default function InchatScamSafetyBanner({ tactics = [], onReport }: Props) {
+export default function InchatScamSafetyBanner({
+  tactics = [],
+  onReport,
+  variant = 'unsafe',
+}: Props) {
+  const v = VARIANTS[variant];
   const labels = tactics.map(tacticKeyToChipLabel).filter(Boolean).slice(0, 2);
   const hint = labels.length ? labels.join(' · ') : null;
 
@@ -21,13 +45,13 @@ export default function InchatScamSafetyBanner({ tactics = [], onReport }: Props
     <View
       style={styles.strip}
       accessibilityRole="summary"
-      accessibilityLabel="This message looks unsafe. Don’t send money or personal details."
+      accessibilityLabel={`${v.title}. ${v.body}`}
     >
-      <MaterialCommunityIcons name="shield-alert-outline" size={16} color="#DC2626" />
+      <MaterialCommunityIcons name={v.icon} size={16} color={v.color} />
       <View style={styles.copy}>
-        <Text style={styles.title}>This message looks unsafe</Text>
-        <Text style={styles.body}>Don’t send money or personal details.</Text>
-        {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+        <Text style={[styles.title, { color: v.color }]}>{v.title}</Text>
+        <Text style={[styles.body, { color: v.color }]}>{v.body}</Text>
+        {hint ? <Text style={[styles.hint, { color: v.hintColor }]}>{hint}</Text> : null}
       </View>
       {onReport ? (
         <Pressable
@@ -37,7 +61,7 @@ export default function InchatScamSafetyBanner({ tactics = [], onReport }: Props
           accessibilityLabel="Report this chat"
           hitSlop={8}
         >
-          <MaterialCommunityIcons name="flag-outline" size={18} color="#DC2626" />
+          <MaterialCommunityIcons name="flag-outline" size={18} color={v.color} />
         </Pressable>
       ) : null}
     </View>
@@ -62,21 +86,18 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#DC2626',
     marginBottom: 1,
   },
   body: {
     fontSize: 11,
     lineHeight: 15,
     fontWeight: '500',
-    color: '#DC2626',
   },
   hint: {
     marginTop: 3,
     fontSize: 10,
     lineHeight: 13,
     fontWeight: '600',
-    color: '#EF4444',
   },
   reportIconBtn: {
     padding: 2,

@@ -23,7 +23,21 @@ export const riskFromScore = (score) => {
   return Number(score) >= 0.9 ? "high" : "caution";
 };
 
-const formatReport = (doc, { includeEvidence = true } = {}) => {
+const DELETED_PREVIEW = "This message was deleted";
+
+/** Timeline label without the deleted message's text preview. */
+const maskedTimelineLabel = (label) => {
+  const text = String(label || "");
+  if (text.startsWith("Flagged")) return "Flagged message (deleted by sender)";
+  if (text.startsWith("Suspicious")) return "Suspicious message (deleted by sender)";
+  return "Message deleted by sender";
+};
+
+/**
+ * revealDeleted: true only for superadmin routes. Reporters see that a message was
+ * deleted (and its scam result) but not the content the sender removed.
+ */
+const formatReport = (doc, { includeEvidence = true, revealDeleted = false } = {}) => {
   const base = {
     id: String(doc._id),
     conversationId: doc.conversationId,
@@ -54,28 +68,49 @@ const formatReport = (doc, { includeEvidence = true } = {}) => {
 
   if (!includeEvidence) return base;
 
+  const evidence = doc.evidenceMessages || [];
+  const hiddenIds = new Set(
+    revealDeleted
+      ? []
+      : evidence.filter((m) => m.deletedForEveryone).map((m) => String(m.messageId))
+  );
+
   return {
     ...base,
-    evidenceMessages: (doc.evidenceMessages || []).map((m) => ({
-      messageId: m.messageId,
-      senderId: m.senderId,
-      role: m.role,
-      messageType: m.messageType,
-      body: m.body,
-      createdAt: m.createdAt ? new Date(m.createdAt).toISOString() : null,
-      scamAnalysis: {
-        status: m.scamAnalysis?.status || "not_checked",
-        isScam: Boolean(m.scamAnalysis?.isScam),
-        score: m.scamAnalysis?.score ?? null,
-        tactics: m.scamAnalysis?.tactics || [],
-        analyzedAt: m.scamAnalysis?.analyzedAt
-          ? new Date(m.scamAnalysis.analyzedAt).toISOString()
-          : null,
-      },
-    })),
+    evidenceMessages: evidence.map((m) => {
+      const hidden = hiddenIds.has(String(m.messageId));
+      return {
+        messageId: m.messageId,
+        senderId: m.senderId,
+        role: m.role,
+        messageType: hidden ? "system" : m.messageType,
+        body: hidden ? DELETED_PREVIEW : m.body,
+        attachments: hidden
+          ? []
+          : (m.attachments || []).map((a) => ({
+              url: a.url,
+              fileName: a.fileName,
+              mimeType: a.mimeType,
+            })),
+        deletedForEveryone: Boolean(m.deletedForEveryone),
+        deletedAt: m.deletedAt ? new Date(m.deletedAt).toISOString() : null,
+        createdAt: m.createdAt ? new Date(m.createdAt).toISOString() : null,
+        scamAnalysis: {
+          status: m.scamAnalysis?.status || "not_checked",
+          isScam: Boolean(m.scamAnalysis?.isScam),
+          score: m.scamAnalysis?.score ?? null,
+          tactics: m.scamAnalysis?.tactics || [],
+          analyzedAt: m.scamAnalysis?.analyzedAt
+            ? new Date(m.scamAnalysis.analyzedAt).toISOString()
+            : null,
+        },
+      };
+    }),
     timeline: (doc.timeline || []).map((point) => ({
       at: point.at ? new Date(point.at).toISOString() : null,
-      label: point.label,
+      label: hiddenIds.has(String(point.messageId))
+        ? maskedTimelineLabel(point.label)
+        : point.label,
       riskLevel: point.riskLevel,
       messageId: point.messageId,
       tactics: point.tactics || [],
@@ -100,9 +135,16 @@ export const buildEvidencePack = (conversation, messages) => {
       senderId,
       role,
       messageType: message.messageType || "text",
-      body: message.deletedForEveryone
-        ? ""
-        : String(message.body || "").slice(0, 2000),
+      body: String(message.body || "").slice(0, 2000),
+      attachments: (message.attachments || [])
+        .filter((a) => a?.url)
+        .map((a) => ({
+          url: a.url,
+          fileName: a.fileName || "",
+          mimeType: a.mimeType || "",
+        })),
+      deletedForEveryone: Boolean(message.deletedForEveryone),
+      deletedAt: message.deletedAt || null,
       createdAt: message.createdAt || null,
       scamAnalysis: {
         status: analysis.status || "not_checked",
@@ -132,22 +174,39 @@ export const buildEvidencePack = (conversation, messages) => {
     }
   }
 
-  const timeline = flagged.map((item) => {
-    const tactics = item.scamAnalysis.tactics || [];
-    const score = item.scamAnalysis.score;
-    const riskLevel = riskFromScore(score);
-    const preview = (item.body || "").trim().slice(0, 80);
-    return {
-      at: item.createdAt || new Date(),
-      label: preview
-        ? `Flagged message: ${preview}`
-        : `Flagged ${item.messageType} message`,
-      riskLevel,
-      messageId: item.messageId,
-      tactics,
-      score,
-    };
-  });
+  // A recruiter deleting messages before a report is itself worth showing to moderators.
+  const timeline = evidenceMessages
+    .filter(
+      (m) =>
+        m.scamAnalysis.status === "flagged" ||
+        m.scamAnalysis.isScam ||
+        m.scamAnalysis.status === "suspicious" ||
+        (m.deletedForEveryone && m.role === "recruiter")
+    )
+    .map((item) => {
+      const isFlagged =
+        item.scamAnalysis.status === "flagged" || item.scamAnalysis.isScam;
+      const isSuspicious = item.scamAnalysis.status === "suspicious";
+      const tactics = item.scamAnalysis.tactics || [];
+      const score = item.scamAnalysis.score;
+      const riskLevel = isFlagged ? riskFromScore(score) : "caution";
+      let prefix = "Message deleted by sender";
+      if (isFlagged || isSuspicious) {
+        prefix = `${isFlagged ? "Flagged" : "Suspicious"} message`;
+        if (item.deletedForEveryone) prefix += " (deleted by sender)";
+      }
+      const preview = (item.body || "").trim().slice(0, 80);
+      return {
+        at: item.createdAt || new Date(),
+        label: preview
+          ? `${prefix}: ${preview}`
+          : `${prefix} (${item.messageType})`,
+        riskLevel,
+        messageId: item.messageId,
+        tactics,
+        score,
+      };
+    });
 
   if (!timeline.length && evidenceMessages.length) {
     const last = evidenceMessages[evidenceMessages.length - 1];
@@ -417,7 +476,7 @@ export const getChatReport = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      report: formatReport(report),
+      report: formatReport(report, { revealDeleted: true }),
     });
   } catch (error) {
     console.error("getChatReport error:", error);
@@ -485,7 +544,7 @@ export const updateChatReportStatus = async (req, res) => {
     return res.status(200).json({
       success: true,
       message: "Report updated",
-      report: formatReport(report),
+      report: formatReport(report, { revealDeleted: true }),
     });
   } catch (error) {
     console.error("updateChatReportStatus error:", error);
