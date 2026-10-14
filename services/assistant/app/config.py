@@ -31,6 +31,9 @@ class Settings:
     gemini_api_key: str = field(repr=False)
     cors_origins: tuple = ()
     health_timeout_seconds: float = 3.0
+    job_post_timeout_seconds: float = 90.0
+    employer_check_timeout_seconds: float = 90.0
+    recruiter_check_timeout_seconds: float = 60.0
 
     @property
     def llm_configured(self) -> bool:
@@ -49,4 +52,9 @@ def get_settings() -> Settings:
         gemini_api_key=(os.getenv("GEMINI_API_KEY") or "").strip(),
         cors_origins=tuple(o.strip().rstrip("/") for o in cors.split(",") if o.strip()),
         health_timeout_seconds=_float("HEALTH_TIMEOUT_SECONDS", 3.0),
+        # Image job posts include OCR and LIME/SHAP explanations, so they can be slow.
+        job_post_timeout_seconds=_float("JOB_POST_TIMEOUT_SECONDS", 90.0),
+        # Employer verification scrapes websites and registers.
+        employer_check_timeout_seconds=_float("EMPLOYER_CHECK_TIMEOUT_SECONDS", 90.0),
+        recruiter_check_timeout_seconds=_float("RECRUITER_CHECK_TIMEOUT_SECONDS", 60.0),
     )
