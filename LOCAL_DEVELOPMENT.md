@@ -55,6 +55,10 @@ py -m uvicorn app:app --host 0.0.0.0 --port 8002 --reload
 cd services\fake-job-detection
 $env:ANTHROPIC_API_KEY = "your_key"
 py -m uvicorn main:app --host 0.0.0.0 --port 8003 --reload
+
+# Terminal 10 — assistant (8004) — FraudAware Assistant (needs services/assistant/.env)
+cd services\assistant
+py -m uvicorn app.main:app --host 0.0.0.0 --port 8004 --reload
 ```
 
 ---
@@ -149,4 +153,5 @@ npm run test:watch -- chat-management
 | 8001 | employer-verification |
 | 8002 | job-recommendation |
 | 8003 | fake-job-detection |
+| 8004 | assistant |
 | 3000 | fraudaware-dashboard |

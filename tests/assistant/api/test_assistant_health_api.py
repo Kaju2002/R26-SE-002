@@ -4,8 +4,20 @@ API tests for the assistant /health route. Dependent services are mocked; nothin
 
 from __future__ import annotations
 
+import asyncio
+
+import httpx
 import pytest
-from fastapi.testclient import TestClient
+
+
+def _get(app, path: str) -> httpx.Response:
+    # httpx's ASGI transport instead of TestClient: works with old and new Starlette versions.
+    async def run():
+        transport = httpx.ASGITransport(app=app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.get(path)
+
+    return asyncio.run(run())
 
 
 @pytest.fixture
@@ -34,7 +46,7 @@ def _fake_probe(statuses: dict):
 
 def test_health_ok_when_all_services_up(assistant, monkeypatch):
     monkeypatch.setattr(assistant, "_probe", _fake_probe({":8000": "up", ":8001": "up", ":8003": "up"}))
-    res = TestClient(assistant.app).get("/health")
+    res = _get(assistant.app, "/health")
 
     assert res.status_code == 200
     body = res.json()
@@ -49,7 +61,7 @@ def test_health_ok_when_all_services_up(assistant, monkeypatch):
 
 def test_health_degraded_when_a_service_is_down(assistant, monkeypatch):
     monkeypatch.setattr(assistant, "_probe", _fake_probe({":8000": "up", ":8001": "down", ":8003": "up"}))
-    body = TestClient(assistant.app).get("/health").json()
+    body = _get(assistant.app, "/health").json()
 
     assert body["status"] == "degraded"
     assert body["services"]["employer_verification"] == "down"
@@ -57,7 +69,7 @@ def test_health_degraded_when_a_service_is_down(assistant, monkeypatch):
 
 def test_health_never_returns_the_api_key(assistant, monkeypatch):
     monkeypatch.setattr(assistant, "_probe", _fake_probe({}))
-    res = TestClient(assistant.app).get("/health")
+    res = _get(assistant.app, "/health")
 
     assert "test-key" not in res.text
 
@@ -81,7 +93,7 @@ def test_unreachable_service_is_reported_down(assistant, monkeypatch):
     monkeypatch.setenv("HEALTH_TIMEOUT_SECONDS", "1")
     assistant.get_settings.cache_clear()
 
-    body = TestClient(assistant.app).get("/health").json()
+    body = _get(assistant.app, "/health").json()
 
     assert body["status"] == "degraded"
     assert set(body["services"].values()) == {"down"}
