@@ -1,3 +1,4 @@
+import os
 import re
 import numpy as np
 import torch
@@ -17,6 +18,8 @@ except ImportError:  # pragma: no cover
 TEMPERATURE = 2.0
 MAX_EXPLAIN_CHARS = 1800
 LIME_SAMPLES = 40
+# Rows per forward pass when LIME/SHAP score perturbed texts.
+EXPLAIN_BATCH_SIZE = int(os.environ.get("EXPLAIN_BATCH_SIZE", "4"))
 LIME_FEATURES = 8
 # Partition SHAP evaluations (2^6 + 1). Keeps /explain-text bounded.
 SHAP_MAX_EVALS = 65
@@ -62,17 +65,20 @@ def _predict_proba_factory(tokenizer, model):
         if not rows:
             return np.zeros((0, 2), dtype=np.float32)
 
-        inputs = tokenizer(
-            rows,
-            return_tensors="pt",
-            truncation=True,
-            max_length=512,
-            padding=True,
-        )
-        with torch.no_grad():
-            logits = model(**inputs).logits
-            probs = F.softmax(logits / TEMPERATURE, dim=-1).cpu().numpy()
-        return probs.astype(np.float32)
+        # Small chunks keep peak memory bounded — one 40-row batch of long posts OOMs a small container.
+        chunks = []
+        for start in range(0, len(rows), EXPLAIN_BATCH_SIZE):
+            inputs = tokenizer(
+                rows[start:start + EXPLAIN_BATCH_SIZE],
+                return_tensors="pt",
+                truncation=True,
+                max_length=512,
+                padding=True,
+            )
+            with torch.no_grad():
+                logits = model(**inputs).logits
+                chunks.append(F.softmax(logits / TEMPERATURE, dim=-1).cpu().numpy())
+        return np.concatenate(chunks).astype(np.float32)
 
     return predict_proba
 
