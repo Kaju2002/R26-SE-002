@@ -409,7 +409,7 @@ def test_empty_llm_reply_without_tools_falls_back_to_guided(agent):
     sid = agent.send()["session_id"]
     agent.llm.script = [agent.llm.say("")]
 
-    body = agent.send(sid, text="hello")
+    body = agent.send(sid, text="Earn Rs 5,000 daily")
 
     assert body["awaiting"] == "input_type"
 
@@ -685,8 +685,21 @@ def test_classifier_failure_falls_back_to_guided(guarded):
 
     body = guarded.send(sid, text="Write me a poem about the moon")
 
-    assert body["reply"] == "Thanks! What did you send me?"
+    assert body["reply"].startswith("I can only check job posts, company details and recruiter messages")
     assert len(guarded.llm.calls) == 1
+
+
+def test_typed_text_after_a_guided_question_goes_back_to_the_llm(guarded):
+    sid = guarded.send()["session_id"]
+    guarded.llm.script = [guarded.llm.llm.LlmUnavailable("timeout")]
+    guarded.send(sid, text="Write me a poem about the moon")  # guided asks what it is
+    guarded.llm.script = [guarded.llm.say("OUT_OF_SCOPE")]
+
+    body = guarded.send(sid, text="Give me a kiss")
+
+    assert body["reply"] == guarded.main.guard.OUT_OF_SCOPE_REPLY
+    assert body["awaiting"] == "menu"
+    assert len(guarded.llm.calls) == 2
 
 
 def test_classifier_message_cannot_close_its_wrapper(guarded):

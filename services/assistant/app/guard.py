@@ -6,13 +6,12 @@
 # mode answers.
 
 import logging
-import re
 from typing import Optional
 
 from app.guided import Turn, menu_chips
 from app.llm import LlmClient, Message
-from app.prompts import strip_wrapper_tags, untrusted
-from app.redact import redact
+from app.prompts import untrusted
+from app.scope_rules import is_small_talk, looks_checkable
 from app.sessions import Session
 
 logger = logging.getLogger(__name__)
@@ -22,32 +21,7 @@ OUT_OF_SCOPE_REPLY = (
     "Please send me a job post, company name, recruiter message or screenshot."
 )
 
-LONG_TEXT_CHARS = 200
 SHORT_ANSWER_WORDS = 12
-GREETING_MAX_WORDS = 6
-
-_GREETING = re.compile(
-    r"^\W*(?:hi|hii+|hello|hey|hai|good\s+(?:morning|afternoon|evening|night)|thanks?|thank\s+you|thx|ty"
-    r"|ok(?:ay)?|k|yes|yeah|yep|yup|no|nope|sure|alright|help|bye|goodbye|cool|great)\b",
-    re.I,
-)
-_ABOUT_APP = re.compile(
-    r"\b(?:fraudaware|privacy|private|my\s+data|personal\s+data|delete|feedback|who\s+are\s+you"
-    r"|what\s+are\s+you|what\s+can\s+you\s+do|how\s+(?:does|do)\s+(?:this|it|you)\s+work)\b",
-    re.I,
-)
-_CONTENT_WORDS = re.compile(
-    r"\b(?:jobs?|vacanc\w*|hiring|hire[ds]?|recruit\w*|hr|interview\w*|salar\w*|wages?|pay|paid|payments?"
-    r"|fees?|deposit\w*|earn\w*|income|part[\s-]?time|full[\s-]?time|work\s+from\s+home|online\s+work"
-    r"|tasks?|commission\w*|invest\w*|offers?|selected|shortlisted|appointment|positions?|compan(?:y|ies)"
-    r"|employers?|agency|agencies|pvt|ltd|plc|holdings|inc|website|e-?mail|whatsapp|telegram|viber|imo"
-    r"|scam\w*|fraud\w*|fake|legit\w*|genuine|otp|bank|accounts?|visa|abroad|foreign|overseas|apply"
-    r"|applied|cv|resume|registration|training|documents?|passport|nic|money|transfer\w*|refund\w*"
-    r"|police|message[ds]?|chat|sms|call(?:ed)?|link|safe|risk\w*|warning|result|check\w*)\b",
-    re.I,
-)
-_MONEY = re.compile(r"(?:\b(?:rs\.?|lkr|usd|rupees?)\s*\d|\$\s*\d|\d[\d,]*\s*(?:/-|rs\b|lkr\b|rupees\b))", re.I)
-_LINK = re.compile(r"(?:https?://|www\.|\b[a-z0-9-]+\.(?:lk|com|net|org|info|biz|io|co|xyz|online|site)\b)", re.I)
 _ACTIVE_STAGES = ("job_post", "company", "recruiter_question", "recruiter_chat", "waiting", "finished")
 
 CLASSIFIER_PROMPT = """\
@@ -70,15 +44,9 @@ def _active(session: Session) -> bool:
 
 
 def allowed_by_rules(text: str, session: Session) -> bool:
-    text = strip_wrapper_tags(text).strip()
-    words = len(text.split())
-    if len(text) >= LONG_TEXT_CHARS or redact(text).total:
+    if looks_checkable(text) or is_small_talk(text):
         return True
-    if _LINK.search(text) or _MONEY.search(text) or _CONTENT_WORDS.search(text) or _ABOUT_APP.search(text):
-        return True
-    if _GREETING.match(text) and words <= GREETING_MAX_WORDS:
-        return True
-    return _active(session) and words <= SHORT_ANSWER_WORDS
+    return _active(session) and len(text.split()) <= SHORT_ANSWER_WORDS
 
 
 def _last_question(session: Session) -> Optional[str]:

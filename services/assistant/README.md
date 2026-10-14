@@ -103,7 +103,7 @@ FraudAware app (AssistantScreen)
         │  user JWT
         ▼
 services/assistant  (FastAPI, port 8004)
-        ├─ guard.py         scope check (before the LLM)
+        ├─ guard.py         scope check (before the LLM), rules in scope_rules.py
         ├─ redact.py        mask personal data before the LLM
         ├─ agent.py         one turn: Gemini tool loop (guided mode as fallback)
         ├─ case_state.py    checklist: job_post / company / recruiter_chat
@@ -394,6 +394,19 @@ How it is built (step 9):
   or `UNSURE`. Only `OUT_OF_SCOPE` blocks.
 - The out-of-scope reply keeps the conversation where it was, with the same buttons.
 - The main agent's system prompt also limits it to job checks (second layer).
+- The rules live in `scope_rules.py` so guided mode can use them too.
+- If guided mode asked "what did you send?" and the user types something new instead of
+  tapping a button, that text goes to the guard and the LLM; the guided question is dropped.
+
+Guided mode (no LLM, or the LLM failed) does not refuse anything, but it does not pretend
+either:
+
+- A greeting or a question about the app gets a short "what I can check" reply and the menu.
+- Text that does not look checkable gets "I can only check job posts, company details and
+  recruiter messages…" with the "what is it?" buttons, so a short company name can still be
+  checked with one tap. Text sent earlier for checking is kept.
+- Gemini is paused for 60 s after 401 (bad key), 403 (blocked), 404 (retired model) or 429
+  (quota); guided mode answers meanwhile.
 
 ---
 
@@ -494,6 +507,7 @@ services/assistant/
 │   ├── case_state.py
 │   ├── guided.py
 │   ├── guard.py
+│   ├── scope_rules.py      # cheap "is this checkable / small talk" rules
 │   ├── redact.py
 │   ├── url_safety.py
 │   ├── verdict.py

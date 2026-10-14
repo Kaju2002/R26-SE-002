@@ -143,7 +143,7 @@ def test_empty_response_is_unavailable(llm, types, monkeypatch):
         asyncio.run(client.generate("s", [llm.Message(role="user", text="hi")], None))
 
 
-@pytest.mark.parametrize("code", [429, 403, 404])
+@pytest.mark.parametrize("code", [429, 401, 403, 404])
 def test_quota_and_access_errors_pause_the_llm(llm, monkeypatch, code):
     from google.genai import errors
 
