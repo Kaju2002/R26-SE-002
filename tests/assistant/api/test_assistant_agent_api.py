@@ -399,36 +399,188 @@ def test_input_type_question_stays_in_guided_mode(agent):
     sid = agent.send()["session_id"]
     agent.llm.script = [agent.llm.llm.LlmUnavailable("quota")]
     agent.send(sid, text="Earn Rs 5,000 daily")  # guided asks what it is
+    agent.llm.script = [agent.llm.say("That job post shows strong warning signs. What is the company?")]
 
     body = agent.send(sid, chip="is_job_post")
 
     assert agent.calls == [("job_post", "text", "Earn Rs 5,000 daily")]
+    assert body["reply"] == "That job post shows strong warning signs. What is the company?"
+    assert '"check": "Job post"' in agent.llm.sent_text(-1)
+
+
+def test_llm_is_not_asked_twice_when_it_already_failed(agent):
+    sid = agent.send()["session_id"]
+    agent.send(sid, chip="check_job_post")
+    agent.llm.script = [agent.llm.llm.LlmUnavailable("timeout")]
+
+    body = agent.send(sid, text="Earn Rs 5,000 daily")
+
     assert len(agent.llm.calls) == 1
+    assert agent.calls == [("job_post", "text", "Earn Rs 5,000 daily")]
+    assert body["reply"].startswith("Job post check: shows strong warning signs.")
     assert body["awaiting"] == "company"
 
 
-def test_buttons_and_images_never_go_to_the_llm(agent):
+def test_buttons_without_a_check_do_not_call_the_llm(agent):
     sid = agent.send()["session_id"]
 
-    agent.send(sid, chip="check_job_post")
-    body = agent.send(sid, image=PNG)
+    body = agent.send(sid, chip="check_job_post")
+    agent.send(sid, chip="skip")
 
     assert agent.llm.calls == []
-    assert agent.calls == [("job_post", "image", len(PNG))]
-    assert body["reply"].startswith("Job post check:")
+    assert body["reply"] == "Please paste the job post text or send a screenshot of it."
 
 
-def test_image_messages_reach_the_llm_only_as_a_note(agent):
+# ─── IMAGES: THE CODE CHECKS, THE LLM EXPLAINS ───────────────────
+
+
+def test_image_is_checked_by_code_and_the_llm_only_explains_the_result(agent):
     sid = agent.send()["session_id"]
     agent.send(sid, chip="check_job_post")
+    agent.results["job_post"] = agent.done("job_post", "high", "Asks for a fee. Call 0771234567.")
+    agent.llm.script = [agent.llm.say("Your screenshot shows a fee request, a common scam sign. Who is the company?")]
+
+    body = agent.send(sid, image=PNG)
+
+    assert agent.calls == [("job_post", "image", len(PNG))]
+    assert body["reply"] == "Your screenshot shows a fee request, a common scam sign. Who is the company?"
+    sent = agent.llm.sent_text()
+    assert "(The user sent an image. The app checks images itself; you cannot see them.)" in sent
+    assert "(The app already ran these checks on what the user sent." in sent
+    assert "Asks for a fee. Call [PHONE]." in sent
+    assert "0771234567" not in sent
+    assert "[image]" not in sent
+    assert body["awaiting"] == "menu"
+    assert _chip_ids(body) == ["check_company", "check_recruiter"]
+
+
+def test_image_explanation_failure_keeps_the_guided_reply(agent):
+    sid = agent.send()["session_id"]
+    agent.send(sid, chip="check_job_post")
+    agent.llm.script = [agent.llm.llm.LlmUnavailable("quota")]
+
+    body = agent.send(sid, image=PNG)
+
+    assert body["reply"].startswith("Job post check: shows strong warning signs.")
+    assert "Next, let's check the company." in body["reply"]
+    assert body["awaiting"] == "company"
+
+
+def test_image_that_finishes_the_case_gets_the_result_card(agent):
+    sid = agent.send()["session_id"]
+    agent.send(sid, chip="check_job_post")
+    agent.send(sid, chip="skip")  # job post skipped, now asks for the company
+    agent.send(sid, chip="skip")  # company skipped, now asks about the recruiter
+    agent.send(sid, chip="recruiter_yes")
+    agent.llm.script = [agent.llm.say("The recruiter asks for a fee. Your result is shown below.")]
+
+    body = agent.send(sid, image=PNG)
+
+    assert [c[:3] for c in agent.calls] == [("recruiter_chat", "image", len(PNG))]
+    assert body["awaiting"] == "finished"
+    assert body["result"]["level"] == "high_risk"
+    assert _chip_ids(body) == ["new_check"]
+    last = agent.llm.calls[-1]
+    assert last.tools is None
+    assert "All checks are finished" in last.system
+
+
+def test_later_turns_see_images_only_as_a_note(agent):
+    sid = agent.send()["session_id"]
+    agent.send(sid, chip="check_job_post")
+    agent.llm.script = [agent.llm.say("Explained."), agent.llm.say("Next, the company?")]
     agent.send(sid, image=PNG)
-    agent.llm.script = [agent.llm.say("Next, the company?")]
 
     agent.send(sid, text="ok")
 
-    sent = agent.llm.sent_text()
+    sent = agent.llm.sent_text(-1)
     assert "(The user sent an image. The app checks images itself; you cannot see them.)" in sent
     assert "[image]" not in sent
+
+
+# ─── REPLIES THAT CONTRADICT THE RESULTS ─────────────────────────
+
+
+def test_reply_calling_a_risky_job_safe_is_replaced(agent):
+    sid = agent.send()["session_id"]
+    agent.llm.script = [
+        agent.llm.use(("check_job_post", {"message_id": "latest"})),
+        agent.llm.say("Good news, this job looks legit! You can go ahead."),
+    ]
+
+    body = agent.send(sid, text="Earn Rs 5,000 daily")
+
+    assert "legit" not in body["reply"]
+    assert body["reply"].startswith("Job post check: shows strong warning signs.\n- Likely fake.")
+    assert "Next, let's check the company." in body["reply"]
+    assert body["awaiting"] == "menu"
+
+
+def test_reply_calling_it_safe_after_a_high_risk_result_is_replaced(agent):
+    sid = agent.send()["session_id"]
+    agent.llm.script = [
+        agent.llm.use(
+            ("check_job_post", {"message_id": "latest"}),
+            ("update_check", {"check": "company", "status": "skipped"}),
+            ("update_check", {"check": "recruiter_messages", "status": "not_applicable"}),
+        ),
+        agent.llm.say("Your result is shown below."),
+    ]
+    agent.send(sid, text="Earn Rs 5,000 daily")
+    agent.llm.script = [agent.llm.say("Yes, it is safe to apply.")]
+
+    body = agent.send(sid, text="so can I apply?")
+
+    assert body["reply"] == "Your result: HIGH RISK. Please read the result card before you decide."
+    assert body["awaiting"] == "finished"
+
+
+def test_reply_calling_a_low_risk_job_a_scam_is_replaced(agent):
+    sid = agent.send()["session_id"]
+    agent.results["job_post"] = agent.done("job_post", "low", "No common scam phrases found.")
+    agent.llm.script = [
+        agent.llm.use(("check_job_post", {"message_id": "latest"})),
+        agent.llm.say("This is definitely a scam."),
+    ]
+
+    body = agent.send(sid, text="Software engineer at Dialog, apply on dialog.lk")
+
+    assert body["reply"].startswith("Job post check: shows no strong warning signs.")
+
+
+def test_reply_that_agrees_with_the_results_is_kept(agent):
+    sid = agent.send()["session_id"]
+    reply = "This job post shows strong warning signs: it asks for a fee. It is not safe to pay. What is the company?"
+    agent.llm.script = [agent.llm.use(("check_job_post", {"message_id": "latest"})), agent.llm.say(reply)]
+
+    body = agent.send(sid, text="Earn Rs 5,000 daily")
+
+    assert body["reply"] == reply
+
+
+# ─── BACKGROUND COMPANY RESULT ───────────────────────────────────
+
+
+def test_background_company_result_is_in_the_next_llm_turn_masked(agent):
+    agent.hold_company()
+    agent.results["company"] = agent.done("company", "high", "Uses a free email address (jobs@gmail.com).")
+    sid = agent.send()["session_id"]
+    agent.llm.script = [
+        agent.llm.use(("check_company", {"message_id": "latest", "company_name": "ABC Holdings"})),
+        agent.llm.say("Checking the company. Do you have the job post?"),
+    ]
+    agent.send(sid, text="ABC Holdings")
+    agent.release_company()
+
+    agent.llm.script = [agent.llm.say("The company check found warning signs. Please paste the job post.")]
+    agent.send(sid, text="what did the company check say?")
+
+    first = agent.llm.calls[-1]
+    sent = agent.llm.sent_text(-1)
+    assert "Company check: shows strong warning signs." in sent
+    assert "[EMAIL]@gmail.com" in sent
+    assert "jobs@gmail.com" not in sent
+    assert "- Company: done, risk high" in first.system
 
 
 # ─── AFTER THE RESULT ────────────────────────────────────────────

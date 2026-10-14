@@ -66,15 +66,25 @@ def _message_kind(image: Optional[bytes], chip: Optional[str]) -> str:
 
 
 async def _reply(session: Session, user: User, text: Optional[str], image: Optional[bytes], chip: Optional[str]):
-    """Typed text goes to the LLM when it is configured; buttons, images and the
-    "what did you send?" question stay in guided mode, which also answers when the LLM fails."""
+    """Typed text goes to the LLM when it is configured. Buttons, images and the "what did you
+    send?" question go to guided mode, which runs the checks; the LLM then explains any result.
+    Guided mode's own reply is used whenever the LLM fails."""
     client = llm.get_client()
     if client is not None and not chip and not image and session.awaiting != "input_type":
         try:
             return await agent.handle(session, user, client)
         except llm.LlmUnavailable:
+            client = None
+
+    before = {c.source: c for c in session.case.as_list()}
+    turn = await guided.handle(session, user, text=text, image=image, chip=chip)
+    checked = [c for c in session.case.as_list() if c.status in ("done", "failed") and c is not before[c.source]]
+    if client is not None and checked:
+        try:
+            return await agent.handle(session, user, client, checked=checked)
+        except llm.LlmUnavailable:
             pass
-    return await guided.handle(session, user, text=text, image=image, chip=chip)
+    return turn
 
 
 def _own_session(session_id: str, user: User) -> Session:
