@@ -105,13 +105,13 @@ FraudAware app (AssistantScreen)
 services/assistant  (FastAPI, port 8004)
         ├─ guard.py         scope check (before the LLM)
         ├─ redact.py        mask personal data before the LLM
-        ├─ orchestrator.py  one turn: guard → Gemini tool loop (or guided mode)
+        ├─ agent.py         one turn: Gemini tool loop (guided mode as fallback)
         ├─ case_state.py    checklist: job_post / company / recruiter_chat
         ├─ tools/*          thin adapters over the existing services
         ├─ background.py    slow employer check as a background task
         ├─ verdict.py       combined verdict (code, not LLM)
         ├─ sessions.py      MongoDB: assistant_sessions
-        └─ llm/gemini.py    Gemini (free tier, Flash model)
+        └─ llm.py           Gemini (free tier, Flash model)
         │
         ├──► scam-detection        :8000  (forwards the user's JWT)
         ├──► employer-verification :8001
@@ -286,6 +286,26 @@ A warning is always shown; "no warning signs" needs all checks.
   5. final text reply + the code-computed result card.
 - Settings: temperature ≤ 0.3, max output ≈ 400 tokens, last 10–15 messages in context.
 
+### How it is built (step 8a: text messages)
+
+- `llm.py` wraps Gemini behind a small `LlmClient` interface, so tests use a scripted fake.
+  The last tool round forces a text answer. After 429 (quota), 403 (key/project blocked)
+  or 404 (model retired) Gemini is paused for 60 s.
+- `agent.py` runs the tool loop. Each user message is sent masked, with an id:
+  `[m3]` + `<content_to_check>…</content_to_check>`. Buttons and images reach Gemini only
+  as a short note.
+- `agent_tools.py` declares `check_job_post`, `check_recruiter_messages`, `check_company`
+  and `update_check` (skipped / not applicable). Gemini passes a **message id, never the
+  content**: the code runs the check on the original, unmasked message. A masked email
+  such as `[EMAIL]@abc.lk` is restored from that message, and company details that are not
+  in it are dropped. Bad arguments go back to Gemini as `{"error": …}`.
+- `prompts.py` holds the rules below and the live checklist.
+- Routing (`main.py`): typed text goes to the agent. Buttons, images and the "what did you
+  send?" question stay in guided mode. If Gemini fails before a check ran, guided mode
+  answers the same message. If it fails after a check ran, the results are reported in
+  guided wording.
+- When nothing is left, the code sets the verdict, exactly as in guided mode.
+
 ### System prompt rules
 
 - Friendly, short replies in simple English.
@@ -413,7 +433,9 @@ services/assistant/
 │   ├── main.py
 │   ├── schemas.py
 │   ├── config.py
-│   ├── orchestrator.py
+│   ├── agent.py            # LLM tool loop
+│   ├── agent_tools.py      # tool declarations + validation
+│   ├── llm.py              # Gemini wrapper
 │   ├── case_state.py
 │   ├── guided.py
 │   ├── guard.py
@@ -424,8 +446,6 @@ services/assistant/
 │   ├── sessions.py
 │   ├── rate_limit.py
 │   ├── prompts.py
-│   ├── llm/
-│   │   └── gemini.py
 │   └── tools/
 │       ├── registry.py
 │       ├── job_post.py
@@ -455,7 +475,8 @@ EMPLOYER_VERIFICATION_URL=http://127.0.0.1:8001
 FAKE_JOB_DETECTION_URL=http://127.0.0.1:8003
 LLM_PROVIDER=gemini             # gemini | none (guided mode only)
 GEMINI_API_KEY=
-GEMINI_MODEL=                   # current free Flash model from Google AI Studio
+GEMINI_MODEL=                   # current free Flash model, e.g. gemini-3.8-flash
+LLM_TIMEOUT_SECONDS=20
 LLM_TEMPERATURE=0.3
 LLM_MAX_OUTPUT_TOKENS=400
 LLM_SEND_OCR_SNIPPET=true

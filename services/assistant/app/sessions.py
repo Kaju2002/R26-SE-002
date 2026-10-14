@@ -36,8 +36,8 @@ class Session(BaseModel):
     # Background checks still running, by check source.
     _tasks: Dict[str, asyncio.Task] = PrivateAttr(default_factory=dict)
 
-    def add_message(self, role: str, text: str) -> None:
-        self.messages.append(ChatMessage(role=role, text=text, at=_now()))
+    def add_message(self, role: str, text: str, kind: str = "text") -> None:
+        self.messages.append(ChatMessage(role=role, text=text, at=_now(), kind=kind))
         self.updated_at = _now()
 
     def cancel_tasks(self) -> None:

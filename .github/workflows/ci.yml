@@ -36,6 +36,7 @@ jobs:
               - 'services/fake-job-detection/**'
               - 'services/employer-verification/**'
               - 'services/job-recommendation/**'
+              - 'services/assistant/**'
             user_management:
               - 'services/user-management/**'
             chat_management:
@@ -69,6 +70,7 @@ jobs:
             services/fake-job-detection/requirements.txt
             services/employer-verification/requirements.txt
             services/job-recommendation/requirements.txt
+            services/assistant/requirements.txt
 
       - name: Install Python dependencies
         run: |
@@ -78,6 +80,7 @@ jobs:
           pip install -r services/fake-job-detection/requirements.txt
           pip install -r services/employer-verification/requirements.txt
           pip install -r services/job-recommendation/requirements.txt
+          pip install -r services/assistant/requirements.txt
           pip install "scikit-learn>=1.9"
 
       - name: Run pytest
