@@ -8,7 +8,8 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import anthropic
 from explain import explain_text
 
-MODEL_DIR = "./fake_job_model"
+# Local folder by default; set MODEL_DIR to a Hugging Face repo id (e.g. "user/fake-job-model") in deployment.
+MODEL_DIR = os.environ.get("MODEL_DIR", "./fake_job_model")
 # Softens overconfident softmax scores. 1.0 = raw model, 2.0 = more honest probabilities.
 TEMPERATURE = 2.0
 
