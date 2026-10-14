@@ -15,6 +15,7 @@ import SearchBar from '../components/SearchBar';
 import JobsSection from '../components/jobs/JobsSection';
 import ForYouRecommendationsSection from '../components/jobs/ForYouRecommendationsSection';
 import HomeHeroBanner from '../components/home/HomeHeroBanner';
+import AssistantFab from '../components/assistant/AssistantFab';
 import type { Job } from '../../data/jobs';
 import { listJobs } from '../api/jobApi';
 import { mapApiJobsToJobs } from '../utils/jobMapper';
@@ -46,6 +47,7 @@ type HomeNavParams = {
   RecruiterProfile: { recruiterId: string; jobId?: string };
   Profile: undefined;
   SafeJobRecommendations: undefined;
+  Assistant: undefined;
 };
 
 export default function HomeScreen() {
@@ -265,6 +267,8 @@ export default function HomeScreen() {
           />
         }
       />
+
+      <AssistantFab onPress={() => navigation.navigate('Assistant')} />
     </SafeAreaView>
   );
 }

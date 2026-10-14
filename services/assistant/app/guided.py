@@ -33,6 +33,13 @@ CHIP_IS_RECRUITER = Chip(id="is_recruiter", label="It's from the recruiter")
 CHIP_IS_COMPANY = Chip(id="is_company", label="It's company details")
 CHIP_NEW_CHECK = Chip(id="new_check", label="Start a new check")
 
+CHIP_LABELS = {
+    c.id: c.label
+    for c in (
+        CHIP_JOB_POST, CHIP_COMPANY, CHIP_RECRUITER, CHIP_SKIP, CHIP_RECRUITER_YES, CHIP_RECRUITER_NO,
+        CHIP_IS_JOB_POST, CHIP_IS_RECRUITER, CHIP_IS_COMPANY, CHIP_NEW_CHECK,
+    )
+}
 _MENU_CHIP_FOR = {"job_post": CHIP_JOB_POST, "company": CHIP_COMPANY, "recruiter_chat": CHIP_RECRUITER}
 _STAGE_FOR_CHIP = {
     CHIP_JOB_POST.id: "job_post",

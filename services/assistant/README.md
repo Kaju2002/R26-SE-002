@@ -385,6 +385,10 @@ MongoDB (already used by all services), collection `assistant_sessions`:
   "Checking the company..." progress, result card (red / orange / grey / green).
 - First-open privacy notice (section 7.3).
 - "Recent checks" list of past sessions.
+- **Share result:** the result card shares a short text summary through the phone's share sheet.
+- **PDF report (later):** built on the phone with `expo-print` + `expo-sharing` (no server copy):
+  verdict, each check with reasons, the company details given, next steps and the disclaimer.
+  The checked chat text is left out unless the user ticks "Include the messages I checked".
 - The **Detect section is not changed**. After the assistant works well, it replaces
   Detect.
 

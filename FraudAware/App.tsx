@@ -49,6 +49,7 @@ import SafeJobRecommendationsScreen from './src/screens/screens/SafeJobRecommend
 import SupportTicketsScreen from './src/screens/SupportTicketsScreen';
 import SupportCreateTicketScreen from './src/screens/SupportCreateTicketScreen';
 import SupportTicketDetailScreen from './src/screens/SupportTicketDetailScreen';
+import AssistantScreen from './src/screens/AssistantScreen';
 
 export type { RootStackParamList };
 
@@ -316,6 +317,12 @@ export default function App() {
               name="SupportTicketDetail"
               component={SupportTicketDetailScreen}
               options={{ animation: 'slide_from_right' }}
+            />
+
+            <Stack.Screen
+              name="Assistant"
+              component={AssistantScreen}
+              options={{ animation: 'slide_from_bottom' }}
             />
           </Stack.Navigator>
 
