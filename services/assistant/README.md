@@ -383,6 +383,18 @@ message arrives
 
 **When unsure, treat as in scope.** Refusing a real scam message is the worst failure.
 
+How it is built (step 9):
+
+- Only typed text in LLM mode is guarded. Buttons, images and guided mode never are.
+- Rules (`allowed_by_rules`): 200+ characters; personal data, a link or a money amount;
+  job / scam / company / payment words; a greeting (up to 6 words) or a question about the
+  app; or up to 12 words while a check is in progress (the user is answering a question).
+- Classifier: Gemini at temperature 0, no tools. It gets the masked message inside
+  `<message>` tags and the assistant's last message, and replies `IN_SCOPE`, `OUT_OF_SCOPE`
+  or `UNSURE`. Only `OUT_OF_SCOPE` blocks.
+- The out-of-scope reply keeps the conversation where it was, with the same buttons.
+- The main agent's system prompt also limits it to job checks (second layer).
+
 ---
 
 ## 11. Security
@@ -396,6 +408,26 @@ message arrives
   (reject `localhost`, `127.*`, `10.*`, `172.16–31.*`, `192.168.*`, `169.254.*`, `::1`).
 - **Rate limits:** per user per minute and per day; max 5 tool calls per message.
 - **Keys:** environment variables only.
+
+Status (step 9):
+
+- **Injection:** `prompts.untrusted()` masks the text and removes `<content_to_check>` and
+  `<message>` tags from user messages, assistant messages and tool results before they reach
+  Gemini. Content therefore cannot close its wrapper and pose as an app note or result.
+  App notes and message ids are always outside the tags, and the prompt says so.
+- **Verdict:** always computed by code; contradicting replies are replaced (`reply_check.py`).
+- **SSRF** (`url_safety.py`, used by `tools/company.py` before calling employer-verification):
+  - Only `http`/`https` on ports 80/443; no `user@host`.
+  - IP literals, including short forms such as `127.1` or `0x7f000001`, must be public.
+  - `localhost`, `.local`, `.internal`, … and single-label names are blocked.
+  - Domain names are resolved, and any private address blocks them.
+  - The email's domain gets the same check.
+  - An unsafe website or email is dropped, with a reason in the result. If nothing is left,
+    the check fails without calling the service.
+- **Tool arguments:** message ids must point to text the user typed; company details must
+  appear in that message and are at most 200 characters; recruiter text is cut to the last
+  2,000 characters; images are checked for type and size.
+- **Rate limits:** step 10 (with MongoDB sessions). Tool rounds are already capped at 5.
 
 ---
 

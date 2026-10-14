@@ -66,7 +66,13 @@ class LlmReply:
 
 class LlmClient(Protocol):
     async def generate(
-        self, system: str, messages: List[Message], tools: Optional[List[ToolSpec]], *, force_text: bool = False
+        self,
+        system: str,
+        messages: List[Message],
+        tools: Optional[List[ToolSpec]],
+        *,
+        force_text: bool = False,
+        temperature: Optional[float] = None,
     ) -> LlmReply: ...
 
 
@@ -104,7 +110,13 @@ class GeminiClient:
         return t.Content(role=m.role, parts=parts)
 
     async def generate(
-        self, system: str, messages: List[Message], tools: Optional[List[ToolSpec]], *, force_text: bool = False
+        self,
+        system: str,
+        messages: List[Message],
+        tools: Optional[List[ToolSpec]],
+        *,
+        force_text: bool = False,
+        temperature: Optional[float] = None,
     ) -> LlmReply:
         """`force_text`: the tools stay declared (earlier calls are in the history) but may not be called."""
         if time.monotonic() < self._unavailable_until:
@@ -112,7 +124,7 @@ class GeminiClient:
         t = self._types
         config = t.GenerateContentConfig(
             system_instruction=system,
-            temperature=TEMPERATURE,
+            temperature=TEMPERATURE if temperature is None else temperature,
             max_output_tokens=MAX_OUTPUT_TOKENS,
             thinking_config=self._thinking(),
             automatic_function_calling=t.AutomaticFunctionCallingConfig(disable=True),

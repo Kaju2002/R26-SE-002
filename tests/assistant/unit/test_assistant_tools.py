@@ -57,6 +57,17 @@ def _timeout_error(request):
     return httpx.ReadTimeout("timed out", request=request)
 
 
+@pytest.fixture(autouse=True)
+def offline_dns(tools, monkeypatch):
+    """Website and email domains resolve to a public address without a real DNS lookup."""
+    _, company, _ = tools
+
+    async def resolve(host):
+        return ["93.184.216.34"]
+
+    monkeypatch.setattr(company.url_safety, "resolve", resolve)
+
+
 # ─── JOB POST ────────────────────────────────────────────────────
 
 JOB_TEXT = "Earn Rs 5,000 daily from home, pay registration fee to start."
@@ -226,6 +237,33 @@ def test_company_low_lists_good_evidence(tools):
 
     assert result.risk == "low"
     assert result.reasons == ["This employer looks legitimate", "Professional website."]
+
+
+def test_company_private_website_and_email_are_not_passed_on(tools):
+    _, company, _ = tools
+    svc = FakeService(body=_employer_body("Medium", headline="Some concerns"))
+
+    result = run(company.check_company("ABC", "http://192.168.1.1/admin", "hr@127.0.0.1", client=svc.client()))
+
+    assert json.loads(svc.requests[0].content) == {"company_name": "ABC", "website_url": None, "email": None}
+    assert result.reasons[-2:] == [
+        "The website was not checked because it points to a private network.",
+        "The email address was not checked because it points to a private network.",
+    ]
+
+
+def test_company_with_only_an_unsafe_website_fails_without_calling_the_service(tools):
+    _, company, _ = tools
+    svc = FakeService()
+
+    result = run(company.check_company(None, "http://localhost:8001/predict", client=svc.client()))
+
+    assert result.status == "failed"
+    assert result.reasons == [
+        "The website was not checked because only the normal web ports can be checked. "
+        "Please send the company name instead."
+    ]
+    assert svc.requests == []
 
 
 def test_company_medium_includes_low_confidence_notice(tools):
