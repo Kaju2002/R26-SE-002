@@ -8,7 +8,8 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import anthropic
 from explain import explain_text
 
-MODEL_DIR = "./fake_job_model"
+# Local folder by default; set MODEL_DIR to a Hugging Face repo id (e.g. "user/fake-job-model") in deployment.
+MODEL_DIR = os.environ.get("MODEL_DIR", "./fake_job_model")
 # Softens overconfident softmax scores. 1.0 = raw model, 2.0 = more honest probabilities.
 TEMPERATURE = 2.0
 
@@ -30,7 +31,8 @@ def apply_temperature_scaling(logits, temperature=TEMPERATURE):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     state["tokenizer"] = AutoTokenizer.from_pretrained(MODEL_DIR)
-    state["model"] = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR)
+    # low_cpu_mem_usage avoids holding a second full copy of the weights while loading.
+    state["model"] = AutoModelForSequenceClassification.from_pretrained(MODEL_DIR, low_cpu_mem_usage=True)
     state["model"].eval()
     yield
     state.clear()

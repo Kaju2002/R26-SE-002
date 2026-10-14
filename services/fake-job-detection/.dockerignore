@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+.DS_Store
+notebooks/
+tests/
+app/
+run.ps1
+# Weights are pulled from Hugging Face at startup (MODEL_DIR), not baked into the image
+fake_job_model/*.safetensors
+fake_job_model/*.bin
