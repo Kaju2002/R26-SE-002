@@ -19,6 +19,8 @@ class HealthResponse(BaseModel):
     status: Literal["ok", "degraded"]
     llm: LlmStatus
     services: Dict[str, ServiceStatus]
+    # Where conversations are kept: "mongodb" (survive a restart) or "memory".
+    session_store: Literal["mongodb", "memory"]
 
 
 # ─── CHECKS ──────────────────────────────────────────────────────

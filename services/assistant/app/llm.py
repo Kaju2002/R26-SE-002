@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 TEMPERATURE = 0.3
 MAX_OUTPUT_TOKENS = 600
 # After these errors Gemini is not called again for a while; guided mode answers instead.
-# 429: quota used up; 403: key or project blocked; 404: model retired.
-COOLDOWN_CODES = (403, 404, 429)
+# 429: quota used up; 401: key invalid; 403: key or project blocked; 404: model retired.
+COOLDOWN_CODES = (401, 403, 404, 429)
 QUOTA_COOLDOWN_SECONDS = 60.0
 
 

@@ -103,7 +103,7 @@ FraudAware app (AssistantScreen)
         │  user JWT
         ▼
 services/assistant  (FastAPI, port 8004)
-        ├─ guard.py         scope check (before the LLM)
+        ├─ guard.py         scope check (before the LLM), rules in scope_rules.py
         ├─ redact.py        mask personal data before the LLM
         ├─ agent.py         one turn: Gemini tool loop (guided mode as fallback)
         ├─ case_state.py    checklist: job_post / company / recruiter_chat
@@ -203,6 +203,9 @@ Employer verification scrapes websites and can take up to **90 seconds**.
    `pending_checks` is not empty.
 4. When it finishes, the result is added to the chat.
 5. After 90 seconds it is marked `failed` (`risk: unknown`), and the chat continues.
+6. If the server restarts while it runs, the task is gone. The saved session still says
+   `running`, so the next request reports it as failed ("The company check was interrupted.
+   Please try again.") instead of waiting forever (`guided.recover_interrupted`).
 
 Results are cached per company for 24 hours to avoid repeating slow checks.
 
@@ -251,8 +254,9 @@ the thesis ethics section; a paid tier or another provider should be used for la
 
 - Logs contain tool calls, errors and out-of-scope categories with a hashed user ID; no
   raw messages, no secrets.
-- Sessions are deleted automatically after 90 days (MongoDB TTL index), and the user can
-  delete a session at any time.
+- Sessions are deleted automatically 24 hours after the last message (MongoDB TTL index).
+- The copy saved in MongoDB has personal data masked (same rules as 7.2). Images and the
+  content waiting for "what did you send?" are never saved.
 
 ---
 
@@ -394,6 +398,19 @@ How it is built (step 9):
   or `UNSURE`. Only `OUT_OF_SCOPE` blocks.
 - The out-of-scope reply keeps the conversation where it was, with the same buttons.
 - The main agent's system prompt also limits it to job checks (second layer).
+- The rules live in `scope_rules.py` so guided mode can use them too.
+- If guided mode asked "what did you send?" and the user types something new instead of
+  tapping a button, that text goes to the guard and the LLM; the guided question is dropped.
+
+Guided mode (no LLM, or the LLM failed) does not refuse anything, but it does not pretend
+either:
+
+- A greeting or a question about the app gets a short "what I can check" reply and the menu.
+- Text that does not look checkable gets "I can only check job posts, company details and
+  recruiter messages…" with the "what is it?" buttons, so a short company name can still be
+  checked with one tap. Text sent earlier for checking is kept.
+- Gemini is paused for 60 s after 401 (bad key), 403 (blocked), 404 (retired model) or 429
+  (quota); guided mode answers meanwhile.
 
 ---
 
@@ -427,7 +444,18 @@ Status (step 9):
 - **Tool arguments:** message ids must point to text the user typed; company details must
   appear in that message and are at most 200 characters; recruiter text is cut to the last
   2,000 characters; images are checked for type and size.
-- **Rate limits:** step 10 (with MongoDB sessions). Tool rounds are already capped at 5.
+- **Rate limits** (step 10, `rate_limit.py`, in memory, reset on restart; 0 turns one off):
+
+  | Limit | Default | Over the limit |
+  |---|---|---|
+  | Messages per user per minute | 10 | HTTP 429 "You're sending messages too quickly…" |
+  | Messages per user per day (rolling 24 h) | 150 | HTTP 429 |
+  | Gemini calls per minute, all users | 8 | Guided mode answers (not blocked) |
+  | Gemini calls per user per day | 60 | Guided mode answers |
+
+  Every Gemini call counts (guard classifier and each agent round). Refused messages do not
+  use up the daily limit. Polling `GET /assistant/session/{id}` is not limited. Tool rounds
+  are capped at 5 per message.
 
 ---
 
@@ -444,13 +472,24 @@ Used when Gemini is not configured, fails or hits its quota.
 
 ## 13. Storage
 
-MongoDB (already used by all services), collection `assistant_sessions`:
+MongoDB (same Atlas cluster as the other services), database `fraudaware`, collection
+`assistant_sessions` (`session_db.py`). Without `MONGO_URI`, sessions live in memory only.
 
-- `user_id`, `created_at`, `updated_at`
-- `messages[]` (masked text, role, timestamps; no images)
-- `checks` (case state with each tool result)
-- `verdict`
-- TTL index: deleted 90 days after the last update
+- `_id` (session id), `user_id`, `created_at`, `updated_at`, `awaiting`, `chips`
+- `messages[]` (masked text, role, kind, time; no images)
+- `case` (each check's result) and `verdict`
+- TTL index on `updated_at`: deleted 24 hours after the last change
+
+How it works (step 10):
+
+- Live sessions stay in memory (background checks and locks need the same object). Every
+  reply and every finished background check is also saved to MongoDB.
+- A session missing from memory (after a restart) is loaded from MongoDB, only for its
+  owner. Older messages are then masked, so the LLM can only re-check them in masked form.
+- MongoDB never breaks the chat: errors are logged by type only (the message can contain
+  the connection string), and MongoDB is skipped for a minute after an error.
+- The server connects in the background at startup, so the first message does not wait for
+  it. `/health` shows `"session_store": "mongodb"` or `"memory"`.
 
 ---
 
@@ -494,12 +533,14 @@ services/assistant/
 │   ├── case_state.py
 │   ├── guided.py
 │   ├── guard.py
+│   ├── scope_rules.py      # cheap "is this checkable / small talk" rules
 │   ├── redact.py
 │   ├── url_safety.py
 │   ├── verdict.py
 │   ├── background.py
-│   ├── sessions.py
-│   ├── rate_limit.py
+│   ├── sessions.py         # session store (memory + MongoDB copy)
+│   ├── session_db.py       # MongoDB collection, TTL index
+│   ├── rate_limit.py       # message and Gemini call limits
 │   ├── prompts.py
 │   └── tools/
 │       ├── registry.py
@@ -537,8 +578,10 @@ LLM_MAX_OUTPUT_TOKENS=400
 LLM_SEND_OCR_SNIPPET=true
 MAX_TOOL_ROUNDS=5
 EMPLOYER_CHECK_TIMEOUT_SECONDS=90
-RATE_LIMIT_PER_MINUTE=10
-RATE_LIMIT_PER_DAY=100
+RATE_LIMIT_PER_MINUTE=10        # messages per user
+RATE_LIMIT_PER_DAY=150
+LLM_CALLS_PER_MINUTE=8          # Gemini calls, all users together
+LLM_CALLS_PER_USER_PER_DAY=60
 ```
 
 ---

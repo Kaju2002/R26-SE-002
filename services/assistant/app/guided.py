@@ -14,7 +14,9 @@ from app.auth import User
 from app.company_input import parse_company_details
 from app.config import get_settings
 from app.schemas import CheckResult, CheckSource, Chip, Verdict
+from app.scope_rules import is_small_talk, looks_checkable
 from app.sessions import Session
+from app.tools.common import failed
 from app.tools.company import check_company
 from app.tools.job_post import check_job_post_image, check_job_post_text
 from app.tools.recruiter_chat import check_recruiter_image, check_recruiter_text
@@ -79,6 +81,15 @@ LOOKS_FINE_SO_FAR = (
     "That looks fine so far, but scammers often copy real companies and job posts, "
     "so let's check a bit more before you decide."
 )
+NOT_CHECKABLE = (
+    "I can only check job posts, company details and recruiter messages for signs of a scam. "
+    "If that was one of them, tap what it is below. Otherwise, please paste the job post, the "
+    "company's name, website or email, or the recruiter's messages."
+)
+SMALL_TALK_REPLY = (
+    "Hi! I check job posts, company details and recruiter messages for signs of a scam. "
+    "Choose what you would like to check, or paste it here."
+)
 FINISHED_REPLY = "This check is finished. Tap \"Start a new check\" to check something else."
 CHECKING_COMPANY = (
     "I'm checking the company now. This can take up to 90 seconds, so let's carry on meanwhile. "
@@ -99,6 +110,11 @@ def _label(source: CheckSource) -> str:
 
 def menu_chips(session: Session) -> List[Chip]:
     return [_MENU_CHIP_FOR[s] for s in session.case.to_ask()]
+
+
+def _input_type_chips(session: Session) -> List[Chip]:
+    """Images cannot be company details."""
+    return [CHIP_IS_JOB_POST, CHIP_IS_RECRUITER] + ([] if session._pending_image else [CHIP_IS_COMPANY])
 
 
 def still_checking(session: Session) -> str:
@@ -149,6 +165,21 @@ def advance(session: Session, prefix: str, last: Optional[CheckResult] = None) -
 
 def background_finished(session: Session, result: CheckResult) -> None:
     """A background check finished (called with the session locked): save it and tell the user."""
+    session.add_message("assistant", _background_result(session, result))
+
+
+def recover_interrupted(session: Session) -> List[str]:
+    """Checks saved as running whose task is gone (the server restarted) count as failed.
+    Returns what to tell the user; call with the session locked."""
+    notes = []
+    for source in session.case.running():
+        if source not in session._tasks:
+            reason = f"The {_label(source)} check was interrupted. Please try again."
+            notes.append(_background_result(session, failed(source, reason)))
+    return notes
+
+
+def _background_result(session: Session, result: CheckResult) -> str:
     session.case.set(result)
     waiting = session.awaiting == "waiting"
     label = _label(result.source)
@@ -158,18 +189,14 @@ def background_finished(session: Session, result: CheckResult) -> None:
         if waiting:
             session.awaiting = result.source
             session.chips = [CHIP_SKIP]
-            text = f"I couldn't complete the {label} check: {reason} {PROMPTS[result.source]} Or tap Skip."
-        else:
-            text = f"I couldn't complete the {label} check: {reason} We can try it again after the other checks."
-        session.add_message("assistant", text)
-        return
+            return f"I couldn't complete the {label} check: {reason} {PROMPTS[result.source]} Or tap Skip."
+        return f"I couldn't complete the {label} check: {reason} We can try it again after the other checks."
 
     if waiting:
         turn = advance(session, describe(result), last=result)
         session.chips = turn.chips
-        session.add_message("assistant", turn.reply)
-    else:
-        session.add_message("assistant", describe(result))
+        return turn.reply
+    return describe(result)
 
 
 def _start_company_check(session: Session, text: Optional[str], image: Optional[bytes]) -> Turn:
@@ -250,22 +277,33 @@ async def handle(
         if chip in (CHIP_JOB_POST.id, CHIP_COMPANY.id, CHIP_RECRUITER.id):
             session.awaiting = _STAGE_FOR_CHIP[chip]
             return Turn(PROMPTS[session.awaiting], [CHIP_SKIP])
+        if text and not image and is_small_talk(text):
+            return Turn(SMALL_TALK_REPLY, menu_chips(session))
         if has_content:
             session._pending_text, session._pending_image = text, image
             session.awaiting = "input_type"
-            chips = [CHIP_IS_JOB_POST, CHIP_IS_RECRUITER] + ([] if image else [CHIP_IS_COMPANY])
-            return Turn("Thanks! What did you send me?", chips)
+            if not image and not looks_checkable(text or ""):
+                return Turn(NOT_CHECKABLE, _input_type_chips(session))
+            return Turn("Thanks! What did you send me?", _input_type_chips(session))
         return Turn("Please choose what you would like to check, or paste it here.", menu_chips(session))
 
     if stage == "input_type":
         if chip in (CHIP_IS_JOB_POST.id, CHIP_IS_RECRUITER.id, CHIP_IS_COMPANY.id):
             pending_text, pending_image = session._pending_text, session._pending_image
             session._pending_text = session._pending_image = None
+            if not (pending_text or pending_image):
+                # It is never saved, so it is gone after a restart.
+                session.awaiting = _STAGE_FOR_CHIP[chip]
+                return Turn(f"Sorry, I no longer have what you sent. {PROMPTS[session.awaiting]}", [CHIP_SKIP])
             return await _check_and_advance(session, _STAGE_FOR_CHIP[chip], pending_text, pending_image, user)
-        if has_content:
+        if image or (text and looks_checkable(text)):
             session._pending_text, session._pending_image = text, image
-        chips = [CHIP_IS_JOB_POST, CHIP_IS_RECRUITER] + ([] if session._pending_image else [CHIP_IS_COMPANY])
-        return Turn("Please tell me what you sent so I can run the right check.", chips)
+        elif text:
+            # Nothing to check in it: keep what was sent before, if anything.
+            if not (session._pending_text or session._pending_image):
+                session._pending_text = text
+            return Turn(NOT_CHECKABLE, _input_type_chips(session))
+        return Turn("Please tell me what you sent so I can run the right check.", _input_type_chips(session))
 
     if stage == "recruiter_question":
         if chip == CHIP_RECRUITER_NO.id:

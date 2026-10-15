@@ -21,6 +21,13 @@ def _float(name: str, default: float) -> float:
         return default
 
 
+def _int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, default))
+    except ValueError:
+        return default
+
+
 @dataclass(frozen=True)
 class Settings:
     scam_detection_url: str
@@ -36,6 +43,14 @@ class Settings:
     employer_check_timeout_seconds: float = 90.0
     recruiter_check_timeout_seconds: float = 60.0
     llm_timeout_seconds: float = 20.0
+    # Empty: conversations are kept in memory only (lost on restart).
+    mongo_uri: str = field(default="", repr=False)
+    mongo_db: str = "fraudaware"
+    # 0 turns a limit off.
+    rate_limit_per_minute: int = 10
+    rate_limit_per_day: int = 150
+    llm_calls_per_minute: int = 8
+    llm_calls_per_user_per_day: int = 60
 
     @property
     def llm_configured(self) -> bool:
@@ -61,4 +76,12 @@ def get_settings() -> Settings:
         employer_check_timeout_seconds=_float("EMPLOYER_CHECK_TIMEOUT_SECONDS", 90.0),
         recruiter_check_timeout_seconds=_float("RECRUITER_CHECK_TIMEOUT_SECONDS", 60.0),
         llm_timeout_seconds=_float("LLM_TIMEOUT_SECONDS", 20.0),
+        mongo_uri=(os.getenv("MONGO_URI") or "").strip(),
+        mongo_db=(os.getenv("MONGO_DB") or "fraudaware").strip(),
+        # Messages per user; over the limit the app gets HTTP 429.
+        rate_limit_per_minute=_int("RATE_LIMIT_PER_MINUTE", 10),
+        rate_limit_per_day=_int("RATE_LIMIT_PER_DAY", 150),
+        # Gemini calls (all users per minute, each user per day); over the limit guided mode answers.
+        llm_calls_per_minute=_int("LLM_CALLS_PER_MINUTE", 8),
+        llm_calls_per_user_per_day=_int("LLM_CALLS_PER_USER_PER_DAY", 60),
     )

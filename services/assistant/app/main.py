@@ -1,13 +1,14 @@
 # app/main.py
 
 import asyncio
+from contextlib import asynccontextmanager
 from typing import Optional
 
 import httpx
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
-from app import agent, guard, guided, llm
+from app import agent, guard, guided, llm, rate_limit
 from app.auth import User, get_current_user
 from app.config import get_settings
 from app.schemas import HealthResponse, MessageResponse, SessionView
@@ -16,10 +17,19 @@ from app.tools.common import MAX_IMAGE_BYTES
 
 MAX_TEXT_CHARS = 10_000
 
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # In the background: the server starts even when MongoDB is slow or unreachable.
+    connecting = asyncio.create_task(store.connect())
+    yield
+    connecting.cancel()
+
+
 app = FastAPI(
     title="FraudAware Assistant API",
     description="Conversational job-scam checker built on the FraudAware detection services",
     version="0.1.0",
+    lifespan=lifespan,
 )
 
 # The mobile app does not need CORS; only browser origins listed in CORS_ORIGINS may call the API.
@@ -66,11 +76,17 @@ def _message_kind(image: Optional[bytes], chip: Optional[str]) -> str:
 
 
 async def _reply(session: Session, user: User, text: Optional[str], image: Optional[bytes], chip: Optional[str]):
-    """Typed text goes to the LLM when it is configured, after the scope guard. Buttons, images
-    and the "what did you send?" question go to guided mode, which runs the checks; the LLM then
-    explains any result. Guided mode's own reply is used whenever the LLM fails."""
+    """Typed text goes to the LLM when it is configured, after the scope guard. Buttons and images
+    go to guided mode, which runs the checks; the LLM then explains any result. Guided mode's own
+    reply is used whenever the LLM fails."""
     client = llm.get_client()
-    if client is not None and not chip and not image and session.awaiting != "input_type":
+    if client is not None:
+        client = rate_limit.LimitedClient(client, user.user_id)
+    if client is not None and not chip and not image:
+        if session.awaiting == "input_type":
+            # Typed something new instead of answering "what did you send?": the LLM takes over.
+            session._pending_text = session._pending_image = None
+            session.awaiting = "menu"
         try:
             if not await guard.in_scope(client, text or "", session):
                 return guard.out_of_scope_turn(session)
@@ -89,11 +105,17 @@ async def _reply(session: Session, user: User, text: Optional[str], image: Optio
     return turn
 
 
-def _own_session(session_id: str, user: User) -> Session:
-    session = store.get(session_id, user.user_id)
+async def _own_session(session_id: str, user: User) -> Session:
+    session = await store.get(session_id, user.user_id)
     if session is None:
         raise HTTPException(status_code=404, detail="Conversation not found.")
     return session
+
+
+def _check_message_limit(user: User) -> None:
+    refused = rate_limit.limits.message_refused(user.user_id)
+    if refused is not None:
+        raise HTTPException(status_code=429, detail=refused, headers={"Retry-After": "60"})
 
 
 # ─── ROUTES ──────────────────────────────────────────────────────
@@ -115,6 +137,7 @@ async def health():
             "model": settings.gemini_model,
         },
         "services": services,
+        "session_store": store.kind,
     }
 
 
@@ -128,33 +151,39 @@ async def assistant_message(
 ):
     """Send one user message: text, an image, a button (`chip`), or nothing to start a conversation.
     Leave `session_id` empty to start a new conversation."""
+    _check_message_limit(user)
     if text and len(text) > MAX_TEXT_CHARS:
         raise HTTPException(status_code=413, detail=f"Message is longer than {MAX_TEXT_CHARS:,} characters.")
     # One extra byte so the check adapters can tell the image is over the limit.
     image_bytes = (await image.read(MAX_IMAGE_BYTES + 1)) if image is not None else None
 
     if session_id and chip != guided.CHIP_NEW_CHECK.id:
-        session = _own_session(session_id, user)
+        session = await _own_session(session_id, user)
     else:
-        old = store.get(session_id, user.user_id) if session_id else None
+        old = await store.get(session_id, user.user_id) if session_id else None
         if old is not None:
             async with store.lock(old.session_id):
                 old.cancel_tasks()
+                await store.save(old)
         session = store.create(user.user_id)
 
     async with store.lock(session.session_id):
+        # Told in this reply, so the app does not have to look for an extra message.
+        notes = guided.recover_interrupted(session)
         has_input = bool((text or "").strip() or image_bytes or (chip and chip != guided.CHIP_NEW_CHECK.id))
         if has_input:
             session.add_message("user", _user_message_text(text, image_bytes, chip), _message_kind(image_bytes, chip))
             turn = await _reply(session, user, text, image_bytes, chip)
         else:
             turn = guided.start(session)
+        reply = "\n\n".join([*notes, turn.reply])
         session.chips = turn.chips
-        session.add_message("assistant", turn.reply)
+        session.add_message("assistant", reply)
+        await store.save(session)
 
         return MessageResponse(
             session_id=session.session_id,
-            reply=turn.reply,
+            reply=reply,
             chips=turn.chips,
             awaiting=session.awaiting,
             checks=session.case.as_list(),
@@ -167,7 +196,13 @@ async def assistant_message(
 async def get_session(session_id: str, user: User = Depends(get_current_user)):
     """The whole conversation. While `running` is true the app polls this every few seconds
     to pick up the background check's message and, if it was the last one, the result."""
-    session = _own_session(session_id, user)
+    session = await _own_session(session_id, user)
+    async with store.lock(session.session_id):
+        notes = guided.recover_interrupted(session)
+        if notes:
+            for note in notes:
+                session.add_message("assistant", note)
+            await store.save(session)
     return SessionView(
         session_id=session.session_id,
         created_at=session.created_at,

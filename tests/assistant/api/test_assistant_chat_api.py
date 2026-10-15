@@ -140,6 +140,48 @@ def test_image_first_cannot_be_company_details(chat):
     assert chat.calls == [("job_post", "image", len(PNG))]
 
 
+def test_off_topic_text_explains_what_can_be_checked(chat):
+    sid = chat.send()["session_id"]
+
+    body = chat.send(sid, text="Give me an essay")
+
+    assert body["reply"].startswith("I can only check job posts, company details and recruiter messages")
+    assert _chip_ids(body) == ["is_job_post", "is_recruiter", "is_company"]
+    assert chat.calls == []
+
+
+def test_off_topic_text_does_not_replace_what_was_sent_before(chat):
+    sid = chat.send()["session_id"]
+    chat.send(sid, text="Send the training fee today or lose your seat")
+
+    body = chat.send(sid, text="I want a love letter")
+    assert body["reply"].startswith("I can only check job posts")
+    assert body["awaiting"] == "input_type"
+
+    chat.send(sid, chip="is_recruiter")
+    assert chat.calls[0][:3] == ("recruiter_chat", "text", "Send the training fee today or lose your seat")
+
+
+def test_short_company_name_can_still_be_checked_with_a_button(chat):
+    sid = chat.send()["session_id"]
+    chat.send(sid, text="Kandy Traders")
+
+    chat.send(sid, chip="is_company")
+    chat.settle()
+
+    assert [c[0] for c in chat.calls] == ["company"]
+
+
+def test_greeting_gets_the_menu(chat):
+    sid = chat.send()["session_id"]
+
+    body = chat.send(sid, text="hello")
+
+    assert body["reply"].startswith("Hi! I check job posts")
+    assert body["awaiting"] == "menu"
+    assert "check_job_post" in _chip_ids(body)
+
+
 def test_start_with_company_then_job_post(chat):
     sid = chat.send()["session_id"]
     chat.send(sid, chip="check_company")
