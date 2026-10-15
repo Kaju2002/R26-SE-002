@@ -16,6 +16,7 @@ from app.config import get_settings
 from app.schemas import CheckResult, CheckSource, Chip, Verdict
 from app.scope_rules import is_small_talk, looks_checkable
 from app.sessions import Session
+from app.tools.common import failed
 from app.tools.company import check_company
 from app.tools.job_post import check_job_post_image, check_job_post_text
 from app.tools.recruiter_chat import check_recruiter_image, check_recruiter_text
@@ -164,6 +165,21 @@ def advance(session: Session, prefix: str, last: Optional[CheckResult] = None) -
 
 def background_finished(session: Session, result: CheckResult) -> None:
     """A background check finished (called with the session locked): save it and tell the user."""
+    session.add_message("assistant", _background_result(session, result))
+
+
+def recover_interrupted(session: Session) -> List[str]:
+    """Checks saved as running whose task is gone (the server restarted) count as failed.
+    Returns what to tell the user; call with the session locked."""
+    notes = []
+    for source in session.case.running():
+        if source not in session._tasks:
+            reason = f"The {_label(source)} check was interrupted. Please try again."
+            notes.append(_background_result(session, failed(source, reason)))
+    return notes
+
+
+def _background_result(session: Session, result: CheckResult) -> str:
     session.case.set(result)
     waiting = session.awaiting == "waiting"
     label = _label(result.source)
@@ -173,18 +189,14 @@ def background_finished(session: Session, result: CheckResult) -> None:
         if waiting:
             session.awaiting = result.source
             session.chips = [CHIP_SKIP]
-            text = f"I couldn't complete the {label} check: {reason} {PROMPTS[result.source]} Or tap Skip."
-        else:
-            text = f"I couldn't complete the {label} check: {reason} We can try it again after the other checks."
-        session.add_message("assistant", text)
-        return
+            return f"I couldn't complete the {label} check: {reason} {PROMPTS[result.source]} Or tap Skip."
+        return f"I couldn't complete the {label} check: {reason} We can try it again after the other checks."
 
     if waiting:
         turn = advance(session, describe(result), last=result)
         session.chips = turn.chips
-        session.add_message("assistant", turn.reply)
-    else:
-        session.add_message("assistant", describe(result))
+        return turn.reply
+    return describe(result)
 
 
 def _start_company_check(session: Session, text: Optional[str], image: Optional[bytes]) -> Turn:
@@ -279,6 +291,10 @@ async def handle(
         if chip in (CHIP_IS_JOB_POST.id, CHIP_IS_RECRUITER.id, CHIP_IS_COMPANY.id):
             pending_text, pending_image = session._pending_text, session._pending_image
             session._pending_text = session._pending_image = None
+            if not (pending_text or pending_image):
+                # It is never saved, so it is gone after a restart.
+                session.awaiting = _STAGE_FOR_CHIP[chip]
+                return Turn(f"Sorry, I no longer have what you sent. {PROMPTS[session.awaiting]}", [CHIP_SKIP])
             return await _check_and_advance(session, _STAGE_FOR_CHIP[chip], pending_text, pending_image, user)
         if image or (text and looks_checkable(text)):
             session._pending_text, session._pending_image = text, image

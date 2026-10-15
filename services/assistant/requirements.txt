@@ -5,6 +5,7 @@ python-dotenv
 google-genai
 PyJWT
 python-multipart
+pymongo>=4.10
 
 # Tests
 pytest

@@ -702,6 +702,22 @@ def test_typed_text_after_a_guided_question_goes_back_to_the_llm(guarded):
     assert len(guarded.llm.calls) == 2
 
 
+def test_llm_call_limit_falls_back_to_guided_mode(agent, monkeypatch):
+    settings = SimpleNamespace(
+        rate_limit_per_minute=0, rate_limit_per_day=0, llm_calls_per_minute=0, llm_calls_per_user_per_day=1
+    )
+    rate_limit = agent.main.rate_limit
+    monkeypatch.setattr(rate_limit, "limits", rate_limit.Limits(settings))
+    sid = agent.send()["session_id"]
+    agent.llm.script = [agent.llm.say("Please paste the job post."), agent.llm.say("never used")]
+    agent.send(sid, text="I got a job offer")
+
+    body = agent.send(sid, text="Earn Rs 5,000 daily")
+
+    assert len(agent.llm.calls) == 1
+    assert body["reply"] == "Thanks! What did you send me?"
+
+
 def test_classifier_message_cannot_close_its_wrapper(guarded):
     sid = guarded.send()["session_id"]
     guarded.llm.script = [guarded.llm.say("OUT_OF_SCOPE")]

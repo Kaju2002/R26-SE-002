@@ -3,7 +3,8 @@
 # carry on. When one finishes, its result is saved to the session; the app sees it by polling
 # GET /assistant/session/{id}.
 #
-# Tasks live in this server process only: they are lost on restart.
+# Tasks live in this server process only: after a restart, a check saved as running has no task
+# and is reported as failed (guided.recover_interrupted).
 
 import asyncio
 import logging
@@ -52,3 +53,4 @@ async def _run(session: Session, source: CheckSource, run: Runner, on_finish: On
             return
         del session._tasks[source]
         on_finish(session, result)
+        await store.save(session)
