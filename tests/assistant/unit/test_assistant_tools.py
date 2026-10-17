@@ -217,6 +217,7 @@ def test_company_high_lists_concerns(tools):
         "This employer shows strong signs of fraud",
         "No official registration was found.",
         "Scam reports were found online.",
+        "Do not pay any fee.",
     ]
     assert json.loads(svc.requests[0].content) == {
         "company_name": "ABC Holdings",
@@ -236,7 +237,11 @@ def test_company_low_lists_good_evidence(tools):
     result = run(company.check_company("Dialog Axiata PLC", "https://www.dialog.lk", client=svc.client()))
 
     assert result.risk == "low"
-    assert result.reasons == ["This employer looks legitimate", "Professional website."]
+    assert result.reasons == [
+        "This employer looks legitimate",
+        "Professional website.",
+        "Do not pay any fee.",
+    ]
 
 
 def test_company_private_website_and_email_are_not_passed_on(tools):
@@ -275,7 +280,36 @@ def test_company_medium_includes_low_confidence_notice(tools):
     result = run(company.check_company("Small Co", client=svc.client()))
 
     assert result.risk == "medium"
-    assert result.reasons[-1].startswith("Little information was available")
+    assert any(reason.startswith("Little information was available") for reason in result.reasons)
+    assert result.reasons[-1] == "Do not pay any fee."
+
+
+def test_company_says_registration_caution_and_one_next_step(tools):
+    _, company, _ = tools
+    body = _employer_body(
+        "Low",
+        checks=[{"name": "Official registration", "status": "good", "detail": "Registered under the Companies Act."}],
+        headline="This employer looks legitimate",
+    )
+    body["user_result"]["low_confidence"] = True
+    body["user_result"]["thin_evidence"] = True
+    body["user_result"]["next_steps"] = ["Apply only through the official website.", "Never pay a fee."]
+    body["evidence"] = {"reg_name": "SOFTSORA", "reg_number": "PV00275489", "government_registration_source": "DRC / eROC"}
+    svc = FakeService(body=body)
+
+    result = run(company.check_company("SoftSora", "https://softsora.com", client=svc.client()))
+
+    assert result.reasons[:3] == [
+        "This employer looks legitimate",
+        "Registered as SOFTSORA, number PV00275489, on DRC / eROC.",
+        "This result is less reliable because little information was found. "
+        "A registration on its own does not mean the job offer is safe.",
+    ]
+    assert "Registered under the Companies Act." in result.reasons
+    assert result.reasons[-1] == "Apply only through the official website."
+    assert result.details["reg_name"] == "SOFTSORA"
+    assert result.details["reg_number"] == "PV00275489"
+    assert result.details["register"] == "DRC / eROC"
 
 
 def test_company_unknown_band_is_done_but_unknown(tools):

@@ -9,6 +9,7 @@
 
 import json
 import logging
+import re
 from typing import List, Sequence
 
 from app import agent_tools, guided, reply_check
@@ -26,6 +27,15 @@ HISTORY_MESSAGES = 14
 # Rounds of tool calls in one turn; the last round must answer in text.
 MAX_ROUNDS = 5
 
+_BOLD = re.compile(r"\*\*(.+?)\*\*|__(.+?)__", re.S)
+_HEADING = re.compile(r"^#{1,6}\s+", re.M)
+
+
+def _plain(text: str) -> str:
+    """The app shows plain text, so markdown bold and heading marks would show as symbols."""
+    text = _BOLD.sub(lambda m: m.group(1) or m.group(2), text or "")
+    return _HEADING.sub("", text).strip()
+
 
 def _render(index: int, message: ChatMessage) -> str:
     if message.role == "assistant":
@@ -35,7 +45,7 @@ def _render(index: int, message: ChatMessage) -> str:
         return f"(The user tapped the button: {message.text})"
     if message.kind == "image":
         return "(The user sent an image. The app checks images itself; you cannot see them.)"
-    return f"[m{index}]\n<content_to_check>\n{untrusted(message.text)}\n</content_to_check>"
+    return f"[m{index}]\n<user_message>\n{untrusted(message.text)}\n</user_message>"
 
 
 def history(session: Session) -> List[Message]:
@@ -134,7 +144,7 @@ async def handle(
             return _fallback_reply(session, ctx.results)
 
         if not answer.tool_calls or tools is None or force_text:
-            reply = answer.text
+            reply = _plain(answer.text)
             break
 
         messages.append(Message(role="model", text=answer.text, tool_calls=answer.tool_calls, raw=answer.raw))

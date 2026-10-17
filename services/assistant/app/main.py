@@ -76,17 +76,19 @@ def _message_kind(image: Optional[bytes], chip: Optional[str]) -> str:
 
 
 async def _reply(session: Session, user: User, text: Optional[str], image: Optional[bytes], chip: Optional[str]):
-    """Typed text goes to the LLM when it is configured, after the scope guard. Buttons and images
-    go to guided mode, which runs the checks; the LLM then explains any result. Guided mode's own
-    reply is used whenever the LLM fails."""
+    """Typed text goes to the LLM when it is configured, after the scope guard. Buttons, images and
+    answers to "what did you send?" go to guided mode, which runs the checks; the LLM then explains
+    any result. Guided mode's own reply is used whenever the LLM fails."""
     client = llm.get_client()
     if client is not None:
         client = rate_limit.LimitedClient(client, user.user_id)
-    if client is not None and not chip and not image:
-        if session.awaiting == "input_type":
-            # Typed something new instead of answering "what did you send?": the LLM takes over.
-            session._pending_text = session._pending_image = None
+    if client is not None and not chip and not image and session.awaiting == "input_type":
+        # A typed answer ("it's the job post") or a waiting image stays with guided mode, which
+        # runs the check. Anything else: the LLM takes over; it can still check waiting text by id.
+        if guided.answered_type(session, text) is None and session._pending_image is None:
+            session._pending_text = None
             session.awaiting = "menu"
+    if client is not None and not chip and not image and session.awaiting != "input_type":
         try:
             if not await guard.in_scope(client, text or "", session):
                 return guard.out_of_scope_turn(session)

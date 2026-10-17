@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import type {
   AssistantCheck,
@@ -10,7 +10,7 @@ import type {
 const NAVY = '#202871';
 const MUTED = '#5B6473';
 
-const COLOURS: Record<AssistantVerdict['colour'], { main: string; bg: string; border: string }> = {
+export const VERDICT_COLOURS: Record<AssistantVerdict['colour'], { main: string; bg: string; border: string }> = {
   red: { main: '#B42318', bg: '#FEF3F2', border: '#FECDCA' },
   orange: { main: '#B54708', bg: '#FFFAEB', border: '#FEDF89' },
   grey: { main: '#344054', bg: '#F2F4F7', border: '#D0D5DD' },
@@ -23,9 +23,11 @@ export const CHECK_LABELS: Record<AssistantCheckSource, string> = {
   recruiter_chat: 'Recruiter messages',
 };
 
+const COLOURS = VERDICT_COLOURS;
+
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-function describeCheck(check: AssistantCheck): { text: string; icon: IconName; colour: string } {
+export function describeCheck(check: AssistantCheck): { text: string; icon: IconName; colour: string } {
   if (check.status === 'done') {
     switch (check.risk) {
       case 'high':
@@ -64,9 +66,11 @@ export function buildShareText(verdict: AssistantVerdict): string {
 type Props = {
   verdict: AssistantVerdict;
   onShare: () => void;
+  onReport?: () => void;
+  reportBusy?: boolean;
 };
 
-export default function AssistantResultCard({ verdict, onShare }: Props) {
+export default function AssistantResultCard({ verdict, onShare, onReport, reportBusy }: Props) {
   const colour = COLOURS[verdict.colour];
 
   return (
@@ -89,15 +93,33 @@ export default function AssistantResultCard({ verdict, onShare }: Props) {
 
       <Text style={styles.disclaimer}>{verdict.disclaimer}</Text>
 
-      <Pressable
-        onPress={onShare}
-        accessibilityRole="button"
-        accessibilityLabel="Share result"
-        style={({ pressed }) => [styles.shareBtn, pressed && { opacity: 0.7 }]}
-      >
-        <MaterialIcons name="share" size={18} color={NAVY} />
-        <Text style={styles.shareText}>Share result</Text>
-      </Pressable>
+      <View style={styles.actions}>
+        <Pressable
+          onPress={onShare}
+          accessibilityRole="button"
+          accessibilityLabel="Share result"
+          style={({ pressed }) => [styles.shareBtn, pressed && { opacity: 0.7 }]}
+        >
+          <MaterialIcons name="share" size={18} color={NAVY} />
+          <Text style={styles.shareText}>Share result</Text>
+        </Pressable>
+        {onReport ? (
+          <Pressable
+            onPress={onReport}
+            disabled={reportBusy}
+            accessibilityRole="button"
+            accessibilityLabel="Download PDF report"
+            style={({ pressed }) => [styles.shareBtn, (pressed || reportBusy) && { opacity: 0.6 }]}
+          >
+            {reportBusy ? (
+              <ActivityIndicator size="small" color={NAVY} />
+            ) : (
+              <MaterialCommunityIcons name="file-pdf-box" size={20} color={NAVY} />
+            )}
+            <Text style={styles.shareText}>PDF report</Text>
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -147,8 +169,13 @@ const styles = StyleSheet.create({
     lineHeight: 17,
     color: MUTED,
   },
-  shareBtn: {
+  actions: {
     marginTop: 14,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  shareBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

@@ -241,11 +241,17 @@ Implemented in `app/redact.py`; try it with `py scripts/try_redact.py "<message>
 
 ### 7.3 Notice in the app
 
-Shown the first time the assistant opens:
+Shown before the first conversation (`AssistantPrivacyNotice.tsx`). The chat does not
+start until the user taps **I understand**; **Not now** goes back. Accepted once per user
+and remembered on the phone (`@fraudaware/assistant_privacy_v1:<userId>`; bump the version
+when the text changes). It says:
 
-> "Your messages are analysed by an automated AI service (Google Gemini). Personal
-> details such as phone numbers are hidden before analysis. Don't share passwords or
-> OTPs."
+- Messages are analysed by Google Gemini and FraudAware's detection models.
+- Phone numbers, emails and NIC numbers are hidden before Gemini; screenshots never go to it.
+- Conversations are deleted from the server 24 hours after the last message. Recruiter
+  messages that are checked are also kept in the user's own scan history (scam-detection
+  saves scans for logged-in users). Recent results are saved only on the phone.
+- Never share passwords, OTP codes or bank PINs.
 
 The free Gemini tier may use prompts to improve Google's products. This is mentioned in
 the thesis ethics section; a paid tier or another provider should be used for launch.
@@ -499,11 +505,18 @@ How it works (step 10):
 - `AssistantScreen`: chat bubbles, text input, attach screenshots, quick-reply chips,
   "Checking the company..." progress, result card (red / orange / grey / green).
 - First-open privacy notice (section 7.3).
-- "Recent checks" list of past sessions.
+- **Recent checks** (`AssistantHistoryScreen`, history icon in the assistant header): each
+  finished result is saved **on the phone only** (`utils/assistantStorage.ts`, AsyncStorage,
+  per user): the verdict card and the company details given, no chat messages. Newest 20,
+  kept 90 days. Tap one to open its card (share, PDF, delete); "Clear all" removes them.
+  On the phone because server sessions are deleted after 24 hours.
 - **Share result:** the result card shares a short text summary through the phone's share sheet.
-- **PDF report (later):** built on the phone with `expo-print` + `expo-sharing` (no server copy):
-  verdict, each check with reasons, the company details given, next steps and the disclaimer.
-  The checked chat text is left out unless the user ticks "Include the messages I checked".
+- **PDF report** (`utils/assistantReport.ts`): built on the phone with `expo-print` and shared
+  with `expo-sharing` (no server copy): verdict, each check with reasons, the company
+  details given, next steps (fixed by verdict colour plus employer-verification's own) and
+  the disclaimer. On the live result the app asks first: **Result only** or **Include
+  messages** (the user's typed messages; screenshots appear as "[screenshot]"). Reports from
+  Recent checks are result only. All text is HTML-escaped.
 - The **Detect section is not changed**. After the assistant works well, it replaces
   Detect.
 
@@ -511,10 +524,12 @@ How it works (step 10):
 |---|---|
 | `src/config/assistantApi.ts` (new) | base URL from `EXPO_PUBLIC_ASSISTANT_API_BASE_URL` |
 | `src/api/assistantApi.ts` (new) | `sendMessage`, `getSessions`, `getSession`, `deleteSession` |
-| `src/screens/AssistantScreen.tsx` (new) | chat UI |
-| `src/components/assistant/*` (new) | message bubble, chips, result card, privacy notice |
+| `src/screens/AssistantScreen.tsx` (new) | chat UI, privacy gate, saves finished results |
+| `src/screens/AssistantHistoryScreen.tsx` (new) | recent checks |
+| `src/components/assistant/*` (new) | result card (share + PDF), privacy notice, floating button |
+| `src/utils/assistantStorage.ts`, `assistantReport.ts` (new) | phone storage, PDF report |
 | `src/screens/HomeScreen.tsx` | floating assistant button |
-| navigation | register `Assistant` screen |
+| navigation | register `Assistant` and `AssistantHistory` screens |
 
 ---
 

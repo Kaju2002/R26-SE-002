@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -15,7 +15,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useUser } from '../context/UserContext';
@@ -24,6 +24,14 @@ import AssistantResultCard, {
   CHECK_LABELS,
   buildShareText,
 } from '../components/assistant/AssistantResultCard';
+import AssistantPrivacyNotice from '../components/assistant/AssistantPrivacyNotice';
+import type { RootStackParamList } from '../navigation/rootStackParams';
+import {
+  acceptAssistantPrivacy,
+  hasAcceptedAssistantPrivacy,
+  saveRecentCheck,
+} from '../utils/assistantStorage';
+import { shareAssistantReport } from '../utils/assistantReport';
 
 const NAVY = '#202871';
 const MUTED = '#5B6473';
@@ -51,12 +59,37 @@ function MessageBubble({ message }: { message: AssistantUiMessage }) {
   );
 }
 
+type PrivacyState = 'loading' | 'needed' | 'accepted';
+
 export default function AssistantScreen() {
-  const navigation = useNavigation();
-  const { token } = useUser();
-  const chat = useAssistantChat(token);
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const { token, user } = useUser();
+  const userId = user?.id ?? 'unknown';
+  const [privacy, setPrivacy] = useState<PrivacyState>('loading');
+  // No token until the notice is accepted, so the conversation does not start before that.
+  const chat = useAssistantChat(privacy === 'accepted' ? token : null);
   const [draft, setDraft] = useState('');
+  const [reportBusy, setReportBusy] = useState(false);
   const listRef = useRef<FlatList<AssistantUiMessage>>(null);
+
+  useEffect(() => {
+    let active = true;
+    void hasAcceptedAssistantPrivacy(userId).then((accepted) => {
+      if (active) setPrivacy(accepted ? 'accepted' : 'needed');
+    });
+    return () => {
+      active = false;
+    };
+  }, [userId]);
+
+  useEffect(() => {
+    if (chat.result && chat.sessionId) void saveRecentCheck(userId, chat.sessionId, chat.result);
+  }, [chat.result, chat.sessionId, userId]);
+
+  const onAcceptPrivacy = useCallback(() => {
+    setPrivacy('accepted');
+    void acceptAssistantPrivacy(userId);
+  }, [userId]);
 
   const runningLabels = chat.checks
     .filter((c) => c.status === 'running')
@@ -80,15 +113,56 @@ export default function AssistantScreen() {
       mediaTypes: ['images'],
       quality: 0.85,
       allowsEditing: false,
+      // iPhone photos are HEIC; the checks only read JPEG, PNG and WebP, so iOS converts to JPEG.
+      preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
     });
     const asset = pick.canceled ? undefined : pick.assets?.[0];
     if (!asset?.uri) return;
+    if (/\.(heic|heif)$/i.test(asset.uri)) {
+      Alert.alert(
+        'Photo format not supported',
+        'Please send a screenshot instead, or paste the text of the job post or messages.'
+      );
+      return;
+    }
     void chat.sendImage({ uri: asset.uri, name: asset.fileName, type: asset.mimeType });
   }, [chat]);
 
   const onShare = useCallback(() => {
     if (chat.result) void Share.share({ message: buildShareText(chat.result) });
   }, [chat.result]);
+
+  const makeReport = useCallback(
+    async (includeMessages: boolean) => {
+      if (!chat.result) return;
+      const messages = includeMessages
+        ? chat.messages
+            .filter((m) => m.role === 'user' && !m.fromButton && (m.text || m.imageUri))
+            .map((m) => m.text || '[screenshot]')
+        : undefined;
+      setReportBusy(true);
+      try {
+        await shareAssistantReport({ verdict: chat.result, checkedAt: new Date(), messages });
+      } catch {
+        Alert.alert('Report not created', 'The PDF report could not be created. Please try again.');
+      } finally {
+        setReportBusy(false);
+      }
+    },
+    [chat.messages, chat.result]
+  );
+
+  const onReport = useCallback(() => {
+    Alert.alert(
+      'PDF report',
+      'The report is created on your phone. Include the messages you checked? They may contain personal details.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Include messages', onPress: () => void makeReport(true) },
+        { text: 'Result only', onPress: () => void makeReport(false) },
+      ]
+    );
+  }, [makeReport]);
 
   const scrollToEnd = useCallback(() => {
     listRef.current?.scrollToEnd({ animated: true });
@@ -110,122 +184,145 @@ export default function AssistantScreen() {
           <Text style={styles.headerTitle}>FraudAware Assistant</Text>
           <Text style={styles.headerSubtitle}>Job post · Company · Recruiter messages</Text>
         </View>
-        <View style={styles.headerBadge}>
-          <MaterialCommunityIcons name="robot-happy-outline" size={22} color={NAVY} />
-        </View>
+        <Pressable
+          onPress={() => navigation.navigate('AssistantHistory')}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Recent checks"
+          style={({ pressed }) => [styles.headerBadge, pressed && { opacity: 0.6 }]}
+        >
+          <MaterialCommunityIcons name="history" size={22} color={NAVY} />
+        </Pressable>
       </View>
 
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      >
-        {runningLabels.length > 0 ? (
-          <View style={styles.runningBanner}>
-            <ActivityIndicator size="small" color={NAVY} />
-            <Text style={styles.runningText}>
-              Checking the {runningLabels.join(' and ')}… this can take up to 90 seconds.
-            </Text>
-          </View>
-        ) : null}
-
-        <FlatList
-          ref={listRef}
-          data={chat.messages}
-          keyExtractor={(m) => m.id}
-          renderItem={({ item }) => <MessageBubble message={item} />}
-          contentContainerStyle={styles.messages}
-          onContentSizeChange={scrollToEnd}
-          keyboardShouldPersistTaps="handled"
-          ListHeaderComponent={
-            <Text style={styles.notice}>
-              Never share passwords, OTP codes or bank PINs here. What you send is checked by
-              FraudAware's scam detection services.
-            </Text>
-          }
-          ListFooterComponent={
-            <>
-              {chat.sending ? (
-                <View style={[styles.bubbleRow, styles.bubbleRowAssistant]}>
-                  <View style={styles.avatar}>
-                    <MaterialCommunityIcons name="robot-happy-outline" size={18} color={NAVY} />
-                  </View>
-                  <View style={[styles.bubble, styles.bubbleAssistant, styles.typing]}>
-                    <ActivityIndicator size="small" color={NAVY} />
-                    <Text style={styles.typingText}>Checking…</Text>
-                  </View>
-                </View>
-              ) : null}
-              {chat.result ? <AssistantResultCard verdict={chat.result} onShare={onShare} /> : null}
-            </>
-          }
-        />
-
-        {chat.error ? (
-          <View style={styles.errorBanner}>
-            <Text style={styles.errorText}>{chat.error.message}</Text>
-            {chat.error.canRetry ? (
-              <Pressable onPress={chat.retry} hitSlop={8} accessibilityRole="button">
-                <Text style={styles.retryText}>Retry</Text>
-              </Pressable>
-            ) : null}
-          </View>
-        ) : null}
-
-        {chat.chips.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chips}
-            keyboardShouldPersistTaps="handled"
-          >
-            {chat.chips.map((chip) => (
-              <Pressable
-                key={chip.id}
-                onPress={() => void chat.sendChip(chip)}
-                disabled={chat.sending}
-                accessibilityRole="button"
-                style={({ pressed }) => [
-                  styles.chip,
-                  (pressed || chat.sending) && { opacity: 0.6 },
-                ]}
-              >
-                <Text style={styles.chipText}>{chip.label}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        ) : null}
-
-        <View style={styles.composer}>
-          <Pressable
-            onPress={() => void onPickImage()}
-            disabled={chat.sending}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Send a screenshot"
-            style={({ pressed }) => [styles.iconBtn, (pressed || chat.sending) && { opacity: 0.5 }]}
-          >
-            <MaterialCommunityIcons name="image-outline" size={24} color={NAVY} />
-          </Pressable>
-          <TextInput
-            style={styles.input}
-            value={draft}
-            onChangeText={setDraft}
-            placeholder="Type or paste here…"
-            placeholderTextColor="#9CA3AF"
-            multiline
-            maxLength={MAX_TEXT_CHARS}
-          />
-          <Pressable
-            onPress={onSend}
-            disabled={!canSend}
-            accessibilityRole="button"
-            accessibilityLabel="Send message"
-            style={({ pressed }) => [styles.sendBtn, (!canSend || pressed) && { opacity: 0.5 }]}
-          >
-            <MaterialIcons name="send" size={20} color="#FFFFFF" />
-          </Pressable>
+      {privacy === 'loading' ? (
+        <View style={styles.centered}>
+          <ActivityIndicator color={NAVY} />
         </View>
-      </KeyboardAvoidingView>
+      ) : privacy === 'needed' ? (
+        <AssistantPrivacyNotice onAccept={onAcceptPrivacy} onDecline={() => navigation.goBack()} />
+      ) : (
+        <KeyboardAvoidingView
+          style={styles.flex}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          {runningLabels.length > 0 ? (
+            <View style={styles.runningBanner}>
+              <ActivityIndicator size="small" color={NAVY} />
+              <Text style={styles.runningText}>
+                Checking the {runningLabels.join(' and ')}… this can take up to 90 seconds.
+              </Text>
+            </View>
+          ) : null}
+
+          <FlatList
+            ref={listRef}
+            style={styles.flex}
+            data={chat.messages}
+            keyExtractor={(m) => m.id}
+            renderItem={({ item }) => <MessageBubble message={item} />}
+            contentContainerStyle={styles.messages}
+            onContentSizeChange={scrollToEnd}
+            keyboardShouldPersistTaps="handled"
+            ListHeaderComponent={
+              <Text style={styles.notice}>
+                Never share passwords, OTP codes or bank PINs here. What you send is checked by
+                FraudAware's scam detection services.
+              </Text>
+            }
+            ListFooterComponent={
+              <>
+                {chat.sending ? (
+                  <View style={[styles.bubbleRow, styles.bubbleRowAssistant]}>
+                    <View style={styles.avatar}>
+                      <MaterialCommunityIcons name="robot-happy-outline" size={18} color={NAVY} />
+                    </View>
+                    <View style={[styles.bubble, styles.bubbleAssistant, styles.typing]}>
+                      <ActivityIndicator size="small" color={NAVY} />
+                      <Text style={styles.typingText}>Checking…</Text>
+                    </View>
+                  </View>
+                ) : null}
+                {chat.result ? (
+                  <AssistantResultCard
+                    verdict={chat.result}
+                    onShare={onShare}
+                    onReport={onReport}
+                    reportBusy={reportBusy}
+                  />
+                ) : null}
+              </>
+            }
+          />
+
+          {chat.error ? (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>{chat.error.message}</Text>
+              {chat.error.canRetry ? (
+                <Pressable onPress={chat.retry} hitSlop={8} accessibilityRole="button">
+                  <Text style={styles.retryText}>Retry</Text>
+                </Pressable>
+              ) : null}
+            </View>
+          ) : null}
+
+          {chat.chips.length > 0 ? (
+            <ScrollView
+              horizontal
+              style={styles.chipsRow}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chips}
+              keyboardShouldPersistTaps="handled"
+            >
+              {chat.chips.map((chip) => (
+                <Pressable
+                  key={chip.id}
+                  onPress={() => void chat.sendChip(chip)}
+                  disabled={chat.sending}
+                  accessibilityRole="button"
+                  style={({ pressed }) => [
+                    styles.chip,
+                    (pressed || chat.sending) && { opacity: 0.6 },
+                  ]}
+                >
+                  <Text style={styles.chipText}>{chip.label}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          ) : null}
+
+          <View style={styles.composer}>
+            <Pressable
+              onPress={() => void onPickImage()}
+              disabled={chat.sending}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Send a screenshot"
+              style={({ pressed }) => [styles.iconBtn, (pressed || chat.sending) && { opacity: 0.5 }]}
+            >
+              <MaterialCommunityIcons name="image-outline" size={24} color={NAVY} />
+            </Pressable>
+            <TextInput
+              style={styles.input}
+              value={draft}
+              onChangeText={setDraft}
+              placeholder="Type or paste here…"
+              placeholderTextColor="#9CA3AF"
+              multiline
+              maxLength={MAX_TEXT_CHARS}
+            />
+            <Pressable
+              onPress={onSend}
+              disabled={!canSend}
+              accessibilityRole="button"
+              accessibilityLabel="Send message"
+              style={({ pressed }) => [styles.sendBtn, (!canSend || pressed) && { opacity: 0.5 }]}
+            >
+              <MaterialIcons name="send" size={20} color="#FFFFFF" />
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      )}
     </SafeAreaView>
   );
 }
@@ -237,6 +334,11 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  centered: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   header: {
     flexDirection: 'row',
@@ -384,10 +486,15 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: NAVY,
   },
+  chipsRow: {
+    // ScrollView grows by default and would take half of the free space from the messages.
+    flexGrow: 0,
+  },
   chips: {
     paddingHorizontal: 14,
     paddingBottom: 8,
     gap: 8,
+    alignItems: 'center',
   },
   chip: {
     borderWidth: 1.5,
