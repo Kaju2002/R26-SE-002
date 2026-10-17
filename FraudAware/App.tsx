@@ -50,6 +50,7 @@ import SupportTicketsScreen from './src/screens/SupportTicketsScreen';
 import SupportCreateTicketScreen from './src/screens/SupportCreateTicketScreen';
 import SupportTicketDetailScreen from './src/screens/SupportTicketDetailScreen';
 import AssistantScreen from './src/screens/AssistantScreen';
+import AssistantHistoryScreen from './src/screens/AssistantHistoryScreen';
 
 export type { RootStackParamList };
 
@@ -323,6 +324,12 @@ export default function App() {
               name="Assistant"
               component={AssistantScreen}
               options={{ animation: 'slide_from_bottom' }}
+            />
+
+            <Stack.Screen
+              name="AssistantHistory"
+              component={AssistantHistoryScreen}
+              options={{ animation: 'slide_from_right' }}
             />
           </Stack.Navigator>
 

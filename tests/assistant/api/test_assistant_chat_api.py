@@ -162,6 +162,48 @@ def test_off_topic_text_does_not_replace_what_was_sent_before(chat):
     assert chat.calls[0][:3] == ("recruiter_chat", "text", "Send the training fee today or lose your seat")
 
 
+def test_typed_answer_checks_the_image_that_was_sent(chat):
+    sid = chat.send()["session_id"]
+    chat.send(sid, image=PNG)
+
+    body = chat.send(sid, text="I sent the job post could you please review that ?")
+
+    assert chat.calls == [("job_post", "image", len(PNG))]
+    assert _status(body)["job_post"] == "done"
+
+
+def test_typed_answer_checks_the_text_that_was_sent(chat):
+    sid = chat.send()["session_id"]
+    chat.send(sid, text="Send the training fee today or lose your seat")
+
+    chat.send(sid, text="it's from the recruiter on WhatsApp")
+
+    assert chat.calls[0][:3] == ("recruiter_chat", "text", "Send the training fee today or lose your seat")
+
+
+def test_company_answer_for_an_image_asks_for_typed_details(chat):
+    sid = chat.send()["session_id"]
+    chat.send(sid, image=PNG)
+
+    body = chat.send(sid, text="it's the company details")
+
+    assert body["reply"].startswith("I can't read company details from an image.")
+    assert chat.calls == []
+
+
+def test_content_with_type_words_is_new_content_not_an_answer(chat):
+    sid = chat.send()["session_id"]
+    chat.send(sid, text="Send the training fee today or lose your seat")
+
+    body = chat.send(sid, text="Company: ABC Holdings")
+
+    assert body["awaiting"] == "input_type"
+    assert chat.calls == []
+    chat.send(sid, chip="is_company")
+    chat.settle()
+    assert chat.calls == [("company", "ABC Holdings", None, None)]
+
+
 def test_short_company_name_can_still_be_checked_with_a_button(chat):
     sid = chat.send()["session_id"]
     chat.send(sid, text="Kandy Traders")

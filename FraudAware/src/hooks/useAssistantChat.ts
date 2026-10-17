@@ -15,6 +15,8 @@ export type AssistantUiMessage = {
   role: 'user' | 'assistant';
   text: string;
   imageUri?: string;
+  /** A tapped button, not content the user sent for checking. */
+  fromButton?: boolean;
 };
 
 export type AssistantChatError = { message: string; canRetry: boolean };
@@ -46,6 +48,7 @@ export function useAssistantChat(token: string | null) {
   const [result, setResult] = useState<AssistantVerdict | null>(null);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<AssistantChatError | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
 
   const sessionIdRef = useRef<string | null>(null);
   /** Number of server-side messages already shown. */
@@ -119,6 +122,7 @@ export function useAssistantChat(token: string | null) {
             role: 'user',
             text: turn.text ?? turn.chip?.label ?? '',
             imageUri: turn.image?.uri,
+            fromButton: !turn.text && !turn.image,
           },
         ]);
       }
@@ -138,6 +142,7 @@ export function useAssistantChat(token: string | null) {
 
           if (res.session_id !== sessionIdRef.current) {
             sessionIdRef.current = res.session_id;
+            setSessionId(res.session_id);
             seenRef.current = loggedUserMessage ? 2 : 1;
             setMessages((prev) => (turn.chip?.id === NEW_CHECK_CHIP ? [reply] : [...prev, reply]));
           } else {
@@ -190,6 +195,7 @@ export function useAssistantChat(token: string | null) {
   }, [post]);
 
   return {
+    sessionId,
     messages,
     chips,
     awaiting,

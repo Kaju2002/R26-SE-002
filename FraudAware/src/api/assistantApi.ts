@@ -27,6 +27,8 @@ export type AssistantCheck = {
   status: AssistantCheckStatus;
   risk: AssistantRisk | null;
   reasons: string[];
+  /** Check-specific extras, e.g. the company check's `given` details and `next_steps`. */
+  details?: Record<string, unknown>;
 };
 
 export type AssistantVerdict = {

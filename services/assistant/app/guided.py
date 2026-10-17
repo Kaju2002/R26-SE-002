@@ -6,6 +6,7 @@
 # one, even when the result looks fine, and shows the combined result when none is left.
 # The company check is slow, so it runs in the background while the conversation goes on.
 
+import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
@@ -115,6 +116,27 @@ def menu_chips(session: Session) -> List[Chip]:
 def _input_type_chips(session: Session) -> List[Chip]:
     """Images cannot be company details."""
     return [CHIP_IS_JOB_POST, CHIP_IS_RECRUITER] + ([] if session._pending_image else [CHIP_IS_COMPANY])
+
+
+_TYPE_WORDS = {
+    CHIP_IS_JOB_POST.id: re.compile(r"\b(?:job\s*post|post|advert\w*|ad|vacanc\w*)\b", re.I),
+    CHIP_IS_RECRUITER.id: re.compile(r"\b(?:recruiter|hr|chats?|whats\s*app|sms|messages?|conversation)\b", re.I),
+    CHIP_IS_COMPANY.id: re.compile(r"\b(?:company|employer)\b", re.I),
+}
+# Content itself (a company name with a website, a pasted message) is not an answer.
+_NOT_AN_ANSWER = re.compile(r"[:@/]|\d|www\.|\.(?:lk|com|net|org)\b", re.I)
+ANSWER_MAX_WORDS = 15
+
+
+def answered_type(session: Session, text: Optional[str]) -> Optional[str]:
+    """A typed answer to "what did you send?" ("I sent the job post"): the matching button id."""
+    if session.awaiting != "input_type" or not (session._pending_text or session._pending_image):
+        return None
+    text = (text or "").strip()
+    if not text or len(text.split()) > ANSWER_MAX_WORDS or _NOT_AN_ANSWER.search(text):
+        return None
+    found = [chip for chip, words in _TYPE_WORDS.items() if words.search(text)]
+    return found[0] if len(found) == 1 else None
 
 
 def still_checking(session: Session) -> str:
@@ -288,6 +310,8 @@ async def handle(
         return Turn("Please choose what you would like to check, or paste it here.", menu_chips(session))
 
     if stage == "input_type":
+        if not chip and not image:
+            chip = answered_type(session, text)
         if chip in (CHIP_IS_JOB_POST.id, CHIP_IS_RECRUITER.id, CHIP_IS_COMPANY.id):
             pending_text, pending_image = session._pending_text, session._pending_image
             session._pending_text = session._pending_image = None

@@ -13,7 +13,11 @@ from app.tools.common import ServiceError, call_service, done, failed
 SOURCE = "company"
 LABEL = "company check"
 MAX_FIELD_CHARS = 200
-MAX_REASONS = 4
+MAX_REASONS = 6
+_CAUTION = (
+    "This result is less reliable because little information was found. "
+    "A registration on its own does not mean the job offer is safe."
+)
 
 # employer-verification's user_result.band is its final decision ("High" without fraud
 # evidence is already turned into "Medium" there).
@@ -25,34 +29,97 @@ def _clean(value: Optional[str]) -> Optional[str]:
     return value or None
 
 
-def _reasons(user_result: Dict[str, Any], risk: str) -> List[str]:
-    reasons = [user_result["headline"]] if user_result.get("headline") else []
+def _text(value: Any) -> Optional[str]:
+    if not isinstance(value, str):
+        return None
+    return _clean(value)
+
+
+def _registration(data: Dict[str, Any]) -> Dict[str, Optional[str]]:
+    """Registered name, number and register, from the top level or from evidence."""
+    evidence = data.get("evidence") if isinstance(data.get("evidence"), dict) else {}
+    return {
+        "reg_name": _text(data.get("reg_name")) or _text(evidence.get("reg_name")),
+        "reg_number": _text(data.get("reg_number")) or _text(evidence.get("reg_number")),
+        "register": (
+            _text(data.get("government_registration_source"))
+            or _text(evidence.get("government_registration_source"))
+        ),
+    }
+
+
+def _registration_line(registration: Dict[str, Optional[str]]) -> Optional[str]:
+    name, number, register = registration["reg_name"], registration["reg_number"], registration["register"]
+    if name and number and register:
+        return f"Registered as {name}, number {number}, on {register}."
+    if name and number:
+        return f"Registered as {name}, number {number}."
+    if name:
+        return f"Registered as {name}."
+    if number:
+        return f"Registration number {number}."
+    return None
+
+
+def _next_step(user_result: Dict[str, Any]) -> Optional[str]:
+    for step in user_result.get("next_steps") or []:
+        text = _text(step)
+        if text:
+            return text
+    return None
+
+
+def _reasons(data: Dict[str, Any], user_result: Dict[str, Any], risk: str) -> List[str]:
+    """Headline, then registration, a caution when evidence is thin, check lines, and one next step.
+
+    The registration line, the caution and the next step are kept even when the list is shortened.
+    """
+    head: List[str] = []
+    headline = _text(user_result.get("headline"))
+    if headline:
+        head.append(headline)
+    registration = _registration_line(_registration(data))
+    if registration:
+        head.append(registration)
+    if user_result.get("low_confidence") or user_result.get("thin_evidence"):
+        head.append(_CAUTION)
+
     wanted = "good" if risk == "low" else "concern"
-    reasons += [c["detail"] for c in user_result.get("checks") or [] if c.get("status") == wanted and c.get("detail")]
-    reasons += list(user_result.get("notices") or [])
-    return reasons[:MAX_REASONS]
+    middle = [c["detail"] for c in user_result.get("checks") or [] if c.get("status") == wanted and c.get("detail")]
+    middle += [notice for notice in (user_result.get("notices") or []) if _text(notice)]
+    step = _next_step(user_result)
+    tail = [step] if step else []
+
+    room = MAX_REASONS - len(head) - len(tail)
+    if room < 0:
+        return (head + tail)[:MAX_REASONS]
+    return head + middle[:room] + tail
 
 
 def _to_result(data: Dict[str, Any], given: Dict[str, Optional[str]]) -> CheckResult:
     user_result = data.get("user_result") or {}
     band = user_result.get("band") or data.get("risk_level")
+    registration = _registration(data)
     details: Dict[str, Any] = {
         "given": given,
         "band": band,
         "label": user_result.get("label"),
         "score": user_result.get("score"),
         "high_reason": user_result.get("high_reason"),
+        "low_confidence": bool(user_result.get("low_confidence")),
+        "thin_evidence": bool(user_result.get("thin_evidence")),
         "checks": list(user_result.get("checks") or []),
         "next_steps": list(user_result.get("next_steps") or []),
         "website_checked": data.get("website_checked"),
         "cached": bool(data.get("cached")),
+        **registration,
     }
 
     risk = _RISK.get(band)
     if risk is None:
         reason = user_result.get("headline") or "Not enough information to check this company."
         return done(SOURCE, "unknown", [reason], details)
-    return done(SOURCE, risk, _reasons(user_result, risk), details)
+    return done(SOURCE, risk, _reasons(data, user_result, risk), details)
 
 
 async def check_company(
