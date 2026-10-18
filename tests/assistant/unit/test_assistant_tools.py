@@ -76,9 +76,9 @@ JOB_TEXT = "Earn Rs 5,000 daily from home, pay registration fee to start."
 @pytest.mark.parametrize(
     "prediction, fake, legit, risk, phrase",
     [
-        ("fake", 0.93, 0.07, "high", "likely fake (93% fake probability)"),
-        ("suspicious", 0.72, 0.28, "medium", "suspicious patterns (72% fake probability)"),
-        ("legitimate", 0.12, 0.88, "low", "no strong signs of a fake job (88% legitimate probability)"),
+        ("fake", 0.93, 0.07, "high", "looks like a fake advert"),
+        ("suspicious", 0.72, 0.28, "medium", "some suspicious patterns"),
+        ("legitimate", 0.12, 0.88, "low", "no strong signs of a fake advert"),
     ],
 )
 def test_job_text_maps_prediction_to_risk(tools, prediction, fake, legit, risk, phrase):
@@ -117,7 +117,8 @@ def test_job_image_includes_warning_signs_and_ocr_text(tools):
     result = run(job_post.check_job_post_image(PNG, client=svc.client()))
 
     assert result.risk == "high"
-    assert "Warning sign in the post: Registration fee required." in result.reasons
+    assert any("Registration fee required" in reason and reason.startswith("Watch-outs:") for reason in result.reasons)
+    assert any(reason.startswith("What to do:") for reason in result.reasons)
     assert result.details["extracted_text"] == "Pay registration fee"
     request = svc.requests[0]
     assert request.url.path == "/predict"
@@ -213,12 +214,10 @@ def test_company_high_lists_concerns(tools):
     result = run(company.check_company("ABC Holdings", None, "abc.jobs@gmail.com", client=svc.client()))
 
     assert result.risk == "high"
-    assert result.reasons == [
-        "This employer shows strong signs of fraud",
-        "No official registration was found.",
-        "Scam reports were found online.",
-        "Do not pay any fee.",
-    ]
+    assert result.reasons[0].startswith("What we found: This employer shows strong signs of fraud")
+    assert "No official registration was found" in result.reasons[1]
+    assert "Scam reports were found online" in result.reasons[1]
+    assert result.reasons[-1] == "What to do: Do not pay any fee."
     assert json.loads(svc.requests[0].content) == {
         "company_name": "ABC Holdings",
         "website_url": None,
@@ -237,11 +236,9 @@ def test_company_low_lists_good_evidence(tools):
     result = run(company.check_company("Dialog Axiata PLC", "https://www.dialog.lk", client=svc.client()))
 
     assert result.risk == "low"
-    assert result.reasons == [
-        "This employer looks legitimate",
-        "Professional website.",
-        "Do not pay any fee.",
-    ]
+    assert "Professional website" in result.reasons[0]
+    assert not any(reason.startswith("Watch-outs:") for reason in result.reasons)
+    assert result.reasons[-1] == "What to do: Do not pay any fee."
 
 
 def test_company_private_website_and_email_are_not_passed_on(tools):
@@ -280,8 +277,8 @@ def test_company_medium_includes_low_confidence_notice(tools):
     result = run(company.check_company("Small Co", client=svc.client()))
 
     assert result.risk == "medium"
-    assert any(reason.startswith("Little information was available") for reason in result.reasons)
-    assert result.reasons[-1] == "Do not pay any fee."
+    assert any("Little information was available" in reason for reason in result.reasons)
+    assert result.reasons[-1] == "What to do: Do not pay any fee."
 
 
 def test_company_says_registration_caution_and_one_next_step(tools):
@@ -299,14 +296,11 @@ def test_company_says_registration_caution_and_one_next_step(tools):
 
     result = run(company.check_company("SoftSora", "https://softsora.com", client=svc.client()))
 
-    assert result.reasons[:3] == [
-        "This employer looks legitimate",
-        "Registered as SOFTSORA, number PV00275489, on DRC / eROC.",
-        "This result is less reliable because little information was found. "
-        "A registration on its own does not mean the job offer is safe.",
-    ]
-    assert "Registered under the Companies Act." in result.reasons
-    assert result.reasons[-1] == "Apply only through the official website."
+    assert result.reasons[0].startswith("What we found:")
+    assert "Registered as SOFTSORA, number PV00275489, on DRC / eROC" in result.reasons[0]
+    assert "Registered under the Companies Act" in result.reasons[0]
+    assert "less reliable" in result.reasons[1]
+    assert result.reasons[-1] == "What to do: Apply only through the official website."
     assert result.details["reg_name"] == "SOFTSORA"
     assert result.details["reg_number"] == "PV00275489"
     assert result.details["register"] == "DRC / eROC"
@@ -379,8 +373,11 @@ def test_recruiter_scam_lists_tactics_and_forwards_token(tools):
     result = run(recruiter.check_recruiter_text("Pay the fee today", auth_token="user-jwt", client=svc.client()))
 
     assert result.risk == "high"
-    assert result.reasons[0] == "Manipulation tactics found: Urgency Pressure, Sunk Cost."
-    assert "Legitimate employers never ask for fees." in result.reasons
+    joined = " ".join(result.reasons)
+    assert "They tried to rush you into deciding" in joined
+    assert "time or money you already spent" in joined
+    assert "Legitimate employers never ask for fees" in joined
+    assert result.reasons[-1].startswith("What to do:")
     assert [t["key"] for t in result.details["tactics"]] == ["urgency", "sunk_cost"]
     request = svc.requests[0]
     assert request.url.path == "/classify"
@@ -395,9 +392,10 @@ def test_recruiter_suspicious_and_legitimate(tools):
     r1 = run(recruiter.check_recruiter_text("Hello", auth_token="t", client=suspicious.client()))
     r2 = run(recruiter.check_recruiter_text("Hello", auth_token="t", client=legit.client()))
 
-    assert (r1.risk, r1.reasons) == ("medium", ["Some scam-like signals."])
+    assert r1.risk == "medium"
+    assert "Some scam-like signals" in " ".join(r1.reasons)
     assert r2.risk == "low"
-    assert "No manipulation tactics" in r2.reasons[0]
+    assert "No fee request" in r2.reasons[0]
 
 
 def test_recruiter_long_text_keeps_the_latest_2000_chars(tools):
@@ -454,7 +452,7 @@ def test_recruiter_image_without_text_asks_to_paste(tools):
 
     result = run(recruiter.check_recruiter_image(PNG, auth_token="t", client=svc.client()))
 
-    assert "paste the messages instead" in result.reasons[0]
+    assert "does not look like a recruiter message" in result.reasons[0]
 
 
 def test_recruiter_empty_text_is_not_sent(tools):

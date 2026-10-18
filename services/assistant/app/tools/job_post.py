@@ -15,8 +15,24 @@ from app.tools.common import (
     done,
     failed,
     image_problem,
-    percent,
 )
+
+def _line(value: Any) -> str:
+    return " ".join(str(value or "").split()).strip(" .")
+
+
+def _note(found: list, watch: list, action: str) -> list:
+    """Three plain sentences. Gemini may only smooth these; the code shows them if Gemini is down."""
+    reasons = []
+    found = [part for part in found if part]
+    watch = [part for part in watch if part]
+    if found:
+        reasons.append("What we found: " + ". ".join(found) + ".")
+    if watch:
+        reasons.append("Watch-outs: " + ". ".join(watch) + ".")
+    if action:
+        reasons.append("What to do: " + action)
+    return reasons
 
 SOURCE = "job_post"
 LABEL = "job post check"
@@ -51,17 +67,20 @@ def _to_result(data: Dict[str, Any], input_kind: str) -> CheckResult:
     if risk is None:
         return failed(SOURCE, f"The {LABEL} returned an answer we could not read.", **details)
 
-    fake_pct = percent(data.get("fake_probability"))
-    legit_pct = percent(data.get("legitimate_probability"))
     if risk == "high":
-        reasons = [f"The job post model rated this post as likely fake ({fake_pct}% fake probability)."]
+        found = ["The job post looks like a fake advert"]
+        action = "Do not pay a fee or share bank details because of this job post."
     elif risk == "medium":
-        reasons = [f"The job post model found some suspicious patterns ({fake_pct}% fake probability)."]
+        found = ["The job post has some suspicious patterns"]
+        action = "Confirm the employer on its official website before you apply."
     else:
-        reasons = [f"The job post model found no strong signs of a fake job ({legit_pct}% legitimate probability)."]
-    reasons += [f"Warning sign in the post: {signal}." for signal in details["fake_signals"]]
-
-    return done(SOURCE, risk, reasons, details)
+        found = ["The job post shows no strong signs of a fake advert"]
+        action = "Still apply only through the employer's official channels, and never pay a fee."
+    found += [_line(s) for s in details["legit_signals"][:2]]
+    watch = [_line(s) for s in details["fake_signals"][:4]]
+    if details["advice"]:
+        action = _line(details["advice"][0]) + "."
+    return done(SOURCE, risk, _note(found, watch, action), details)
 
 
 async def check_job_post_text(text: str, *, client: Optional[httpx.AsyncClient] = None) -> CheckResult:

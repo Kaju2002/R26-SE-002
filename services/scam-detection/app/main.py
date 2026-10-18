@@ -20,6 +20,7 @@ from app.database import (
     is_connected,
     save_scan,
 )
+from app.message_validation import rejection_reason
 from app.model_loader import is_model_loaded, load_model, load_phase1_model
 from app.ocr_pipeline import extract_text_from_image
 
@@ -148,6 +149,9 @@ def health():
 def classify(req: ClassifyTextRequest, caller: Caller = Depends(get_caller)):
     enforce_rate_limit(caller)
     _require_model_ready()
+    refused = rejection_reason(req.text)
+    if refused:
+        raise HTTPException(status_code=400, detail=refused)
     pred = predict(req.text)
     scan_id = _save_for_caller(caller, pred, req.text, "text")
     return _classify_response(pred, req.text, "text", scan_id)
@@ -170,6 +174,9 @@ async def classify_image(
         )
 
     text = ocr["extracted_text"]
+    refused = rejection_reason(text)
+    if refused:
+        raise HTTPException(status_code=400, detail=refused)
     pred = await run_in_threadpool(predict, text)
     scan_id = await run_in_threadpool(_save_for_caller, caller, pred, text, "image")
     return _classify_response(pred, text, "image", scan_id)
