@@ -48,9 +48,48 @@ def warning_found(case: CaseState, verdict: Optional[Verdict]) -> bool:
     return any(c.status == "done" and c.risk in ("high", "medium") for c in case.as_list())
 
 
+# A claim that something was asked for, paired with the words that must already be in a watch-out.
+_INVENTED = [
+    (
+        re.compile(r"\b(?:asked|asking|demanded|told)\s+(?:you\s+)?(?:for|to\s+(?:pay|send))\b", re.I),
+        re.compile(r"\b(?:fee|payment|money|pay)\b", re.I),
+    ),
+    (
+        re.compile(
+            r"\b(?:asked|asking|demanded|told)\s+(?:you\s+)?(?:for|to\s+share)\b.{0,40}\b(?:otp|pin|nic|bank)\b",
+            re.I,
+        ),
+        re.compile(r"\b(?:otp|pin|nic|bank)\b", re.I),
+    ),
+    (
+        re.compile(r"\bscam reports?\s+(?:were\s+)?found\b", re.I),
+        re.compile(r"\bscam reports?\b", re.I),
+    ),
+]
+
+
+def _watchouts(case: CaseState) -> str:
+    lines = []
+    for check in case.as_list():
+        if check.status == "done":
+            lines += [reason for reason in check.reasons if reason.lower().startswith("watch-outs")]
+    return " ".join(lines)
+
+
+def invented_warning(reply: str, case: CaseState) -> bool:
+    """True when the reply says a problem was found that no watch-out line contains."""
+    evidence = _watchouts(case)
+    for claim, supported in _INVENTED:
+        if claim.search(reply) and not supported.search(evidence):
+            return True
+    return False
+
+
 def contradicts(reply: str, case: CaseState, verdict: Optional[Verdict]) -> bool:
     """True if the reply calls the offer safe despite warning signs (or before any check),
-    or calls it a scam when no check found warning signs."""
+    calls it a scam when no check found warning signs, or adds a warning the checks did not."""
+    if invented_warning(reply, case):
+        return True
     warning = warning_found(case, verdict)
     if warning or not any(c.status == "done" for c in case.as_list()):
         if _claims(reply, _SAFE_CLAIMS):

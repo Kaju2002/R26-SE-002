@@ -85,6 +85,16 @@ def test_fair_sentences_are_allowed(rc, reply):
     assert not rc.contradicts(reply, _case(job_post="high", company="low"), None)
 
 
+def test_an_invented_fee_request_is_a_contradiction(rc):
+    assert rc.contradicts("They asked you to pay a fee.", _case(job_post="low"), None)
+
+
+def test_a_fee_request_is_allowed_when_the_watchout_says_so(rc):
+    case = _case(job_post="high")
+    case.get("job_post").reasons = ["Watch-outs: Registration fee required."]
+    assert not rc.contradicts("They asked you to pay a registration fee.", case, None)
+
+
 def test_the_verdict_decides_once_it_exists(rc):
     case = _case(job_post="low", company="low", recruiter_chat="medium")
 

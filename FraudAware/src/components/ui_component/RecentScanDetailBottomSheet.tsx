@@ -410,9 +410,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tacticName: {
+    alignSelf: 'flex-start',
     fontSize: 14,
     fontWeight: '800',
-    color: NAVY,
+    color: PRIMARY_RED,
+    backgroundColor: 'rgba(229, 53, 53, 0.14)',
+    borderRadius: 8,
+    overflow: 'hidden',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     marginBottom: 4,
   },
   tacticEx: {

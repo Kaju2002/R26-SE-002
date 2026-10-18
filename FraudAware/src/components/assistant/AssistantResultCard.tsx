@@ -27,6 +27,30 @@ const COLOURS = VERDICT_COLOURS;
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
+const SOURCE_ICON: Record<AssistantCheckSource, IconName> = {
+  job_post: 'briefcase-outline',
+  company: 'office-building-outline',
+  recruiter_chat: 'message-text-outline',
+};
+
+function readableTitle(title: string): string {
+  if (title.length > 3 && title === title.toUpperCase()) {
+    return title.charAt(0) + title.slice(1).toLowerCase();
+  }
+  return title;
+}
+
+function firstSentence(check: AssistantCheck): string | null {
+  const reasons = check.reasons ?? [];
+  const watch = reasons.find((reason) => reason.startsWith('Watch-outs:'));
+  const found = reasons.find((reason) => reason.startsWith('What we found:'));
+  const chosen =
+    check.risk === 'high' || check.risk === 'medium' ? watch || found || reasons[0] : found || reasons[0];
+  if (!chosen) return null;
+  const text = chosen.replace(/^(What we found|Watch-outs|What to do):\s*/, '').split('. ')[0];
+  return text.endsWith('.') ? text : `${text}.`;
+}
+
 export function describeCheck(check: AssistantCheck): { text: string; icon: IconName; colour: string } {
   if (check.status === 'done') {
     switch (check.risk) {
@@ -74,34 +98,45 @@ export default function AssistantResultCard({ verdict, onShare, onReport, report
   const colour = COLOURS[verdict.colour];
 
   return (
-    <View style={[styles.card, { backgroundColor: colour.bg, borderColor: colour.border }]}>
-      <Text style={[styles.title, { color: colour.main }]}>{verdict.title}</Text>
+    <View style={styles.card}>
+      <Text style={styles.kicker}>Your check</Text>
+      <Text style={[styles.title, { color: colour.main }]}>{readableTitle(verdict.title)}</Text>
       {verdict.note ? <Text style={styles.note}>{verdict.note}</Text> : null}
 
       <View style={styles.checks}>
         {verdict.checks.map((check) => {
           const d = describeCheck(check);
+          const line = firstSentence(check);
           return (
             <View key={check.source} style={styles.checkRow}>
-              <MaterialCommunityIcons name={d.icon} size={20} color={d.colour} />
-              <Text style={styles.checkLabel}>{CHECK_LABELS[check.source]}</Text>
-              <Text style={[styles.checkStatus, { color: d.colour }]}>{d.text}</Text>
+              <View style={styles.sourceIcon}>
+                <MaterialCommunityIcons name={SOURCE_ICON[check.source]} size={18} color={NAVY} />
+              </View>
+              <View style={styles.checkCopy}>
+                <View style={styles.checkHead}>
+                  <Text style={styles.checkLabel}>{CHECK_LABELS[check.source]}</Text>
+                  <Text style={[styles.checkStatus, { color: d.colour }]}>{d.text}</Text>
+                </View>
+                {line ? <Text style={styles.checkLine}>{line}</Text> : null}
+              </View>
             </View>
           );
         })}
       </View>
 
-      <Text style={styles.disclaimer}>{verdict.disclaimer}</Text>
+      <View style={styles.tip}>
+        <Text style={styles.tipText}>{verdict.disclaimer}</Text>
+      </View>
 
       <View style={styles.actions}>
         <Pressable
           onPress={onShare}
           accessibilityRole="button"
           accessibilityLabel="Share result"
-          style={({ pressed }) => [styles.shareBtn, pressed && { opacity: 0.7 }]}
+          style={({ pressed }) => [styles.shareBtn, pressed && { opacity: 0.85 }]}
         >
-          <MaterialIcons name="share" size={18} color={NAVY} />
-          <Text style={styles.shareText}>Share result</Text>
+          <MaterialIcons name="share" size={18} color="#FFFFFF" />
+          <Text style={styles.shareText}>Share</Text>
         </Pressable>
         {onReport ? (
           <Pressable
@@ -109,14 +144,14 @@ export default function AssistantResultCard({ verdict, onShare, onReport, report
             disabled={reportBusy}
             accessibilityRole="button"
             accessibilityLabel="Download PDF report"
-            style={({ pressed }) => [styles.shareBtn, (pressed || reportBusy) && { opacity: 0.6 }]}
+            style={({ pressed }) => [styles.pdfBtn, (pressed || reportBusy) && { opacity: 0.7 }]}
           >
             {reportBusy ? (
               <ActivityIndicator size="small" color={NAVY} />
             ) : (
               <MaterialCommunityIcons name="file-pdf-box" size={20} color={NAVY} />
             )}
-            <Text style={styles.shareText}>PDF report</Text>
+            <Text style={styles.pdfText}>Save PDF</Text>
           </Pressable>
         ) : null}
       </View>
@@ -126,51 +161,92 @@ export default function AssistantResultCard({ verdict, onShare, onReport, report
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderRadius: 14,
+    borderColor: '#E3E8F3',
+    borderRadius: 20,
     padding: 16,
     marginTop: 4,
   },
+  kicker: {
+    fontFamily: 'Poppins_500Medium',
+    fontSize: 12,
+    color: MUTED,
+    marginBottom: 2,
+  },
   title: {
     fontFamily: 'Poppins_600SemiBold',
-    fontSize: 18,
-    marginBottom: 4,
+    fontSize: 20,
+    marginBottom: 8,
   },
   note: {
     fontFamily: 'Poppins_400Regular',
     fontSize: 13,
     lineHeight: 19,
     color: MUTED,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   checks: {
-    marginTop: 8,
-    gap: 10,
+    gap: 8,
   },
   checkRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    backgroundColor: '#F7F8FC',
+    borderRadius: 14,
+    padding: 12,
+  },
+  sourceIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkCopy: {
+    flex: 1,
+  },
+  checkHead: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 8,
   },
   checkLabel: {
-    flex: 1,
     fontFamily: 'Poppins_500Medium',
     fontSize: 14,
-    color: '#111827',
+    color: NAVY,
   },
   checkStatus: {
     fontFamily: 'Poppins_500Medium',
-    fontSize: 13,
+    fontSize: 11,
+    lineHeight: 15,
+    textAlign: 'right',
+    flexShrink: 1,
   },
-  disclaimer: {
-    marginTop: 14,
+  checkLine: {
+    fontFamily: 'Poppins_400Regular',
+    fontSize: 13,
+    lineHeight: 18,
+    color: '#3D4A6B',
+    marginTop: 4,
+  },
+  tip: {
+    marginTop: 12,
+    backgroundColor: '#E8EEFF',
+    borderRadius: 14,
+    padding: 12,
+  },
+  tipText: {
     fontFamily: 'Poppins_400Regular',
     fontSize: 12,
-    lineHeight: 17,
-    color: MUTED,
+    lineHeight: 18,
+    color: '#3D4A6B',
   },
   actions: {
-    marginTop: 14,
+    marginTop: 12,
     flexDirection: 'row',
     gap: 10,
   },
@@ -180,13 +256,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    borderWidth: 1.5,
-    borderColor: NAVY,
-    borderRadius: 10,
-    paddingVertical: 10,
-    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    paddingVertical: 12,
+    backgroundColor: NAVY,
   },
   shareText: {
+    fontFamily: 'Poppins_600SemiBold',
+    fontSize: 14,
+    color: '#FFFFFF',
+  },
+  pdfBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 14,
+    paddingVertical: 12,
+    backgroundColor: '#EEF1F8',
+  },
+  pdfText: {
     fontFamily: 'Poppins_600SemiBold',
     fontSize: 14,
     color: NAVY,

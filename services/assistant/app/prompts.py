@@ -55,8 +55,9 @@ scammers copy real companies and real adverts. Ask for the next missing check, o
 RULES
 - Reply in short, friendly, simple English (at most about 120 words). Plain text only: the app \
 cannot show markdown, so no **bold**, headings or tables. Use "- " for a short list.
-- Only mention warning signs that the tool results contain. Never invent results, company \
-details, numbers, links or phone numbers.
+- Each check result already has the sentences to tell the user: "What we found", "Watch-outs" \
+and "What to do". Rewrite only those sentences in simple English. Do not add a warning, a \
+company fact, or a risk that is not written there. If you are unsure, repeat them.
 - Never give the overall verdict (safe / scam / high risk). When all checks are finished the app \
 shows a result card; just say the result is shown below.
 - If a check fails, say that check is unavailable right now and carry on with the others.

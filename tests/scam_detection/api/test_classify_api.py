@@ -17,11 +17,15 @@ from PIL import Image
 TEST_SECRET = "test-jwt-secret-that-is-at-least-32-bytes"
 INTERNAL_KEY = "test-internal-key"
 
+VALID_MESSAGE = (
+    "Please pay the registration fee of Rs 2500 today so we can confirm your job interview on WhatsApp."
+)
+
 FAKE_PRED = {
     "is_scam": True,
     "confidence": 88,
     "label": "SCAM DETECTED",
-    "tactics": [
+    "tactics": [3
         {
             "name": "Urgency Pressure",
             "key": "urgency",
@@ -78,7 +82,7 @@ def api(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
         main,
         "extract_text_from_image",
-        lambda data: {"success": True, "extracted_text": "Pay the fee today", "error": None},
+        lambda data: {"success": True, "extracted_text": VALID_MESSAGE, "error": None},
     )
 
     security.analysis_rate_limiter.reset()
@@ -143,7 +147,7 @@ def test_classify_saves_under_token_user_not_body_user(api, samples: dict):
 def test_classify_with_internal_key_is_not_saved(api):
     res = api["client"].post(
         "/classify",
-        json={"text": "Pay the fee today"},
+        json={"text": VALID_MESSAGE},
         headers={"X-Internal-Service-Key": INTERNAL_KEY},
     )
     assert res.status_code == 200
@@ -158,6 +162,43 @@ def test_classify_rejects_wrong_internal_key(api):
         headers={"X-Internal-Service-Key": "guess"},
     )
     assert res.status_code == 401
+
+
+def test_classify_rejects_text_that_is_not_a_message(api, monkeypatch: pytest.MonkeyPatch):
+    called = {"predict": False}
+
+    def fail_if_called(text):
+        called["predict"] = True
+        return dict(FAKE_PRED)
+
+    monkeypatch.setattr(api["main"], "predict", fail_if_called)
+    short = api["client"].post("/classify", json={"text": "Pay the fee today"}, headers=_auth())
+    unrelated = api["client"].post(
+        "/classify",
+        json={"text": "My cat is sleeping on the sofa near the window this afternoon."},
+        headers=_auth(),
+    )
+
+    assert short.status_code == 400
+    assert unrelated.status_code == 400
+    assert "recruiter message" in short.json()["detail"]
+    assert called["predict"] is False
+
+
+def test_classify_image_without_a_message_is_rejected(api, monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(
+        api["main"],
+        "extract_text_from_image",
+        lambda data: {"success": True, "extracted_text": "a cat on a sofa", "error": None},
+    )
+    res = api["client"].post(
+        "/classify-image",
+        files={"file": ("shot.png", _png_bytes(), "image/png")},
+        headers=_auth(),
+    )
+    assert res.status_code == 400
+    assert "recruiter message" in res.json()["detail"]
+    assert api["saved"] == []
 
 
 def test_classify_rejects_empty_text(api):
@@ -177,7 +218,7 @@ def test_suspicious_label_is_returned(api, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(api["main"], "predict", lambda text: suspicious)
     res = api["client"].post(
         "/classify",
-        json={"text": "Kindly share your NIC copy"},
+        json={"text": "Kindly share your NIC copy so we can process your job application and interview today."},
         headers={"X-Internal-Service-Key": INTERNAL_KEY},
     )
     assert res.status_code == 200
@@ -192,16 +233,16 @@ def test_rate_limit_per_user(api, monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(api["security"].analysis_rate_limiter, "limit", 2)
     client = api["client"]
     for _ in range(2):
-        assert client.post("/classify", json={"text": "hello there"}, headers=_auth("user-a")).status_code == 200
+        assert client.post("/classify", json={"text": VALID_MESSAGE}, headers=_auth("user-a")).status_code == 200
 
-    blocked = client.post("/classify", json={"text": "hello there"}, headers=_auth("user-a"))
+    blocked = client.post("/classify", json={"text": VALID_MESSAGE}, headers=_auth("user-a"))
     assert blocked.status_code == 429
     assert int(blocked.headers["Retry-After"]) >= 1
 
     # Another user has their own budget; service calls are not limited.
-    assert client.post("/classify", json={"text": "hello there"}, headers=_auth("user-b")).status_code == 200
+    assert client.post("/classify", json={"text": VALID_MESSAGE}, headers=_auth("user-b")).status_code == 200
     internal = {"X-Internal-Service-Key": INTERNAL_KEY}
-    assert client.post("/classify", json={"text": "hello there"}, headers=internal).status_code == 200
+    assert client.post("/classify", json={"text": VALID_MESSAGE}, headers=internal).status_code == 200
 
 
 # ─── IMAGE UPLOADS ───────────────────────────────────────────────
@@ -216,7 +257,7 @@ def test_classify_image_accepts_png_and_saves_for_user(api):
     assert res.status_code == 200
     body = res.json()
     assert body["source"] == "image"
-    assert body["extracted_text"] == "Pay the fee today"
+    assert body["extracted_text"] == VALID_MESSAGE
     assert api["saved"][0]["user_id"] == "user-a"
     assert api["saved"][0]["source"] == "image"
 

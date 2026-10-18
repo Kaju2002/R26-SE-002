@@ -24,6 +24,23 @@ _CAUTION = (
 _RISK = {"High": "high", "Medium": "medium", "Low": "low"}
 
 
+def _line(value: Any) -> str:
+    return " ".join(str(value or "").split()).strip(" .")
+
+
+def _note(found: list, watch: list, action: str) -> list:
+    """What we found, the real watch-outs, and one next step. Both good and concern checks are kept."""
+    reasons = []
+    if found:
+        reasons.append("What we found: " + ". ".join(found) + ".")
+    if watch:
+        reasons.append("Watch-outs: " + ". ".join(watch) + ".")
+    if action:
+        text = action if action.endswith(".") else action + "."
+        reasons.append("What to do: " + text)
+    return reasons[:MAX_REASONS]
+
+
 def _clean(value: Optional[str]) -> Optional[str]:
     value = (value or "").strip()
     return value or None
@@ -70,10 +87,7 @@ def _next_step(user_result: Dict[str, Any]) -> Optional[str]:
 
 
 def _reasons(data: Dict[str, Any], user_result: Dict[str, Any], risk: str) -> List[str]:
-    """Headline, then registration, a caution when evidence is thin, check lines, and one next step.
-
-    The registration line, the caution and the next step are kept even when the list is shortened.
-    """
+    """What we found (including registration), real watch-outs, and one next step."""
     head: List[str] = []
     headline = _text(user_result.get("headline"))
     if headline:
@@ -81,19 +95,25 @@ def _reasons(data: Dict[str, Any], user_result: Dict[str, Any], risk: str) -> Li
     registration = _registration_line(_registration(data))
     if registration:
         head.append(registration)
+
+    goods = [
+        _line(c.get("detail"))
+        for c in user_result.get("checks") or []
+        if c.get("status") == "good" and _line(c.get("detail"))
+    ]
+    concerns = [
+        _line(c.get("detail"))
+        for c in user_result.get("checks") or []
+        if c.get("status") == "concern" and _line(c.get("detail"))
+    ]
+    notices = [_line(n) for n in (user_result.get("notices") or []) if _line(n)]
+    found = [_line(part) for part in head if _line(part)] + goods[:2]
+    watch = []
     if user_result.get("low_confidence") or user_result.get("thin_evidence"):
-        head.append(_CAUTION)
-
-    wanted = "good" if risk == "low" else "concern"
-    middle = [c["detail"] for c in user_result.get("checks") or [] if c.get("status") == wanted and c.get("detail")]
-    middle += [notice for notice in (user_result.get("notices") or []) if _text(notice)]
-    step = _next_step(user_result)
-    tail = [step] if step else []
-
-    room = MAX_REASONS - len(head) - len(tail)
-    if room < 0:
-        return (head + tail)[:MAX_REASONS]
-    return head + middle[:room] + tail
+        watch.append(_line(_CAUTION))
+    watch += concerns[:3] + notices[:1]
+    action = _next_step(user_result) or "Never pay a fee or share bank details with a recruiter."
+    return _note(found, watch, action)
 
 
 def _to_result(data: Dict[str, Any], given: Dict[str, Optional[str]]) -> CheckResult:
