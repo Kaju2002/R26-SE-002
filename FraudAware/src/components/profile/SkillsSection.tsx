@@ -20,7 +20,7 @@ export default function SkillsSection({
     >
       <View style={styles.wrap}>
         {skills.length > 0 ? (
-          skills.map((s) => <SkillPill key={s} label={s} />)
+          skills.map((s, index) => <SkillPill key={`${s}-${index}`} label={s} />)
         ) : (
           <Text style={styles.empty}>No skills added yet.</Text>
         )}

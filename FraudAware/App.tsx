@@ -49,6 +49,7 @@ import SafeJobRecommendationsScreen from './src/screens/screens/SafeJobRecommend
 import SupportTicketsScreen from './src/screens/SupportTicketsScreen';
 import SupportCreateTicketScreen from './src/screens/SupportCreateTicketScreen';
 import SupportTicketDetailScreen from './src/screens/SupportTicketDetailScreen';
+import DetectNavigator from './src/navigation/DetectNavigator';
 import AssistantScreen from './src/screens/AssistantScreen';
 import AssistantHistoryScreen from './src/screens/AssistantHistoryScreen';
 
@@ -318,6 +319,12 @@ export default function App() {
               name="SupportTicketDetail"
               component={SupportTicketDetailScreen}
               options={{ animation: 'slide_from_right' }}
+            />
+
+            <Stack.Screen
+              name="DetectTools"
+              component={DetectNavigator}
+              options={{ headerShown: false, animation: 'slide_from_right' }}
             />
 
             <Stack.Screen

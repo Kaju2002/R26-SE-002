@@ -16,7 +16,12 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       workflow: ${{ steps.filter.outputs.workflow }}
-      ml: ${{ steps.filter.outputs.ml }}
+      python_shared: ${{ steps.filter.outputs.python_shared }}
+      scam_detection: ${{ steps.filter.outputs.scam_detection }}
+      fake_job_detection: ${{ steps.filter.outputs.fake_job_detection }}
+      employer_verification: ${{ steps.filter.outputs.employer_verification }}
+      job_recommendation: ${{ steps.filter.outputs.job_recommendation }}
+      assistant: ${{ steps.filter.outputs.assistant }}
       user_management: ${{ steps.filter.outputs.user_management }}
       chat_management: ${{ steps.filter.outputs.chat_management }}
       job_management: ${{ steps.filter.outputs.job_management }}
@@ -30,13 +35,26 @@ jobs:
           filters: |
             workflow:
               - '.github/workflows/**'
-            ml:
-              - 'tests/**'
+            python_shared:
+              - 'pytest.ini'
+              - 'tests/requirements.txt'
+              - 'tests/service_imports.py'
+              - 'tests/__init__.py'
+            scam_detection:
               - 'services/scam-detection/**'
+              - 'tests/scam_detection/**'
+            fake_job_detection:
               - 'services/fake-job-detection/**'
+              - 'tests/fake_job_detection/**'
+            employer_verification:
               - 'services/employer-verification/**'
+              - 'tests/employer_verification/**'
+            job_recommendation:
               - 'services/job-recommendation/**'
+              - 'tests/job_recommendation/**'
+            assistant:
               - 'services/assistant/**'
+              - 'tests/assistant/**'
             user_management:
               - 'services/user-management/**'
             chat_management:
@@ -48,12 +66,43 @@ jobs:
             email_management:
               - 'services/email-management/**'
 
-  ml-tests:
-    name: ML tests (pytest)
+  python-tests:
+    name: ${{ matrix.name }} (pytest)
     needs: changes
-    if: needs.changes.outputs.ml == 'true' || needs.changes.outputs.workflow == 'true'
+    if: >-
+      needs.changes.outputs.workflow == 'true' ||
+      needs.changes.outputs.python_shared == 'true' ||
+      (matrix.key == 'scam_detection' && needs.changes.outputs.scam_detection == 'true') ||
+      (matrix.key == 'fake_job_detection' && needs.changes.outputs.fake_job_detection == 'true') ||
+      (matrix.key == 'employer_verification' && needs.changes.outputs.employer_verification == 'true') ||
+      (matrix.key == 'job_recommendation' && needs.changes.outputs.job_recommendation == 'true') ||
+      (matrix.key == 'assistant' && needs.changes.outputs.assistant == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - key: scam_detection
+            name: scam-detection
+            requirements: services/scam-detection/requirements.txt
+            tests: tests/scam_detection
+          - key: fake_job_detection
+            name: fake-job-detection
+            requirements: services/fake-job-detection/requirements.txt
+            tests: tests/fake_job_detection
+          - key: employer_verification
+            name: employer-verification
+            requirements: services/employer-verification/requirements.txt
+            tests: tests/employer_verification
+          - key: job_recommendation
+            name: job-recommendation
+            requirements: services/job-recommendation/requirements.txt
+            tests: tests/job_recommendation
+          - key: assistant
+            name: assistant
+            requirements: services/assistant/requirements.txt
+            tests: tests/assistant
 
     steps:
       - name: Checkout
@@ -66,25 +115,20 @@ jobs:
           cache: pip
           cache-dependency-path: |
             tests/requirements.txt
-            services/scam-detection/requirements.txt
-            services/fake-job-detection/requirements.txt
-            services/employer-verification/requirements.txt
-            services/job-recommendation/requirements.txt
-            services/assistant/requirements.txt
+            ${{ matrix.requirements }}
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r tests/requirements.txt
-          pip install -r services/scam-detection/requirements.txt
-          pip install -r services/fake-job-detection/requirements.txt
-          pip install -r services/employer-verification/requirements.txt
-          pip install -r services/job-recommendation/requirements.txt
-          pip install -r services/assistant/requirements.txt
-          pip install "scikit-learn>=1.9"
+          pip install -r ${{ matrix.requirements }}
+
+      - name: Align employer scikit-learn
+        if: matrix.key == 'employer_verification'
+        run: pip install "scikit-learn>=1.9,<1.10"
 
       - name: Run pytest
-        run: python -m pytest tests/ -v
+        run: python -m pytest ${{ matrix.tests }} -v
 
   user-management-tests:
     name: user-management (Vitest)

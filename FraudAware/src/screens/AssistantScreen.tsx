@@ -14,8 +14,8 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { CommonActions, useNavigation, type NavigationProp } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { useUser } from '../context/UserContext';
@@ -63,6 +63,15 @@ type PrivacyState = 'loading' | 'needed' | 'accepted';
 
 export default function AssistantScreen() {
   const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const insets = useSafeAreaInsets();
+  const inTab = navigation.getState()?.type === 'tab';
+  const leave = useCallback(() => {
+    if (inTab) {
+      navigation.dispatch(CommonActions.navigate({ name: 'Home' }));
+      return;
+    }
+    navigation.goBack();
+  }, [inTab, navigation]);
   const { token, user } = useUser();
   const userId = user?.id ?? 'unknown';
   const [privacy, setPrivacy] = useState<PrivacyState>('loading');
@@ -169,17 +178,24 @@ export default function AssistantScreen() {
   }, []);
 
   return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView
+      style={[styles.safe, inTab && { paddingBottom: 62 + insets.bottom }]}
+      edges={['top', 'left', 'right']}
+    >
       <View style={styles.header}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-          style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
-        >
-          <MaterialIcons name="arrow-back" size={24} color={NAVY} />
-        </Pressable>
+        {inTab ? (
+          <View style={styles.headerBtn} />
+        ) : (
+          <Pressable
+            onPress={leave}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            style={({ pressed }) => [styles.headerBtn, pressed && { opacity: 0.6 }]}
+          >
+            <MaterialIcons name="arrow-back" size={24} color={NAVY} />
+          </Pressable>
+        )}
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle}>FraudAware Assistant</Text>
           <Text style={styles.headerSubtitle}>Job post · Company · Recruiter messages</Text>
@@ -200,7 +216,7 @@ export default function AssistantScreen() {
           <ActivityIndicator color={NAVY} />
         </View>
       ) : privacy === 'needed' ? (
-        <AssistantPrivacyNotice onAccept={onAcceptPrivacy} onDecline={() => navigation.goBack()} />
+        <AssistantPrivacyNotice onAccept={onAcceptPrivacy} onDecline={leave} />
       ) : (
         <KeyboardAvoidingView
           style={styles.flex}

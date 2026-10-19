@@ -30,6 +30,8 @@ export type RootStackParamList = {
   SupportTickets: undefined;
   SupportCreateTicket: undefined;
   SupportTicketDetail: { ticketId: string };
+  /** Detect screens, kept off the bottom tab so they can be opened later. */
+  DetectTools: { screen?: string; params?: Record<string, unknown> } | undefined;
   Assistant: undefined;
   AssistantHistory: undefined;
 };

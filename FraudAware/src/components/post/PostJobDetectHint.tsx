@@ -9,7 +9,7 @@ export default function PostJobDetectHint() {
       <Ionicons name="information-circle-outline" size={20} color={POST_JOB.navy} />
       <Text style={styles.text}>
         Received a suspicious ad? Use{' '}
-        <Text style={styles.emphasis}>Detect</Text> to analyze it before you trust or pay anyone.
+        <Text style={styles.emphasis}>Check</Text> to look at it before you trust or pay anyone.
       </Text>
     </View>
   );

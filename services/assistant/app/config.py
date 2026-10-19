@@ -4,10 +4,13 @@
 import os
 from dataclasses import dataclass, field
 from functools import lru_cache
+from pathlib import Path
 
 from dotenv import load_dotenv
 
-load_dotenv()
+# This service's own .env, not whichever directory the process was started from.
+# override=True so an empty inherited CORS_ORIGINS does not hide the file.
+load_dotenv(Path(__file__).resolve().parents[1] / ".env", override=True)
 
 
 def _url(name: str, default: str) -> str:

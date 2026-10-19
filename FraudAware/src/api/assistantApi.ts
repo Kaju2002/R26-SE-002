@@ -104,8 +104,11 @@ export async function sendAssistantMessage(
   input: AssistantMessageInput
 ): Promise<AssistantMessageResponse> {
   const form = new FormData();
+  // Always send text. An empty multipart body makes Android throw
+  // "Network request failed" before the request leaves the phone, so the
+  // welcome call on open never reaches the server.
+  form.append('text', input.text ?? '');
   if (input.sessionId) form.append('session_id', input.sessionId);
-  if (input.text) form.append('text', input.text);
   if (input.chip) form.append('chip', input.chip);
   if (input.image) {
     form.append('image', {

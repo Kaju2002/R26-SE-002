@@ -680,8 +680,8 @@ function OverviewSection({ job }: { job: Job }) {
         <View style={styles.block}>
           <Text style={styles.sectionTitle}>Requirements</Text>
           <View style={styles.skillsWrap}>
-            {(job.requirements ?? job.skills)?.map((s) => (
-              <JobTagChip key={s} label={s} />
+            {(job.requirements ?? job.skills)?.map((s, index) => (
+              <JobTagChip key={`${s}-${index}`} label={s} />
             ))}
           </View>
         </View>
