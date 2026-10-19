@@ -34,7 +34,7 @@ def client(monkeypatch: pytest.MonkeyPatch, feature_cols: list[str]):
         }
         rep = {"has_linkedin": 1, "has_indeed": 1}
         url = input.website_url or "https://example.lk"
-        return features, info, reg, rep, url, company
+        return features, info, reg, rep, url, company, []
 
     monkeypatch.setattr(ev_main, "extract_features_from_input", fake_extract)
     with TestClient(ev_main.app) as test_client:
@@ -78,4 +78,4 @@ def test_predict_unknown_when_no_input(client: TestClient):
     assert res.status_code == 200
     body = res.json()
     assert body["prediction"] == "Unknown"
-    assert body["confidence"] == "low"
+    assert body["confidence"] == "none"

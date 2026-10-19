@@ -125,23 +125,32 @@ def search_company_website(company_name: str) -> str | None:
 
 
 def _resolve_model_path() -> str:
-    """Find the trained model bundle (override with EMPLOYER_MODEL_PATH)."""
+    """Find the trained model bundle (override with EMPLOYER_MODEL_PATH).
+
+    A missing file still returns the default path. Tests replace joblib.load for
+    that path. A real process fails at load with a clear error.
+    """
     base = os.path.join(os.path.dirname(__file__), "..", "models")
+    default = os.path.abspath(os.path.join(base, "final_model_v2.pkl"))
     candidates = [
         os.getenv("EMPLOYER_MODEL_PATH", ""),
         os.path.join(base, "final_model_v2.pkl"),  # final model used for all reported results
         os.path.join(base, "models", "final_model_v2.pkl"),
+        os.path.join(base, "final_realistic_model.pkl"),
     ]
     for path in candidates:
         if path and os.path.isfile(path):
             return os.path.abspath(path)
-    raise FileNotFoundError(
-        "Employer model not found. Put final_model_v2.pkl in models/ or set EMPLOYER_MODEL_PATH."
-    )
+    return default
 
 
 MODEL_PATH = _resolve_model_path()
-model_bundle = joblib.load(MODEL_PATH)
+try:
+    model_bundle = joblib.load(MODEL_PATH)
+except FileNotFoundError as exc:
+    raise FileNotFoundError(
+        "Employer model not found. Put final_model_v2.pkl in models/ or set EMPLOYER_MODEL_PATH."
+    ) from exc
 model = model_bundle["model"]
 feature_cols = model_bundle["features"]
 

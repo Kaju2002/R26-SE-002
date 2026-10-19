@@ -1,6 +1,6 @@
 """
 Optional integration — real ML model + scoring.
-Skipped when final_realistic_model.pkl is not on disk.
+Skipped when no trained employer model file is on disk.
 """
 
 from __future__ import annotations
@@ -10,7 +10,11 @@ from pathlib import Path
 import pytest
 
 SERVICE_ROOT = Path(__file__).resolve().parents[3] / "services" / "employer-verification"
-MODEL_PATH = SERVICE_ROOT / "models" / "final_realistic_model.pkl"
+_MODEL_CANDIDATES = (
+    SERVICE_ROOT / "models" / "final_model_v2.pkl",
+    SERVICE_ROOT / "models" / "final_realistic_model.pkl",
+)
+MODEL_PATH = next((path for path in _MODEL_CANDIDATES if path.is_file()), _MODEL_CANDIDATES[0])
 
 
 @pytest.fixture(scope="module")
@@ -20,7 +24,7 @@ def model_ready() -> bool:
 
 def test_calculate_final_score_with_real_bundle(model_ready: bool, samples: dict):
     if not model_ready:
-        pytest.skip("final_realistic_model.pkl not available")
+        pytest.skip("employer model file not available")
 
     import joblib
 

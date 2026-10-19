@@ -66,7 +66,7 @@ if not getattr(joblib, "_ev_test_patched", False):
 
     def _patched_joblib_load(path):
         path_str = str(path).replace("\\", "/")
-        if path_str.endswith("final_realistic_model.pkl"):
+        if path_str.endswith(("final_realistic_model.pkl", "final_model_v2.pkl")):
             real = Path(path)
             if real.is_file():
                 return _ORIGINAL_JOBLIB_LOAD(path)
