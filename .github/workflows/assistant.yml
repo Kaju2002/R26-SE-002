@@ -1,0 +1,54 @@
+name: Assistant CI
+
+on:
+  pull_request:
+    branches: [main, master]
+    paths:
+      - services/assistant/**
+      - tests/assistant/**
+      - pytest.ini
+      - tests/requirements.txt
+      - tests/service_imports.py
+      - tests/__init__.py
+      - .github/workflows/assistant.yml
+  push:
+    branches: [main, master]
+    paths:
+      - services/assistant/**
+      - tests/assistant/**
+      - pytest.ini
+      - tests/requirements.txt
+      - tests/service_imports.py
+      - tests/__init__.py
+      - .github/workflows/assistant.yml
+
+concurrency:
+  group: assistant-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: pytest
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            tests/requirements.txt
+            services/assistant/requirements.txt
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r tests/requirements.txt
+          pip install -r services/assistant/requirements.txt
+
+      - name: Run pytest
+        run: python -m pytest tests/assistant -v

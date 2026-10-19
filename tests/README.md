@@ -103,21 +103,19 @@ CI runs only the suite for the service that changed. A shared file (`pytest.ini`
 
 ### GitHub Actions CI
 
-Workflow: `.github/workflows/ci.yml`
+Each service has its own workflow file under `.github/workflows/`. A pull request or push to `main` / `master` starts only the workflows whose paths changed.
 
-Runs on **pull requests** and **pushes** to `main` / `master`. Each job runs only when its own paths change:
-
-| Job | Command |
-|-----|---------|
-| scam-detection | `python -m pytest tests/scam_detection -v` |
-| fake-job-detection | `python -m pytest tests/fake_job_detection -v` |
-| employer-verification | `python -m pytest tests/employer_verification -v` |
-| job-recommendation | `python -m pytest tests/job_recommendation -v` |
-| assistant | `python -m pytest tests/assistant -v` |
-| user-management | `npm test` (Vitest) |
-| chat-management | `npm test` (node:test) |
-| job-management | `npm test` |
-| notification-management | `npm test` |
-| email-management | `npm test` |
+| Workflow | File | Command |
+|----------|------|---------|
+| Scam detection CI | `scam-detection.yml` | `python -m pytest tests/scam_detection -v` |
+| Fake job detection CI | `fake-job-detection.yml` | `python -m pytest tests/fake_job_detection -v` |
+| Employer verification CI | `employer-verification.yml` | `python -m pytest tests/employer_verification -v` |
+| Job recommendation CI | `job-recommendation.yml` | `python -m pytest tests/job_recommendation -v` |
+| Assistant CI | `assistant.yml` | `python -m pytest tests/assistant -v` |
+| User management CI | `user-management.yml` | `npm test` |
+| Chat management CI | `chat-management.yml` | `npm test` |
+| Job management CI | `job-management.yml` | `npm test` |
+| Notification management CI | `notification-management.yml` | `npm test` |
+| Email management CI | `email-management.yml` | `npm test` |
 
 No MongoDB, SMTP, or model weight files required — integration tests skip automatically.
