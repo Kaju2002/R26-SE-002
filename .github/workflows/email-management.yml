@@ -1,0 +1,42 @@
+name: Email management CI
+
+on:
+  pull_request:
+    branches: [main, master]
+    paths:
+      - services/email-management/**
+      - .github/workflows/email-management.yml
+  push:
+    branches: [main, master]
+    paths:
+      - services/email-management/**
+      - .github/workflows/email-management.yml
+
+concurrency:
+  group: email-management-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: npm test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: services/email-management
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: services/email-management/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
