@@ -48,10 +48,7 @@ const VERIFIED = '#2E7DEB';
 type RouteParams = RouteProp<RootStackParamList, 'RecruiterProfile'>;
 
 function navigateToEmployerCheck(navigation: NavigationProp<RootStackParamList>) {
-  navigation.navigate('MainTabs', {
-    screen: 'Detect',
-    params: { screen: 'EmployerCheckScreen' },
-  } as never);
+  navigation.navigate('DetectTools', { screen: 'EmployerCheckScreen' });
 }
 
 export default function RecruiterProfileScreen() {

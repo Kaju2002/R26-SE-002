@@ -25,7 +25,7 @@ FAKE_PRED = {
     "is_scam": True,
     "confidence": 88,
     "label": "SCAM DETECTED",
-    "tactics": [3
+    "tactics": [
         {
             "name": "Urgency Pressure",
             "key": "urgency",

@@ -3,14 +3,18 @@ import { Image, StyleSheet, View, Text } from 'react-native';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeScreen from '../screens/HomeScreen';
-import DetectNavigator from './DetectNavigator';
+import AssistantScreen from '../screens/AssistantScreen';
 import ApplicationsScreen from '../screens/ApplicationsScreen';
 import ChatNavigator from './ChatNavigator';
 import JobsScreen from '../screens/JobsScreen';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ChatIcon from '../components/icons/ChatIcon';
 import { useInchat } from '../context/InchatContext';
 
 const Tab = createBottomTabNavigator();
+
+/** Icon row height. The phone's bottom inset is added under this, not inside it. */
+const TAB_CONTENT_HEIGHT = 62;
 
 /** Full-screen chat thread — hide tab bar like WhatsApp/iMessage. */
 const HIDDEN_TAB_BAR = { display: 'none' as const, height: 0 };
@@ -25,17 +29,23 @@ const NotificationBadge = ({ count }: { count?: number }) => {
 };
 
 export default function BottomTabNavigator() {
+  const insets = useSafeAreaInsets();
   const { threadsForList } = useInchat();
   const unreadChatCount = threadsForList.reduce(
     (total, thread) => total + thread.unreadCount,
     0
   );
+  const tabBarStyle = [
+    styles.tabBar,
+    { height: TAB_CONTENT_HEIGHT + insets.bottom, paddingBottom: insets.bottom },
+  ];
 
   return (
       <Tab.Navigator
+        safeAreaInsets={{ bottom: 0 }}
         screenOptions={{
           headerShown: false,
-          tabBarStyle: styles.tabBar,
+          tabBarStyle,
           tabBarActiveTintColor: '#202871',
           tabBarInactiveTintColor: '#798AA3',
           tabBarLabelStyle: styles.tabBarLabel,
@@ -60,16 +70,16 @@ export default function BottomTabNavigator() {
       />
       <Tab.Screen
         name="Detect"
-        component={DetectNavigator}
+        component={AssistantScreen}
         options={{
-          tabBarLabel: 'Detect',
+          // Detect screens stay in DetectNavigator. Restore this tab by setting
+          // component back to DetectNavigator and the label to Detect.
+          tabBarLabel: 'Check',
+          tabBarIconStyle: styles.checkIconSlot,
           tabBarIcon: ({ color }) => (
             <Image
-              source={require('../../assets/icons/mynetwork.png')}
-              style={[
-                styles.icon,
-                { tintColor: color },
-              ]}
+              source={require('../../assets/icons/robot-happy-outline.png')}
+              style={[styles.checkIcon, { tintColor: color }]}
             />
           ),
         }}
@@ -104,7 +114,7 @@ export default function BottomTabNavigator() {
                 <NotificationBadge count={unreadChatCount} />
               </View>
             ),
-            tabBarStyle: hideTabBar ? HIDDEN_TAB_BAR : styles.tabBar,
+            tabBarStyle: hideTabBar ? HIDDEN_TAB_BAR : tabBarStyle,
           };
         }}
       />
@@ -133,8 +143,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
     borderTopColor: '#E8E8E8',
     borderTopWidth: 1,
-    height: 68,
-    paddingBottom: 6,
     paddingTop: 4,
     paddingHorizontal: 0,
     justifyContent: 'space-around',
@@ -162,6 +170,18 @@ const styles = StyleSheet.create({
   icon: {
     width: 24,
     height: 24,
+    resizeMode: 'contain',
+  },
+  checkIconSlot: {
+    width: 26,
+    height: 26,
+    paddingVertical: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkIcon: {
+    width: 26,
+    height: 26,
     resizeMode: 'contain',
   },
   iconContainer: {

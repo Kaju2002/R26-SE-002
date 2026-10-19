@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { getAssistantMessageUrl } from '../config/assistantApi';
 import {
   AssistantApiError,
   getAssistantSession,
@@ -161,7 +162,7 @@ export function useAssistantChat(token: string | null) {
         const message =
           e instanceof AssistantApiError
             ? e.message
-            : 'Could not reach the assistant. Check your connection and that the server is running.';
+            : `Could not reach the assistant at ${getAssistantMessageUrl()}. Check your connection and that the server is running.`;
         setError({ message, canRetry: !unauthorised });
       } finally {
         sendingRef.current = false;
