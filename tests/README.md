@@ -99,19 +99,25 @@ py -m pytest tests/job_recommendation/ -v
 - API tests = service contract (`/classify`, `/predict`, …)
 - Metrics = research evaluation (precision / recall / F1)
 
-CI/CD should run `pytest tests/` after these suites exist.
-Deploy comes after CI is green.
+CI runs only the suite for the service that changed. A shared file (`pytest.ini`, `tests/requirements.txt`, `tests/service_imports.py`) runs every Python suite. Deploy comes after CI is green.
 
 ### GitHub Actions CI
 
 Workflow: `.github/workflows/ci.yml`
 
-Runs on **pull requests** and **pushes** to `main` / `master`:
+Runs on **pull requests** and **pushes** to `main` / `master`. Each job runs only when its own paths change:
 
 | Job | Command |
 |-----|---------|
-| ML tests | `python -m pytest tests/ -v` |
+| scam-detection | `python -m pytest tests/scam_detection -v` |
+| fake-job-detection | `python -m pytest tests/fake_job_detection -v` |
+| employer-verification | `python -m pytest tests/employer_verification -v` |
+| job-recommendation | `python -m pytest tests/job_recommendation -v` |
+| assistant | `python -m pytest tests/assistant -v` |
 | user-management | `npm test` (Vitest) |
 | chat-management | `npm test` (node:test) |
+| job-management | `npm test` |
+| notification-management | `npm test` |
+| email-management | `npm test` |
 
 No MongoDB, SMTP, or model weight files required — integration tests skip automatically.

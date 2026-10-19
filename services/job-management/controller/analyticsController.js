@@ -63,7 +63,7 @@ const endOfWeek = (weekStart) => {
 };
 
 /**
- * GET /api/jobs/analytics?range=7d|30d|all&workspaceId=
+ * GET /api/jobs/analytics?range=7d|30d|all&workspaceId=//
  */
 export const getEmployerAnalytics = async (req, res) => {
   try {
