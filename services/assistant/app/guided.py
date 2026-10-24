@@ -15,9 +15,10 @@ from app.auth import User
 from app.company_input import parse_company_details
 from app.config import get_settings
 from app.schemas import CheckResult, CheckSource, Chip, Verdict
-from app.scope_rules import is_small_talk, looks_checkable
+from app.scope_rules import is_profile_request, is_small_talk, looks_checkable
 from app.sessions import Session
 from app.tools.common import failed
+from app.tools import profile_jobs
 from app.tools.company import check_company
 from app.tools.job_post import check_job_post_image, check_job_post_text
 from app.tools.recruiter_chat import check_recruiter_image, check_recruiter_text
@@ -57,8 +58,9 @@ _STAGE_FOR_CHIP = {
 
 GREETING = (
     "Hi! I'm the FraudAware Assistant. I can check a job post, the company and the "
-    "recruiter's messages for signs of a scam. What would you like to check first? "
-    "You can also just paste or send it to me."
+    "recruiter's messages for signs of a scam. You can also ask which posted job suits you, "
+    "which skills a job needs, or tell me to add a skill to your profile. "
+    "What would you like to check first? You can also just paste or send it to me."
 )
 PROMPTS = {
     "job_post": "Please paste the job post text or send a screenshot of it.",
@@ -87,10 +89,11 @@ NOT_CHECKABLE = (
     "If that was one of them, tap what it is below. Otherwise, please paste the job post, the "
     "company's name, website or email, or the recruiter's messages."
 )
-SMALL_TALK_REPLY = (
-    "Hi! I check job posts, company details and recruiter messages for signs of a scam. "
-    "Choose what you would like to check, or paste it here."
+AGENT_HELLO = (
+    "Hello. I can check a job for scams, find a job that matches your profile, or add a skill. "
+    "What do you need?"
 )
+SMALL_TALK_REPLY = AGENT_HELLO
 FINISHED_REPLY = "This check is finished. Tap \"Start a new check\" to check something else."
 CHECKING_COMPANY = (
     "I'm checking the company now. This can take up to 90 seconds, so let's carry on meanwhile. "
@@ -277,6 +280,13 @@ async def handle(
     text = (text or "").strip() or None
     has_content = bool(text or image)
     stage = session.awaiting
+
+    if text and not image and not chip and is_profile_request(text):
+        reply = await profile_jobs.reply_to_text(session, user, text)
+        if stage == "finished":
+            return Turn(reply, [CHIP_NEW_CHECK], session.verdict)
+        buttons = menu_chips(session) if stage == "menu" else (session.chips or menu_chips(session))
+        return Turn(reply, buttons)
 
     if stage == "finished":
         return Turn(FINISHED_REPLY, [CHIP_NEW_CHECK], session.verdict)

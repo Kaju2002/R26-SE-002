@@ -17,7 +17,9 @@ from app.auth import User
 from app.llm import LlmClient, LlmUnavailable, Message, ToolResult
 from app.prompts import system_prompt, untrusted
 from app.schemas import ChatMessage, CheckResult
+from app.scope_rules import app_question
 from app.sessions import Session
+from app.tools import profile_jobs
 from app.verdict import CHECK_LABELS, combine
 
 logger = logging.getLogger(__name__)
@@ -106,6 +108,29 @@ def _code_reply(session: Session, results: Sequence[CheckResult]) -> str:
     return "\n\n".join(parts)
 
 
+def _latest_user_text(session: Session) -> str:
+    for message in reversed(session.messages):
+        if message.role == "user" and message.kind == "text":
+            return message.text or ""
+    return ""
+
+
+def _keeps_model_wording(reply: str, factual: str) -> bool:
+    """True when the model repeated the posted title and company, instead of asking for a scam check."""
+    low = (reply or "").lower()
+    if "paste the job post" in low or "i can only help" in low:
+        return False
+    named = re.search(r"for (.+?) at (.+?),", factual or "", re.I)
+    if named:
+        return named.group(1).lower() in low and named.group(2).lower() in low
+    lines = [line[2:].split("(skills")[0].strip().lower() for line in factual.splitlines() if line.startswith("- ")]
+    if lines:
+        return any(line and line in low for line in lines[:3])
+    if "profile skills are" in (factual or "").lower():
+        return "skill" in low
+    return False
+
+
 def _finish_turn(session: Session, reply: str) -> guided.Turn:
     case = session.case
     if case.is_complete():
@@ -126,7 +151,23 @@ async def handle(
     the code already ran on that message (a screenshot or a button) for Gemini to explain."""
     # The result card was shown earlier; this is a question about it.
     after_result = session.awaiting == "finished" and not checked
-    tools = None if session.case.is_complete() else agent_tools.TOOL_SPECS
+    latest = _latest_user_text(session)
+    # A posted-job or profile question is not a scam check, so the check tools stay hidden.
+    kind = None if checked else app_question(latest)
+    if kind:
+        tools = agent_tools.PROFILE_TOOL_SPECS
+    elif session.case.is_complete() and checked:
+        tools = None
+    elif session.case.is_complete():
+        tools = agent_tools.PROFILE_TOOL_SPECS
+    else:
+        tools = agent_tools.TOOL_SPECS
+    prompt = system_prompt(session.case)
+    if kind:
+        prompt += (
+            "This message asks about posted jobs or the user's profile. "
+            "Answer from the profile tools only. Do not ask the user to paste a job post.\n"
+        )
     messages = history(session)
     if checked:
         messages[-1].text += f"\n\n{_checked_note(session, checked)}"
@@ -134,10 +175,10 @@ async def handle(
     reply = ""
 
     for round_no in range(MAX_ROUNDS):
-        # Once nothing is left to check, Gemini only explains.
-        force_text = round_no == MAX_ROUNDS - 1 or session.case.is_complete()
+        # A turn that just finished the scam checks only explains that result.
+        force_text = round_no == MAX_ROUNDS - 1 or tools is None
         try:
-            answer = await client.generate(system_prompt(session.case), messages, tools, force_text=force_text)
+            answer = await client.generate(prompt, messages, tools, force_text=force_text)
         except LlmUnavailable:
             if not ctx.results:
                 raise
@@ -159,7 +200,13 @@ async def handle(
             raise LlmUnavailable("no reply")
         return _fallback_reply(session, ctx.results)
 
+    if kind:
+        factual = await profile_jobs.reply_to_text(session, user, latest)
+        if not _keeps_model_wording(reply, factual):
+            reply = factual
     turn = guided.Turn(reply, [guided.CHIP_NEW_CHECK]) if after_result else _finish_turn(session, reply)
+    if kind:
+        return turn
     if reply_check.contradicts(turn.reply, session.case, session.verdict):
         logger.warning("Gemini reply replaced: it contradicted the check results")
         turn.reply = _code_reply(session, [*checked, *ctx.results])

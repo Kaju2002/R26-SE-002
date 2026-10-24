@@ -13,6 +13,8 @@ from app.auth import User, get_current_user
 from app.config import get_settings
 from app.schemas import HealthResponse, MessageResponse, SessionView
 from app.sessions import Session, store
+from app.scope_rules import is_hello, is_profile_request
+from app.tools import profile_jobs
 from app.tools.common import MAX_IMAGE_BYTES
 
 MAX_TEXT_CHARS = 10_000
@@ -79,6 +81,27 @@ async def _reply(session: Session, user: User, text: Optional[str], image: Optio
     """Typed text goes to the LLM when it is configured, after the scope guard. Buttons, images and
     answers to "what did you send?" go to guided mode, which runs the checks; the LLM then explains
     any result. Guided mode's own reply is used whenever the LLM fails."""
+    if not chip and not image and is_hello(text or ""):
+        return guided.Turn(guided.AGENT_HELLO, session.chips or guided.menu_chips(session))
+
+    if not chip and not image:
+        skill = profile_jobs.skill_to_add(text or "")
+        if skill:
+            profile_jobs.propose_add_skill(session, skill)
+            reply = (
+                f"Add {skill} to your profile skills? Reply yes to save it. "
+                "The uploaded CV file will not change."
+            )
+            return guided.Turn(reply, session.chips or guided.menu_chips(session))
+
+    if not chip and not image and session.pending_skill:
+        decision = profile_jobs.confirmation(text or "")
+        if decision is not None:
+            reply = await profile_jobs.apply_confirmation(session, user, decision)
+            return guided.Turn(reply, session.chips or guided.menu_chips(session))
+        if is_profile_request(text or ""):
+            session.pending_skill = None
+
     client = llm.get_client()
     if client is not None:
         client = rate_limit.LimitedClient(client, user.user_id)

@@ -199,7 +199,7 @@ def test_markdown_is_removed_from_llm_replies(agent):
     sid = agent.send()["session_id"]
     agent.llm.script = [agent.llm.say("## Hi\nWould you like to share the **job post** so we can check it?")]
 
-    body = agent.send(sid, text="hello")
+    body = agent.send(sid, text="How does this work?")
 
     assert body["reply"] == "Hi\nWould you like to share the job post so we can check it?"
 

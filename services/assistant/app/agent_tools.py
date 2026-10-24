@@ -14,6 +14,8 @@ from app.llm import ToolCall, ToolSpec
 from app.prompts import untrusted
 from app.schemas import CheckResult, CheckSource
 from app.sessions import Session
+from app.tools import profile_jobs
+from app.tools.common import ServiceError
 from app.verdict import CHECK_LABELS
 
 _MESSAGE_ID = {"type": "string", "description": "Id of the user message with the content, e.g. \"m3\"."}
@@ -66,6 +68,50 @@ TOOL_SPECS = [
     ),
 ]
 
+PROFILE_TOOL_SPECS = [
+    ToolSpec(
+        name="suggest_jobs",
+        description=(
+            "List posted FraudAware jobs that match the logged-in user's profile skills. "
+            "Call this when they ask which job suits them. Does not run a scam check."
+        ),
+        parameters={"type": "object", "properties": {}},
+    ),
+    ToolSpec(
+        name="skills_for_job",
+        description=(
+            "Compare the user's profile skills with one posted job. Pass the job title and company "
+            "in the user's own words. The app matches a real posted job. Does not run a scam check."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {
+                "job_title": {"type": "string", "description": "Job title as the user said it."},
+                "company_name": {"type": "string", "description": "Company name as the user said it, if any."},
+            },
+            "required": ["job_title"],
+        },
+    ),
+    ToolSpec(
+        name="show_profile",
+        description="Read the logged-in user's profile skills. Does not change the profile or the CV file.",
+        parameters={"type": "object", "properties": {}},
+    ),
+    ToolSpec(
+        name="propose_add_skill",
+        description=(
+            "Ask to add one skill to the profile. This does not save. The app saves only after the user says yes."
+        ),
+        parameters={
+            "type": "object",
+            "properties": {"skill": {"type": "string", "description": "One skill name, such as Python."}},
+            "required": ["skill"],
+        },
+    ),
+]
+
+TOOL_SPECS = [*TOOL_SPECS, *PROFILE_TOOL_SPECS]
+
 _SOURCE_FOR_CHECK = {"job_post": "job_post", "company": "company", "recruiter_messages": "recruiter_chat"}
 _EMAIL = re.compile(r"[\w.+-]+@([\w-]+(?:\.[\w-]+)+)")
 
@@ -84,6 +130,13 @@ class ToolContext:
 
 def _label(source: CheckSource) -> str:
     return CHECK_LABELS[source]
+
+
+def _latest_user_text(session: Session) -> str:
+    for message in reversed(session.messages):
+        if message.role == "user" and message.kind == "text":
+            return message.text or ""
+    return ""
 
 
 def _original_text(session: Session, message_id: Any) -> str:
@@ -167,9 +220,38 @@ def _update_check(ctx: ToolContext, args: Dict[str, Any]) -> CheckResult:
     return ctx.session.case.get(source)
 
 
+async def _profile_tool(call: ToolCall, ctx: ToolContext) -> Dict[str, Any]:
+    args = call.args or {}
+    try:
+        if call.name == "suggest_jobs":
+            return await profile_jobs.suggest_jobs(ctx.user)
+        if call.name == "skills_for_job":
+            spoken = _latest_user_text(ctx.session)
+            hint = " ".join(
+                part.strip()
+                for part in (str(args.get("job_title") or ""), str(args.get("company_name") or ""), spoken)
+                if part and str(part).strip()
+            )
+            return await profile_jobs.skills_for_job(ctx.user, hint)
+        if call.name == "show_profile":
+            return await profile_jobs.show_profile(ctx.user)
+        if call.name == "propose_add_skill":
+            return profile_jobs.propose_add_skill(ctx.session, str(args.get("skill") or ""))
+    except ServiceError as exc:
+        return {"error": exc.message}
+    except ValueError as exc:
+        raise ToolError(str(exc))
+    raise ToolError(f"Unknown tool {call.name}.")
+
+
 async def run(call: ToolCall, ctx: ToolContext) -> Tuple[Dict[str, Any], Optional[CheckResult]]:
     """Run one tool call: (response for the LLM, the check's new state or None if the call was bad)."""
     args = call.args or {}
+    if call.name in {spec.name for spec in PROFILE_TOOL_SPECS}:
+        try:
+            return await _profile_tool(call, ctx), None
+        except ToolError as exc:
+            return {"error": str(exc)}, None
     try:
         if call.name == "check_job_post":
             result = await _check_content(ctx, "job_post", args)

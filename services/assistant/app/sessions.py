@@ -36,6 +36,8 @@ class Session(BaseModel):
     # Buttons for the latest assistant message, so a polling app can show them too.
     chips: List[Chip] = Field(default_factory=list)
     verdict: Optional[Verdict] = None
+    # A skill the user asked to add. Saved to the profile only after they say yes.
+    pending_skill: Optional[str] = None
 
     # Content the user sent before saying what it is; kept only until the next message, never stored.
     _pending_text: Optional[str] = PrivateAttr(default=None)

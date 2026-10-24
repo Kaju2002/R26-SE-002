@@ -36,6 +36,9 @@ class Settings:
     scam_detection_url: str
     employer_verification_url: str
     fake_job_detection_url: str
+    user_management_url: str
+    job_management_url: str
+    job_recommendation_url: str
     llm_provider: str
     gemini_model: str
     gemini_api_key: str = field(repr=False)
@@ -67,6 +70,9 @@ def get_settings() -> Settings:
         scam_detection_url=_url("SCAM_DETECTION_URL", "http://127.0.0.1:8000"),
         employer_verification_url=_url("EMPLOYER_VERIFICATION_URL", "http://127.0.0.1:8001"),
         fake_job_detection_url=_url("FAKE_JOB_DETECTION_URL", "http://127.0.0.1:8003"),
+        user_management_url=_url("USER_MANAGEMENT_URL", "http://127.0.0.1:5000"),
+        job_management_url=_url("JOB_MANAGEMENT_URL", "http://127.0.0.1:5001"),
+        job_recommendation_url=_url("JOB_RECOMMENDATION_URL", "http://127.0.0.1:8002"),
         llm_provider=(os.getenv("LLM_PROVIDER") or "gemini").strip().lower(),
         gemini_model=(os.getenv("GEMINI_MODEL") or "").strip(),
         gemini_api_key=(os.getenv("GEMINI_API_KEY") or "").strip(),

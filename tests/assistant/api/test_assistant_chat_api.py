@@ -219,7 +219,10 @@ def test_greeting_gets_the_menu(chat):
 
     body = chat.send(sid, text="hello")
 
-    assert body["reply"].startswith("Hi! I check job posts")
+    assert body["reply"] == (
+        "Hello. I can check a job for scams, find a job that matches your profile, or add a skill. "
+        "What do you need?"
+    )
     assert body["awaiting"] == "menu"
     assert "check_job_post" in _chip_ids(body)
 
